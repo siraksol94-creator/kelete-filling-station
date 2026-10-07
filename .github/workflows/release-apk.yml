@@ -1,0 +1,151 @@
+﻿name: Build Mobile APK and Release
+
+# Triggers on any tag starting with "mobile-v" (e.g. mobile-v1.0.0).
+# Distinct prefix so it doesn't clash with the Electron release flow which
+# fires on push to main.
+
+on:
+  push:
+    tags:
+      - 'mobile-v*'
+
+jobs:
+  build-apk:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install frontend dependencies
+        run: npm install --legacy-peer-deps
+        working-directory: frontend
+
+      - name: Add Android platform
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+        working-directory: frontend
+
+      # 2026-09-18 â€” Firebase config for push notifications. The Android folder
+      # is gitignored and regenerated on every run, so the file has to be put
+      # back each time or the build silently produces an APK that can never
+      # receive a notification: Capacitor's app/build.gradle applies the
+      # google-services plugin ONLY if this file is present, and says so in a
+      # log line nobody reads.
+      #
+      # It is committed rather than kept in a secret: the repo is private, and
+      # this file ships inside every APK anyway, so anyone holding the APK can
+      # read it. It cannot send anything â€” only the service-account key on the
+      # VPS can do that, and that one is not in git.
+      - name: Put the Firebase config into the Android project
+        run: cp firebase/google-services.json android/app/google-services.json
+        working-directory: frontend
+
+      - name: Sync Capacitor (copies mobile-shell into the Android project)
+        run: npx cap sync android
+        working-directory: frontend
+
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Inject launcher icon into every Android density bucket
+        # @capacitor/assets silently fell back to the default Capacitor swirl
+        # in the Butchery build, so we stamp the icon directly into each
+        # density bucket. Overrides BOTH the legacy bitmap launchers and the
+        # adaptive-icon foreground so Android 8+ devices use our icon instead
+        # of the template placeholder.
+        #
+        # 2026-09-11 (from Kelete v1.10.291) â€” the adaptive-icon FOREGROUND is
+        # the logo at 66% of the canvas, padded with transparency. Android 8+
+        # crops adaptive icons through the launcher's mask (circle, squircle
+        # or square) and only the middle ~66 of the 108 dp is safe, so a
+        # full-canvas stamp clips the logo's ring and lettering. The legacy
+        # ic_launcher / ic_launcher_round (Android 7 and older) are not
+        # cropped, so they still fill the whole bitmap.
+        run: |
+          ICON=../assets/icon.png
+          RES=app/src/main/res
+          declare -A LEGACY=( [mdpi]=48 [hdpi]=72 [xhdpi]=96 [xxhdpi]=144 [xxxhdpi]=192 )
+          declare -A FG=( [mdpi]=108 [hdpi]=162 [xhdpi]=216 [xxhdpi]=324 [xxxhdpi]=432 )
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p "$RES/mipmap-$d"
+            convert "$ICON" -resize ${LEGACY[$d]}x${LEGACY[$d]} "$RES/mipmap-$d/ic_launcher.png"
+            convert "$ICON" -resize ${LEGACY[$d]}x${LEGACY[$d]} "$RES/mipmap-$d/ic_launcher_round.png"
+            INNER=$(( ${FG[$d]} * 66 / 100 ))
+            convert "$ICON" -resize ${INNER}x${INNER} -background none -gravity center -extent ${FG[$d]}x${FG[$d]} "$RES/mipmap-$d/ic_launcher_foreground.png"
+          done
+          ls -la $RES/mipmap-xxxhdpi/
+        working-directory: frontend/android
+
+      - name: Round app icon, and the launch-screen background in the logo navy
+        # The adaptive icon puts the foreground on a background layer, which
+        # Capacitor leaves white â€” a white square round the logo on most
+        # launchers. It is made transparent: the foreground is the round
+        # badge alone (icon.png has transparent corners), so the icon shows
+        # as a circle whatever shape the launcher's mask is, instead of a
+        # navy rounded square. The launch screen is Android's own (Capacitor
+        # 6 uses the Android 12 splash API, with the compat library on older
+        # versions): it shows this icon on windowSplashScreenBackground,
+        # which is white unless set, so that is set to the logo's navy.
+        run: |
+          mkdir -p app/src/main/res/values
+          cat > app/src/main/res/values/ic_launcher_background.xml <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <color name="ic_launcher_background">#00000000</color>
+          </resources>
+          XML
+          STYLES=app/src/main/res/values/styles.xml
+          grep -q windowSplashScreenBackground "$STYLES" || \
+            sed -i 's|<style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">|&\n        <item name="windowSplashScreenBackground">#0F192C</item>|' "$STYLES"
+          grep -n -A3 NoActionBarLaunch "$STYLES"
+        working-directory: frontend/android
+
+      - name: Inject splash screen into every Android density bucket
+        # Same approach as the icon â€” stamp splash.png into each drawable
+        # folder. Capacitor's SplashScreen plugin reads @drawable/splash.
+        run: |
+          SPLASH=../assets/splash.png
+          RES=app/src/main/res
+          declare -A SPLASH_SIZE=( [mdpi]=320 [hdpi]=480 [xhdpi]=720 [xxhdpi]=1080 [xxxhdpi]=1440 )
+          for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+            mkdir -p "$RES/drawable-$d" "$RES/drawable-port-$d" "$RES/drawable-land-$d"
+            S=${SPLASH_SIZE[$d]}
+            convert "$SPLASH" -resize ${S}x${S} "$RES/drawable-$d/splash.png"
+            convert "$SPLASH" -resize ${S}x${S} "$RES/drawable-port-$d/splash.png"
+            convert "$SPLASH" -resize ${S}x${S} "$RES/drawable-land-$d/splash.png"
+          done
+          mkdir -p "$RES/drawable"
+          convert "$SPLASH" -resize 480x480 "$RES/drawable/splash.png"
+          ls -la $RES/drawable-xxxhdpi/
+        working-directory: frontend/android
+
+      - name: Grant gradlew permission
+        run: chmod +x gradlew
+        working-directory: frontend/android
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+        working-directory: frontend/android
+
+      - name: Rename APK
+        run: cp frontend/android/app/build/outputs/apk/debug/app-debug.apk KeleteMobile-${{ github.ref_name }}.apk
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: KeleteMobile-${{ github.ref_name }}.apk
+          generate_release_notes: true
+          name: Kelete Mobile ${{ github.ref_name }}

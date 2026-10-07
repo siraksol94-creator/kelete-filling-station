@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kelete</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: radial-gradient(ellipse at 50% 30%, #1e3a8a 0%, #0a1857 55%, #050a2e 100%);
+      color: #e0e7ff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      user-select: none;
+      -webkit-app-region: drag;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Subtle texture overlay â€” soft glow ring centered behind the icon */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 18%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(96,165,250,0.25) 0%, rgba(30,58,138,0) 70%);
+      pointer-events: none;
+      animation: glow 4s ease-in-out infinite;
+    }
+
+    .icon {
+      width: 86px;
+      height: 86px;
+      margin-bottom: 14px;
+      border-radius: 18px;
+      box-shadow:
+        0 8px 24px rgba(0,0,0,0.45),
+        0 0 0 1px rgba(255,255,255,0.05);
+      animation: pulse 2.4s ease-in-out infinite;
+      position: relative;
+      z-index: 1;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #ffffff;
+      margin-bottom: 3px;
+      text-shadow: 0 2px 8px rgba(96,165,250,0.4);
+    }
+
+    .subtitle {
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #93a3c4;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .divider {
+      width: 200px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #60a5fa88, transparent);
+      margin-bottom: 18px;
+    }
+
+    .dev-label {
+      font-size: 10px;
+      color: #6e7ea3;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+
+    .dev-name {
+      text-align: center;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .dev-name .line1 {
+      display: block;
+      font-size: 17px;
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 4px;
+      text-shadow: 0 1px 4px rgba(96,165,250,0.5);
+    }
+    .dev-name .line2 {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #a5b4e0;
+      letter-spacing: 1.5px;
+    }
+
+    .dev-info {
+      font-size: 11px;
+      color: #93a3c4;
+      line-height: 1.9;
+      text-align: center;
+      letter-spacing: 0.3px;
+      margin-bottom: 22px;
+    }
+
+    .loader-track {
+      width: 240px;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+
+    .loader-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #60a5fa, #93c5fd, #60a5fa);
+      background-size: 200% 100%;
+      border-radius: 2px;
+      animation: fill 8s linear forwards, shimmer 1.8s linear infinite;
+      box-shadow: 0 0 10px rgba(96,165,250,0.6);
+    }
+
+    .status {
+      font-size: 11px;
+      color: #6e7ea3;
+      letter-spacing: 1px;
+      min-height: 16px;
+    }
+
+    .version {
+      position: absolute;
+      bottom: 14px;
+      font-size: 10px;
+      color: #3a4870;
+      letter-spacing: 1px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes fill {
+      0%   { width: 0%; }
+      100% { width: 100%; }
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    @keyframes glow {
+      0%, 100% { opacity: 0.65; transform: translate(-50%, -50%) scale(1); }
+      50%      { opacity: 1;    transform: translate(-50%, -50%) scale(1.08); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App icon: same wine glass as the installed Electron app and in-app sidebar -->
+  <img class="icon" src="icon.png" alt="Kelete" />
+
+  <div class="title">Kelete</div>
+  <div class="subtitle">Management System</div>
+
+  <div class="divider"></div>
+
+  <div class="dev-label">Developed by</div>
+  <div class="dev-name">
+    <span class="line1">SIDAN</span>
+    <span class="line2">IT and Business Solutions</span>
+  </div>
+  <div class="dev-info">
+    www.sidanitsolutions.com<br>
+    +260 775 722 196 &nbsp;/&nbsp; +260 775 722 228<br>
+    Lusaka, Zambia
+  </div>
+
+  <div class="loader-track">
+    <div class="loader-bar"></div>
+  </div>
+  <div class="status" id="status">Starting...</div>
+
+  <div class="version" id="version">v?</div>
+
+  <script>
+    // Version is passed in by main.js as ?v=1.4.75 â€” falls back to literal if missing.
+    var v = new URLSearchParams(window.location.search).get('v');
+    document.getElementById('version').textContent = v ? ('v' + v) : 'v?';
+  </script>
+</body>
+</html>

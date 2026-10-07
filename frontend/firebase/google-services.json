@@ -1,0 +1,29 @@
+﻿{
+  "project_info": {
+    "project_number": "767833283022",
+    "project_id": "kelete-3f2a8",
+    "storage_bucket": "kelete-3f2a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767833283022:android:d0928ab82402e4dc1d739f",
+        "android_client_info": {
+          "package_name": "com.sidanit.kelete.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxWpNDe7TbG6DnxyHSBHzDri1uWQO7hQQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,59 @@
+﻿name: Deploy
+
+# Pull-deploy model: CI only builds + publishes the Electron app and
+# packages the web bundle as a release artifact. The VPS runs a cron job
+# (`/usr/local/bin/kelete-deploy.sh`) that pulls from this repo every minute
+# and restarts PM2 / reloads nginx if anything changed.
+#
+# Reason: GitHub Actions runner IPs were being silently filtered at
+# Hostinger's network edge, causing every SCP attempt to time out at the
+# TCP layer (logged as "Connection timed out") regardless of password,
+# firewall rules, or sshd config. Pull-deploy bypasses the inbound-SSH
+# problem entirely and also removes the VPS password from CI secrets.
+
+on:
+  # 2026-07-31 â€” cost cut: was `push: branches: [main]` which triggered the
+  # windows-2022 Electron build on EVERY commit. During the ZRA push week
+  # that meant ~20 builds â†’ $44 metered spend. Web deployments are handled
+  # by the VPS's own cron `git pull` and don't need CI, so the only real
+  # reason to run this workflow is to ship a NEW Electron installer.
+  #
+  # Now: fires only when a semver tag is pushed (git tag v1.13.128 && git
+  # push origin v1.13.128) OR when the maintainer clicks "Run workflow"
+  # in the Actions tab. ~90% cost reduction vs the old always-on trigger.
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  build-electron:
+    name: Build & Publish Electron App
+    # Pinned to windows-2022 because GitHub's windows-latest image now ships
+    # Visual Studio 18, which node-gyp@10.1.0 (bundled with Node 20.20.2)
+    # can't parse â€” the VS finder fails with `unknown version "undefined"
+    # found at C:\Program Files\Microsoft Visual Studio\18\Enterprise` and
+    # better-sqlite3's native build aborts. windows-2022 still has VS 2022
+    # which node-gyp recognises.
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install backend dependencies
+        run: npm install --production
+        working-directory: backend
+
+      - name: Install frontend dependencies
+        run: npm install
+        working-directory: frontend
+
+      - name: Build & Publish
+        run: npm run dist:publish
+        working-directory: frontend
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

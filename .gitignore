@@ -1,0 +1,40 @@
+node_modules/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.db.backup*
+.env
+backend/uploads/
+frontend/build/
+frontend/dist/
+tenants/
+# In-app Messages files (routes/chat.js, CHAT_FILES_DIR default) — live data, never in git.
+chat-files/
+
+# Personal docs / dev artifacts (not part of the app)
+*.pdf
+*.xls
+*.xlsx
+*.docx
+pole-display-test.ps1
+
+# Local archive artifacts
+*.tar
+*.tar.gz
+
+# Capacitor (Android)
+frontend/android/
+# Gradle output from building the APK locally — regenerated on every build.
+frontend/capacitor-plugins/*/android/build/
+
+# 2026-09-18 — the Firebase SERVER key: a private key with full access to the
+# project, able to send a notification to every phone. It is never committed;
+# it is placed on the VPS by hand at
+# /var/www/kelete-fuel/backend/firebase-service-account.json
+# and services/push.js quietly disables push when it is missing.
+#
+# frontend/firebase/google-services.json is a different thing and IS committed:
+# it is client config that ships inside every APK and can send nothing.
+backend/firebase-service-account.json
+frontend/apk-release/

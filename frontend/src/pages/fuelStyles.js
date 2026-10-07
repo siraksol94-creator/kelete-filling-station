@@ -1,0 +1,36 @@
+// Shared inline styles for the Kelete Fuel pages. Keeping them inline to
+// avoid needing a CSS build step for the first slice.
+export const S = {
+  page: { padding: 24 },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  h2: { margin: 0, display: 'flex', alignItems: 'center', gap: 8 },
+  card: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' },
+  table: { width: '100%', borderCollapse: 'collapse' },
+  th: { textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: '#6b7280', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
+  td: { padding: '12px 16px', fontSize: 14 },
+  tdR: { padding: '12px 16px', fontSize: 14, textAlign: 'right' },
+  btnPrimary: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#2563eb', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
+  btnSecondary: { padding: '10px 16px', background: '#f3f4f6', color: '#111', border: 0, borderRadius: 6, cursor: 'pointer' },
+  btnDanger: { padding: '10px 16px', background: '#dc2626', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer' },
+  iconBtn: { background: 'transparent', border: 0, padding: 6, cursor: 'pointer', color: '#374151', marginRight: 4 },
+  iconBtnDanger: { background: 'transparent', border: 0, padding: 6, cursor: 'pointer', color: '#dc2626', marginRight: 4 },
+  backdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modal: { background: '#fff', borderRadius: 10, width: 'min(640px, 94vw)', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' },
+  modalHeader: { padding: 20, borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  modalFooter: { padding: 20, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8, justifyContent: 'flex-end' },
+  formGrid: { padding: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
+  lbl: { display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 500, color: '#374151' },
+  input: { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, marginTop: 2 },
+  errBox: { margin: 20, padding: 12, background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 6, fontSize: 14 },
+  pill: (color) => ({ display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: color + '22', color, fontSize: 12, fontWeight: 600 }),
+  statCard: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 },
+  statLabel: { fontSize: 12, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 },
+  statValue: { fontSize: 24, fontWeight: 700, marginTop: 4, color: '#111' },
+  bar: (pct, color = '#2563eb') => ({
+    height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden', position: 'relative', marginTop: 8,
+  }),
+  barFill: (pct, color = '#2563eb') => ({
+    width: `${Math.min(100, Math.max(0, pct))}%`,
+    height: '100%', background: color, borderRadius: 4,
+  }),
+};

@@ -1,0 +1,510 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0F192C" />
+<title>Kelete</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* The logo's navy, carried on from the splash screen. */
+    background: linear-gradient(160deg, #0F192C 0%, #13306b 100%);
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  .screen {
+    min-height: 100vh;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 24px;
+  }
+  .screen.active { display: flex; }
+  .logo {
+    display: block; width: 104px; height: 104px; border-radius: 50%;
+    margin-bottom: 18px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .subtitle { font-size: 12px; opacity: 0.7; margin-bottom: 28px; letter-spacing: 1px; text-transform: uppercase; }
+  .pick-label { font-size: 13px; opacity: 0.85; margin-bottom: 14px; }
+  .step-tag {
+    font-size: 10px; font-weight: 700; opacity: 0.6; letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .choices, .form-wrap { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 12px; }
+  .choice {
+    padding: 16px 20px; border-radius: 14px;
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.18);
+    color: #fff; font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: transform 0.1s, background 0.15s;
+    display: flex; align-items: center; justify-content: space-between;
+    text-align: left;
+  }
+  .choice:active { transform: scale(0.97); background: rgba(255,255,255,0.18); }
+  .choice .badge {
+    font-size: 10px; opacity: 0.6; font-weight: 500;
+    letter-spacing: 0.4px; text-transform: uppercase;
+  }
+  .selected-branch {
+    padding: 12px 16px; border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    margin-bottom: 18px; text-align: center;
+  }
+  .selected-branch .name { font-size: 16px; font-weight: 700; }
+  .selected-branch .host { font-size: 10px; opacity: 0.65; margin-top: 2px; letter-spacing: 0.4px; }
+  .field {
+    width: 100%; padding: 14px 16px;
+    border-radius: 12px; font-size: 15px;
+    background: rgba(255,255,255,0.95); color: #0f172a;
+    border: 2px solid transparent; outline: none;
+    font-family: monospace; letter-spacing: 1.5px; text-align: center;
+    font-weight: 600;
+  }
+  .field:focus { border-color: #8fa7d6; }
+  .field.error { border-color: #f87171; background: rgba(254,226,226,0.95); }
+  .err-msg { color: #fecaca; font-size: 12px; min-height: 16px; text-align: center; margin-top: 2px; }
+  .btn {
+    padding: 14px 20px; border-radius: 12px; border: none;
+    background: #fff; color: #13306b; font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .btn:active { opacity: 0.85; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent; color: rgba(255,255,255,0.85);
+    border: 1.5px solid rgba(255,255,255,0.3);
+  }
+  .footer {
+    margin-top: 28px; font-size: 11px; opacity: 0.5;
+    text-align: center;
+  }
+  .spinner {
+    width: 42px; height: 42px;
+    border: 3px solid rgba(255,255,255,0.25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-label { font-size: 13px; opacity: 0.85; text-align: center; }
+  /* 2026-09-12 â€” which APK this is, and whether the branch list is the live
+     one or the offline fallback (with the reason). Small and quiet; it is
+     there for the day a depot says its branch is missing. */
+  .list-status { margin-top: 12px; font-size: 11px; opacity: 0.75; text-align: center; line-height: 1.5; word-break: break-word; }
+  .list-status.err { opacity: 0.95; color: #ffb4b4; }
+  .list-status a { color: inherit; font-weight: 700; text-decoration: underline; margin-left: 6px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <!--
+    First-launch flow, as in Kelete: pick your site, then â€” branches only â€”
+    type the licence. Both are saved to localStorage so later launches go
+    straight to the saved host. HQ has no licence and skips step 2.
+
+    2026-09-11 â€” the licence step is back at the owner's request (it was
+    dropped on 2026-09-03). As in Kelete it accepts any 3+ characters and is
+    kept on this device only; nothing on the server checks it yet. The real
+    gate is still the website's own login.
+
+    2026-09-12 â€” the branch list comes from the server (/api/hq/branches, the
+    same list HQ's branch picker uses), so a branch added on the VPS appears
+    here with no new APK. The list typed below is only the offline fallback.
+    allowNavigation in capacitor.config.json already covers every
+    *.keletezm.com host.
+  -->
+
+  <!-- â”€â”€â”€ Step 1: pick branch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div id="screen-pick" class="screen active">
+    <img class="logo" src="logo.png" alt="Red Sea Distribution" />
+    <h1>Kelete</h1>
+    <div class="subtitle">Management System</div>
+    <div class="step-tag">Step 1 of 2</div>
+    <div class="pick-label">Choose your site:</div>
+    <div class="choices" id="choices"></div>
+    <div class="list-status" id="list-status"></div>
+    <div class="footer">You can change this later by reinstalling the app.</div>
+  </div>
+
+  <!-- â”€â”€â”€ Step 2: licence (branches) / passcode (HQ) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div id="screen-licence" class="screen">
+    <img class="logo" src="logo.png" alt="Red Sea Distribution" />
+    <h1>Kelete</h1>
+    <div class="subtitle">Management System</div>
+    <div class="step-tag">Step 2 of 2</div>
+
+    <div class="selected-branch">
+      <div class="name" id="branch-name">â€”</div>
+      <div class="host" id="branch-host">â€”</div>
+    </div>
+
+    <div class="pick-label" id="step2-label">Enter your access licence:</div>
+    <div class="form-wrap">
+      <input id="licence-input" class="field" type="text"
+        autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <div class="err-msg" id="licence-err"></div>
+      <button id="continue-btn" class="btn">Continue â†’</button>
+      <button id="back-btn" class="btn btn-secondary">â† Back</button>
+    </div>
+    <div class="footer" id="step2-footer">Provided by your administrator. Checked with the server.</div>
+  </div>
+
+  <!-- â”€â”€â”€ Loading: redirecting to host â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
+  <div id="screen-loading" class="screen">
+    <div class="spinner"></div>
+    <div class="loading-label" id="loading-label">Opening Keleteâ€¦</div>
+  </div>
+
+  <script>
+    // 2026-09-12 â€” OFFLINE FALLBACK ONLY. On step 1 the real list is fetched
+    // from the server (loadServerSites below); this is what shows if the phone
+    // has no connection yet, so it need not be kept up to date.
+    // 2026-09-03 â€” was Kelete's branch list (Kassumbalesa/Lusaka/Mansa) with
+    // Kelete's domain pasted onto it, so every entry but HQ pointed at a
+    // subdomain that does not exist. These are Red Sea's actual depots.
+    const FALLBACK_SITES = [
+      { id: 'hq',           label: 'Head Office (HQ)', host: 'keletezm.com' },
+      { id: 'buseko',       label: 'Buseko',           host: 'buseko.keletezm.com' },
+      { id: 'chawama',      label: 'Chawama',          host: 'chawama.keletezm.com' },
+      { id: 'chipata',      label: 'Chipata',          host: 'chipata.keletezm.com' },
+      { id: 'garden',       label: 'Garden',           host: 'garden.keletezm.com' },
+      { id: 'kabwata',      label: 'Kabwata',          host: 'kabwata.keletezm.com' },
+      { id: 'kabwe',        label: 'Kabwe',            host: 'kabwe.keletezm.com' },
+      { id: 'kalingalinga', label: 'Kalingalinga',     host: 'kalingalinga.keletezm.com' },
+      { id: 'katete',       label: 'Katete',           host: 'katete.keletezm.com' },
+      { id: 'libala',       label: 'Libala',           host: 'libala.keletezm.com' },
+      { id: 'livingstone',  label: 'Livingstone',      host: 'livingstone.keletezm.com' },
+      { id: 'malambo',      label: 'Malambo',          host: 'malambo.keletezm.com' },
+      { id: 'mandevu',      label: 'Mandevu',          host: 'mandevu.keletezm.com' },
+      { id: 'mutendere',    label: 'Mutendere',        host: 'mutendere.keletezm.com' },
+      { id: 'petauke',      label: 'Petauke',          host: 'petauke.keletezm.com' },
+      { id: 'chibombo',     label: 'Chibombo',         host: 'chibombo.keletezm.com' },
+    ];
+    const DOMAIN   = 'keletezm.com';
+    const HQ_SITE  = FALLBACK_SITES[0];
+    let   SITES    = FALLBACK_SITES.slice();
+
+    // "kabwe" â†’ "Kabwe", "new-site" â†’ "New Site". Built from the slug, not the
+    // business name: names read "Kelete Distribution - KABWE" and are not all
+    // written the same way, while the slug IS the subdomain being opened.
+    function labelFromSlug(slug) {
+      return slug.split('-').map(function (w) {
+        return w.charAt(0).toUpperCase() + w.slice(1);
+      }).join(' ');
+    }
+
+    // The branch list from the server â€” the same one HQ's branch picker reads.
+    // No login needed. Head Office stays first; the stale bare-domain tenant
+    // and HQ's own row are skipped (HQ is pinned). Anything that is not a plain
+    // subdomain slug is dropped, which also keeps the innerHTML below safe.
+    // Any failure (offline, timeout, bad reply) leaves the fallback in place.
+    // 2026-09-12 â€” shown under the list. Bump with every mobile-v tag: the
+    // debug APK reports the same version to Android on every build, so this
+    // is the only place a phone says which build it is running.
+    const APK_VERSION = '1.0.9';
+
+    // textContent only â€” an error message is never trusted as HTML.
+    function setListStatus(text, isError) {
+      var el = document.getElementById('list-status');
+      if (!el) return;
+      el.className = 'list-status' + (isError ? ' err' : '');
+      el.textContent = 'APK ' + APK_VERSION + ' Â· ' + text;
+      if (isError) {
+        var retry = document.createElement('a');
+        retry.textContent = 'Retry';
+        retry.onclick = function () { loadServerSites(); };
+        el.appendChild(retry);
+      }
+    }
+
+    function loadServerSites() {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timedOut = false;
+      var timer = setTimeout(function () { timedOut = true; if (ctrl) ctrl.abort(); }, 8000);
+      setListStatus('loading live listâ€¦', false);
+      // Why the fallback is showing, in words a screenshot can carry: the HTTP
+      // status, a timeout, an unreadable reply, or the browser's own error.
+      var fail = function (reason) { setListStatus('offline list Â· ' + reason, true); };
+      var req;
+      try {
+        req = fetch('https://' + DOMAIN + '/api/hq/branches', { cache: 'no-store', signal: ctrl ? ctrl.signal : undefined });
+      } catch (e) {
+        clearTimeout(timer);
+        return fail('fetch threw: ' + ((e && (e.name + ': ' + e.message)) || e));
+      }
+      req
+        .then(function (r) {
+          if (!r.ok) { fail('HTTP ' + r.status); return null; }
+          return r.json().catch(function (e) { fail('bad reply: ' + (e && e.message)); return null; });
+        })
+        .then(function (data) {
+          if (data === null) return;
+          var rows = data && Array.isArray(data.branches) ? data.branches : [];
+          var seen = {};
+          var branches = rows
+            .map(function (b) { return String((b && b.slug) || '').trim().toLowerCase(); })
+            .filter(function (slug) {
+              if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return false;
+              if (slug === 'hq' || slug === 'keletedistributionzm' || slug === 'kelete') return false;
+              if (seen[slug]) return false;
+              seen[slug] = true;
+              return true;
+            })
+            .map(function (slug) {
+              return { id: slug, label: labelFromSlug(slug), host: slug + '.' + DOMAIN };
+            })
+            .sort(function (a, b) { return a.label.localeCompare(b.label); });
+          if (branches.length === 0) return fail('server list was empty (' + rows.length + ' rows)');
+          SITES = [HQ_SITE].concat(branches);
+          if (document.getElementById('screen-pick').classList.contains('active')) renderChoices();
+          setListStatus('live list Â· ' + branches.length + ' branches', false);
+        })
+        .catch(function (e) {
+          // Offline or unreachable: the fallback stays, and the reason shows.
+          fail(timedOut ? 'no answer in 8 s' : ((e && (e.name + ': ' + e.message)) || String(e)));
+        })
+        .then(function () { clearTimeout(timer); });
+    }
+    const KEY_SITE    = 'kelete_selected_site_v1';
+    // The same key the pre-2026-09-03 shell saved under, so a device that
+    // typed its licence back then is not asked again.
+    const KEY_LICENCE = 'kelete_license_v1';
+
+    function show(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function getSaved(key) {
+      try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; }
+    }
+    function setSaved(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    }
+
+    function renderChoices() {
+      const wrap = document.getElementById('choices');
+      wrap.innerHTML = '';
+      SITES.forEach(function (s) {
+        const btn = document.createElement('button');
+        btn.className = 'choice';
+        btn.innerHTML = '<span>' + s.label + '</span><span class="badge">' + s.host + '</span>';
+        btn.onclick = function () { onBranchPicked(s); };
+        wrap.appendChild(btn);
+      });
+    }
+
+    let pendingSite = null;
+
+    // 2026-09-18 â€” HQ is no longer waved straight through.
+    //
+    // A depot is asked for its licence key and the key is now checked with the
+    // server. HQ has no licence key of its own (its tenant is 'local-only'),
+    // so it is asked for a passcode an HQ Administrator sets in System
+    // Settings instead. Until they set one there is nothing to ask for, so we
+    // put the question to the server first with an empty code: "ok" means no
+    // passcode is set here and HQ opens as it always did.
+    function onBranchPicked(site) {
+      if (site.id !== 'hq') return askLicence(site);
+      postJSON('https://' + DOMAIN + '/api/sync/verify-hq-passcode', { code: '' })
+        .then(function (r) {
+          if (r && r.ok) {              // no passcode set at HQ yet
+            setSaved(KEY_SITE, site);
+            loadSite(site);
+          } else {
+            askLicence(site);
+          }
+        })
+        .catch(function () {
+          // Unreachable: let HQ through as before rather than stranding an
+          // HQ phone on a bad line â€” with no connection there is nothing to
+          // open on the other side anyway.
+          setSaved(KEY_SITE, site);
+          loadSite(site);
+        });
+    }
+
+    // POST with a 10 s ceiling. Rejects only on a real network/timeout
+    // failure; any answer from the server, good or bad, resolves.
+    function postJSON(url, body) {
+      var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 10000);
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify(body || {}),
+        signal: ctrl ? ctrl.signal : undefined,
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { clearTimeout(timer); return d; })
+        .catch(function (e) { clearTimeout(timer); throw e; });
+    }
+
+    function isHq(site) { return !!site && site.id === 'hq'; }
+
+    function askLicence(site) {
+      pendingSite = site;
+      const hq = isHq(site);
+      const input = document.getElementById('licence-input');
+      document.getElementById('branch-name').textContent = site.label;
+      document.getElementById('branch-host').textContent = site.host;
+      document.getElementById('step2-label').textContent = hq
+        ? 'Enter the Head Office passcode:'
+        : 'Enter your access licence:';
+      document.getElementById('step2-footer').textContent = hq
+        ? 'Set by an HQ Administrator in System Settings.'
+        : 'Provided by your administrator. Checked with the server.';
+      // A licence key is typed in capitals and read back to check it; a
+      // passcode is hidden and typed as it was given.
+      input.type = hq ? 'password' : 'text';
+      input.setAttribute('autocapitalize', hq ? 'off' : 'characters');
+      input.value = '';
+      input.classList.remove('error');
+      document.getElementById('licence-err').textContent = '';
+      setBusy(false);
+      show('screen-licence');
+      // Android sometimes ignores focus during the screen change.
+      setTimeout(function () { input.focus(); }, 200);
+    }
+
+    function setBusy(busy) {
+      const btn = document.getElementById('continue-btn');
+      btn.disabled = busy;
+      btn.textContent = busy ? 'Checkingâ€¦' : 'Continue â†’';
+      document.getElementById('back-btn').disabled = busy;
+    }
+
+    // Named showError, not fail â€” loadServerSites above has its own local
+    // fail() for the branch-list status line.
+    function showError(message) {
+      document.getElementById('licence-err').textContent = message;
+      document.getElementById('licence-input').classList.add('error');
+      setBusy(false);
+    }
+
+    // 2026-09-18 â€” this used to accept anything 3 characters long and save it
+    // on the phone; nothing was ever sent to the server, so a real key and
+    // "ABC" behaved the same. Now the server decides, and says why when it
+    // refuses: unknown key, key for another branch, expired, switched off.
+    function onContinue() {
+      const input = document.getElementById('licence-input');
+      const typed = (input.value || '').trim();
+      const hq = isHq(pendingSite);
+      if (!typed) return showError(hq ? 'Passcode is required.' : 'Licence is required.');
+
+      setBusy(true);
+      document.getElementById('licence-err').textContent = '';
+      input.classList.remove('error');
+
+      const check = hq
+        ? postJSON('https://' + DOMAIN + '/api/sync/verify-hq-passcode', { code: typed })
+        : fetch('https://' + DOMAIN + '/api/sync/verify-license'
+                + '?key=' + encodeURIComponent(typed)
+                + '&slug=' + encodeURIComponent(pendingSite.id), { cache: 'no-store' })
+            .then(function (r) { return r.json(); });
+
+      check
+        .then(function (r) {
+          if (!r || !r.ok) {
+            return showError((r && r.reason) || (hq ? 'Wrong passcode.' : 'Licence refused.'));
+          }
+          setSaved(KEY_SITE, pendingSite);
+          // The HQ passcode itself is never kept on the phone â€” only a note
+          // that it was answered, so later launches don't ask again.
+          setSaved(KEY_LICENCE, {
+            key: hq ? 'hq-passcode-ok' : typed,
+            siteId: pendingSite.id,
+            checkedAt: new Date().toISOString(),
+          });
+          loadSite(pendingSite);
+        })
+        .catch(function () {
+          showError('No connection â€” check your internet and try again.');
+        });
+    }
+
+    function onBack() {
+      pendingSite = null;
+      renderChoices();
+      show('screen-pick');
+      // A device launched straight into the licence screen never fetched the
+      // list, so fetch it now â€” the list shown is the fallback until it lands.
+      loadServerSites();
+    }
+
+    document.getElementById('continue-btn').addEventListener('click', onContinue);
+    document.getElementById('back-btn').addEventListener('click', onBack);
+    document.getElementById('licence-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); onContinue(); }
+    });
+    document.getElementById('licence-input').addEventListener('input', function () {
+      document.getElementById('licence-err').textContent = '';
+      document.getElementById('licence-input').classList.remove('error');
+    });
+
+    function loadSite(site) {
+      show('screen-loading');
+      document.getElementById('loading-label').textContent = 'Opening ' + site.label + 'â€¦';
+      setTimeout(function () {
+        // The web frontend handles authentication with a normal user
+        // login â€” nothing is appended to the URL.
+        window.location.href = 'https://' + site.host + '/';
+      }, 250);
+    }
+
+    // Straight to the saved site on every launch after the first, once this
+    // device has answered for that site. A branch device set up while the
+    // licence step was gone (2026-09-03 to 09-11) has a site but no licence:
+    // it is asked for the licence of that site once, with Back to pick
+    // another.
+    //
+    // 2026-09-18 â€” an HQ device saved before this change has no record
+    // either, so it goes through onBranchPicked: if HQ has set a passcode it
+    // is asked for it once, and if HQ has not, it opens as it always did.
+    (function init() {
+      const savedSite = getSaved(KEY_SITE);
+      const savedLic  = getSaved(KEY_LICENCE);
+      if (savedSite && savedSite.host) {
+        if (savedLic && savedLic.key && savedLic.siteId === savedSite.id) {
+          // 2026-09-18 â€” a phone set up on 1.0.7 or earlier holds a licence
+          // nothing ever checked: the box accepted any 3 characters, so "xyz"
+          // is sitting there and still opens the depot. Upgrading the app
+          // would not have retired it â€” this launch does.
+          //
+          // Only ever done once, and only for a record with no checkedAt
+          // stamp (which is all 1.0.8 writes). A refusal sends them to the
+          // licence screen with the reason; anything else â€” no signal, a
+          // server that cannot answer â€” lets the till straight through,
+          // because a bad line must never stop a depot selling.
+          if (!savedLic.checkedAt && savedSite.id !== 'hq') {
+            return fetch('https://' + DOMAIN + '/api/sync/verify-license'
+                         + '?key=' + encodeURIComponent(savedLic.key)
+                         + '&slug=' + encodeURIComponent(savedSite.id), { cache: 'no-store' })
+              .then(function (r) { return r.json(); })
+              .then(function (v) {
+                if (v && v.ok) {
+                  savedLic.checkedAt = new Date().toISOString();
+                  setSaved(KEY_LICENCE, savedLic);   // never ask this phone again
+                  return loadSite(savedSite);
+                }
+                askLicence(savedSite);
+                showError((v && v.reason) || 'This licence is no longer valid.');
+              })
+              .catch(function () { loadSite(savedSite); });
+          }
+          return loadSite(savedSite);
+        }
+        if (savedSite.id === 'hq') return onBranchPicked(savedSite);
+        return askLicence(savedSite);
+      }
+      renderChoices();      // the fallback, straight away
+      loadServerSites();    // then the live list replaces it
+    })();
+  </script>
+</body>
+</html>

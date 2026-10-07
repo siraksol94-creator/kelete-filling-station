@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The KI-POS's built-in printer is paired as a Bluetooth device
+         ("vBtPrinter"). Android 12+ asks for BLUETOOTH_CONNECT ("Nearby
+         devices") at runtime; older versions use the two legacy
+         permissions, granted at install. No scanning: only already-paired
+         devices are used. -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+</manifest>

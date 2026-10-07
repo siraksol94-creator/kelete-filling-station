@@ -1,0 +1,22 @@
+﻿{
+  "name": "kelete-print",
+  "version": "1.0.0",
+  "description": "Opens Android's print window for receipts printed by the Kelete site inside the Kelete APK.",
+  "private": true,
+  "main": "index.js",
+  "files": [
+    "android/src/main/",
+    "android/build.gradle",
+    "index.js"
+  ],
+  "keywords": [
+    "capacitor",
+    "plugin",
+    "native"
+  ],
+  "capacitor": {
+    "android": {
+      "src": "android"
+    }
+  }
+}

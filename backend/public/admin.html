@@ -1,0 +1,925 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kelete â€” Admin Panel</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f1f5f9; color: #1e293b; min-height: 100vh; }
+
+  /* â”€â”€ Login â”€â”€ */
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .login-card { background: #fff; border-radius: 16px; padding: 48px 40px; width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,.12); text-align: center; }
+  .login-card h1 { font-size: 22px; margin: 16px 0 4px; }
+  .login-card p { color: #64748b; font-size: 14px; margin-bottom: 28px; }
+  .login-logo { font-size: 48px; }
+  input[type=password] { width: 100%; padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+  input[type=password]:focus { border-color: #2563eb; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+  .btn:hover { opacity: .88; }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-success { background: #16a34a; color: #fff; }
+  .btn-danger  { background: #dc2626; color: #fff; }
+  .btn-outline { background: transparent; border: 1px solid #cbd5e1; color: #374151; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-full { width: 100%; justify-content: center; margin-top: 14px; padding: 12px; }
+  .error-msg { color: #dc2626; font-size: 13px; margin-top: 10px; }
+
+  /* â”€â”€ Layout â”€â”€ */
+  #app { display: none; }
+  .sidebar { position: fixed; top: 0; left: 0; width: 220px; height: 100vh; background: #1e293b; color: #e2e8f0; padding: 24px 0; }
+  .sidebar-logo { padding: 0 20px 24px; border-bottom: 1px solid #334155; }
+  .sidebar-logo h2 { font-size: 16px; color: #f8fafc; margin-top: 8px; }
+  .sidebar-logo p  { font-size: 11px; color: #94a3b8; }
+  .sidebar nav { padding: 16px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; font-size: 14px; color: #cbd5e1; cursor: pointer; transition: background .15s; }
+  .nav-item:hover, .nav-item.active { background: #334155; color: #f8fafc; }
+  .main { margin-left: 220px; padding: 32px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* â”€â”€ Cards â”€â”€ */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .stat-card .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { font-size: 32px; font-weight: 700; margin-top: 6px; }
+  .stat-card.green .value { color: #16a34a; }
+  .stat-card.red   .value { color: #dc2626; }
+  .stat-card.amber .value { color: #d97706; }
+
+  /* â”€â”€ Table â”€â”€ */
+  .card { background: #fff; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
+  .card-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid #e2e8f0; }
+  .card-header h3 { font-size: 15px; font-weight: 600; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; font-size: 13px; }
+  th { background: #f8fafc; color: #64748b; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+  tr:not(:last-child) td { border-bottom: 1px solid #f1f5f9; }
+  tr:hover td { background: #f8fafc; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-green  { background: #dcfce7; color: #16a34a; }
+  .badge-red    { background: #fee2e2; color: #dc2626; }
+  .badge-amber  { background: #fef3c7; color: #d97706; }
+  .badge-gray   { background: #f1f5f9; color: #64748b; }
+  .key-mono { font-family: monospace; font-size: 13px; letter-spacing: 1px; background: #f1f5f9; padding: 4px 8px; border-radius: 6px; }
+
+  /* â”€â”€ Modal â”€â”€ */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 100; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 32px; width: 420px; max-width: 95vw; box-shadow: 0 24px 64px rgba(0,0,0,.2); }
+  .modal h3 { font-size: 18px; margin-bottom: 20px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none;
+  }
+  .form-group input:focus, .form-group select:focus { border-color: #2563eb; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+  .loading { text-align: center; padding: 40px; color: #94a3b8; }
+
+  /* â”€â”€ Patch modal â”€â”€ */
+  #patch-info { font-size: 13px; color: #64748b; margin-bottom: 16px; }
+
+  /* â”€â”€ Other Products sidebar â”€â”€ */
+  .nav-section { padding: 16px 20px 6px; font-size: 10px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 1px; }
+  .nav-divider  { border-top: 1px solid #334155; margin: 8px 0; }
+  .nav-sub { padding: 7px 20px 7px 36px; font-size: 13px; color: #94a3b8; cursor: pointer; transition: background .15s; display: flex; align-items: center; gap: 8px; }
+  .nav-sub:hover, .nav-sub.active { background: #334155; color: #f8fafc; }
+</style>
+</head>
+<body>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• LOGIN â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">ðŸ·</div>
+    <h1>Kelete</h1>
+    <p>Admin Panel â€” License Management</p>
+    <input type="password" id="pw-input" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()" />
+    <button class="btn btn-primary btn-full" onclick="login()">Sign In</button>
+    <p class="error-msg" id="login-error"></p>
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• APP â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+<div id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div style="font-size:32px">ðŸ·</div>
+      <h2>Kelete</h2>
+      <p>Admin Panel</p>
+    </div>
+    <nav>
+      <div class="nav-item active" onclick="showPage('dashboard')">ðŸ“Š Dashboard</div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="toggleKelete()" id="nav-kelete">ðŸ· Kelete</div>
+      <div id="kelete-subnav" style="display:none">
+        <div class="nav-sub" onclick="showPage('tenants')" id="nav-kelete-tenants">ðŸ¢ Tenants</div>
+        <div class="nav-sub" onclick="showPage('licenses')" id="nav-kelete-licenses">ðŸ”‘ Licenses</div>
+      </div>
+      <div class="nav-item" onclick="toggleProduct('lodge')" id="nav-lodge">ðŸ¨ Lodge</div>
+      <div id="lodge-subnav" style="display:none">
+        <div class="nav-sub" onclick="showProductPage('lodge','tenants')" id="nav-lodge-tenants">ðŸ¢ Tenants</div>
+        <div class="nav-sub" onclick="showProductPage('lodge','licenses')" id="nav-lodge-licenses">ðŸ”‘ Licenses</div>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-item" onclick="logout()">ðŸšª Sign Out</div>
+    </nav>
+  </div>
+
+  <div class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <h2 style="margin-bottom:24px">Dashboard</h2>
+      <div class="stats-grid" id="stats-grid">
+        <div class="loading">Loadingâ€¦</div>
+      </div>
+    </div>
+
+    <!-- Tenants -->
+    <div class="page" id="page-tenants">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2>Tenants</h2>
+        <button class="btn btn-success" onclick="openRegisterModal()">+ Register Tenant</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Subdomain</th>
+              <th>Business Name</th>
+              <th>Email</th>
+              <th>Tenant ID</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tenants-tbody">
+            <tr><td colspan="6" class="loading">Loadingâ€¦</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Licenses -->
+    <div class="page" id="page-licenses">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <h2>License Keys</h2>
+        <button class="btn btn-success" onclick="openCreateModal()">+ Generate License Key</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Email</th>
+              <th>Subdomain</th>
+              <th>Branches</th>
+              <th>Branch Codes</th>
+              <th>Expires</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="licenses-tbody">
+            <tr><td colspan="8" class="loading">Loadingâ€¦</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lodge Tenants -->
+    <div class="page" id="page-lodge-tenants">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h2>ðŸ¨ Lodge â€” Tenants</h2>
+          <p style="font-size:13px;color:#64748b;margin-top:4px">lodge.sidanitsolutions.com</p>
+        </div>
+        <button class="btn btn-success" onclick="openProductRegisterModal('lodge')">+ Register Tenant</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Subdomain</th><th>Business Name</th><th>Email</th><th>Tenant ID</th><th>Status</th><th>Created</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="lodge-tenants-tbody"><tr><td colspan="7" class="loading">Loadingâ€¦</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lodge Licenses -->
+    <div class="page" id="page-lodge-licenses">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h2>ðŸ¨ Lodge â€” Licenses</h2>
+          <p style="font-size:13px;color:#64748b;margin-top:4px">lodge.sidanitsolutions.com</p>
+        </div>
+        <button class="btn btn-success" onclick="openProductCreateLicenseModal('lodge')">+ Generate License Key</button>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Key</th><th>Email</th><th>Subdomain</th><th>Branches</th><th>Branch Codes</th><th>Expires</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="lodge-licenses-tbody"><tr><td colspan="8" class="loading">Loadingâ€¦</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MODALS â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+
+<!-- Register tenant -->
+<div class="modal-overlay" id="register-modal">
+  <div class="modal">
+    <h3>Register New Tenant</h3>
+    <div class="form-group">
+      <label>Subdomain</label>
+      <div style="display:flex;align-items:center;gap:0">
+        <input type="text" id="reg-slug" placeholder="mybusiness" style="border-radius:8px 0 0 8px" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')" />
+        <span style="padding:10px 12px;background:#f1f5f9;border:1px solid #cbd5e1;border-left:none;border-radius:0 8px 8px 0;font-size:13px;color:#64748b;white-space:nowrap">.sidanitsolutions.com</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Business Name</label>
+      <input type="text" id="reg-name" placeholder="e.g. Habte Kelete Distributors" />
+    </div>
+    <div class="form-group">
+      <label>Email (optional)</label>
+      <input type="email" id="reg-email" placeholder="owner@business.com" />
+    </div>
+    <div id="reg-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('register-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="registerTenant()">Register</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit tenant -->
+<div class="modal-overlay" id="edit-tenant-modal">
+  <div class="modal">
+    <h3>Edit Tenant</h3>
+    <p id="edit-tenant-slug-info" style="font-size:12px;color:#64748b;margin-bottom:12px"></p>
+    <div class="form-group">
+      <label>Business Name</label>
+      <input type="text" id="edit-tenant-name" placeholder="Business name" />
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="edit-tenant-email" placeholder="contact@example.com" />
+    </div>
+    <div id="edit-tenant-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('edit-tenant-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditTenant()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create license -->
+<div class="modal-overlay" id="create-modal">
+  <div class="modal">
+    <h3>Generate New License Key</h3>
+    <div class="form-group">
+      <label>Expiry Date</label>
+      <input type="date" id="new-expires" />
+    </div>
+    <div class="form-group">
+      <label>Max Branches</label>
+      <select id="new-branches">
+        <option value="1">1 branch</option>
+        <option value="2">2 branches</option>
+        <option value="3">3 branches</option>
+        <option value="5">5 branches</option>
+        <option value="10">10 branches</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Notes (client name, etc.)</label>
+      <input type="text" id="new-notes" placeholder="e.g. Habte Kelete - Addis Ababa" />
+    </div>
+    <div id="created-key-box" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;text-align:center;margin-bottom:8px">
+      <p style="font-size:12px;color:#16a34a;margin-bottom:8px">License key generated â€” copy and send to client:</p>
+      <p class="key-mono" id="created-key-text" style="font-size:16px;background:transparent"></p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('create-modal')">Close</button>
+      <button class="btn btn-success" id="create-btn" onclick="createLicense()">Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Patch license -->
+<div class="modal-overlay" id="patch-modal">
+  <div class="modal">
+    <h3>Edit License</h3>
+    <p id="patch-info"></p>
+    <div class="form-group">
+      <label>Extend Expiry To</label>
+      <input type="date" id="patch-expires" />
+    </div>
+    <div class="form-group">
+      <label>Max Branches</label>
+      <select id="patch-branches">
+        <option value="1">1 branch</option>
+        <option value="2">2 branches</option>
+        <option value="3">3 branches</option>
+        <option value="5">5 branches</option>
+        <option value="10">10 branches</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="patch-active">
+        <option value="1">Active</option>
+        <option value="0">Deactivated</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('patch-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePatch()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product: Register Tenant -->
+<div class="modal-overlay" id="prod-register-modal">
+  <div class="modal">
+    <h3>Register New Tenant</h3>
+    <div class="form-group">
+      <label>Subdomain</label>
+      <div style="display:flex;align-items:center;gap:0">
+        <input type="text" id="prod-reg-slug" placeholder="mybusiness" style="border-radius:8px 0 0 8px" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'')" />
+        <span id="prod-reg-suffix" style="padding:10px 12px;background:#f1f5f9;border:1px solid #cbd5e1;border-left:none;border-radius:0 8px 8px 0;font-size:12px;color:#64748b;white-space:nowrap">.lodge.sidanitsolutions.com</span>
+      </div>
+    </div>
+    <div class="form-group"><label>Business Name</label><input type="text" id="prod-reg-name" placeholder="e.g. SIDAN Lodge" /></div>
+    <div class="form-group"><label>Email (optional)</label><input type="email" id="prod-reg-email" placeholder="owner@business.com" /></div>
+    <div id="prod-reg-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('prod-register-modal')">Cancel</button>
+      <button class="btn btn-success" onclick="productRegisterTenant()">Register</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product: Edit Tenant -->
+<div class="modal-overlay" id="prod-edit-modal">
+  <div class="modal">
+    <h3>Edit Tenant</h3>
+    <p id="prod-edit-slug-info" style="font-size:12px;color:#64748b;margin-bottom:12px"></p>
+    <div class="form-group"><label>Business Name</label><input type="text" id="prod-edit-name" /></div>
+    <div class="form-group"><label>Email</label><input type="email" id="prod-edit-email" /></div>
+    <div id="prod-edit-msg"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('prod-edit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="productSaveEditTenant()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product: Create License -->
+<div class="modal-overlay" id="prod-create-license-modal">
+  <div class="modal">
+    <h3>Generate License Key</h3>
+    <div class="form-group"><label>Expiry Date</label><input type="date" id="prod-lic-expires" /></div>
+    <div class="form-group">
+      <label>Max Branches</label>
+      <select id="prod-lic-branches">
+        <option value="1">1 branch</option><option value="2">2 branches</option>
+        <option value="3">3 branches</option><option value="5">5 branches</option>
+        <option value="10">10 branches</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Notes (client name)</label><input type="text" id="prod-lic-notes" placeholder="e.g. SIDAN Lodge - Addis Ababa" /></div>
+    <div id="prod-lic-key-box" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;text-align:center;margin-bottom:8px">
+      <p style="font-size:12px;color:#16a34a;margin-bottom:8px">License key generated â€” copy and send to client:</p>
+      <p class="key-mono" id="prod-lic-key-text" style="font-size:16px;background:transparent"></p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('prod-create-license-modal')">Close</button>
+      <button class="btn btn-success" id="prod-lic-create-btn" onclick="productCreateLicense()">Generate</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product: Patch License -->
+<div class="modal-overlay" id="prod-patch-modal">
+  <div class="modal">
+    <h3>Edit License</h3>
+    <p id="prod-patch-info" style="font-size:13px;color:#64748b;margin-bottom:16px"></p>
+    <div class="form-group"><label>Extend Expiry To</label><input type="date" id="prod-patch-expires" /></div>
+    <div class="form-group">
+      <label>Max Branches</label>
+      <select id="prod-patch-branches">
+        <option value="1">1 branch</option><option value="2">2 branches</option>
+        <option value="3">3 branches</option><option value="5">5 branches</option>
+        <option value="10">10 branches</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="prod-patch-active"><option value="1">Active</option><option value="0">Deactivated</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('prod-patch-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="productSavePatch()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let TOKEN = localStorage.getItem('admin_token') || '';
+  let patchKey = '';
+
+  // â”€â”€ Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function login() {
+    const pw = document.getElementById('pw-input').value;
+    const r  = await fetch('/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      TOKEN = d.token;
+      localStorage.setItem('admin_token', TOKEN);
+      showApp();
+    } else {
+      document.getElementById('login-error').textContent = 'Wrong password.';
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('admin_token');
+    TOKEN = '';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+
+  function showApp() {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadStats();
+  }
+
+  // Auto-login if token exists
+  if (TOKEN) {
+    fetch('/admin/stats', { headers: { 'x-admin-token': TOKEN } })
+      .then(r => r.ok ? showApp() : null)
+      .catch(() => {});
+  }
+
+  // â”€â”€ Pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item,.nav-sub').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (name === 'tenants' || name === 'licenses') {
+      document.getElementById('nav-kelete').classList.add('active');
+      const sub = document.getElementById('nav-kelete-' + name);
+      if (sub) sub.classList.add('active');
+      document.getElementById('kelete-subnav').style.display = 'block';
+    } else {
+      event.currentTarget.classList.add('active');
+    }
+    if (name === 'licenses') loadLicenses();
+    if (name === 'dashboard') loadStats();
+    if (name === 'tenants') loadTenants();
+  }
+
+  function toggleKelete() {
+    const sub = document.getElementById('kelete-subnav');
+    sub.style.display = sub.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // â”€â”€ Tenants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadTenants() {
+    const r = await fetch('/admin/tenants', { headers: { 'x-admin-token': TOKEN } });
+    const d = await r.json();
+    const tbody = document.getElementById('tenants-tbody');
+    if (!Array.isArray(d) || !d.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No tenants yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.map(t => `<tr>
+      <td><span class="key-mono">${t.slug}.sidanitsolutions.com</span></td>
+      <td>${t.business_name}</td>
+      <td>${t.email || '<span style="color:#94a3b8">â€”</span>'}</td>
+      <td><span class="key-mono" style="font-size:11px">${t.tenant_id || '<span style="color:#94a3b8">â€”</span>'}</span></td>
+      <td><span class="badge ${t.is_active ? 'badge-green' : 'badge-gray'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
+      <td style="color:#64748b;font-size:12px">${t.created_at ? t.created_at.substring(0,10) : 'â€”'}</td>
+      <td><button class="btn btn-outline" style="padding:4px 12px;font-size:12px" onclick="openEditTenant('${t.slug}','${t.business_name}','${t.email||''}')">Edit</button></td>
+    </tr>`).join('');
+  }
+
+  function openRegisterModal() {
+    document.getElementById('reg-slug').value = '';
+    document.getElementById('reg-name').value = '';
+    document.getElementById('reg-email').value = '';
+    document.getElementById('reg-msg').innerHTML = '';
+    document.getElementById('register-modal').classList.add('open');
+  }
+
+  async function registerTenant() {
+    const slug = document.getElementById('reg-slug').value.trim();
+    const businessName = document.getElementById('reg-name').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const msg = document.getElementById('reg-msg');
+    if (!slug || !businessName) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">Subdomain and Business Name are required</p>'; return; }
+    const r = await fetch('/admin/tenants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': TOKEN },
+      body: JSON.stringify({ slug, businessName, email })
+    });
+    const d = await r.json();
+    if (!r.ok) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">' + d.error + '</p>'; return; }
+    msg.innerHTML = '<p style="color:#16a34a;font-size:13px">âœ“ Tenant registered successfully!</p>';
+    setTimeout(() => { closeModal('register-modal'); loadTenants(); }, 1500);
+  }
+
+  // â”€â”€ Edit Tenant â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  let editTenantSlug = '';
+  function openEditTenant(slug, name, email) {
+    editTenantSlug = slug;
+    document.getElementById('edit-tenant-slug-info').textContent = slug + '.sidanitsolutions.com';
+    document.getElementById('edit-tenant-name').value = name;
+    document.getElementById('edit-tenant-email').value = email;
+    document.getElementById('edit-tenant-msg').innerHTML = '';
+    document.getElementById('edit-tenant-modal').classList.add('open');
+  }
+
+  async function saveEditTenant() {
+    const businessName = document.getElementById('edit-tenant-name').value.trim();
+    const email = document.getElementById('edit-tenant-email').value.trim();
+    const msg = document.getElementById('edit-tenant-msg');
+    if (!businessName) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">Business name is required</p>'; return; }
+    const r = await fetch('/admin/tenants/' + editTenantSlug, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-admin-token': TOKEN },
+      body: JSON.stringify({ businessName, email })
+    });
+    const d = await r.json();
+    if (!r.ok) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">' + d.error + '</p>'; return; }
+    msg.innerHTML = '<p style="color:#16a34a;font-size:13px">âœ“ Updated successfully!</p>';
+    setTimeout(() => { closeModal('edit-tenant-modal'); loadTenants(); }, 1200);
+  }
+
+  // â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadStats() {
+    const r = await fetch('/admin/stats', { headers: { 'x-admin-token': TOKEN } });
+    const d = await r.json();
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-card"><div class="label">Total Licenses</div><div class="value">${d.total}</div></div>
+      <div class="stat-card green"><div class="label">Active</div><div class="value">${d.active}</div></div>
+      <div class="stat-card amber"><div class="label">Expiring (14d)</div><div class="value">${d.expiring}</div></div>
+      <div class="stat-card red"><div class="label">Expired</div><div class="value">${d.expired}</div></div>
+    `;
+  }
+
+  // â”€â”€ Licenses table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadLicenses() {
+    const r  = await fetch('/admin/licenses', { headers: { 'x-admin-token': TOKEN } });
+    const ls = await r.json();
+    const now = new Date();
+
+    document.getElementById('licenses-tbody').innerHTML = ls.length === 0
+      ? '<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:32px">No licenses yet</td></tr>'
+      : ls.map(l => {
+          const expiry   = new Date(l.expires_at);
+          const days     = Math.ceil((expiry - now) / 86400000);
+          const expired  = days <= 0;
+          const expiring = !expired && days <= 14;
+          const badge    = !l.is_active ? '<span class="badge badge-gray">Inactive</span>'
+                         : expired      ? '<span class="badge badge-red">Expired</span>'
+                         : expiring     ? '<span class="badge badge-amber">Expiring</span>'
+                         :                '<span class="badge badge-green">Active</span>';
+          const expiryStr = expired
+            ? `<span style="color:#dc2626">${l.expires_at.substring(0,10)}</span>`
+            : expiring
+            ? `<span style="color:#d97706">${l.expires_at.substring(0,10)} (${days}d)</span>`
+            : l.expires_at.substring(0,10);
+          return `<tr>
+            <td><span class="key-mono">${l.key}</span></td>
+            <td>${l.tenant_email || '<span style="color:#94a3b8">â€”</span>'}</td>
+            <td>${l.slug ? `<span class="key-mono">${l.slug}.sidanitsolutions.com</span>` : '<span style="color:#94a3b8">â€”</span>'}</td>
+            <td>${l.branch_count}/${l.max_branches}</td>
+            <td style="font-size:12px;color:#374151">${l.branch_codes || '<span style="color:#94a3b8">â€”</span>'}</td>
+            <td>${expiryStr}</td>
+            <td>${badge}</td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick='openPatchModal(${JSON.stringify(l)})'>Edit</button>
+            </td>
+          </tr>`;
+        }).join('');
+  }
+
+  // â”€â”€ Create modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function openCreateModal() {
+    document.getElementById('created-key-box').style.display = 'none';
+    document.getElementById('create-btn').style.display = 'inline-flex';
+    document.getElementById('new-notes').value = '';
+    // Default expiry: 1 year from today
+    const d = new Date(); d.setFullYear(d.getFullYear() + 1);
+    document.getElementById('new-expires').value = d.toISOString().substring(0,10);
+    document.getElementById('create-modal').classList.add('open');
+  }
+
+  async function createLicense() {
+    const expiresAt   = document.getElementById('new-expires').value;
+    const maxBranches = document.getElementById('new-branches').value;
+    const notes       = document.getElementById('new-notes').value;
+    if (!expiresAt) return alert('Please set an expiry date.');
+
+    const r = await fetch('/admin/licenses', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-token': TOKEN },
+      body: JSON.stringify({ expiresAt, maxBranches, notes }),
+    });
+    const d = await r.json();
+    if (!r.ok) return alert(d.error);
+
+    document.getElementById('created-key-text').textContent = d.key;
+    document.getElementById('created-key-box').style.display = 'block';
+    document.getElementById('create-btn').style.display = 'none';
+    loadLicenses();
+    loadStats();
+  }
+
+  // â”€â”€ Patch modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function openPatchModal(l) {
+    patchKey = l.key;
+    document.getElementById('patch-info').textContent = `Key: ${l.key}  |  Client: ${l.tenant_email || 'Not activated'}`;
+    document.getElementById('patch-expires').value  = l.expires_at.substring(0,10);
+    document.getElementById('patch-branches').value = l.max_branches;
+    document.getElementById('patch-active').value   = l.is_active;
+    document.getElementById('patch-modal').classList.add('open');
+  }
+
+  async function savePatch() {
+    const r = await fetch('/admin/licenses/' + patchKey, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', 'x-admin-token': TOKEN },
+      body: JSON.stringify({
+        expiresAt:   document.getElementById('patch-expires').value,
+        maxBranches: Number(document.getElementById('patch-branches').value),
+        isActive:    Number(document.getElementById('patch-active').value),
+      }),
+    });
+    if (!r.ok) { const d = await r.json(); return alert(d.error); }
+    closeModal('patch-modal');
+    loadLicenses();
+    loadStats();
+  }
+
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+  );
+
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  //  OTHER PRODUCTS (Lodge, etc.)
+  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+
+  let ADMIN_PW = localStorage.getItem('admin_pw') || '';
+
+  const PRODUCTS = {
+    lodge: {
+      label: 'Lodge',
+      icon: 'ðŸ¨',
+      vpsUrl: 'https://lodge.sidanitsolutions.com',
+      subdomainSuffix: '.lodge.sidanitsolutions.com',
+      licensePrefix: 'LODGE',
+    },
+  };
+
+  // Override login to also store raw password
+  const _originalLogin = login;
+  async function login() {
+    const pw = document.getElementById('pw-input').value;
+    const r  = await fetch('/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      TOKEN = d.token;
+      ADMIN_PW = pw;
+      localStorage.setItem('admin_token', TOKEN);
+      localStorage.setItem('admin_pw', ADMIN_PW);
+      showApp();
+    } else {
+      document.getElementById('login-error').textContent = 'Wrong password.';
+    }
+  }
+
+  // Toggle Lodge subnav
+  function toggleProduct(product) {
+    const sub = document.getElementById(product + '-subnav');
+    sub.style.display = sub.style.display === 'none' ? 'block' : 'none';
+  }
+
+  // Show a product sub-page
+  function showProductPage(product, section) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item,.nav-sub').forEach(n => n.classList.remove('active'));
+    const pageId = 'page-' + product + '-' + section;
+    document.getElementById(pageId).classList.add('active');
+    document.getElementById('nav-' + product + '-' + section).classList.add('active');
+    document.getElementById('nav-' + product).classList.add('active');
+    // Load data
+    if (product === 'lodge' && section === 'tenants')  loadProductTenants('lodge');
+    if (product === 'lodge' && section === 'licenses') loadProductLicenses('lodge');
+  }
+
+  // â”€â”€ Product API helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function productFetch(product, path, options = {}) {
+    const cfg = PRODUCTS[product];
+    const url = cfg.vpsUrl + '/api/tenant-admin' + path;
+    const headers = { 'Content-Type': 'application/json', 'x-admin-password': ADMIN_PW, ...(options.headers || {}) };
+    return fetch(url, { ...options, headers });
+  }
+
+  // â”€â”€ Lodge Tenants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadProductTenants(product) {
+    const cfg   = PRODUCTS[product];
+    const tbody = document.getElementById(product + '-tenants-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" class="loading">Loadingâ€¦</td></tr>';
+    try {
+      const r = await productFetch(product, '/list');
+      const d = await r.json();
+      const tenants = d.tenants || [];
+      if (!tenants.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No tenants yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = tenants.map(t => `<tr>
+        <td><span class="key-mono">${t.slug}${cfg.subdomainSuffix}</span></td>
+        <td>${t.business_name}</td>
+        <td>${t.email || '<span style="color:#94a3b8">â€”</span>'}</td>
+        <td><span class="key-mono" style="font-size:11px">${t.tenant_id || '<span style="color:#94a3b8">â€”</span>'}</span></td>
+        <td><span class="badge ${t.is_active ? 'badge-green' : 'badge-gray'}">${t.is_active ? 'Active' : 'Inactive'}</span></td>
+        <td style="color:#64748b;font-size:12px">${t.created_at ? t.created_at.substring(0,10) : 'â€”'}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="openProductEditTenant('${product}','${t.slug}','${t.business_name}','${t.email||''}')">Edit</button></td>
+      </tr>`).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:32px">Could not connect to Lodge VPS</td></tr>';
+    }
+  }
+
+  // â”€â”€ Lodge Licenses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  async function loadProductLicenses(product) {
+    const tbody = document.getElementById(product + '-licenses-tbody');
+    tbody.innerHTML = '<tr><td colspan="6" class="loading">Loadingâ€¦</td></tr>';
+    try {
+      const r  = await productFetch(product, '/licenses');
+      const ls = await r.json();
+      const now = new Date();
+      if (!ls.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:32px">No licenses yet</td></tr>';
+        return;
+      }
+      tbody.innerHTML = ls.map(l => {
+        const expiry   = new Date(l.expires_at);
+        const days     = Math.ceil((expiry - now) / 86400000);
+        const expired  = days <= 0;
+        const expiring = !expired && days <= 14;
+        const badge    = !l.is_active ? '<span class="badge badge-gray">Inactive</span>'
+                       : expired      ? '<span class="badge badge-red">Expired</span>'
+                       : expiring     ? '<span class="badge badge-amber">Expiring</span>'
+                       :                '<span class="badge badge-green">Active</span>';
+        const expiryStr = expired
+          ? `<span style="color:#dc2626">${l.expires_at.substring(0,10)}</span>`
+          : expiring
+          ? `<span style="color:#d97706">${l.expires_at.substring(0,10)} (${days}d)</span>`
+          : l.expires_at.substring(0,10);
+        return `<tr>
+          <td><span class="key-mono">${l.key}</span></td>
+          <td>${l.tenant_email || '<span style="color:#94a3b8">â€”</span>'}</td>
+          <td>${l.slug ? `<span class="key-mono">${l.slug}.lodge.sidanitsolutions.com</span>` : '<span style="color:#94a3b8">â€”</span>'}</td>
+          <td>${l.branch_count !== undefined ? `${l.branch_count}/${l.max_branches}` : l.max_branches}</td>
+          <td style="font-size:12px;color:#374151">${l.branch_codes || '<span style="color:#94a3b8">â€”</span>'}</td>
+          <td>${expiryStr}</td>
+          <td>${badge}</td>
+          <td><button class="btn btn-outline btn-sm" onclick='openProductPatchLicense("${product}",${JSON.stringify(l)})'>Edit</button></td>
+        </tr>`;
+      }).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:32px">Could not connect to Lodge VPS</td></tr>';
+    }
+  }
+
+  // â”€â”€ Register Tenant Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  let _productModalTarget = '';
+  function openProductRegisterModal(product) {
+    _productModalTarget = product;
+    const cfg = PRODUCTS[product];
+    document.getElementById('prod-reg-suffix').textContent = cfg.subdomainSuffix;
+    document.getElementById('prod-reg-slug').value  = '';
+    document.getElementById('prod-reg-name').value  = '';
+    document.getElementById('prod-reg-email').value = '';
+    document.getElementById('prod-reg-msg').innerHTML = '';
+    document.getElementById('prod-register-modal').classList.add('open');
+  }
+  async function productRegisterTenant() {
+    const slug = document.getElementById('prod-reg-slug').value.trim();
+    const businessName = document.getElementById('prod-reg-name').value.trim();
+    const email = document.getElementById('prod-reg-email').value.trim();
+    const msg = document.getElementById('prod-reg-msg');
+    if (!slug || !businessName) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">Subdomain and Business Name are required</p>'; return; }
+    try {
+      const r = await productFetch(_productModalTarget, '/register', { method: 'POST', body: JSON.stringify({ slug, businessName, email }) });
+      const d = await r.json();
+      if (!r.ok) { msg.innerHTML = `<p style="color:#dc2626;font-size:13px">${d.error}</p>`; return; }
+      msg.innerHTML = '<p style="color:#16a34a;font-size:13px">âœ“ Tenant registered!</p>';
+      setTimeout(() => { closeModal('prod-register-modal'); loadProductTenants(_productModalTarget); }, 1500);
+    } catch(e) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">Could not connect to VPS</p>'; }
+  }
+
+  // â”€â”€ Edit Tenant Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  let _editProductSlug = '';
+  function openProductEditTenant(product, slug, name, email) {
+    _productModalTarget = product;
+    _editProductSlug = slug;
+    document.getElementById('prod-edit-slug-info').textContent = slug + PRODUCTS[product].subdomainSuffix;
+    document.getElementById('prod-edit-name').value  = name;
+    document.getElementById('prod-edit-email').value = email;
+    document.getElementById('prod-edit-msg').innerHTML = '';
+    document.getElementById('prod-edit-modal').classList.add('open');
+  }
+  async function productSaveEditTenant() {
+    const businessName = document.getElementById('prod-edit-name').value.trim();
+    const email = document.getElementById('prod-edit-email').value.trim();
+    const msg = document.getElementById('prod-edit-msg');
+    try {
+      const r = await productFetch(_productModalTarget, '/tenants/' + _editProductSlug, { method: 'PUT', body: JSON.stringify({ businessName, email }) });
+      const d = await r.json();
+      if (!r.ok) { msg.innerHTML = `<p style="color:#dc2626;font-size:13px">${d.error}</p>`; return; }
+      msg.innerHTML = '<p style="color:#16a34a;font-size:13px">âœ“ Updated!</p>';
+      setTimeout(() => { closeModal('prod-edit-modal'); loadProductTenants(_productModalTarget); }, 1200);
+    } catch(e) { msg.innerHTML = '<p style="color:#dc2626;font-size:13px">Could not connect to VPS</p>'; }
+  }
+
+  // â”€â”€ Create License Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  function openProductCreateLicenseModal(product) {
+    _productModalTarget = product;
+    document.getElementById('prod-lic-notes').value   = '';
+    document.getElementById('prod-lic-key-box').style.display = 'none';
+    document.getElementById('prod-lic-create-btn').style.display = 'inline-flex';
+    const d = new Date(); d.setFullYear(d.getFullYear() + 1);
+    document.getElementById('prod-lic-expires').value = d.toISOString().substring(0,10);
+    document.getElementById('prod-create-license-modal').classList.add('open');
+  }
+  async function productCreateLicense() {
+    const expiresAt   = document.getElementById('prod-lic-expires').value;
+    const maxBranches = document.getElementById('prod-lic-branches').value;
+    const notes       = document.getElementById('prod-lic-notes').value;
+    if (!expiresAt) return alert('Please set an expiry date.');
+    try {
+      const r = await productFetch(_productModalTarget, '/create-license', { method: 'POST', body: JSON.stringify({ expiresAt, maxBranches, notes }) });
+      const d = await r.json();
+      if (!r.ok) return alert(d.error);
+      document.getElementById('prod-lic-key-text').textContent = d.key;
+      document.getElementById('prod-lic-key-box').style.display = 'block';
+      document.getElementById('prod-lic-create-btn').style.display = 'none';
+      loadProductLicenses(_productModalTarget);
+    } catch(e) { alert('Could not connect to VPS'); }
+  }
+
+  // â”€â”€ Patch License Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  let _patchProductKey = '';
+  function openProductPatchLicense(product, l) {
+    _productModalTarget = product;
+    _patchProductKey    = l.key;
+    document.getElementById('prod-patch-info').textContent = `Key: ${l.key}`;
+    document.getElementById('prod-patch-expires').value  = l.expires_at.substring(0,10);
+    document.getElementById('prod-patch-branches').value = l.max_branches;
+    document.getElementById('prod-patch-active').value   = l.is_active;
+    document.getElementById('prod-patch-modal').classList.add('open');
+  }
+  async function productSavePatch() {
+    try {
+      const r = await productFetch(_productModalTarget, '/licenses/' + _patchProductKey, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          expiresAt:   document.getElementById('prod-patch-expires').value,
+          maxBranches: Number(document.getElementById('prod-patch-branches').value),
+          isActive:    Number(document.getElementById('prod-patch-active').value),
+        })
+      });
+      if (!r.ok) { const d = await r.json(); return alert(d.error); }
+      closeModal('prod-patch-modal');
+      loadProductLicenses(_productModalTarget);
+    } catch(e) { alert('Could not connect to VPS'); }
+  }
+</script>
+</body>
+</html>
