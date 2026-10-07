@@ -36,8 +36,8 @@ function resolveBranchTenantId(slug, branchDb) {
 // 'api' do NOT honour X-Branch â€” only the bare brand domain does, so a
 // child subdomain (lusaka1.keletezm.com) can never spoof its way into
 // another branch's data.
-const SKIP_SLUGS = new Set(['www', 'kelete', 'keletedistributionzm', 'localhost', 'api', '127', 'sidanitsolutions']);
-const HQ_SLUGS   = new Set(['keletedistributionzm']);
+const SKIP_SLUGS = new Set(['www', 'kelete', 'keletezm', 'keletedistributionzm', 'localhost', 'api', '127', 'sidanitsolutions']);
+const HQ_SLUGS   = new Set(['keletezm', 'keletedistributionzm']);
 
 module.exports = function tenantMiddleware(req, res, next) {
   // Nginx sets X-Tenant to the full hostname e.g. "wiskings.sidanitsolutions.com"
