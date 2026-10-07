@@ -1,4 +1,4 @@
-﻿/**
+/**
  * pushNotifications.js â€” the phone side of Firebase push.
  *
  * 2026-09-18. In the APK the page could only ever chime while someone was

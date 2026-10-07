@@ -1,4 +1,4 @@
-﻿/**
+/**
  * tenantAdmin.js
  * Endpoints called by the master admin panel at sidanitsolutions.com/admin.
  * Protected by ADMIN_PASSWORD from .env (sent as x-admin-password header).

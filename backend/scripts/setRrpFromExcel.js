@@ -1,4 +1,4 @@
-﻿/**
+/**
  * setRrpFromExcel.js â€” v1.13.104 (2026-07-29)
  *
  * One-shot: apply the Red Sea RRP + VAT Category schedule (77 SKUs)

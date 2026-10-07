@@ -1,4 +1,4 @@
-﻿// Copied from @capacitor/share 6.0.4 (the same Capacitor 6 line this app
+// Copied from @capacitor/share 6.0.4 (the same Capacitor 6 line this app
 // uses), minus its Maven-publishing steps: this plugin only ever builds
 // inside the Kelete APK, from this repository.
 ext {

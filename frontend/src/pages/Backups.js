@@ -1,4 +1,4 @@
-﻿// System Backups page â€” Ref 11 of the ZRA Self-Declaration.
+// System Backups page â€” Ref 11 of the ZRA Self-Declaration.
 //
 // Lists snapshots produced by the nightly cron under /var/backups/kelete,
 // lets an admin trigger a manual backup, and provides a per-snapshot

@@ -1,4 +1,4 @@
-﻿const { getTenantDb } = require('../config/tenantDb');
+const { getTenantDb } = require('../config/tenantDb');
 const { runWithDb } = require('../config/database');
 const { isRegistered, masterDb } = require('../config/masterDb');
 

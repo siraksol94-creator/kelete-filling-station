@@ -1,4 +1,4 @@
-﻿// receipt58 â€” the till receipt for a small handheld POS terminal (58mm roll).
+// receipt58 â€” the till receipt for a small handheld POS terminal (58mm roll).
 //
 // 2026-09-10. Red Sea is putting the system on phone-sized terminals with a
 // built-in 58mm printer. The existing receipt is laid out for the depot tills'

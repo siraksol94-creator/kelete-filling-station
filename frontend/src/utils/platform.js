@@ -1,4 +1,4 @@
-﻿// Detects whether the web app is running inside the Kelete mobile APK
+// Detects whether the web app is running inside the Kelete mobile APK
 // (Capacitor webview).
 //
 // window.Capacitor only gets injected on local content. The APK loads the live

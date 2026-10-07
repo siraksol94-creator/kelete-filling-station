@@ -1,4 +1,4 @@
-﻿/**
+/**
  * fix_mirrored_credit_notes.js â€” make HQ's copy of each GRN credit note match
  * the master record it was copied from.
  *

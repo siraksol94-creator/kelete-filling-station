@@ -1,4 +1,4 @@
-﻿// ApPaymentFormModal â€” shared "Record Payment" modal for supplier
+// ApPaymentFormModal â€” shared "Record Payment" modal for supplier
 // (Account Payable) payments. Used by Account Payables and the GRN page
 // so both produce identical ap_payment rows (split + attachment).
 //

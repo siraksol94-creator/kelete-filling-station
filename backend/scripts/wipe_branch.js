@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 // Wipe ONE branch's transactional data, so a test branch can be reopened as a
 // real one. 2026-09-01.
 //

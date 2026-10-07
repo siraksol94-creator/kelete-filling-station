@@ -1,4 +1,4 @@
-﻿/**
+/**
  * dedupHqOwnedDuplicates.js â€” v1.13.105 (2026-07-29)
  *
  * One-shot: on branch tenant DBs (buseko, garden, ...), find HQ-owned rows

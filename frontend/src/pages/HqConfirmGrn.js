@@ -1,4 +1,4 @@
-﻿// HqConfirmGrn â†’ v1.10.0 Generate GRN queue (file kept for route stability).
+// HqConfirmGrn â†’ v1.10.0 Generate GRN queue (file kept for route stability).
 //
 // HQ queue of branch-confirmed receipts that are waiting for HQ to generate
 // the GRN. Replaces the v1.9.7 "Confirm GRN" review-and-approve flow.

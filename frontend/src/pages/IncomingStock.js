@@ -1,4 +1,4 @@
-﻿// IncomingStock â€” branch-side queue of HQ Purchase items for this branch.
+// IncomingStock â€” branch-side queue of HQ Purchase items for this branch.
 // v1.3.0 splits the old one-click receive into a two-step workflow:
 //   AWAITING_GRN  â†’ branch enters actual qty + clicks "Submit GRN"
 //   GRN_SUBMITTED â†’ waiting for HQ to confirm; row shown read-only with

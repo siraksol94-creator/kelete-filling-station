@@ -1,4 +1,4 @@
-﻿# Kelete POS â€” VPS setup guide
+# Kelete POS â€” VPS setup guide
 
 Run these once on the Hostinger VPS (Ubuntu) to get `keletezm.com` live.
 

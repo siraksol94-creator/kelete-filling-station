@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getInventory, createOrder, getSettings, openCashDrawer, printReceipt, getQuickItems, addQuickItem, removeQuickItem, getCustomers, createCustomer, createDiscountRequest, getDiscountRequest, cancelDiscountRequest, getCurrentFxRate, triggerSyncNow, getEmptyVoucher, listEmptyVouchers, lookupZraCustomer } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';

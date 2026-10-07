@@ -1,4 +1,4 @@
-﻿-- What an "opening balance" actually looks like in this database.
+-- What an "opening balance" actually looks like in this database.
 -- 2026-08-31
 --
 -- Written because the Opening Balance page read 0 for AQUA CLEAR 500mls while

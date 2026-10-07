@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hqSuppliers.js â€” HQ-level supplier master + AP tracking.
  *
  * AP per supplier is computed live from the source tables, never stored:

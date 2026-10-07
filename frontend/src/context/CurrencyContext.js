@@ -1,4 +1,4 @@
-﻿// Global currency provider. Loads the tenant's configured currencies from settings once,
+// Global currency provider. Loads the tenant's configured currencies from settings once,
 // then exposes them via the useCurrency() hook so every page can render a price using the
 // primary symbol without round-tripping to the server.
 //

@@ -1,4 +1,4 @@
-﻿// HqConsolidatedProfit â€” group net profit rolled up across every Kelete
+// HqConsolidatedProfit â€” group net profit rolled up across every Kelete
 // branch. Kelete is K-only across every branch, so there's no fx
 // conversion (contrast Kelete, which needs Kassumbalesa's USD/K rate).
 // HQ overhead is SUM(payment_vouchers.amount); Kelete has no LCV

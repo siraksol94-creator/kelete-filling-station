@@ -1,4 +1,4 @@
-﻿// ZRA Smart Invoice (VSDC) integration routes.
+// ZRA Smart Invoice (VSDC) integration routes.
 //
 // Config / init lives here + Step 3 code+item-class+notices sync.
 // Sale-time signing, item registration, credit notes, stock and purchase

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * notify.js â€” who to tell, and telling them.
  *
  * 2026-09-18. Routes call THIS, never services/push.js directly. push.js knows

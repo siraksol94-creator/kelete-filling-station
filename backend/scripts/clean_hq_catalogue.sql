@@ -1,4 +1,4 @@
-﻿-- Tidy HQ's catalogue before depot data entry.
+-- Tidy HQ's catalogue before depot data entry.
 -- 2026-08-31
 --
 -- Four fixes, all confirmed with the user. Cost prices are NOT touched â€”

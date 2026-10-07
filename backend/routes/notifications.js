@@ -1,4 +1,4 @@
-﻿/**
+/**
  * notifications.js â€” sidebar badge counts for the currently-selected
  * branch. One round-trip returns:
  *   - cashier_pending      (orders status='PENDING_PAYMENT' in that branch)

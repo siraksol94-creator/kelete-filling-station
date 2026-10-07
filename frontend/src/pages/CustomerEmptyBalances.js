@@ -1,4 +1,4 @@
-﻿// CustomerEmptyBalances â€” v1.13.62
+// CustomerEmptyBalances â€” v1.13.62
 //
 // Shows every registered customer holding a non-zero empty-container
 // balance (i.e. Kelete is holding empties on their behalf). Read-only

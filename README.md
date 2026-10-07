@@ -1,4 +1,4 @@
-﻿# Kelete Filling Station Management System
+# Kelete Filling Station Management System
 
 Bespoke management system for Kelete Investment Limited: a filling-station
 operation with full accounting, inventory, point-of-sale, and fuel-specific

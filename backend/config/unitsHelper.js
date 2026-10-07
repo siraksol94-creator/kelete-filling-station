@@ -1,4 +1,4 @@
-﻿// Multi-unit conversion helper. Reads units_json off a product row (falls back to legacy
+// Multi-unit conversion helper. Reads units_json off a product row (falls back to legacy
 // alt_unit / conversion_factor) and returns the multiplier for converting a quantity entered
 // in `lineUnit` into base units (i.e. into the smallest packaging â€” typically PCS for kelete).
 //

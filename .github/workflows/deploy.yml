@@ -1,4 +1,4 @@
-﻿name: Deploy
+name: Deploy
 
 # Pull-deploy model: CI only builds + publishes the Electron app and
 # packages the web bundle as a release artifact. The VPS runs a cron job

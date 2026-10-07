@@ -1,4 +1,4 @@
-﻿// Cashier â€” 3-station workflow station (kassumbalesa1, workflow_mode='three_station').
+// Cashier â€” 3-station workflow station (kassumbalesa1, workflow_mode='three_station').
 //
 // Left pane:   Pending Payments queue (orders status='PENDING_PAYMENT').
 // Right pane:  Selected order details + Sirak-POS-style payment panel.

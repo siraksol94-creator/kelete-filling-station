@@ -1,4 +1,4 @@
-﻿// v1.13.153 â€” Opening Balance.
+// v1.13.153 â€” Opening Balance.
 //
 // Standing up a new depot: what it holds, what that stock cost, and what it
 // sells for â€” on one screen, one row per item. Deliberately the same card grid

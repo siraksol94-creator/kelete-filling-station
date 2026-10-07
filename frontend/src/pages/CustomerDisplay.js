@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const CustomerDisplay = () => {
   const [cart, setCart] = useState(null); // null = idle

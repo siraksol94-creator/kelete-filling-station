@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hqGrns.js â€” HQ-side review of branch GRNs that were generated from a
  * HQ PO (v1.9.7 procurement flow).
  *

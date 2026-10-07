@@ -1,4 +1,4 @@
-﻿/**
+/**
  * delete_test_suppliers.js â€” remove test suppliers and everything hanging off
  * them, keeping only the real ones.
  *

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * inspect_zra_pulled_lines.js â€” READ ONLY. Writes nothing.
  *
  * 2026-08-31. Ten ZRA-approved purchases were booked before the pulled line's

@@ -1,4 +1,4 @@
-﻿// useDepositTarget â€” who this depot's cash actually goes to.
+// useDepositTarget â€” who this depot's cash actually goes to.
 //
 // 2026-09-18. System Settings â†’ Deposit to lets a depot send its cash to
 // another depot instead of HQ (Bankers and Buwach â†’ Kabwe). The money already

@@ -1,4 +1,4 @@
-﻿// printHtml â€” render a complete HTML document (the same string previously
+// printHtml â€” render a complete HTML document (the same string previously
 // passed to window.open + document.write) and route to one of three paths:
 //
 //   1. Desktop / Electron â€” hidden iframe + iframe.contentWindow.print().

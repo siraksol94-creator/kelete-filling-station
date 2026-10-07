@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # /usr/local/bin/kelete-deploy.sh
 #
 # Pull-deploy script for Kelete POS. Runs every minute via cron:

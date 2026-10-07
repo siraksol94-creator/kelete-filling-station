@@ -1,4 +1,4 @@
-﻿-- Create or reset a branch login, directly in a branch database.
+-- Create or reset a branch login, directly in a branch database.
 -- 2026-09-01
 --
 --   username : sirak

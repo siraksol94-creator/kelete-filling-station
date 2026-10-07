@@ -1,4 +1,4 @@
-﻿/**
+/**
  * server-tenant.js â€” Multi-tenant web server (port 5300)
  *
  * Handles requests for *.keletezm.com.

@@ -1,4 +1,4 @@
-﻿-- Align HQ selling prices to Chipata's, for the 13 that disagreed.
+-- Align HQ selling prices to Chipata's, for the 13 that disagreed.
 -- 2026-08-31
 --
 -- Chipata is the ONLY depot of the ten that sent prices. Confirmed with the

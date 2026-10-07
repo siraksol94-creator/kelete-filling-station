@@ -1,4 +1,4 @@
-﻿// One-shot cleanup for local testing.
+// One-shot cleanup for local testing.
 // Wipes transactional data; keeps master data (products / categories / units / suppliers / customers / users / settings).
 const path = require('path');
 const Database = require('better-sqlite3');

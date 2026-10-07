@@ -1,4 +1,4 @@
-﻿/**
+/**
  * backfillDcs.js â€” v1.13.48
  * One-shot: write daily_cost_snapshot rows for every historical date that
  * had ANY business activity, using date-bounded WAC. Idempotent â€” because

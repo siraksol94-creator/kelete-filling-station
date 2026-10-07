@@ -1,4 +1,4 @@
-﻿-- Add the items depots hold that HQ never had.
+-- Add the items depots hold that HQ never had.
 -- 2026-08-31
 --
 -- Found by comparing ten depot stock sheets against HQ's 70-item catalogue.

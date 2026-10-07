@@ -1,4 +1,4 @@
-﻿name: Build Mobile APK and Release
+name: Build Mobile APK and Release
 
 # Triggers on any tag starting with "mobile-v" (e.g. mobile-v1.0.0).
 # Distinct prefix so it doesn't clash with the Electron release flow which

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hqDamages.js â€” HQ-side view + confirm flow for branch-declared damages.
  *
  * Each branch's sales_returns rows live in that branch's tenant DB. To

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import pkg from '../../package.json';
 const { version } = pkg;
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';

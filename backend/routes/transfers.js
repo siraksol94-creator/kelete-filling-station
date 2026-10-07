@@ -1,4 +1,4 @@
-﻿/**
+/**
  * transfers.js â€” cross-branch stock transfers.
  *
  * Universal â€” works whether the caller is on a per-branch subdomain

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * masterDb.js
  * Manages the master database that tracks all registered tenants.
  * Lives at MASTER_DB_PATH (default: /var/www/kelete-pos-tenant/master.db)

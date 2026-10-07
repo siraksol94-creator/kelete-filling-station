@@ -1,4 +1,4 @@
-﻿/**
+/**
  * electronBackup.js â€” daily local SQLite backup for Electron installs.
  *
  * Runs INSIDE the Electron backend process (no cron / Task Scheduler

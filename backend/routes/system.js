@@ -1,4 +1,4 @@
-﻿// System admin routes â€” backup management.
+// System admin routes â€” backup management.
 //
 // Kelete's daily backup is a cron script that writes SQLite copies to
 // /var/backups/kelete/YYYY-MM-DD/ on the VPS. This file surfaces those

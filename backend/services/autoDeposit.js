@@ -1,4 +1,4 @@
-﻿// autoDeposit â€” a saved Cash Report sends its counted money to HQ as deposits.
+// autoDeposit â€” a saved Cash Report sends its counted money to HQ as deposits.
 //
 // 2026-09-11. Switched on per depot (System Settings â†’ Auto deposit, off by
 // default) for the Lusaka depots, which run one cashier a day. When on:

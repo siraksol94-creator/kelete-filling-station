@@ -1,4 +1,4 @@
-﻿// HqCashPosition â€” each depot's cash, as its own Cash Book sees it, in cards.
+// HqCashPosition â€” each depot's cash, as its own Cash Book sees it, in cards.
 //
 // 2026-09-13 (v5) â€” one simple sum per depot:
 //   Opening + In âˆ’ Out âˆ’ Deposited = Balance

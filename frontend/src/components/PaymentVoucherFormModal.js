@@ -1,4 +1,4 @@
-﻿// Shared Payment Voucher form modal â€” used by both the PV page (general
+// Shared Payment Voucher form modal â€” used by both the PV page (general
 // accounting) and the Cash Report page (cashier end-of-day). Same UI, same
 // fields, same Types dropdown (from pv_types). Caller can lock paid_from
 // to a fixed value (e.g. "Cash Drawer" for cash-report use).

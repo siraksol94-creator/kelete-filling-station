@@ -1,4 +1,4 @@
-﻿// Shared VSDC HTTP client. All ZRA-facing route files funnel through this
+// Shared VSDC HTTP client. All ZRA-facing route files funnel through this
 // so timeouts, retries, audit logging, tpin/bhfId injection and error
 // handling stay in one place.
 //

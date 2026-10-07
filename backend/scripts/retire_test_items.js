@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 // Retire the UAT/test products everywhere â€” HQ and every branch.
 // 2026-09-01
 //

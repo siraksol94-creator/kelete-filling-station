@@ -1,4 +1,4 @@
-﻿// 2026-09-21 â€” Cost Price (C.P.), a tab on Item Details at HQ.
+// 2026-09-21 â€” Cost Price (C.P.), a tab on Item Details at HQ.
 //
 // C.P. is the OPENING cost: what an item was worth when the system started.
 // It is not the weighted average, and nothing here writes one.

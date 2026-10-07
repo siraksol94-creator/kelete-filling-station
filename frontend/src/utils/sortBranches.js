@@ -1,4 +1,4 @@
-﻿// sortBranches â€” depot lists in the order people look for them.
+// sortBranches â€” depot lists in the order people look for them.
 //
 // 2026-09-20. The list arrives newest-depot-first (listTenants orders by
 // created_at DESC), so Bankers and Buwach sat at the top simply because they

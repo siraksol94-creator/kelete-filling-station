@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hqPurchases.js â€” HQ-managed supplier purchase receipts.
  *
  * HQ has NO physical warehouse (see project memory + the user's clarif).

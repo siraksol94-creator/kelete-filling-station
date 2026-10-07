@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hq.js â€” HQ (head-office) endpoints served at the bare keletezm.com domain.
  *
  * Phase B v1 surfaces:

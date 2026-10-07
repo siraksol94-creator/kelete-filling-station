@@ -1,4 +1,4 @@
-﻿package com.sidanit.kelete.print;
+package com.sidanit.kelete.print;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;

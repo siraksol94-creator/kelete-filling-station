@@ -1,4 +1,4 @@
-﻿/**
+/**
  * v1.10.75 hotfix â€” backfill tenant_id on migrated HQ rows.
  *
  * The v1.10.72 + v1.10.75 migration scripts inserted rows with tenant_id

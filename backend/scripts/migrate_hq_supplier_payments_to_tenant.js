@@ -1,4 +1,4 @@
-﻿/**
+/**
  * v1.10.72 â€” one-off migration:
  *   master.hq_supplier_payments  â†’  hq.db.ap_payments
  *

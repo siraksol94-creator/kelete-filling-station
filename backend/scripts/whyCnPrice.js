@@ -1,4 +1,4 @@
-﻿/**
+/**
  * whyCnPrice.js â€” where did a credit note line's price come from?
  *
  * 2026-09-18. SCN-2026-09D536EE is linked to invoice A70642, which bills

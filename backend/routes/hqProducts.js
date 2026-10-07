@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hqProducts.js â€” HQ-owned product master + auto-push to branches.
  *
  * Design (v1.5.0 â€” per user spec on 2026-06-23):

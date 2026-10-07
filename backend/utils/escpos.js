@@ -1,4 +1,4 @@
-﻿// ESC/POS printer dispatcher. Two transports:
+// ESC/POS printer dispatcher. Two transports:
 //   USB â†’ writes the raw ticket to the Windows Print Spooler queue (`receipt_printer_name`)
 //         using the same PowerShell + winspool.Drv trick the existing /open-drawer route uses.
 //   LAN â†’ opens a TCP socket to `receipt_printer_ip:receipt_printer_port` (default 9100).

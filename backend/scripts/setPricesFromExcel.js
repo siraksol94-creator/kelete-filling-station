@@ -1,4 +1,4 @@
-﻿/**
+/**
  * setPricesFromExcel.js â€” v1.13.105 (2026-07-29)
  *
  * One-shot: apply the Red Sea Selling PRICE schedule (77 SKUs) from the

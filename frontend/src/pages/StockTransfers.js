@@ -1,4 +1,4 @@
-﻿// StockTransfers â€” universal page (HQ + per-branch) for moving stock
+// StockTransfers â€” universal page (HQ + per-branch) for moving stock
 // between branches. Stored in master.db so both sides see one row.
 //
 // The "current branch" is derived from the host:

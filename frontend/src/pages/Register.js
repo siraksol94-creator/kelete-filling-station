@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerFirst } from '../services/api';
 import { useAuth } from '../context/AuthContext';

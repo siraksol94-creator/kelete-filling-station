@@ -1,4 +1,4 @@
-﻿// HQ AP Approvals queue (v1.13.30).
+// HQ AP Approvals queue (v1.13.30).
 //
 // Kelete's payable workflow: Store Manager confirms the GRN â†’ Accounts
 // clerk checks â†’ Finance Head approves â†’ Main Cashier records payment.

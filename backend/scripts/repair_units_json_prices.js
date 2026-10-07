@@ -1,4 +1,4 @@
-﻿// Repair products whose units_json price disagrees with selling_price.
+// Repair products whose units_json price disagrees with selling_price.
 // 2026-08-31
 //
 // WHY THIS EXISTS: align_prices_to_chipata.sql set products.selling_price

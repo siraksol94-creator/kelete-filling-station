@@ -1,4 +1,4 @@
-﻿/**
+/**
  * push.js â€” send a notification to someone's phone.
  *
  * 2026-09-18. The app could only ever chime while a till was looking at it:

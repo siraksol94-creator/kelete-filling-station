@@ -1,4 +1,4 @@
-﻿// HqPurchases â€” HQ-side procurement page. HQ has no physical warehouse;
+// HqPurchases â€” HQ-side procurement page. HQ has no physical warehouse;
 // each line of a purchase has a destination_slug picking which branch
 // will offload the goods. Lines sit PENDING until the destination branch
 // confirms with actual received qty in their Incoming Stock queue.

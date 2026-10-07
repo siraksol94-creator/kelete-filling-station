@@ -1,4 +1,4 @@
-﻿/**
+/**
  * backfillCostAtSale.js â€” v1.13.49
  * One-shot: fill stock_movements.cost_at_sale for historical rows that
  * predate the trg_stamp_cost_at_sale trigger. Only touches the movement

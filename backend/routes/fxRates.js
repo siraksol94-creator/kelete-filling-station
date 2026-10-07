@@ -1,4 +1,4 @@
-﻿// FX Rates â€” per-branch history of USDâ†”FRA conversion rates.
+// FX Rates â€” per-branch history of USDâ†”FRA conversion rates.
 //
 // Used only by dual-currency branches (currency_mode='USD+FRA'). The Cashier
 // reads the latest effective row via GET /current; the manager adds new rows

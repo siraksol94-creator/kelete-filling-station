@@ -1,4 +1,4 @@
-﻿// HqSalesReport â€” sales across every depot, as cards.
+// HqSalesReport â€” sales across every depot, as cards.
 //
 // 2026-09-13 â€” the order list is gone. It was most of the wait (up to 1,000
 // order rows per depot, joined to users, drawn as a table) and its totals were

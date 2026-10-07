@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getCashBook, getCashBookStats, setOpeningBalance, getSettings, getSalesRangeSummary, createCashTransfer, isHqHost, getBranchSlug, getCurrentFxRate } from '../services/api';
 import ExportButtons from '../components/ExportButtons';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';

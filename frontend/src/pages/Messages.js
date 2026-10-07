@@ -1,4 +1,4 @@
-﻿// Messages â€” in-app chat between HQ and the depots (2026-09-14).
+// Messages â€” in-app chat between HQ and the depots (2026-09-14).
 //
 // Desk: conversation list on the left, the open conversation on the right.
 // Phone: the list, or the open conversation with a back button.

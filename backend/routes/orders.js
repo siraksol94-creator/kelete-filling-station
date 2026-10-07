@@ -1,4 +1,4 @@
-﻿const router = require('express').Router();
+const router = require('express').Router();
 const db = require('../config/database');
 const { auth, readOnlyGuard, requirePagePerm } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');

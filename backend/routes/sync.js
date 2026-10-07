@@ -1,4 +1,4 @@
-﻿const router = require('express').Router();
+const router = require('express').Router();
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');

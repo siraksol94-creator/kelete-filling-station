@@ -1,4 +1,4 @@
-﻿-- Backfill: link ZRA-pulled purchases to local suppliers
+-- Backfill: link ZRA-pulled purchases to local suppliers
 -- 2026-08-30
 --
 -- WHY THESE ROWS ARE ORPHANS

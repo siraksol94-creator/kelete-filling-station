@@ -1,4 +1,4 @@
-﻿/**
+/**
  * cashDeposits.js â€” Branch â†’ HQ Cash Deposit workflow.
  *
  * Branch records a physical cash deposit being sent to HQ; HQ confirms

@@ -1,4 +1,4 @@
-﻿// HqOverview â€” head-office single-page summary across every registered
+// HqOverview â€” head-office single-page summary across every registered
 // branch. Only useful when served from the bare HQ host (keletezm.com);
 // on a per-branch subdomain the sidebar hides this entry. The page reads
 // from /api/hq/overview, which loops over each tenant DB and aggregates.

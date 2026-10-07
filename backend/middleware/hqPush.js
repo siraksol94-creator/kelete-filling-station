@@ -1,4 +1,4 @@
-﻿/**
+/**
  * hqPush.js â€” helpers for pushing HQ-owned rows to every registered branch.
  *
  * v1.6.0 extends the HQ-owned set beyond Products: Categories, Main

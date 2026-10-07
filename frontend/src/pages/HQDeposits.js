@@ -1,4 +1,4 @@
-﻿// HQ Deposits â€” Branch â†’ HQ cash deposit workflow.
+// HQ Deposits â€” Branch â†’ HQ cash deposit workflow.
 //
 // One screen, two behaviours by host:
 //   - Branch (kassumbalesa1, ...): "Send Deposit" button + own outgoing

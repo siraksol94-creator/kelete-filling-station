@@ -1,4 +1,4 @@
-﻿-- Prices for the items created at 0.00.
+-- Prices for the items created at 0.00.
 -- 2026-08-31
 --
 -- A zero-priced item is one a till rings up FREE â€” nothing in orders.js or the

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * setAllProductsBx.js â€” v1.13.101 (2026-07-28)
  *
  * One-shot: set zra_pkg_unit_cd = 'BX' and zra_qty_unit_cd = 'BX' on

@@ -1,4 +1,4 @@
-﻿-- Which ZRA-approved purchases predate the base/VAT/discount fields?
+-- Which ZRA-approved purchases predate the base/VAT/discount fields?
 -- 2026-08-31 â€” READ ONLY. Nothing is written.
 --
 -- Purchases approved from the ZRA Purchase Queue before this change stored

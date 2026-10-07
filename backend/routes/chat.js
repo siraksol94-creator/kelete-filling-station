@@ -1,4 +1,4 @@
-﻿/**
+/**
  * chat.js â€” in-app Messages (2026-09-14).
  *
  * Conversations, members and messages live in master.db, so HQ and every depot

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 // factoryReset.js â€” v1.10.5
 // Full transactional wipe across master.db + every tenant DB.
 //

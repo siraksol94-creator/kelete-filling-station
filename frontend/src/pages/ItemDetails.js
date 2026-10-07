@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getProducts, createProduct, updateProduct, updateProductBarcode, deleteProduct, uploadProductImage, deleteProductImage, getSettings, getCategories, getMainCategories, getUnits, deleteAllProducts, importProducts, isHqHost, getZraItemClasses, getZraCodes, bulkPushPrices, mirrorHqToAllBranches } from '../services/api';
 import CategoryFilter from '../components/CategoryFilter';
 import CostPrices from './CostPrices';

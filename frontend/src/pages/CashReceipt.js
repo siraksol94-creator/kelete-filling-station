@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getCashReceipts, getCashReceiptStats, createCashReceipt, updateCashReceipt, deleteCashReceipt, getSettings, isHqHost } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';

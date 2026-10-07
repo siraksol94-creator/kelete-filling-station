@@ -1,4 +1,4 @@
-﻿/**
+/**
  * import_zra_tags.js â€” v1.13.74
  *
  * One-shot: reads RED SEA STOCK PRICES 2 (2).xlsx and stamps

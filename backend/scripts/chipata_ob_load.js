@@ -1,4 +1,4 @@
-﻿/**
+/**
  * chipata_ob_load.js â€” load Chipata's pre-system customer balances from the
  * manual ledger (sent 2026-09-13), the same way Livingstone was loaded:
  *

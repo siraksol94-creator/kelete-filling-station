@@ -1,4 +1,4 @@
-﻿// Generic invoice attachment upload â€” used by GRN and Payment Vouchers.
+// Generic invoice attachment upload â€” used by GRN and Payment Vouchers.
 // Stores PDFs / images (incl. camera captures, which arrive as image/jpeg or image/png) under
 // uploads/invoices/. Returns the relative path; the form then submits that path in invoice_attachment.
 //

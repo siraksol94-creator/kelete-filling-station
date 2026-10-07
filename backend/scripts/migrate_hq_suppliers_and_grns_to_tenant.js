@@ -1,4 +1,4 @@
-﻿/**
+/**
  * v1.10.75 â€” one-off migration:
  *   master.hq_suppliers                  â†’ hq.db.suppliers
  *   master.hq_grns                       â†’ hq.db.grn   (total_amount = final_payable)

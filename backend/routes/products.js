@@ -1,4 +1,4 @@
-﻿const router = require('express').Router();
+const router = require('express').Router();
 const db = require('../config/database');
 const { auth, readOnlyGuard, withTenantDb } = require('../middleware/auth');
 const { isHqRequest, pushProductToBranches, pushCategoryToBranches, pushMainCategoryToBranches, mergeUnitsJsonPreservingBranchPrices, mirrorAllHqToBranches } = require('../middleware/hqPush');

@@ -1,4 +1,4 @@
-﻿// Auto-SIV helper â€” when single-location mode is on, every GRN immediately spawns
+// Auto-SIV helper â€” when single-location mode is on, every GRN immediately spawns
 // a matching SIV that issues the full receipt from store â†’ sales. This keeps the
 // stock_movements ledger consistent with the existing dual-location flow, so
 // reports/POS/reconciliation don't need any conditional logic.

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * initTenantDb(db)
  * Runs on a fresh tenant SQLite database to create all tables and add sync columns.
  * Safe to run on existing DBs (all statements use IF NOT EXISTS / column checks).

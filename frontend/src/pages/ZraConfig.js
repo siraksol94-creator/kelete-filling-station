@@ -1,4 +1,4 @@
-﻿// ZRA Smart Invoice (VSDC) â€” Config + Initialize Device page.
+// ZRA Smart Invoice (VSDC) â€” Config + Initialize Device page.
 //
 // One-time setup screen: admin fills TPIN / BhfID / dvcSrlNo, points the
 // backend at the local VSDC URL, then clicks Initialize. On success VSDC

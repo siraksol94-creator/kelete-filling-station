@@ -1,4 +1,4 @@
-﻿// HqRouteSales â€” route selling across every depot.
+// HqRouteSales â€” route selling across every depot.
 //
 // 2026-09-15. A route seller is a depot user ticked "Route seller" in
 // Users â†’ Edit; every sale under their login is route selling. Stock and cash

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * profitHelper.js
  * Reusable function to compute and store daily gross/net profit.
  *
