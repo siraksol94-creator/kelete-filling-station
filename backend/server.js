@@ -852,6 +852,10 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/search',        require('./routes/search'));
 app.use('/api/system',        require('./routes/system'));
 app.use('/admin', require('./routes/admin'));
+// Called by the master admin panel at sidanitsolutions.com/admin.
+// Lives on server-tenant.js too, mirrored here for the single-tenant
+// VPS deploy where only server.js runs.
+app.use('/api/tenant-admin', require('./routes/tenantAdmin'));
 
 // --- Kelete fuel-station modules ---
 app.use('/api/fuel-grades',       require('./routes/fuelGrades'));
