@@ -303,8 +303,8 @@ export default function Tanks() {
       {/* ── Group manager modal ─────────────────────────────────────────── */}
       {showGroupMgr && (
         <GroupManagerModal
-          groups={groups}
-          tanks={tanks}
+          initialGroups={groups}
+          initialTanks={tanks}
           grades={grades}
           onClose={() => { setShowGroupMgr(false); load(); }}
         />
@@ -313,12 +313,23 @@ export default function Tanks() {
   );
 }
 
-function GroupManagerModal({ groups, tanks, grades, onClose }) {
+function GroupManagerModal({ initialGroups, initialTanks, grades, onClose }) {
+  const [groups, setGroupsState] = useState(initialGroups);
+  const [tanks, setTanksState] = useState(initialTanks);
   const [gForm, setGForm] = useState({ name: '', fuel_grade_id: '' });
   const [editing, setEditing] = useState(null);
   const [err, setErr] = useState('');
 
-  const refresh = () => window.location.reload(); // simplest; parent re-fetches on close too
+  // Re-fetch groups + tanks IN-PLACE after each save/toggle so the modal
+  // updates without closing. Earlier version used window.location.reload()
+  // which dropped the user straight back to the tanks page.
+  const reloadData = async () => {
+    try {
+      const [g, t] = await Promise.all([getTankGroups(), getTanks()]);
+      setGroupsState(g.data || []);
+      setTanksState(t.data || []);
+    } catch (_) {}
+  };
 
   const saveGroup = async (e) => {
     e.preventDefault(); setErr('');
@@ -326,20 +337,20 @@ function GroupManagerModal({ groups, tanks, grades, onClose }) {
       if (editing) await updateTankGroup(editing, gForm);
       else await createTankGroup(gForm);
       setGForm({ name: '', fuel_grade_id: '' }); setEditing(null);
-      refresh();
+      await reloadData();
     } catch (ex) { setErr(ex.response?.data?.error || 'Save failed'); }
   };
 
   const delGroup = async (g) => {
     if (!window.confirm(`Delete group "${g.name}"? Its tanks will become standalone.`)) return;
-    try { await deleteTankGroup(g.id); refresh(); } catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    try { await deleteTankGroup(g.id); await reloadData(); } catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
   };
 
   const toggleTank = async (groupId, tank) => {
     try {
       if (tank.tank_group_id === groupId) await unassignTanks([tank.id]);
       else await assignTanksToGroup(groupId, [tank.id]);
-      refresh();
+      await reloadData();
     } catch (ex) { alert(ex.response?.data?.error || 'Failed'); }
   };
 
