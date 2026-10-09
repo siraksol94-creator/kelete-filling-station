@@ -106,6 +106,7 @@ app.use('/admin',                require('./routes/admin'));
 
 // --- Kelete fuel-station modules ---
 app.use('/api/fuel-grades',      require('./routes/fuelGrades'));
+app.use('/api/tank-groups',      require('./routes/tankGroups'));
 app.use('/api/tanks',            require('./routes/tanks'));
 app.use('/api/pumps',            require('./routes/pumps'));
 app.use('/api/fleet-customers',  require('./routes/fleetCustomers'));
