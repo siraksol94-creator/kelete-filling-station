@@ -66,10 +66,26 @@ function TankSvg({ pct, color, low, vesselCount = 1 }) {
         </g>
       ))}
 
-      {/* Big centred percentage overlay */}
-      <text x={w / 2} y={h / 2 + 5} textAnchor="middle" fontSize={n > 1 ? 18 : 14} fontWeight="800" fill={pct > 55 ? '#fff' : color} style={{ paintOrder: 'stroke', stroke: '#fff', strokeWidth: n > 1 ? 2 : 0 }}>
-        {pct.toFixed(0)}%
-      </text>
+      {/* Big centred percentage overlay — on a dark pill so it's readable
+          whether it sits over a vessel, the gap between vessels, or a nearly
+          empty one. Width scales to the label length so single-digit % stays
+          snug and 100% doesn't clip. */}
+      {(() => {
+        const label = `${pct.toFixed(0)}%`;
+        const fs = n > 1 ? 16 : 13;
+        const pillW = label.length * fs * 0.65 + 14;
+        const pillH = fs + 10;
+        const pillX = w / 2 - pillW / 2;
+        const pillY = h / 2 - pillH / 2;
+        return (
+          <g>
+            <rect x={pillX} y={pillY} width={pillW} height={pillH} rx={pillH / 2} fill="rgba(17,24,39,0.85)" />
+            <text x={w / 2} y={h / 2 + fs / 3} textAnchor="middle" fontSize={fs} fontWeight="700" fill="#fff">
+              {label}
+            </text>
+          </g>
+        );
+      })()}
 
       {low && (
         <circle cx={w - 8} cy={padTop + 2} r="4" fill="#dc2626" stroke="#fff" strokeWidth="1.5" />
