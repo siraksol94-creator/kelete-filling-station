@@ -1,7 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiActivity } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiActivity, FiAlertTriangle } from 'react-icons/fi';
 import { getTanks, createTank, updateTank, deleteTank, dipTank, getFuelGrades } from '../services/fuelApi';
 import { S } from './fuelStyles';
+
+// Vertical tank drawn as SVG. Fuel fills from the bottom, with a subtle wave
+// on top and gauge marks on the side. Width 70px, height 130px.
+function TankSvg({ pct, color, low }) {
+  const w = 70, h = 130;
+  const padTop = 10, padBottom = 8;
+  const innerH = h - padTop - padBottom;
+  const fillH = (pct / 100) * innerH;
+  const fillY = h - padBottom - fillH;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id={`g-${color.replace('#', '')}`} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.65" />
+        </linearGradient>
+      </defs>
+      {/* Tank body outline */}
+      <rect x="4" y={padTop} width={w - 8} height={innerH} rx="8" fill="#f9fafb" stroke="#d1d5db" strokeWidth="1.5" />
+      {/* Fuel fill */}
+      {fillH > 1 && (
+        <rect x="5" y={fillY} width={w - 10} height={fillH - 1} rx="6" fill={`url(#g-${color.replace('#', '')})`} />
+      )}
+      {/* Top cap / lid line */}
+      <rect x="18" y={padTop - 6} width={w - 36} height="6" rx="2" fill="#9ca3af" />
+      {/* Gauge ticks on the right side */}
+      {[25, 50, 75].map(p => {
+        const ty = h - padBottom - (p / 100) * innerH;
+        return <line key={p} x1={w - 10} x2={w - 4} y1={ty} y2={ty} stroke="#9ca3af" strokeWidth="1" />;
+      })}
+      {/* Percentage label centered in the tank */}
+      <text x={w / 2} y={h / 2 + 4} textAnchor="middle" fontSize="13" fontWeight="700" fill={pct > 55 ? '#fff' : color}>
+        {pct.toFixed(0)}%
+      </text>
+      {low && (
+        <circle cx={w - 8} cy={padTop + 2} r="4" fill="#dc2626" stroke="#fff" strokeWidth="1.5" />
+      )}
+    </svg>
+  );
+}
 
 const emptyForm = { code: '', name: '', fuel_grade_id: '', capacity_litres: '', current_volume: 0, low_stock_litres: 1000, status: 'Active' };
 
@@ -59,36 +99,58 @@ export default function Tanks() {
         <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20, marginBottom: 20 }}>
         {rows.map(t => {
-          const pct = t.capacity_litres > 0 ? (t.current_volume / t.capacity_litres) * 100 : 0;
-          const low = t.current_volume <= (t.low_stock_litres || 0);
-          const color = t.grade_color || '#2563eb';
+          const cap = Number(t.capacity_litres) || 0;
+          const vol = Number(t.current_volume) || 0;
+          const pct = cap > 0 ? Math.min(100, Math.max(0, (vol / cap) * 100)) : 0;
+          const low = vol <= (t.low_stock_litres || 0);
+          const color = low ? '#dc2626' : (t.grade_color || '#2563eb');
           return (
-            <div key={t.id} style={S.statCard}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+            <div key={t.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              {/* Header: code + grade pill + action icons */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
                 <div>
-                  <div style={S.statLabel}>{t.code} - {t.name}</div>
-                  <div style={{ marginTop: 4 }}><span style={S.pill(color)}>{t.grade_name || '-'}</span></div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#111' }}>{t.code}</div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{t.name}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 2 }}>
-                  <button onClick={() => { setDipFor(t); setDipVal(String(t.current_volume || '')); }} style={S.iconBtn} title="Record dip"><FiActivity /></button>
-                  <button onClick={() => openEdit(t)} style={S.iconBtn}><FiEdit2 /></button>
-                  <button onClick={() => remove(t)} style={S.iconBtnDanger}><FiTrash2 /></button>
+                  <button onClick={() => { setDipFor(t); setDipVal(String(vol || '')); }} style={S.iconBtn} title="Record dip"><FiActivity /></button>
+                  <button onClick={() => openEdit(t)} style={S.iconBtn} title="Edit"><FiEdit2 /></button>
+                  <button onClick={() => remove(t)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>
                 </div>
               </div>
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: low ? '#dc2626' : '#111' }}>
-                  {Number(t.current_volume).toFixed(0)} <span style={{ fontSize: 13, color: '#6b7280' }}>/ {Number(t.capacity_litres).toFixed(0)} L</span>
+              <div style={{ marginBottom: 10 }}><span style={S.pill(t.grade_color || '#6b7280')}>{t.grade_name || '-'}</span></div>
+
+              {/* Tank visual */}
+              <div style={{ display: 'flex', gap: 14, alignItems: 'stretch', marginTop: 4 }}>
+                <TankSvg pct={pct} color={color} low={low} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.4 }}>Current</div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: color, lineHeight: 1.1, marginTop: 2 }}>
+                    {vol.toLocaleString(undefined, { maximumFractionDigits: 0 })} <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>L</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>
+                    of <strong style={{ color: '#374151' }}>{cap.toLocaleString(undefined, { maximumFractionDigits: 0 })} L</strong>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    <strong style={{ color: color }}>{pct.toFixed(0)}%</strong> full
+                  </div>
                 </div>
-                <div style={S.bar(pct)}><div style={S.barFill(pct, low ? '#dc2626' : color)} /></div>
-                {low && <div style={{ marginTop: 6, fontSize: 12, color: '#dc2626' }}>LOW STOCK - below {t.low_stock_litres} L</div>}
               </div>
+
+              {low && (
+                <div style={{ marginTop: 12, padding: '8px 10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#991b1b', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FiAlertTriangle /> LOW STOCK — below {t.low_stock_litres} L
+                </div>
+              )}
             </div>
           );
         })}
         {rows.length === 0 && (
-          <div style={{ ...S.statCard, textAlign: 'center', color: '#6b7280' }}>No tanks yet. Create fuel grades first, then add tanks.</div>
+          <div style={{ ...S.statCard, textAlign: 'center', color: '#6b7280', gridColumn: '1 / -1', padding: 40 }}>
+            No tanks yet. Create fuel grades first, then add tanks.
+          </div>
         )}
       </div>
 
