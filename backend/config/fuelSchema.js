@@ -183,14 +183,17 @@ function initFuelSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_shift_readings_shift ON shift_nozzle_readings(shift_id);
     CREATE INDEX IF NOT EXISTS idx_nozzles_pump ON nozzles(pump_id);
     CREATE INDEX IF NOT EXISTS idx_tanks_fuel_grade ON tanks(fuel_grade_id);
-    CREATE INDEX IF NOT EXISTS idx_tanks_group ON tanks(tank_group_id);
   `);
 
   // Idempotent column add for deployments that pre-date tank_group_id.
   // SQLite has no "ADD COLUMN IF NOT EXISTS", so catch the duplicate-column
-  // error. First-time deploys already have the column from the CREATE above.
+  // error. Must run BEFORE the index below, or on an existing DB without
+  // the column the whole exec() aborts with "no such column".
   try { db.exec('ALTER TABLE tanks ADD COLUMN tank_group_id INTEGER REFERENCES tank_groups(id)'); }
   catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+
+  // Index on the (now-guaranteed) tank_group_id column
+  db.exec('CREATE INDEX IF NOT EXISTS idx_tanks_group ON tanks(tank_group_id)');
 }
 
 module.exports = { initFuelSchema };
