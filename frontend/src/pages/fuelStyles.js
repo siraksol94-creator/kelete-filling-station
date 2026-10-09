@@ -1,7 +1,10 @@
 // Shared inline styles for the Kelete Fuel pages. Keeping them inline to
 // avoid needing a CSS build step for the first slice.
 export const S = {
-  page: { padding: 24 },
+  // Shared container for every Fuel Station sub-page. height + overflow-y
+  // ensure content taller than the viewport scrolls independently of the
+  // sidebar — matches how the HQ pages scroll in Redsea.
+  page: { padding: 24, height: 'calc(100vh - 56px)', overflowY: 'auto', boxSizing: 'border-box' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
   h2: { margin: 0, display: 'flex', alignItems: 'center', gap: 8 },
   card: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' },
