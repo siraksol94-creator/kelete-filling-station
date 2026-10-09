@@ -94,9 +94,28 @@ export default function FuelPOS() {
             <label style={S.lbl}>Nozzle *
               <select value={nozzleId} onChange={e => setNozzleId(e.target.value)} required style={{ ...S.input, fontSize: 15 }}>
                 <option value="">-- pick a nozzle --</option>
-                {nozzles.map(n => (
-                  <option key={n.id} value={n.id}>{n.pump_code}-{n.code} ({n.grade_name}) @ K {Number(n.price_per_litre || 0).toFixed(2)}/L</option>
-                ))}
+                {(() => {
+                  // Group by grade so Petrol lands above Diesel, with each
+                  // option tinted the grade's own colour. optgroup is standard
+                  // HTML — gives a bold grey header per grade in native UIs.
+                  const groups = {};
+                  for (const n of nozzles) {
+                    const key = n.grade_name || '-';
+                    (groups[key] ||= { color: n.grade_color || '#374151', items: [] }).items.push(n);
+                  }
+                  // Petrol-first ordering: reverse-alphabetical puts P before D.
+                  // Covers Petrol → Paraffin → Diesel for most common grades.
+                  const sortedGradeNames = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+                  return sortedGradeNames.map(gradeName => (
+                    <optgroup key={gradeName} label={gradeName.toUpperCase()}>
+                      {groups[gradeName].items.map(n => (
+                        <option key={n.id} value={n.id} style={{ color: groups[gradeName].color, fontWeight: 600 }}>
+                          {n.pump_code}-{n.code} @ K {Number(n.price_per_litre || 0).toFixed(2)}/L
+                        </option>
+                      ))}
+                    </optgroup>
+                  ));
+                })()}
               </select>
             </label>
 
