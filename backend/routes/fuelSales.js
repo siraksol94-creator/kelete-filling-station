@@ -102,39 +102,11 @@ router.post('/', auth, (req, res) => {
       req.user?.id || null, branch_id, notes
     );
 
-    // bump nozzle meter + decrement tank(s)
+    // bump nozzle meter + decrement tank
     db.prepare('UPDATE nozzles SET current_meter_reading = current_meter_reading + ?, updated_at = datetime(\'now\') WHERE id = ?')
       .run(l, nozzle_id);
-
-    // If the tank is in a group, the group is physically plumbed as one pool:
-    // deduct proportionally from every tank in the group based on their current
-    // volumes (so after the sale all tanks in the group reflect the shared
-    // level). If no group, deduct from the single tank only.
-    const tankRow = db.prepare('SELECT id, current_volume, tank_group_id FROM tanks WHERE id = ?').get(noz.tank_id);
-    if (tankRow && tankRow.tank_group_id) {
-      const members = db.prepare('SELECT id, current_volume FROM tanks WHERE tank_group_id = ?').all(tankRow.tank_group_id);
-      const total = members.reduce((s, t) => s + (t.current_volume || 0), 0);
-      if (total <= 0) {
-        // Group is empty — just deduct from the primary tank to let it go
-        // negative (surfaces as a dip variance later rather than silently losing the sale)
-        db.prepare('UPDATE tanks SET current_volume = current_volume - ?, updated_at = datetime(\'now\') WHERE id = ?')
-          .run(l, noz.tank_id);
-      } else {
-        const upd = db.prepare('UPDATE tanks SET current_volume = current_volume - ?, updated_at = datetime(\'now\') WHERE id = ?');
-        let distributed = 0;
-        for (let i = 0; i < members.length; i++) {
-          const m = members[i];
-          const share = i === members.length - 1
-            ? l - distributed                       // last tank picks up any rounding
-            : Number(((m.current_volume / total) * l).toFixed(4));
-          upd.run(share, m.id);
-          distributed += share;
-        }
-      }
-    } else {
-      db.prepare('UPDATE tanks SET current_volume = current_volume - ?, updated_at = datetime(\'now\') WHERE id = ?')
-        .run(l, noz.tank_id);
-    }
+    db.prepare('UPDATE tanks SET current_volume = current_volume - ?, updated_at = datetime(\'now\') WHERE id = ?')
+      .run(l, noz.tank_id);
 
     return db.prepare('SELECT * FROM fuel_sales WHERE id = ?').get(info.lastInsertRowid);
   });
