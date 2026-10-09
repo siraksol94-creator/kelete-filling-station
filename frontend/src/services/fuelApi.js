@@ -6,6 +6,14 @@ export const createFuelGrade    = (data)    => api.post('/fuel-grades', data);
 export const updateFuelGrade    = (id, d)   => api.put(`/fuel-grades/${id}`, d);
 export const deleteFuelGrade    = (id)      => api.delete(`/fuel-grades/${id}`);
 
+// Tank groups
+export const getTankGroups      = ()        => api.get('/tank-groups');
+export const createTankGroup    = (d)       => api.post('/tank-groups', d);
+export const updateTankGroup    = (id, d)   => api.put(`/tank-groups/${id}`, d);
+export const deleteTankGroup    = (id)      => api.delete(`/tank-groups/${id}`);
+export const assignTanksToGroup = (id, tank_ids) => api.post(`/tank-groups/${id}/assign`, { tank_ids });
+export const unassignTanks      = (tank_ids) => api.post(`/tank-groups/unassign`, { tank_ids });
+
 // Tanks
 export const getTanks           = ()        => api.get('/tanks');
 export const getTank            = (id)      => api.get(`/tanks/${id}`);

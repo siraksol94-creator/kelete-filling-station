@@ -18,11 +18,26 @@ function initFuelSchema(db) {
       updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    -- Tank groups: physically plumbed-together tanks sharing one pool of
+    -- fuel. Nozzles still point at individual tanks (that's where the
+    -- plumbing lands), but sales deduct proportionally from every tank in
+    -- the group so the UI can show one combined card.
+    CREATE TABLE IF NOT EXISTS tank_groups (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      name           TEXT NOT NULL,
+      fuel_grade_id  INTEGER NOT NULL REFERENCES fuel_grades(id),
+      branch_id      INTEGER,
+      status         TEXT NOT NULL DEFAULT 'Active',
+      created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS tanks (
       id                INTEGER PRIMARY KEY AUTOINCREMENT,
       code              TEXT NOT NULL,
       name              TEXT NOT NULL,
       fuel_grade_id     INTEGER NOT NULL REFERENCES fuel_grades(id),
+      tank_group_id     INTEGER REFERENCES tank_groups(id) ON DELETE SET NULL,
       capacity_litres   REAL NOT NULL,
       current_volume    REAL NOT NULL DEFAULT 0,
       low_stock_litres  REAL DEFAULT 1000,
@@ -32,6 +47,9 @@ function initFuelSchema(db) {
       created_at        TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
+    -- Idempotent column add for existing deployments (ignores "duplicate column" error)
+    -- SQLite ALTER TABLE ADD COLUMN is non-destructive; wrap in a safe helper
+
 
     CREATE TABLE IF NOT EXISTS pumps (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -165,7 +183,14 @@ function initFuelSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_shift_readings_shift ON shift_nozzle_readings(shift_id);
     CREATE INDEX IF NOT EXISTS idx_nozzles_pump ON nozzles(pump_id);
     CREATE INDEX IF NOT EXISTS idx_tanks_fuel_grade ON tanks(fuel_grade_id);
+    CREATE INDEX IF NOT EXISTS idx_tanks_group ON tanks(tank_group_id);
   `);
+
+  // Idempotent column add for deployments that pre-date tank_group_id.
+  // SQLite has no "ADD COLUMN IF NOT EXISTS", so catch the duplicate-column
+  // error. First-time deploys already have the column from the CREATE above.
+  try { db.exec('ALTER TABLE tanks ADD COLUMN tank_group_id INTEGER REFERENCES tank_groups(id)'); }
+  catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
 }
 
 module.exports = { initFuelSchema };
