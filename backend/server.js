@@ -18,7 +18,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(uploadsDir));
 
-// â”€â”€â”€ Create all tables on first run â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Create all tables on first run ────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -321,7 +321,7 @@ db.exec(`
   );
 `);
 
-// â”€â”€â”€ Daily cost snapshot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Daily cost snapshot ─────────────────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS daily_cost_snapshot (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -342,7 +342,7 @@ db.exec(`
   CREATE UNIQUE INDEX IF NOT EXISTS idx_dcs_product_sync_date ON daily_cost_snapshot (product_sync_id, date);
 `);
 
-// â”€â”€â”€ Daily profit summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Daily profit summary ────────────────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS daily_profit_summary (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -360,7 +360,7 @@ db.exec(`
   );
 `);
 
-// â”€â”€â”€ Sync: config table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sync: config table ──────────────────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS sync_config (
     key   TEXT PRIMARY KEY,
@@ -368,7 +368,7 @@ db.exec(`
   );
 `);
 
-// â”€â”€â”€ Licenses table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Licenses table ──────────────────────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS licenses (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -384,7 +384,7 @@ db.exec(`
   );
 `);
 
-// â”€â”€â”€ Production tables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Production tables ────────────────────────────────────────────────────────
 db.exec(`
   CREATE TABLE IF NOT EXISTS production (
     id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -440,7 +440,7 @@ db.exec(`
   );
 `);
 
-// â”€â”€â”€ Sync: schema migration (add sync columns to all tables) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sync: schema migration (add sync columns to all tables) ─────────────────
 (function runSyncMigration() {
   function addCol(table, col, def) {
     const cols = db.prepare(`PRAGMA table_info(${table})`).all();
@@ -461,7 +461,7 @@ db.exec(`
     'sales_returns', 'sales_return_items', 'ap_payments', 'daily_profit_summary',
   ];
 
-  // Tables that already have updated_at â€” skip them
+  // Tables that already have updated_at — skip them
   const hasUpdatedAt = new Set([
     'users', 'products', 'customers', 'suppliers', 'business_settings', 'cash_reports', 'daily_profit_summary',
   ]);
@@ -554,12 +554,12 @@ db.exec(`
   // Link SIV back to production entry when auto-created from production
   addCol('siv', 'production_id',      'INTEGER');
   addCol('siv', 'production_sync_id', 'TEXT');
-  // Main category support â€” categories can be grouped under a main category (e.g., Whisky, Wine, Beer)
+  // Main category support — categories can be grouped under a main category (e.g., Whisky, Wine, Beer)
   addCol('categories', 'main_category_id',      'INTEGER');
   addCol('categories', 'main_category_sync_id', 'TEXT');
   // Per-product preferred unit (auto-selected on GRN/SIV/POS instead of always defaulting to base).
   addCol('products',   'default_unit',          'TEXT');
-  // Daily profit summary â€” new columns introduced over time.
+  // Daily profit summary — new columns introduced over time.
   // stock_adj: legacy column (no longer written but kept for schema parity with VPS migrations).
   // damages:   subtracted from gross profit when Sales Damages are recorded.
   addCol('daily_profit_summary', 'stock_adj', 'REAL NOT NULL DEFAULT 0');
@@ -636,7 +636,7 @@ db.exec(`
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(tenant_id, product_sync_id)
   )`).run();
-  // Cash transfers â€” bucket-to-bucket money moves (Cash / Bank / Mobile Money).
+  // Cash transfers — bucket-to-bucket money moves (Cash / Bank / Mobile Money).
   db.prepare(`CREATE TABLE IF NOT EXISTS cash_transfers (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     transfer_number TEXT NOT NULL,
@@ -650,10 +650,10 @@ db.exec(`
     updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
 
-  // â”€â”€ Parity tables (also in initTenantDb) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Parity tables (also in initTenantDb) ───────────────────────────────────
   // These were added to per-tenant DBs via initTenantDb but never backported to
   // server.js, so a fresh Electron install on a clean machine would crash 500
-  // when hitting the related pages. Same schema as migrations.js â€” kept here for
+  // when hitting the related pages. Same schema as migrations.js — kept here for
   // local Electron parity. If the schemas drift, treat migrations.js as authoritative.
   db.prepare(`CREATE TABLE IF NOT EXISTS stock_reconciliations (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -714,7 +714,7 @@ db.exec(`
     created_at      TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
-  // Discount approval requests â€” see migrations.js for the canonical schema.
+  // Discount approval requests — see migrations.js for the canonical schema.
   // Sync columns are baked in here (this CREATE runs AFTER the allTables loop,
   // so we can't rely on addCol to retro-add them; tenant DBs handle this via
   // migrations.js).
@@ -749,7 +749,7 @@ db.exec(`
   try { db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_dab_product_sync_date ON daily_actual_balance (product_sync_id, date)`).run(); } catch (e) { slog('idx_dab_psync_date: ' + e.message); }
 
   // Backfill sync_id + tenant_id + branch_id + device_id for records created before sync was set up
-  // Uses SQLite randomblob(16) for UUID generation â€” runs once per row, skips already-filled rows
+  // Uses SQLite randomblob(16) for UUID generation — runs once per row, skips already-filled rows
   for (const t of allTables) {
     try {
       const cols = db.prepare(`PRAGMA table_info(${t})`).all().map(c => c.name);
@@ -769,16 +769,16 @@ db.exec(`
   }
 })();
 
-// â”€â”€â”€ Sync: initialise device_id â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sync: initialise device_id ──────────────────────────────────────────────
 syncConfig.init(db);
 
-// â”€â”€â”€ Sync: start background sync service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sync: start background sync service ─────────────────────────────────────
 const syncService = require('./services/syncService');
 syncService.start(db, syncConfig);
 
 console.log('Database schema ready');
 
-// â”€â”€â”€ Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/zra',  require('./routes/zra'));
 app.use('/api/products', require('./routes/products'));
@@ -788,7 +788,7 @@ app.use('/api/units', require('./routes/units'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/grn', require('./routes/grn'));
 app.use('/api/empty-returns', require('./routes/emptyReturns'));
-// v1.13.67 â€” customer-side bearer voucher for empty containers.
+// v1.13.67 — customer-side bearer voucher for empty containers.
 app.use('/api/empty-vouchers', require('./routes/emptyVouchers'));
 app.use('/api/credit-notes', require('./routes/supplierCreditNotes'));
 app.use('/api/capital-account',  require('./routes/capitalAccount'));
@@ -822,13 +822,13 @@ app.use('/api/discount-requests', require('./routes/discountRequests'));
 app.use('/api/sync', require('./routes/sync'));
 app.use('/api/updates', require('./routes/updates'));
 app.use('/api/fx-rates', require('./routes/fxRates'));
-// v1.8.33 â€” branch Electron needs these two: Inter-Branch Transfers
+// v1.8.33 — branch Electron needs these two: Inter-Branch Transfers
 // (sidebar + page) and sidebar notification badges. Without them
 // Electron 404s on every sidebar load + the Transfers menu item.
 // HQ-only routes (tenant-admin, hq/suppliers, hq/products, hq/damages,
-// hq/grns) intentionally not mounted â€” Electron is a branch device, not HQ.
+// hq/grns) intentionally not mounted — Electron is a branch device, not HQ.
 //
-// 2026-08-28 â€” but THREE of them are branch-facing despite living under the
+// 2026-08-28 — but THREE of them are branch-facing despite living under the
 // /api/hq prefix, and leaving them off made the Incoming Stock page 404 on
 // every till: it showed an empty queue with no error, while the same account
 // on the web showed a pending PO and a full history. Harmless-looking, and
@@ -847,7 +847,7 @@ app.use('/api/branch/po-receipts', require('./routes/branchReceipts'));
 app.use('/api/transfers',     require('./routes/transfers'));
 app.use('/api/cash-deposits', require('./routes/cashDeposits'));
 app.use('/api/notifications', require('./routes/notifications'));
-// 2026-09-18 â€” search the note written on any document, whatever that
+// 2026-09-18 — search the note written on any document, whatever that
 // document happens to call the box. See services/noteSources.js.
 app.use('/api/search',        require('./routes/search'));
 app.use('/api/system',        require('./routes/system'));
@@ -870,7 +870,7 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'online', timestamp: new Date().toISOString() });
 });
 
-// Serve React frontend (Electron mode only â€” web mode uses Nginx)
+// Serve React frontend (Electron mode only — web mode uses Nginx)
 // Try multiple paths in case env var isn't set
 const _frontendBuild = process.env.ELECTRON_FRONTEND_BUILD
   || (process.resourcesPath ? path.join(process.resourcesPath, 'frontend', 'build') : null)
@@ -881,7 +881,7 @@ if (_frontendBuild && require('fs').existsSync(_frontendBuild)) {
   app.get('*', (req, res) => res.sendFile(path.join(_frontendBuild, 'index.html')));
 }
 
-// Global error handler â€” prevents crashes on PayloadTooLarge and other Express errors
+// Global error handler — prevents crashes on PayloadTooLarge and other Express errors
 app.use((err, req, res, next) => {
   if (err.type === 'entity.too.large') {
     return res.status(413).json({ error: 'Payload too large' });
@@ -895,12 +895,12 @@ app.listen(PORT, () => {
   console.log(`Kelete server running on port ${PORT}`);
 });
 
-// 2026-08-28 â€” background ZRA retry, on the till itself.
+// 2026-08-28 — background ZRA retry, on the till itself.
 //
 // Sales are rung here, so this machine owns getting them signed. It used
 // to have no automatic retry at all: a sale that failed (VSDC unreachable
 // because the till was offline) sat until someone noticed and clicked
-// Retry, and meanwhile the VPS â€” the only place this worker ran â€” picked
+// Retry, and meanwhile the VPS — the only place this worker ran — picked
 // up the synced copy and sent it too. Two machines, one sale, and ZRA
 // answering 924 "invoice number already exists" to the second one.
 //
@@ -912,7 +912,7 @@ try {
   console.warn('[zra-retry] failed to arm queue:', e.message);
 }
 
-// v1.13.123 â€” Electron in-app daily SQLite backup (ZRA Ref 11 Electron-side).
+// v1.13.123 — Electron in-app daily SQLite backup (ZRA Ref 11 Electron-side).
 // Silent no-op on VPS (guarded by ELECTRON_USER_DATA env var). Snapshots
 // kelete.db + master.db + any tenants/*.db to %APPDATA%/Kelete/Backups/
 // once ~30s after boot, then every 24h. Keeps last 14 days.
@@ -922,7 +922,7 @@ try {
   console.warn('[electronBackup] failed to start:', e.message);
 }
 
-// â”€â”€â”€ Backfill daily_profit_summary for all tenant DBs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Backfill daily_profit_summary for all tenant DBs ────────────────────────
 const { recalculateDailyProfit } = require('./config/profitHelper');
 const { getTenantDb, TENANTS_DIR } = require('./config/tenantDb');
 function backfillDailyProfit() {
@@ -959,7 +959,7 @@ function backfillDailyProfit() {
 }
 backfillDailyProfit();
 
-// â”€â”€â”€ Nightly cleanup: remove already-deleted reconciliation movements â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Nightly cleanup: remove already-deleted reconciliation movements ────────
 function cleanStaleReconciliations() {
   try {
     const result = db.prepare(

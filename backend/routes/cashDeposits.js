@@ -1,5 +1,5 @@
 /**
- * cashDeposits.js â€” Branch â†’ HQ Cash Deposit workflow.
+ * cashDeposits.js — Branch → HQ Cash Deposit workflow.
  *
  * Branch records a physical cash deposit being sent to HQ; HQ confirms
  * when the cash arrives. On confirm we move the money in BOTH ledgers:
@@ -10,9 +10,9 @@
  * without cross-DB joins (same pattern as stock_transfers).
  *
  * State machine on cash_deposits.status:
- *   PENDING    â€” branch sent, HQ hasn't confirmed yet
- *   CONFIRMED  â€” HQ acknowledged receipt, ledger entries written
- *   REJECTED   â€” HQ rejected (cash didn't arrive / wrong amount). No ledgers move.
+ *   PENDING    — branch sent, HQ hasn't confirmed yet
+ *   CONFIRMED  — HQ acknowledged receipt, ledger entries written
+ *   REJECTED   — HQ rejected (cash didn't arrive / wrong amount). No ledgers move.
  */
 const express = require('express');
 const router  = express.Router();
@@ -23,16 +23,16 @@ const { getTenantDb } = require('../config/tenantDb');
 const { depositTargetFor } = require('../services/depositTarget');
 const { getHostSlug } = require('../middleware/hqPush');
 
-// 2026-09-15 â€” who may confirm, reject or re-date a deposit: the side it was
+// 2026-09-15 — who may confirm, reject or re-date a deposit: the side it was
 // sent to. A deposit with to_slug went to that depot (the sender's System
-// Settings â†’ Deposit to), and only that depot's address may act on it. One
+// Settings → Deposit to), and only that depot's address may act on it. One
 // without went to HQ, and a depot's address may not act on it.
 const HQ_HOST_SLUGS = new Set(['hq', 'kelete', 'keletedistributionzm', 'www']);
 function receiverRefusal(req, row) {
   const caller = String(getHostSlug(req) || '').toLowerCase();
   const to = String(row.to_slug || '').toLowerCase();
-  if (to) return caller === to ? null : `Only ${row.to_name || to} can do this â€” the deposit was sent to them.`;
-  if (caller && !HQ_HOST_SLUGS.has(caller) && isRegistered(caller)) return 'Only HQ can do this â€” the deposit was sent to HQ.';
+  if (to) return caller === to ? null : `Only ${row.to_name || to} can do this — the deposit was sent to them.`;
+  if (caller && !HQ_HOST_SLUGS.has(caller) && isRegistered(caller)) return 'Only HQ can do this — the deposit was sent to HQ.';
   return null;
 }
 
@@ -61,7 +61,7 @@ function branchName(slug) {
 }
 
 // Pick the HQ tenant slug. Kelete's setup: the bare host (keletezm.com) is
-// HQ itself â€” its tenant DB is registered with a known slug. Fall back
+// HQ itself — its tenant DB is registered with a known slug. Fall back
 // to 'hq' if the convention changes.
 function getHqSlug() {
   try {
@@ -79,7 +79,7 @@ function nextDepositNumber() {
   return `DEP-${yyyymmdd}-${String(seq).padStart(4, '0')}`;
 }
 
-// â”€â”€â”€ POST /cash-deposits â€” branch records a new deposit being sent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /cash-deposits — branch records a new deposit being sent ──────────
 router.post('/', hqAuth, (req, res) => {
   try {
     const { from_slug, currency, amount, notes, deposit_date, attachment, from_method } = req.body;
@@ -89,23 +89,23 @@ router.post('/', hqAuth, (req, res) => {
     const amt = parseFloat(amount || 0) || 0;
     if (!(amt > 0)) return res.status(400).json({ error: 'amount must be > 0' });
 
-    // v1.10.48 â€” from_method: physical drawer on Liquor branches
+    // v1.10.48 — from_method: physical drawer on Liquor branches
     // ('Cash' | 'Mobile Money' | 'Bank'). Optional; NULL on Kelete
     // tri-currency deposits (they're currency-anchored). Frontend gate
     // decides when to send it based on isLiquorStyle.
     const VALID_METHODS = new Set(['Cash', 'Mobile Money', 'Bank']);
     const method = VALID_METHODS.has(from_method) ? from_method : null;
 
-    // v1.8.59 â€” no FX rate stored. Physical deposit is just raw currency;
+    // v1.8.59 — no FX rate stored. Physical deposit is just raw currency;
     // any conversion at HQ is a separate Currency Exchange concern.
-    // v1.8.60 â€” accept optional deposit_date (defaults to today) and
+    // v1.8.60 — accept optional deposit_date (defaults to today) and
     // attachment path (uploaded separately via /api/attachments).
     const looksLikeDate = typeof deposit_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(deposit_date);
     const depDate = looksLikeDate ? deposit_date : new Date().toISOString().slice(0, 10);
     const syncId = randomUUID();
     const depositNumber = nextDepositNumber();
     const fromName = branchName(from_slug);
-    // 2026-09-15 â€” HQ, or the depot picked in the sender's System Settings â†’ Deposit to.
+    // 2026-09-15 — HQ, or the depot picked in the sender's System Settings → Deposit to.
     const target = depositTargetFor(from_slug);
 
     masterDb.prepare(`
@@ -128,13 +128,13 @@ router.post('/', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /cash-deposits â€” list deposits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /cash-deposits — list deposits ────────────────────────────────────
 // Query: ?from_slug=kassumbalesa1 (branch's own outgoing list)
-//        no params + caller is HQ â†’ returns ALL deposits (used by HQ inbox)
+//        no params + caller is HQ → returns ALL deposits (used by HQ inbox)
 //        ?status=PENDING to filter
-// 2026-09-15 â€” ?to_slug=kabwe  deposits sent TO that depot (its incoming list)
+// 2026-09-15 — ?to_slug=kabwe  deposits sent TO that depot (its incoming list)
 //              ?to=hq          only deposits sent to HQ (the HQ inbox)
-// GET /cash-deposits/target?slug= â€” where that depot's deposits go now.
+// GET /cash-deposits/target?slug= — where that depot's deposits go now.
 router.get('/target', hqAuth, (req, res) => {
   const slug = String(req.query.slug || getHostSlug(req) || '').toLowerCase();
   res.json({ slug, to: depositTargetFor(slug) });
@@ -157,18 +157,18 @@ router.get('/', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ PUT /cash-deposits/:id/confirm â€” HQ confirms the cash arrived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── PUT /cash-deposits/:id/confirm — HQ confirms the cash arrived ──────────
 //
-// v1.8.59 â€” REWRITE. A deposit is cash MOVEMENT between drawers, not P&L.
+// v1.8.59 — REWRITE. A deposit is cash MOVEMENT between drawers, not P&L.
 // We no longer write a payment_voucher (= expense, hits profit) on the
-// branch or a cash_receipt (= income, hits profit) on HQ â€” those caused
+// branch or a cash_receipt (= income, hits profit) on HQ — those caused
 // phantom profit deltas on both sides.
 //
 // Instead we just flip the master.db row to CONFIRMED. The Cash Report
 // daily aggregation already subtracts confirmed-today outgoing deposits
 // from the branch's per-currency Expected, and adds incoming deposits to
 // the HQ's per-currency Expected, so drawer reconciliation still works
-// â€” without inventing income/expense events.
+// — without inventing income/expense events.
 router.put('/:id/confirm', hqAuth, (req, res) => {
   try {
     const row = masterDb.prepare('SELECT * FROM cash_deposits WHERE id = ?').get(req.params.id);
@@ -177,9 +177,9 @@ router.put('/:id/confirm', hqAuth, (req, res) => {
     const refusal = receiverRefusal(req, row);
     if (refusal) return res.status(403).json({ error: refusal });
     const confirmedByName = [req.user.first_name, req.user.last_name].filter(Boolean).join(' ') || null;
-    // v1.10.82 â€” HQ can override deposit_date at confirm time. Cash Book
+    // v1.10.82 — HQ can override deposit_date at confirm time. Cash Book
     // shows the deposit under whatever date HQ picks here (fallback:
-    // confirmed_at, then created_at â€” see routes/cashBook.js:402).
+    // confirmed_at, then created_at — see routes/cashBook.js:402).
     // Guard: only YYYY-MM-DD strings; anything else falls back to the
     // existing deposit_date.
     const bodyDate = typeof req.body?.deposit_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(req.body.deposit_date)
@@ -202,7 +202,7 @@ router.put('/:id/confirm', hqAuth, (req, res) => {
       `).run(req.user.id, confirmedByName, req.params.id);
     }
     const updated = masterDb.prepare('SELECT * FROM cash_deposits WHERE id = ?').get(req.params.id);
-    // 2026-09-18 â€” tell the depot that sent the money. Until it is confirmed
+    // 2026-09-18 — tell the depot that sent the money. Until it is confirmed
     // the cash is in neither drawer as far as anyone can prove, so this is the
     // moment they have been waiting for. Fire-and-forget.
     notifyDeposit(updated, 'confirmed', confirmedByName);
@@ -212,7 +212,7 @@ router.put('/:id/confirm', hqAuth, (req, res) => {
   }
 });
 
-// 2026-09-18 â€” whoever sent the deposit gets told what happened to it, on the
+// 2026-09-18 — whoever sent the deposit gets told what happened to it, on the
 // phone. Deposits live in master.db but the PEOPLE live in the sending depot's
 // own book, which is what from_slug names.
 function notifyDeposit(row, verdict, who, reason) {
@@ -223,15 +223,15 @@ function notifyDeposit(row, verdict, who, reason) {
     notifyBranchRoles(row.from_slug, ['Administrator', 'Manager', 'Cashier'], {
       title: verdict === 'confirmed' ? 'Deposit confirmed' : 'Deposit rejected',
       body: verdict === 'confirmed'
-        ? `${money} Â· ${row.deposit_number} received${who ? ' by ' + who : ''}.`
-        : `${money} Â· ${row.deposit_number} was rejected${reason ? ': ' + reason : ''}.`,
+        ? `${money} · ${row.deposit_number} received${who ? ' by ' + who : ''}.`
+        : `${money} · ${row.deposit_number} was rejected${reason ? ': ' + reason : ''}.`,
       data: { type: 'deposit-' + verdict, deposit_number: row.deposit_number },
       channelId: 'kelete-approvals-v1',
     }).catch(() => {});
   } catch (_) { /* never block the confirmation */ }
 }
 
-// â”€â”€â”€ PUT /cash-deposits/:id/reject â€” HQ rejects (no ledger writes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── PUT /cash-deposits/:id/reject — HQ rejects (no ledger writes) ──────────
 router.put('/:id/reject', hqAuth, (req, res) => {
   try {
     const row = masterDb.prepare('SELECT * FROM cash_deposits WHERE id = ?').get(req.params.id);
@@ -255,15 +255,15 @@ router.put('/:id/reject', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ PUT /cash-deposits/:id/date â€” edit accounting date of a CONFIRMED row â”€â”€
+// ─── PUT /cash-deposits/:id/date — edit accounting date of a CONFIRMED row ──
 //
-// v1.10.84 â€” HQ can move a CONFIRMED deposit to a different accounting
+// v1.10.84 — HQ can move a CONFIRMED deposit to a different accounting
 // date. Cash Book UNIONs directly from master.cash_deposits so the
 // deposit re-lands on the new date automatically on both sides
 // (branch's outgoing deduction shifts, HQ's incoming credit shifts).
 //
 // Only the accounting date changes; amount/currency/status stay put.
-// Only CONFIRMED rows are editable through this endpoint â€” PENDING rows
+// Only CONFIRMED rows are editable through this endpoint — PENDING rows
 // use the existing /confirm flow which already accepts a date, and
 // REJECTED rows have no ledger effect so editing them is pointless.
 router.put('/:id/date', hqAuth, (req, res) => {
@@ -287,16 +287,16 @@ router.put('/:id/date', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ DELETE /cash-deposits/:id â€” remove a deposit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.8.60 â€” allow deleting deposits to clean up mistakes / cancelled records.
+// ─── DELETE /cash-deposits/:id — remove a deposit ───────────────────────────
+// v1.8.60 — allow deleting deposits to clean up mistakes / cancelled records.
 // Branch can delete its own PENDING deposits; HQ can delete anything.
 // CONFIRMED deposits should NOT be silently deleted by branches because
-// HQ may have already balanced its drawer against them â€” gate behind HQ.
-// 2026-08-28 â€” SOFT delete with an audit trail (ported from Kelete v1.10.143).
+// HQ may have already balanced its drawer against them — gate behind HQ.
+// 2026-08-28 — SOFT delete with an audit trail (ported from Kelete v1.10.143).
 //
 // This used to remove the row outright. On a CONFIRMED deposit that silently
-// reverses cash on both sides â€” the branch's books show money that was
-// physically handed over as still on hand â€” and leaves nothing to say who
+// reverses cash on both sides — the branch's books show money that was
+// physically handed over as still on hand — and leaves nothing to say who
 // removed it or why. For cash moving between a branch and HQ that is the one
 // record you most want.
 //

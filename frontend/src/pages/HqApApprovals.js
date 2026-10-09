@@ -1,13 +1,13 @@
 // HQ AP Approvals queue (v1.13.30).
 //
-// Kelete's payable workflow: Store Manager confirms the GRN â†’ Accounts
-// clerk checks â†’ Finance Head approves â†’ Main Cashier records payment.
+// Kelete's payable workflow: Store Manager confirms the GRN → Accounts
+// clerk checks → Finance Head approves → Main Cashier records payment.
 // Each stage stamps who + when on hq_confirmed_grn_totals. Send-Back
 // isn't exposed in this UI per user choice (Option A / delete-only
 // remediation); the backend endpoint stays wired if we ever change our
 // mind.
 //
-// v1.13.33 â€” added scrollable rows container + View Details modal so
+// v1.13.33 — added scrollable rows container + View Details modal so
 // checkers/approvers/cashiers can inspect items + invoice attachment
 // before clicking through.
 import React, { useEffect, useState } from 'react';
@@ -19,7 +19,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { FiCheck, FiCheckCircle, FiDollarSign, FiRefreshCw, FiClock, FiUser, FiFileText, FiEye, FiX, FiPaperclip, FiXCircle, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 
 const STATUS_META = {
-  // 2026-09-06 â€” the delivery confirmation, in front of everything else.
+  // 2026-09-06 — the delivery confirmation, in front of everything else.
   // Every GRN lands here when it is generated and waits while the depot
   // finishes offloading and raises whatever credits the truck produced. The
   // Store Manager confirms once, against the supplier's invoice - which
@@ -27,32 +27,32 @@ const STATUS_META = {
   // "returns complete" button.
   UNCONFIRMED: { label: 'Awaiting Confirmation', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
   PENDING:  { label: 'Awaiting Check',    color: '#6b7280', bg: '#f3f4f6', border: '#e5e7eb' },
-  // 2026-08-31 â€” the CHECKED stage now has two halves: Finance has to open
+  // 2026-08-31 — the CHECKED stage now has two halves: Finance has to open
   // and confirm each GRN, then approve the confirmed ones as a batch. The tab
   // is named for the action that actually gates it, and the row badge below
-  // switches to 'Awaiting Approval' once a row has been confirmed â€” a row
+  // switches to 'Awaiting Approval' once a row has been confirmed — a row
   // reading "Awaiting Approval" when nobody has looked at it was a lie.
-  // 2026-09-06 â€” renamed from "Awaiting Confirmation". That name now belongs
+  // 2026-09-06 — renamed from "Awaiting Confirmation". That name now belongs
   // to the Store Manager's stage above, and this one is Finance's approval -
   // which is what the code has always called it in its own messages.
   CHECKED:  { label: 'Awaiting Approval', color: '#b45309', bg: '#fef3c7', border: '#fde68a' },
   APPROVED: { label: 'Ready for Payment', color: '#0e7490', bg: '#cffafe', border: '#67e8f9' },
-  // 2026-08-30 â€” a part-paid GRN still owes money, so it keeps the Ready for
+  // 2026-08-30 — a part-paid GRN still owes money, so it keeps the Ready for
   // Payment tab and is badged Partially Paid. It used to be stamped PAID on
   // any payment at all and vanish into the Paid tab with the balance hidden.
   PARTIAL:  { label: 'Partially Paid',    color: '#b45309', bg: '#fef3c7', border: '#fcd34d' },
   PAID:     { label: 'Paid',              color: '#166534', bg: '#dcfce7', border: '#86efac' },
   ALL:      { label: 'All',               color: '#334155', bg: '#f1f5f9', border: '#cbd5e1' },
 };
-// PARTIAL is not its own tab â€” the backend returns it alongside APPROVED so
+// PARTIAL is not its own tab — the backend returns it alongside APPROVED so
 // everything still owed sits together.
 // ALL sits last so the workflow order reads left to right and the default
 // landing tab is unchanged.
 const TABS = ['UNCONFIRMED', 'PENDING', 'CHECKED', 'APPROVED', 'PAID', 'ALL'];
 
-const fmtDate = (s) => s ? new Date(s.includes('T') ? s : s.replace(' ', 'T') + 'Z').toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'â€”';
+const fmtDate = (s) => s ? new Date(s.includes('T') ? s : s.replace(' ', 'T') + 'Z').toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—';
 
-// v1.10.3 â€” cross-subdomain URL for branch-hosted invoice photos. The
+// v1.10.3 — cross-subdomain URL for branch-hosted invoice photos. The
 // upload landed in TENANTS_DIR/<slug>/uploads/, so we point the browser at
 // <slug>.<apex>/uploads/<path>. Same helper as HqGrnArchive.
 function branchUploadUrl(branchSlug, path) {
@@ -68,7 +68,7 @@ function branchUploadUrl(branchSlug, path) {
 const HqApApprovals = () => {
   const { hasPermission, hasPageAccess } = useAuth();
   const { symbol } = useCurrency();
-  // 2026-08-30 â€” View is sight only; Add, Edit and Delete each grant the
+  // 2026-08-30 — View is sight only; Add, Edit and Delete each grant the
   // action. Delete used to be ignored, so a user given only Delete on
   // AP - Approve could open the page and do nothing, with no hint why.
   const canAct = (page) => ['Add', 'Edit', 'Delete'].some(a => hasPermission(`${page}:${a}`));
@@ -80,12 +80,12 @@ const HqApApprovals = () => {
   const canSeePaid = hasPageAccess('APPaid');
   const canSeeAll  = hasPageAccess('APAll');
 
-  // 2026-09-12 â€” opens on Awaiting Confirmation, the first stage a GRN lands
+  // 2026-09-12 — opens on Awaiting Confirmation, the first stage a GRN lands
   // in. It used to open on PENDING (Awaiting Check), so the depot's unconfirmed
   // deliveries sat a tab away and were only found by clicking.
   const [tab, setTab] = useState('UNCONFIRMED');
   const [rows, setRows] = useState([]);
-  // 2026-08-30 â€” narrow the queue by supplier, or by GRN / PO / invoice number.
+  // 2026-08-30 — narrow the queue by supplier, or by GRN / PO / invoice number.
   // Client-side over the rows already fetched, so it is instant and the tab
   // counts stay honest (they count everything, the list shows the match).
   const [rejectReasons, setRejectReasons] = useState([]);
@@ -94,14 +94,14 @@ const HqApApprovals = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
   const [payModal, setPayModal] = useState(null); // { row, amount, paidFrom }
-  // 2026-08-30 â€” batch payment: one amount settling several GRNs of ONE
+  // 2026-08-30 — batch payment: one amount settling several GRNs of ONE
   // supplier. Selection is held as a Set of grn_sync_id; batchSupplier locks
   // the batch to the first supplier picked, because the payment row carries a
   // single supplier and a mixed batch would file another supplier's money here.
   const [batchSel, setBatchSel] = useState(() => new Set());
   const [batchSupplier, setBatchSupplier] = useState(null);
   const [batchModal, setBatchModal] = useState(null); // { amount, paidFrom, busy }
-  // Batches start collapsed â€” the point of the grouping is a shorter queue.
+  // Batches start collapsed — the point of the grouping is a shorter queue.
   const [expandedBatches, setExpandedBatches] = useState(() => new Set());
   const [detailModal, setDetailModal] = useState(null); // { row, grn, items, credit_notes, loading, error }
 
@@ -135,7 +135,7 @@ const HqApApprovals = () => {
     }
   };
 
-  // 2026-08-30 â€” reject: send the GRN back one stage with a reason.
+  // 2026-08-30 — reject: send the GRN back one stage with a reason.
   const doReject = async (reason) => {
     setMessage(null);
     const row = detailModal?.row;
@@ -155,10 +155,10 @@ const HqApApprovals = () => {
     try {
       const res = await getApRejectReasons();
       setRejectReasons(res.data?.reasons || []);
-    } catch (_) { /* suggestions are a convenience â€” never block the page */ }
+    } catch (_) { /* suggestions are a convenience — never block the page */ }
   };
 
-  // 2026-08-30 â€” pre-fill the BALANCE, not the full payable: on a part-paid
+  // 2026-08-30 — pre-fill the BALANCE, not the full payable: on a part-paid
   // GRN the cashier would otherwise be offered the whole amount again.
   const openPay = (row) => {
     const remaining = parseFloat(row.remaining_amount);
@@ -167,7 +167,7 @@ const HqApApprovals = () => {
   };
 
   const openDetail = async (row) => {
-    // 2026-08-31 â€” a standalone credit note has no GRN behind it, so there is
+    // 2026-08-31 — a standalone credit note has no GRN behind it, so there is
     // nothing to fetch. Everything worth showing is already on the row.
     if (row.is_credit) {
       setDetailModal({ row, grn: null, items: [], credit_notes: [], loading: false, error: null });
@@ -198,17 +198,17 @@ const HqApApprovals = () => {
     const amt = parseFloat(amount) || 0;
     if (!(amt > 0)) { setMessage({ type: 'err', text: 'Amount must be > 0' }); return; }
     try {
-      // Route the payment through the standard AP payments endpoint â€”
+      // Route the payment through the standard AP payments endpoint —
       // it will refuse anything that isn't APPROVED, and stamp the
       // snapshot to PAID on success.
-      // 2026-08-29 â€” record WHICH DRAWER the money left, not just that it was
+      // 2026-08-29 — record WHICH DRAWER the money left, not just that it was
       // Kwacha. All three branches used to set k_amount, so the Paid From
       // choice was collected and thrown away: every payment landed in the
       // "Bank" tile whether it was cash, bank or mobile money.
       //
       // Only ONE field is set. Writing both a drawer amount and a currency
       // amount makes the Cash Book count the same payment twice, once per
-      // tile â€” K60,000 paid appearing as K120,000 in Supplier Paid.
+      // tile — K60,000 paid appearing as K120,000 in Supplier Paid.
       const paymentAmt =
           paidFrom === 'Bank'         ? { bank_amount: amt }
         : paidFrom === 'Mobile Money' ? { momo_amount: amt }
@@ -221,7 +221,7 @@ const HqApApprovals = () => {
         ...paymentAmt,
         date: new Date().toISOString().slice(0, 10),
         paid_from: paidFrom,
-        description: `GRN ${row.grn_number} â€” Invoice ${row.invoice_number || 'â€”'}`,
+        description: `GRN ${row.grn_number} — Invoice ${row.invoice_number || '—'}`,
         grn_sync_id: row.grn_sync_id,
       });
       setPayModal(null);
@@ -235,7 +235,7 @@ const HqApApprovals = () => {
 
   const fmtMoney = (n) => `${symbol}${(parseFloat(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  // â”€â”€ Batch payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Batch payment ────────────────────────────────────────────────────────
   // What a row still owes. remaining_amount is supplied by the queue, but fall
   // back to the payable so a row from an older server build is still selectable
   // rather than silently counting as zero outstanding.
@@ -247,23 +247,23 @@ const HqApApprovals = () => {
   };
 
   // Selection serves two stages now:
-  //   Awaiting Approval â†’ approve a supplier's invoices as ONE payment batch
-  //   Ready for Payment â†’ pay several GRNs with one amount
+  //   Awaiting Approval → approve a supplier's invoices as ONE payment batch
+  //   Ready for Payment → pay several GRNs with one amount
   // Same selection mechanics, different verb at the end.
   const selectMode =
       (tab === 'CHECKED'  && canApprove) ? 'approve'
     : (tab === 'APPROVED' && canPay)     ? 'pay'
     : null;
   const batchSelectable = !!selectMode;
-  // 2026-08-31 â€” a row can only join an approval batch once Finance has opened
+  // 2026-08-31 — a row can only join an approval batch once Finance has opened
   // it and confirmed. Before this the checkbox sat on the row, so an entire
   // page could be approved without anything being read.
   const isConfirmed = (r) => !!r.review_confirmed_at;
 
-  // Confirm Delivery â€” its own small modal rather than a row button, because
+  // Confirm Delivery — its own small modal rather than a row button, because
   // it takes a file. { row, attachment, busy, error }
   const [confirmModal, setConfirmModal] = useState(null);
-  // 2026-09-12 â€” "this delivery has no credit note at all". Two separate
+  // 2026-09-12 — "this delivery has no credit note at all". Two separate
   // things have to be empty: cn_total, which is what has already been credited
   // against the GRN, and the pending list, which only carries credits nobody
   // has agreed yet (branch_confirmed_at IS NULL). An empty pending list alone
@@ -282,7 +282,7 @@ const HqApApprovals = () => {
       setConfirmModal(m => (m ? { ...m, credits: [] } : m));
     }
   };
-  // Confirming a credit here is the same action as on the Credit Notes page â€”
+  // Confirming a credit here is the same action as on the Credit Notes page —
   // same endpoint, same rule that only HQ may do it. Once it is agreed the
   // payable moves, so the row is refreshed underneath.
   const confirmOneCredit = async (cn) => {
@@ -302,7 +302,7 @@ const HqApApprovals = () => {
     try {
       await apConfirmDelivery(confirmModal.row.grn_sync_id, confirmModal.attachment || '');
       setConfirmModal(null);
-      setMessage({ type: 'ok', text: 'Delivery confirmed â€” sent to Awaiting Check.' });
+      setMessage({ type: 'ok', text: 'Delivery confirmed — sent to Awaiting Check.' });
       load();
     } catch (err) {
       setConfirmModal(m => ({ ...m, busy: false, error: err?.response?.data?.error || 'Could not confirm.' }));
@@ -331,7 +331,7 @@ const HqApApprovals = () => {
   // from the full queue also means changing the supplier filter mid-selection
   // does not silently drop GRNs the user already ticked.
   const batchRows = rows.filter(r => batchSel.has(r.grn_sync_id));
-  // 2026-08-31 â€” a selection can now hold both: GRNs are what is owed, credit
+  // 2026-08-31 — a selection can now hold both: GRNs are what is owed, credit
   // notes come off it. GRN1 + GRN2 - SCN001.
   const batchGrns    = batchRows.filter(r => !r.is_credit);
   const batchCredits = batchRows.filter(r =>  r.is_credit);
@@ -341,14 +341,14 @@ const HqApApprovals = () => {
 
   // Approve the selected GRNs together. They become one batch and land in
   // Ready for Payment as a single collapsible line.
-  // 2026-08-31 â€” attaching a credit at check time.
+  // 2026-08-31 — attaching a credit at check time.
   //
   // Which GRN a standalone credit belongs against is a judgement, not a
   // calculation: splitting it across invoices by formula would have been a
   // guess presented as a fact. The checker picks, and from then on the credit
   // behaves exactly like one raised at Generate GRN.
   //
-  // Only that supplier's unpaid GRNs are offered â€” a paid one cannot absorb a
+  // Only that supplier's unpaid GRNs are offered — a paid one cannot absorb a
   // credit, the money has already gone.
   const attachableGrnsFor = (creditRow) => rows.filter(r =>
     !r.is_credit &&
@@ -365,7 +365,7 @@ const HqApApprovals = () => {
       setMessage({
         type: 'ok',
         text: `${row.grn_number} applied to ${data?.attached_to || 'the GRN'}`
-            + (data?.final_payable != null ? ` â€” now payable ${fmtMoney(data.final_payable)}` : ''),
+            + (data?.final_payable != null ? ` — now payable ${fmtMoney(data.final_payable)}` : ''),
       });
       load();
     } catch (e) {
@@ -380,7 +380,7 @@ const HqApApprovals = () => {
         : (confirm ? apConfirmReview : apUnconfirmReview);
       await fn(row.grn_sync_id);
       setMessage({ type: 'ok', text: confirm
-        ? `${row.grn_number} confirmed â€” tick it and approve when ready.`
+        ? `${row.grn_number} confirmed — tick it and approve when ready.`
         : `${row.grn_number} unconfirmed.` });
       setDetailModal(null);
       load();
@@ -408,7 +408,7 @@ const HqApApprovals = () => {
       setMessage({
         type: 'ok',
         text: data?.batch_number
-          ? `Approved ${data.count} GRNs as ${data.batch_number} Â· ${fmtMoney(data.total)} to ${data.supplier_name || 'supplier'}`
+          ? `Approved ${data.count} GRNs as ${data.batch_number} · ${fmtMoney(data.total)} to ${data.supplier_name || 'supplier'}`
           : `Approved ${data?.count || batchRows.length} GRN(s)`,
       });
       load();
@@ -421,7 +421,7 @@ const HqApApprovals = () => {
     if (!batchModal) return;
     const amt = parseFloat(batchModal.amount) || 0;
     if (!(amt > 0)) { setMessage({ type: 'err', text: 'Amount must be > 0' }); return; }
-    // The server refuses overpayment independently â€” this is only so the user
+    // The server refuses overpayment independently — this is only so the user
     // is told before submitting, not the gate.
     if (amt > batchTotal + 0.01) {
       setMessage({ type: 'err', text: `That is ${fmtMoney(amt - batchTotal)} more than the selected GRNs owe. Select another GRN, or reduce the amount.` });
@@ -451,7 +451,7 @@ const HqApApprovals = () => {
       clearBatch();
       setMessage({
         type: 'ok',
-        text: `Paid ${fmtMoney(amt)} to ${data?.supplier_name || 'supplier'} â€” `
+        text: `Paid ${fmtMoney(amt)} to ${data?.supplier_name || 'supplier'} — `
             + `${paidCount} GRN${paidCount === 1 ? '' : 's'} settled`
             + (partial ? `, ${partial.grn_number} part-paid (${fmtMoney(partial.remaining_after)} left)` : '')
             + `. Ref ${data?.batch_ref || ''}`,
@@ -465,10 +465,10 @@ const HqApApprovals = () => {
 
   const AuditStrip = ({ r }) => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11, color: '#6b7280', marginTop: 6 }}>
-      <span title="HQ Store Manager confirmed the GRN"><FiUser size={11} /> Confirmed: <strong>{r.confirmed_by_name || 'â€”'}</strong> Â· {fmtDate(r.confirmed_at)}</span>
-      {r.checked_at && <span title="Accounts clerk checked"><FiCheck size={11} /> Checked: <strong>{r.checked_by_name || 'â€”'}</strong> Â· {fmtDate(r.checked_at)}</span>}
-      {r.approved_at && <span title="Finance Head approved"><FiCheckCircle size={11} /> Approved: <strong>{r.approved_by_name || 'â€”'}</strong> Â· {fmtDate(r.approved_at)}</span>}
-      {r.paid_at && <span title="Cashier paid"><FiDollarSign size={11} /> Paid: <strong>{r.paid_by_name || 'â€”'}</strong> Â· {fmtDate(r.paid_at)}</span>}
+      <span title="HQ Store Manager confirmed the GRN"><FiUser size={11} /> Confirmed: <strong>{r.confirmed_by_name || '—'}</strong> · {fmtDate(r.confirmed_at)}</span>
+      {r.checked_at && <span title="Accounts clerk checked"><FiCheck size={11} /> Checked: <strong>{r.checked_by_name || '—'}</strong> · {fmtDate(r.checked_at)}</span>}
+      {r.approved_at && <span title="Finance Head approved"><FiCheckCircle size={11} /> Approved: <strong>{r.approved_by_name || '—'}</strong> · {fmtDate(r.approved_at)}</span>}
+      {r.paid_at && <span title="Cashier paid"><FiDollarSign size={11} /> Paid: <strong>{r.paid_by_name || '—'}</strong> · {fmtDate(r.paid_at)}</span>}
     </div>
   );
 
@@ -486,12 +486,12 @@ const HqApApprovals = () => {
       .some(v => String(v || '').toLowerCase().includes(q));
   });
 
-  // 2026-08-30 â€” collapse a payment batch into one line.
+  // 2026-08-30 — collapse a payment batch into one line.
   //
   // GRNs approved together share ap_batch_ref. They render as a single header
   // showing the supplier, the batch number and the combined outstanding, and
-  // expand to the individual invoices. A batch with only one member left â€”
-  // because the others were sent back â€” renders as an ordinary row, since the
+  // expand to the individual invoices. A batch with only one member left —
+  // because the others were sent back — renders as an ordinary row, since the
   // grouping is presentation and a "batch of one" is just an invoice.
   const displayItems = (() => {
     const items = [];
@@ -517,7 +517,7 @@ const HqApApprovals = () => {
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>AP Approvals</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
-            HQ Store Manager confirms â†’ Accounts checks â†’ Finance approves â†’ Cashier pays.
+            HQ Store Manager confirms → Accounts checks → Finance approves → Cashier pays.
           </p>
         </div>
         <button onClick={() => load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
@@ -534,7 +534,7 @@ const HqApApprovals = () => {
         </div>
       )}
 
-      {/* Filters â€” supplier picker + free search over GRN / PO / invoice */}
+      {/* Filters — supplier picker + free search over GRN / PO / invoice */}
       <div style={{ display: 'flex', gap: 10, marginBottom: 12, flexWrap: 'wrap', flexShrink: 0 }}>
         <select value={supplierFilter} onChange={e => setSupplierFilter(e.target.value)}
                 style={{ padding: '8px 12px', borderRadius: 8, border: '1.5px solid #cbd5e1', fontSize: 13,
@@ -576,17 +576,17 @@ const HqApApprovals = () => {
         })}
       </div>
 
-      {/* Rows â€” scrollable so the header + tabs stay pinned */}
+      {/* Rows — scrollable so the header + tabs stay pinned */}
       {/* Extra room at the foot of the list while the floating batch bar is up,
           so the last row's View button is never sitting underneath it. */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflowY: 'auto', flex: 1, minHeight: 0,
                     paddingBottom: (batchSelectable && batchRows.length > 0) ? 84 : 0 }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loadingâ€¦</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
         ) : rows.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Nothing to show for {STATUS_META[tab].label}.</div>
         ) : displayItems.map(item => {
-          // â”€â”€ Batch header: one line standing for several invoices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+          // ── Batch header: one line standing for several invoices ──────────
           if (item.type === 'batch') {
             const { ref, members } = item;
             const open  = expandedBatches.has(ref);
@@ -612,7 +612,7 @@ const HqApApprovals = () => {
                                    background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '2px 8px' }}>
                       {first.ap_batch_number || 'BATCH'}
                     </span>
-                    <span style={{ fontSize: 11, color: '#6b7280' }}>Â· {members.length} GRNs</span>
+                    <span style={{ fontSize: 11, color: '#6b7280' }}>· {members.length} GRNs</span>
                   </div>
                   <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 13, color: '#374151' }}>
@@ -632,9 +632,9 @@ const HqApApprovals = () => {
                   </div>
                 </div>
                 <div style={{ padding: '0 18px 12px 48px', fontSize: 11, color: '#6b7280' }}>
-                  Approved: <strong>{first.approved_by_name || 'â€”'}</strong> Â· {fmtDate(first.approved_at)}
+                  Approved: <strong>{first.approved_by_name || '—'}</strong> · {fmtDate(first.approved_at)}
                   {!open && (
-                    <> Â· <span style={{ color: '#9ca3af' }}>
+                    <> · <span style={{ color: '#9ca3af' }}>
                       {members.map(m => m.invoice_number ? `${m.grn_number} (Inv ${m.invoice_number})` : m.grn_number).join(', ')}
                     </span></>
                   )}
@@ -651,12 +651,12 @@ const HqApApprovals = () => {
                                               ...(item.child ? { paddingLeft: 48, background: '#fcfdff', borderLeft: '3px solid #c7d2fe' } : null) }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                  {/* 2026-08-30 â€” batch select. Only on Ready for Payment, only
+                  {/* 2026-08-30 — batch select. Only on Ready for Payment, only
                       for a user who may pay, and only while the row still owes
                       something. Rows of another supplier grey out once the
                       batch has one, since a payment row carries one supplier. */}
                   {batchSelectable && (() => {
-                    // In approve mode a zero-payable GRN is still approvable â€”
+                    // In approve mode a zero-payable GRN is still approvable —
                     // the "must owe something" rule only makes sense when the
                     // next step is handing over money.
                     const owes  = selectMode === 'pay' ? rowOutstanding(r) > 0.01 : true;
@@ -670,7 +670,7 @@ const HqApApprovals = () => {
                         disabled={off}
                         onChange={() => toggleBatch(r)}
                         title={unreviewed ? 'Open this GRN and confirm it first'
-                             : other ? `Batch is for ${batchSupplier} â€” clear it to pay another supplier`
+                             : other ? `Batch is for ${batchSupplier} — clear it to pay another supplier`
                              : (!owes ? 'Nothing outstanding on this GRN' : 'Include in the batch')}
                         style={{ width: 16, height: 16, cursor: off ? 'not-allowed' : 'pointer',
                                  alignSelf: 'center', opacity: off ? 0.35 : 1, accentColor: '#dc2626' }}
@@ -678,18 +678,18 @@ const HqApApprovals = () => {
                     );
                   })()}
                   <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{r.supplier_name || 'Supplier'}</span>
-                  {/* 2026-08-31 â€” a standalone credit reads as a credit, not as
+                  {/* 2026-08-31 — a standalone credit reads as a credit, not as
                       another invoice: its own label, and the amount negative. */}
                   {r.is_credit ? (
                     <span style={{ fontSize: 11, fontWeight: 700, color: '#166534', background: '#dcfce7',
                                    border: '1px solid #bbf7d0', borderRadius: 10, padding: '2px 8px' }}>
-                      CREDIT Â· {r.grn_number}
+                      CREDIT · {r.grn_number}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 11, color: '#6b7280' }}>Â· GRN {r.grn_number}</span>
+                    <span style={{ fontSize: 11, color: '#6b7280' }}>· GRN {r.grn_number}</span>
                   )}
-                  {r.po_number && <span style={{ fontSize: 11, color: '#6b7280' }}>Â· PO {r.po_number}</span>}
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>Â· Branch {r.branch_name || r.branch_slug}</span>
+                  {r.po_number && <span style={{ fontSize: 11, color: '#6b7280' }}>· PO {r.po_number}</span>}
+                  <span style={{ fontSize: 11, color: '#6b7280' }}>· Branch {r.branch_name || r.branch_slug}</span>
                   {r.invoice_number && <span style={{ fontSize: 11, color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: 3 }}><FiFileText size={11} /> Inv {r.invoice_number}</span>}
                 </div>
                 <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
@@ -714,24 +714,24 @@ const HqApApprovals = () => {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div style={{ fontSize: 13, color: '#374151' }}>
                   {r.is_credit ? (
-                    <span>Credit <strong style={{ color: '#166534', fontSize: 15 }}>âˆ’ {fmtMoney(r.final_payable)}</strong>
-                      {r.reason && <span style={{ marginLeft: 10, color: '#6b7280' }}>Â· {r.reason}</span>}
+                    <span>Credit <strong style={{ color: '#166534', fontSize: 15 }}>− {fmtMoney(r.final_payable)}</strong>
+                      {r.reason && <span style={{ marginLeft: 10, color: '#6b7280' }}>· {r.reason}</span>}
                     </span>
                   ) : (
                   <span>Subtotal <strong>{fmtMoney(r.items_subtotal)}</strong></span>
                   )}
                   {!r.is_credit && <>
-                  {parseFloat(r.cn_total) > 0 && <span style={{ marginLeft: 12, color: '#dc2626' }}>âˆ’ CN <strong>{fmtMoney(r.cn_total)}</strong></span>}
+                  {parseFloat(r.cn_total) > 0 && <span style={{ marginLeft: 12, color: '#dc2626' }}>− CN <strong>{fmtMoney(r.cn_total)}</strong></span>}
                   <span style={{ marginLeft: 12 }}>= Payable <strong style={{ color: '#111827', fontSize: 15 }}>{fmtMoney(r.final_payable)}</strong></span>
                   </>}
-                  {/* 2026-08-30 â€” what has been paid and what is still owed.
+                  {/* 2026-08-30 — what has been paid and what is still owed.
                       The card showed the payable alone, so a part payment was
                       invisible and a short-paid GRN read as settled. */}
                   {parseFloat(r.paid_amount || 0) > 0 && (
                     <span style={{ marginLeft: 12 }}>
-                      Â· Paid <strong style={{ color: '#166534' }}>{fmtMoney(r.paid_amount)}</strong>
+                      · Paid <strong style={{ color: '#166534' }}>{fmtMoney(r.paid_amount)}</strong>
                       {parseFloat(r.remaining_amount || 0) > 0 && (
-                        <> Â· Remaining <strong style={{ color: '#b45309' }}>{fmtMoney(r.remaining_amount)}</strong></>
+                        <> · Remaining <strong style={{ color: '#b45309' }}>{fmtMoney(r.remaining_amount)}</strong></>
                       )}
                     </span>
                   )}
@@ -751,7 +751,7 @@ const HqApApprovals = () => {
                       <FiCheckCircle size={12} /> Confirm Delivery
                     </button>
                   )}
-                  {/* 2026-08-30 â€” Check / Approve / Record Payment have moved
+                  {/* 2026-08-30 — Check / Approve / Record Payment have moved
                       into the detail modal. Approving money from a summary row
                       means acting on a supplier name and a total, without
                       having opened the line items, the invoice attachment or
@@ -777,13 +777,13 @@ const HqApApprovals = () => {
                style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, padding: 22, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 4px', fontSize: 17, color: '#0f172a' }}>Confirm {confirmModal.row.grn_number}</h3>
             <p style={{ margin: '0 0 14px', fontSize: 13, color: '#64748b' }}>
-              {confirmModal.row.supplier_name} Â· {confirmModal.row.branch_name || confirmModal.row.branch_slug}
-              {confirmModal.row.invoice_number ? ` Â· Invoice ${confirmModal.row.invoice_number}` : ''}
+              {confirmModal.row.supplier_name} · {confirmModal.row.branch_name || confirmModal.row.branch_slug}
+              {confirmModal.row.invoice_number ? ` · Invoice ${confirmModal.row.invoice_number}` : ''}
             </p>
             <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 12px', fontSize: 13, marginBottom: 14 }}>
               <div>Subtotal <strong>{fmtMoney(confirmModal.row.items_subtotal)}</strong></div>
               {parseFloat(confirmModal.row.cn_total) > 0 && (
-                <div style={{ color: '#dc2626' }}>Credit notes <strong>âˆ’ {fmtMoney(confirmModal.row.cn_total)}</strong></div>
+                <div style={{ color: '#dc2626' }}>Credit notes <strong>− {fmtMoney(confirmModal.row.cn_total)}</strong></div>
               )}
               <div style={{ marginTop: 4 }}>Payable <strong style={{ fontSize: 15 }}>{fmtMoney(confirmModal.row.final_payable)}</strong></div>
             </div>
@@ -791,7 +791,7 @@ const HqApApprovals = () => {
                 agreed yet. They change what is payable, so the delivery
                 cannot be released past them. */}
             {confirmModal.credits === null ? (
-              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>Checking for credit notesâ€¦</div>
+              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>Checking for credit notes…</div>
             ) : confirmModal.credits.length > 0 && (
               <div style={{ marginBottom: 14, border: '1px solid #fed7aa', background: '#fff7ed', borderRadius: 8, padding: '10px 12px' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#9a3412', marginBottom: 6 }}>
@@ -802,8 +802,8 @@ const HqApApprovals = () => {
                     <div style={{ fontSize: 12, color: '#7c2d12', minWidth: 0 }}>
                       <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{c.credit_note_number}</div>
                       <div style={{ opacity: 0.85 }}>
-                        {c.reason} Â· {fmtMoney(c.amount)}
-                        {c.raised_by_name ? ` Â· ${c.raised_by_name}` : ''}
+                        {c.reason} · {fmtMoney(c.amount)}
+                        {c.raised_by_name ? ` · ${c.raised_by_name}` : ''}
                         {c.raised_by_branch ? ` (${c.raised_by_branch})` : ''}
                       </div>
                       {c.notes && <div style={{ opacity: 0.7, fontStyle: 'italic' }}>{c.notes}</div>}
@@ -819,7 +819,7 @@ const HqApApprovals = () => {
                 </div>
               </div>
             )}
-            {/* 2026-09-12 â€” a delivery with no credit note at all has to be
+            {/* 2026-09-12 — a delivery with no credit note at all has to be
                 asserted, not assumed. Short, damaged and returned goods are
                 exactly what gets noticed on the bay and forgotten by the time
                 the invoice is confirmed, and once this is confirmed the
@@ -833,7 +833,7 @@ const HqApApprovals = () => {
                   style={{ marginTop: 2, flexShrink: 0, width: 16, height: 16, cursor: 'pointer' }} />
                 <span style={{ fontSize: 12.5, color: '#92400e', lineHeight: 1.45 }}>
                   <strong>No credit note on this delivery.</strong> Subtotal and payable are the
-                  same â€” nothing short, damaged or returned.
+                  same — nothing short, damaged or returned.
                   <span style={{ display: 'block', fontWeight: 700, marginTop: 3 }}>
                     Are you sure? Tick to confirm there is no credit note.
                   </span>
@@ -865,7 +865,7 @@ const HqApApprovals = () => {
                     title={blocked ? 'Settle the credit notes above first'
                          : needsAck ? 'Tick the box above to confirm there is no credit note' : ''}
                     style={{ padding: '9px 16px', background: off ? '#9ca3af' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, cursor: off ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
-                    {confirmModal.busy ? 'Confirmingâ€¦' : blocked ? 'Credits outstanding' : 'Confirm delivery'}
+                    {confirmModal.busy ? 'Confirming…' : blocked ? 'Credits outstanding' : 'Confirm delivery'}
                   </button>
                 );
               })()}
@@ -874,7 +874,7 @@ const HqApApprovals = () => {
         </div>
       )}
 
-      {/* Detail modal â€” items + invoice attachment */}
+      {/* Detail modal — items + invoice attachment */}
       {detailModal && (
         <DetailModal
           state={detailModal}
@@ -897,10 +897,10 @@ const HqApApprovals = () => {
         />
       )}
 
-      {/* 2026-08-30 â€” batch bar. Appears only once something is ticked, so the
+      {/* 2026-08-30 — batch bar. Appears only once something is ticked, so the
           Ready-for-Payment queue looks unchanged until the feature is used. */}
       {batchSelectable && batchRows.length > 0 && (
-        // 2026-08-30 â€” floated, not in flow.
+        // 2026-08-30 — floated, not in flow.
         //
         // This page is height:100vh but Layout renders it BELOW a top header
         // bar, so the container's bottom edge sits a header's height off the
@@ -913,18 +913,18 @@ const HqApApprovals = () => {
                       borderRadius: 12, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
                       boxShadow: '0 10px 30px rgba(0,0,0,0.28)', maxWidth: 'calc(100vw - 300px)' }}>
           <span style={{ fontSize: 13 }}>
-            {/* 2026-08-31 â€” say what is actually selected. "3 GRNs" when one of
+            {/* 2026-08-31 — say what is actually selected. "3 GRNs" when one of
                 them is a credit note reads as more debt, not less. */}
             <strong>{batchGrns.length}</strong> GRN{batchGrns.length === 1 ? '' : 's'}
             {batchCredits.length > 0 && (
-              <> âˆ’ <strong>{batchCredits.length}</strong> credit{batchCredits.length === 1 ? '' : 's'}</>
+              <> − <strong>{batchCredits.length}</strong> credit{batchCredits.length === 1 ? '' : 's'}</>
             )}
-            {batchSupplier && <> Â· <strong>{batchSupplier}</strong></>}
+            {batchSupplier && <> · <strong>{batchSupplier}</strong></>}
           </span>
           <span style={{ fontSize: 13, marginLeft: 'auto', textAlign: 'right' }}>
             {batchCredits.length > 0 && (
               <span style={{ opacity: 0.75, marginRight: 10 }}>
-                {fmtMoney(batchGrnTotal)} âˆ’ {fmtMoney(batchCreditTotal)} =
+                {fmtMoney(batchGrnTotal)} − {fmtMoney(batchCreditTotal)} =
               </span>
             )}
             {selectMode === 'approve' ? 'Total' : 'Net'} <strong style={{ fontSize: 15 }}>{fmtMoney(batchTotal)}</strong>
@@ -936,7 +936,7 @@ const HqApApprovals = () => {
           </button>
           {selectMode === 'approve' ? (
             <button onClick={submitApproveBatch}
-                    title="Approve these together â€” they become one line in Ready for Payment"
+                    title="Approve these together — they become one line in Ready for Payment"
                     style={{ background: '#4f46e5', border: 'none', color: '#fff', borderRadius: 8,
                              padding: '8px 18px', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
               Approve as One Batch
@@ -965,7 +965,7 @@ const HqApApprovals = () => {
           const sorted = [...batchGrns].sort((a, b) =>
             String(a.date || '').localeCompare(String(b.date || '')) ||
             String(a.grn_number || '').localeCompare(String(b.grn_number || '')));
-          // Cash PLUS credit is what settles the GRNs â€” the same figure the
+          // Cash PLUS credit is what settles the GRNs — the same figure the
           // server allocates. Previewing the cash alone would show GRNs left
           // part-paid that the payment actually closes.
           let left = amt + batchCreditTotal;
@@ -986,9 +986,9 @@ const HqApApprovals = () => {
                  onClick={e => e.stopPropagation()}>
               <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: '#111827' }}>Pay Several GRNs</h3>
               <p style={{ margin: '0 0 16px', fontSize: 13, color: '#6b7280' }}>
-                {batchSupplier} Â· {batchGrns.length} GRN{batchGrns.length === 1 ? '' : 's'}
-                {batchCredits.length > 0 && <> Â· {batchCredits.length} credit note{batchCredits.length === 1 ? '' : 's'} applied</>}
-                {' '}Â· to pay {fmtMoney(batchTotal)}
+                {batchSupplier} · {batchGrns.length} GRN{batchGrns.length === 1 ? '' : 's'}
+                {batchCredits.length > 0 && <> · {batchCredits.length} credit note{batchCredits.length === 1 ? '' : 's'} applied</>}
+                {' '}· to pay {fmtMoney(batchTotal)}
               </p>
               {batchCredits.length > 0 && (
                 <div style={{ marginBottom: 12, padding: '9px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0',
@@ -1015,7 +1015,7 @@ const HqApApprovals = () => {
               {isShort && (
                 <div style={{ marginTop: 8, padding: '9px 12px', background: '#fffbeb', border: '1px solid #fde68a',
                               borderRadius: 8, fontSize: 12, color: '#92400e' }}>
-                  Short by {fmtMoney(batchTotal - amt)} â€” the oldest GRNs are settled first and the last one is part-paid.
+                  Short by {fmtMoney(batchTotal - amt)} — the oldest GRNs are settled first and the last one is part-paid.
                 </div>
               )}
 
@@ -1028,7 +1028,7 @@ const HqApApprovals = () => {
               {preview.length > 0 && (
                 <div style={{ marginTop: 16, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
                   <div style={{ background: '#f9fafb', padding: '8px 12px', fontSize: 11, fontWeight: 700, color: '#374151', letterSpacing: 0.4 }}>
-                    HOW IT WILL BE APPLIED â€” OLDEST FIRST
+                    HOW IT WILL BE APPLIED — OLDEST FIRST
                   </div>
                   {preview.map(({ r, take, after }) => (
                     <div key={r.grn_sync_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
@@ -1037,7 +1037,7 @@ const HqApApprovals = () => {
                       {/* The invoice number is what the supplier will quote back,
                           so it belongs beside the GRN when confirming a payment. */}
                       {r.invoice_number && (
-                        <span style={{ color: '#6b7280', fontSize: 11 }}>Â· Inv {r.invoice_number}</span>
+                        <span style={{ color: '#6b7280', fontSize: 11 }}>· Inv {r.invoice_number}</span>
                       )}
                       <span style={{ marginLeft: 'auto', color: '#374151' }}>{fmtMoney(take)}</span>
                       <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700,
@@ -1049,7 +1049,7 @@ const HqApApprovals = () => {
                   ))}
                   {preview.length < batchGrns.length && (
                     <div style={{ padding: '8px 12px', borderTop: '1px solid #f3f4f6', fontSize: 11, color: '#9ca3af' }}>
-                      {batchGrns.length - preview.length} selected GRN{batchGrns.length - preview.length === 1 ? '' : 's'} receive nothing â€” the amount runs out first.
+                      {batchGrns.length - preview.length} selected GRN{batchGrns.length - preview.length === 1 ? '' : 's'} receive nothing — the amount runs out first.
                     </div>
                   )}
                 </div>
@@ -1066,7 +1066,7 @@ const HqApApprovals = () => {
                                  background: (batchModal.busy || isOver || !(amt > 0)) ? '#fca5a5' : '#dc2626',
                                  color: '#fff', borderRadius: 8, fontSize: 13, fontWeight: 700,
                                  cursor: (batchModal.busy || isOver || !(amt > 0)) ? 'not-allowed' : 'pointer' }}>
-                  {batchModal.busy ? 'Payingâ€¦' : 'Record Payment'}
+                  {batchModal.busy ? 'Paying…' : 'Record Payment'}
                 </button>
               </div>
             </div>
@@ -1079,7 +1079,7 @@ const HqApApprovals = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setPayModal(null)}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 420, padding: 22 }} onClick={e => e.stopPropagation()}>
             <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: '#111827' }}>Record Payment</h3>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#6b7280' }}>{payModal.row.supplier_name} Â· GRN {payModal.row.grn_number}</p>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#6b7280' }}>{payModal.row.supplier_name} · GRN {payModal.row.grn_number}</p>
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Amount ({symbol})</label>
               <input type="number" value={payModal.amount} onChange={e => setPayModal(m => ({ ...m, amount: e.target.value }))}
@@ -1105,12 +1105,12 @@ const HqApApprovals = () => {
   );
 };
 
-// v1.13.33 â€” Full-doc modal. Header + provenance + items + credit notes
+// v1.13.33 — Full-doc modal. Header + provenance + items + credit notes
 // + totals + stage-appropriate action buttons at the bottom.
 function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApprove, onConfirmReview, isConfirmed, onPay, onReject, rejectReasons, attachOptions }) {
   // Which GRN this credit note is being applied to. Only used for a credit.
   const [attachTo, setAttachTo] = React.useState('');
-  // 2026-08-30 â€” reject panel, opened from the footer. Kept inside the modal
+  // 2026-08-30 — reject panel, opened from the footer. Kept inside the modal
   // so the reason is written with the line items and the invoice in view.
   const [rejecting, setRejecting] = React.useState(false);
   const [reason, setReason] = React.useState('');
@@ -1137,9 +1137,9 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               </span>
             </h3>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
-              {row.supplier_name || 'Supplier'} Â· Branch {row.branch_name || row.branch_slug}
-              {row.po_number && <> Â· PO {row.po_number}</>}
-              {(row.date || grn?.date) && <> Â· {row.date || grn?.date}</>}
+              {row.supplier_name || 'Supplier'} · Branch {row.branch_name || row.branch_slug}
+              {row.po_number && <> · PO {row.po_number}</>}
+              {(row.date || grn?.date) && <> · {row.date || grn?.date}</>}
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}><FiX size={20} /></button>
@@ -1148,7 +1148,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
         {/* Body */}
         <div style={{ padding: 20, overflowY: 'auto', flex: 1 }}>
           {loading ? (
-            <p style={{ color: '#64748b', textAlign: 'center', padding: 30 }}>Loadingâ€¦</p>
+            <p style={{ color: '#64748b', textAlign: 'center', padding: 30 }}>Loading…</p>
           ) : error ? (
             <div style={{ padding: 14, background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', borderRadius: 8 }}>
               {error}
@@ -1157,11 +1157,11 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
             <>
               {/* Provenance */}
               <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-                <ProvenanceField label="Supplier" value={row.supplier_name || grn?.supplier_name || 'â€”'} />
-                <ProvenanceField label="From PO" value={row.po_number || 'â€”'} mono />
+                <ProvenanceField label="Supplier" value={row.supplier_name || grn?.supplier_name || '—'} />
+                <ProvenanceField label="From PO" value={row.po_number || '—'} mono />
                 <ProvenanceField
                   label="Supplier Invoice #"
-                  value={row.invoice_number || grn?.supplier_invoice_number || 'â€”'}
+                  value={row.invoice_number || grn?.supplier_invoice_number || '—'}
                   extra={invoiceUrl && (
                     <a href={invoiceUrl} target="_blank" rel="noopener noreferrer"
                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginTop: 4, color: '#1d4ed8', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}>
@@ -1171,7 +1171,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                 />
                 <ProvenanceField
                   label={<><FiUser size={11} style={{ verticalAlign: 'middle' }}/> Confirmed by HQ</>}
-                  value={row.confirmed_by_name || 'â€”'}
+                  value={row.confirmed_by_name || '—'}
                   extra={row.confirmed_at && (
                     <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
                       <FiClock size={10} style={{ verticalAlign: 'middle' }}/> {fmtDate(row.confirmed_at)}
@@ -1180,17 +1180,17 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                 />
                 {row.checked_at && (
                   <ProvenanceField label={<><FiCheck size={11} style={{ verticalAlign: 'middle' }}/> Checked</>}
-                    value={row.checked_by_name || 'â€”'}
+                    value={row.checked_by_name || '—'}
                     extra={<div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}><FiClock size={10} style={{ verticalAlign: 'middle' }}/> {fmtDate(row.checked_at)}</div>} />
                 )}
                 {row.approved_at && (
                   <ProvenanceField label={<><FiCheckCircle size={11} style={{ verticalAlign: 'middle' }}/> Approved</>}
-                    value={row.approved_by_name || 'â€”'}
+                    value={row.approved_by_name || '—'}
                     extra={<div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}><FiClock size={10} style={{ verticalAlign: 'middle' }}/> {fmtDate(row.approved_at)}</div>} />
                 )}
                 {row.paid_at && (
                   <ProvenanceField label={<><FiDollarSign size={11} style={{ verticalAlign: 'middle' }}/> Paid</>}
-                    value={row.paid_by_name || 'â€”'}
+                    value={row.paid_by_name || '—'}
                     extra={<div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}><FiClock size={10} style={{ verticalAlign: 'middle' }}/> {fmtDate(row.paid_at)}</div>} />
                 )}
               </div>
@@ -1206,7 +1206,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                         <th style={{ ...thStyle, textAlign: 'left' }}>Product</th>
                         <th style={thStyle}>Unit</th>
                         <th style={{ ...thStyle, textAlign: 'right' }}>Qty</th>
-                        {/* 2026-08-30 â€” the supplier's own figures. Whoever
+                        {/* 2026-08-30 — the supplier's own figures. Whoever
                             approves a payment could previously see only the
                             derived cost, with no way to tell why it was
                             K574.01 when the invoice says K504.56. */}
@@ -1214,7 +1214,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                         <th style={{ ...thStyle, textAlign: 'right' }}>Total Base</th>
                         <th style={{ ...thStyle, textAlign: 'right' }}>VAT</th>
                         <th style={{ ...thStyle, textAlign: 'right' }}>Discount</th>
-                        {/* The one column NOT on the invoice â€” what the system
+                        {/* The one column NOT on the invoice — what the system
                             derived and what stock is valued at. */}
                         <th style={{ ...thStyle, textAlign: 'right', color: '#7c3aed' }}>Cost</th>
                         <th style={{ ...thStyle, textAlign: 'right' }}>Line Total</th>
@@ -1230,10 +1230,10 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                           <tr key={it.id || idx} style={{ borderTop: '1px solid #f1f5f9' }}>
                             <td style={tdStyle}>{idx + 1}</td>
                             <td style={{ ...tdStyle, textAlign: 'left' }}>
-                              <div style={{ fontWeight: 600, color: '#111827' }}>{it.product_name || it.name || 'â€”'}</div>
+                              <div style={{ fontWeight: 600, color: '#111827' }}>{it.product_name || it.name || '—'}</div>
                               {it.product_code && <div style={{ fontSize: 10, color: '#6b7280' }}>{it.product_code}</div>}
                             </td>
-                            <td style={tdStyle}>{it.unit || it.product_base_unit || 'â€”'}</td>
+                            <td style={tdStyle}>{it.unit || it.product_base_unit || '—'}</td>
                             <td style={{ ...tdStyle, textAlign: 'right' }}>{qty.toLocaleString()}</td>
                             <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtMoney(it.base_price)}</td>
                             <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtMoney(qty * (parseFloat(it.base_price) || 0))}</td>
@@ -1245,7 +1245,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                         );
                       })}
                     </tbody>
-                    {/* 2026-08-31 â€” subtotal at the foot of the lines, not only
+                    {/* 2026-08-31 — subtotal at the foot of the lines, not only
                         in the summary far below. Someone checking the GRN
                         against the invoice needs it where the lines end. */}
                     {items.length > 0 && (
@@ -1262,7 +1262,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                 </div>
               </div>
 
-              {/* Credit Notes â€” full detail per note incl. items */}
+              {/* Credit Notes — full detail per note incl. items */}
               {credit_notes.length > 0 && (
                 <>
                   <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#111827' }}>Credit Notes ({credit_notes.length})</h4>
@@ -1276,23 +1276,23 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'baseline' }}>
                               <strong style={{ fontSize: 13, color: '#7f1d1d' }}>{cn.credit_note_number || '(no #)'}</strong>
                               {cn.reason && <span style={{ fontSize: 12, color: '#991b1b', padding: '2px 8px', borderRadius: 10, background: '#fecaca', fontWeight: 600 }}>{cn.reason}</span>}
-                              {/* 2026-08-31 â€” say which kind it is. One came
+                              {/* 2026-08-31 — say which kind it is. One came
                                   with the invoice; the other was raised on its
                                   own and applied to this GRN by a person. */}
                               {cn.is_free_credit ? (
                                 <span style={{ fontSize: 11, fontWeight: 700, color: '#166534', background: '#dcfce7',
                                                border: '1px solid #bbf7d0', borderRadius: 10, padding: '2px 8px' }}>
                                   Free credit note
-                                  {cn.created_by_name && <> Â· applied by {cn.created_by_name}</>}
+                                  {cn.created_by_name && <> · applied by {cn.created_by_name}</>}
                                 </span>
                               ) : (
                                 <span style={{ fontSize: 11, color: '#991b1b', opacity: 0.8 }}>with invoice</span>
                               )}
-                              {cn.date && <span style={{ fontSize: 11, color: '#991b1b' }}>Â· {cn.date}</span>}
-                              {cn.reference && <span style={{ fontSize: 11, color: '#991b1b' }}>Â· Ref: {cn.reference}</span>}
-                              {cn.created_by_name && <span style={{ fontSize: 11, color: '#991b1b' }}>Â· by {cn.created_by_name}</span>}
+                              {cn.date && <span style={{ fontSize: 11, color: '#991b1b' }}>· {cn.date}</span>}
+                              {cn.reference && <span style={{ fontSize: 11, color: '#991b1b' }}>· Ref: {cn.reference}</span>}
+                              {cn.created_by_name && <span style={{ fontSize: 11, color: '#991b1b' }}>· by {cn.created_by_name}</span>}
                             </div>
-                            <strong style={{ fontSize: 14, color: '#991b1b' }}>âˆ’ {fmtMoney(cn.amount)}</strong>
+                            <strong style={{ fontSize: 14, color: '#991b1b' }}>− {fmtMoney(cn.amount)}</strong>
                           </div>
 
                           {/* CN items (goods return / crates / bottles) */}
@@ -1306,7 +1306,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                                     <th style={thStyle}>Unit</th>
                                     <th style={{ ...thStyle, textAlign: 'right' }}>Qty</th>
                                     <th style={{ ...thStyle, textAlign: 'right' }}>Unit Value</th>
-                                    {/* 2026-08-30 â€” the supplier's credit note
+                                    {/* 2026-08-30 — the supplier's credit note
                                         prints a discount per line; without it
                                         the totals here cannot be reconciled
                                         against the paper. */}
@@ -1323,8 +1323,8 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                                     return (
                                       <tr key={idx} style={{ borderTop: '1px solid #fee2e2' }}>
                                         <td style={tdStyle}>{idx + 1}</td>
-                                        <td style={{ ...tdStyle, textAlign: 'left' }}>{it.product_name || 'â€”'}</td>
-                                        <td style={tdStyle}>{it.unit || 'â€”'}</td>
+                                        <td style={{ ...tdStyle, textAlign: 'left' }}>{it.product_name || '—'}</td>
+                                        <td style={tdStyle}>{it.unit || '—'}</td>
                                         <td style={{ ...tdStyle, textAlign: 'right' }}>{qty.toLocaleString()}</td>
                                         <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtMoney(uv)}</td>
                                         <td style={{ ...tdStyle, textAlign: 'right' }}>{fmtMoney(it.discount)}</td>
@@ -1348,7 +1348,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                                   </tr>
                                   <tr style={{ background: '#fef2f2', borderTop: '1px solid #fecaca' }}>
                                     <td colSpan={6} style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, color: '#991b1b' }}>Grand Total</td>
-                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, color: '#991b1b' }}>âˆ’ {fmtMoney(cn.amount)}</td>
+                                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, color: '#991b1b' }}>− {fmtMoney(cn.amount)}</td>
                                   </tr>
                                 </tfoot>
                               </table>
@@ -1376,7 +1376,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                 </div>
                 {(cnTotal > 0 || parseFloat(row.cn_total) > 0) && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626' }}>
-                    <span>âˆ’ Credit Notes</span>
+                    <span>− Credit Notes</span>
                     <strong>{fmtMoney(cnTotal || row.cn_total)}</strong>
                   </div>
                 )}
@@ -1384,9 +1384,9 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                   <span style={{ fontWeight: 700 }}>Payable</span>
                   <strong style={{ color: '#111827' }}>{fmtMoney(payable || row.final_payable)}</strong>
                 </div>
-                {/* 2026-08-30 â€” settlement, not just what was owed. The detail
+                {/* 2026-08-30 — settlement, not just what was owed. The detail
                     view ended at Payable, so opening a GRN told you nothing
-                    about whether it had been paid â€” the one thing you open it
+                    about whether it had been paid — the one thing you open it
                     to check. Balance is highlighted because that is the number
                     someone chasing a supplier actually needs. */}
                 {parseFloat(row.paid_amount || 0) > 0 && (
@@ -1422,10 +1422,10 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               <span style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>Apply to</span>
               <select value={attachTo} onChange={e => setAttachTo(e.target.value)}
                       style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, minWidth: 260 }}>
-                <option value="">â€” choose a GRN â€”</option>
+                <option value="">— choose a GRN —</option>
                 {attachOptions.map(g => (
                   <option key={g.grn_sync_id} value={g.grn_sync_id}>
-                    {g.grn_number} Â· {symbol}{(parseFloat(g.final_payable) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    {g.grn_number} · {symbol}{(parseFloat(g.final_payable) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </option>
                 ))}
               </select>
@@ -1451,16 +1451,16 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               <FiCheck size={14} /> Check
             </button>
           )}
-          {/* 2026-08-31 â€” Confirm, not Approve. Approving is a batch action on
+          {/* 2026-08-31 — Confirm, not Approve. Approving is a batch action on
               the list; this records that Finance opened THIS one and agreed.
-              The button lives here on purpose â€” confirming is only a real
+              The button lives here on purpose — confirming is only a real
               control if you had to open the thing to do it. */}
           {ap === 'CHECKED' && onConfirmReview && (
             isConfirmed ? (
               <button onClick={() => onConfirmReview(false)}
                       title="Undo the confirmation while it is still unapproved"
                       style={{ padding: '9px 18px', borderRadius: 8, border: '1.5px solid #bbf7d0', background: '#f0fdf4', color: '#166534', cursor: 'pointer', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <FiCheckCircle size={14} /> Confirmed Â· Undo
+                <FiCheckCircle size={14} /> Confirmed · Undo
               </button>
             ) : (
               <button onClick={() => onConfirmReview(true)}
@@ -1476,7 +1476,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
             </button>
           )}
           {/* Reject sends the GRN back ONE stage with a reason. Only from a
-              stage that has something to go back to â€” nothing precedes
+              stage that has something to go back to — nothing precedes
               Awaiting Check, and a GRN with money against it is not a
               paperwork problem. */}
           {(ap === 'CHECKED' || ap === 'APPROVED') && onReject && !rejecting && (
@@ -1490,7 +1490,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
         {rejecting && (
           <div style={{ padding: '14px 20px', borderTop: '1px solid #fecaca', background: '#fef2f2', flexShrink: 0 }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#b91c1c', marginBottom: 6 }}>
-              Reject â€” goes back to {ap === 'APPROVED' ? 'Awaiting Approval' : 'Awaiting Check'}
+              Reject — goes back to {ap === 'APPROVED' ? 'Awaiting Approval' : 'Awaiting Check'}
             </div>
             {/* Reasons already used, most recent first. The same few recur, and
                 retyping them by hand produces near-duplicates that cannot be

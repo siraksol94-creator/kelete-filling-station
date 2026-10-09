@@ -1,9 +1,9 @@
 /**
- * chat.js â€” in-app Messages (2026-09-14).
+ * chat.js — in-app Messages (2026-09-14).
  *
  * Conversations, members and messages live in master.db, so HQ and every depot
  * read the same chat. A person is "<slug>:<username>": the depot slug from the
- * host the request came in on ("hq" for the bare HQ domain â€” X-Branch is
+ * host the request came in on ("hq" for the bare HQ domain — X-Branch is
  * ignored, so an HQ user stays an HQ user while viewing a branch) plus the
  * login username from the JWT. User ids are NOT used: every depot database
  * numbers its users on its own.
@@ -13,7 +13,7 @@
  *   - only HQ administrators create groups and change their members
  *   - only members can read a conversation (no admin read-all)
  *   - a sender can delete their own message within 15 minutes
- *   - files: photos, PDF, Excel, Word, CSV, text â€” up to 10 MB each, kept in ONE
+ *   - files: photos, PDF, Excel, Word, CSV, text — up to 10 MB each, kept in ONE
  *     shared folder (CHAT_FILES_DIR) and served only through
  *     GET /files/:messageId after a membership check. Never a per-depot
  *     /uploads path, so a file opens the same from HQ or any depot.
@@ -30,7 +30,7 @@ const { masterDb, listTenants } = require('../config/masterDb');
 const { getTenantDb } = require('../config/tenantDb');
 const { defaultDb } = require('../config/database');
 
-// Hosts that are NOT a depot â€” the same list the tenant middleware skips.
+// Hosts that are NOT a depot — the same list the tenant middleware skips.
 const HQ_HOSTS   = new Set(['', 'www', 'kelete', 'keletedistributionzm', 'localhost', 'api', '127', 'sidanitsolutions']);
 const NOT_DEPOTS = new Set(['hq', 'keletedistributionzm']);
 const DELETE_WINDOW_MS = 15 * 60 * 1000;
@@ -39,12 +39,12 @@ const MAX_BODY = 4000;
 const FILES_DIR = path.resolve(process.env.CHAT_FILES_DIR || path.join(__dirname, '..', '..', 'chat-files'));
 const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic', '.heif',
                              '.pdf', '.xls', '.xlsx', '.csv', '.doc', '.docx', '.txt']);
-// 2026-09-14 â€” voice notes. Browsers record webm/ogg (Chrome, Firefox, Android)
+// 2026-09-14 — voice notes. Browsers record webm/ogg (Chrome, Firefox, Android)
 // or mp4 audio (iPhone). These are only accepted with an audio/* type, so a
 // .webm video cannot come in dressed as a voice note.
 const AUDIO_EXT = new Set(['.webm', '.ogg', '.oga', '.opus', '.m4a', '.mp3', '.aac', '.wav']);
 
-// â”€â”€ Schema (master.db) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Schema (master.db) ─────────────────────────────────────────────────────
 if (masterDb) {
   try {
     masterDb.exec(`
@@ -87,7 +87,7 @@ if (masterDb) {
   } catch (e) {
     console.error('[chat] schema:', e.message);
   }
-  // 2026-09-14 â€” system groups. 'everyone' = every active user, kept in step
+  // 2026-09-14 — system groups. 'everyone' = every active user, kept in step
   // with the directory; only HQ administrators post in it (announcements).
   try {
     const cols = masterDb.prepare('PRAGMA table_info(chat_conversations)').all().map(c => c.name);
@@ -101,7 +101,7 @@ const EVERYONE = 'everyone';
 
 const parseUtc = (s) => Date.parse(String(s || '').replace(' ', 'T') + 'Z');
 
-// â”€â”€ Who is asking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Who is asking ──────────────────────────────────────────────────────────
 function whoAmI(req) {
   const host = String(req.headers['x-tenant'] || req.hostname || '').toLowerCase();
   const first = host.split('.')[0];
@@ -116,7 +116,7 @@ function whoAmI(req) {
   };
 }
 
-// â”€â”€ Directory: every active user at HQ and at each active depot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Directory: every active user at HQ and at each active depot ─────────────
 let dirCache = { at: 0, list: [], places: {} };
 
 function usersOf(db) {
@@ -161,7 +161,7 @@ function directory() {
 // The "Everyone" group: created once, then kept in step with the directory.
 // A person who joins starts with everything before them marked read, so a
 // new user is not handed a pile of old announcements as unread. People are
-// only dropped when their place's users were actually read â€” a depot DB that
+// only dropped when their place's users were actually read — a depot DB that
 // fails to open must not empty its staff out of the group.
 function syncEveryone(list, loaded) {
   let conv = masterDb.prepare('SELECT id FROM chat_conversations WHERE system_key = ?').get(EVERYONE);
@@ -200,7 +200,7 @@ const placeOf = (slug) => directory().places[slug] || slug;
 // Depot staff reach their own depot and HQ; HQ reaches everyone.
 const canReach = (me, other) => me.slug === 'hq' || other.slug === 'hq' || other.slug === me.slug;
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ────────────────────────────────────────────────────────────────
 function activeMember(convId, person) {
   return masterDb.prepare(
     'SELECT * FROM chat_members WHERE conversation_id = ? AND person = ? AND removed_at IS NULL'
@@ -258,7 +258,7 @@ function removeFile(rel) {
   } catch (_) { /* a stray file is harmless */ }
 }
 
-// â”€â”€ Upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Upload ─────────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     const month = new Date().toISOString().slice(0, 7);
@@ -283,7 +283,7 @@ const uploadMw = (req, res, next) => upload.single('file')(req, res, (err) => {
   res.status(tooBig ? 413 : 400).json({ error: tooBig ? 'The file is larger than 10 MB.' : (err.message || 'Upload failed.') });
 });
 
-// â”€â”€ Routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Routes ─────────────────────────────────────────────────────────────────
 router.use(auth);
 router.use((req, res, next) => {
   if (!masterDb) return res.status(503).json({ error: 'Messages are not available on this server.' });
@@ -330,7 +330,7 @@ router.get('/conversations', (req, res) => {
       let preview = '';
       if (last) {
         const who = last.sender === me.person ? 'You' : (c.kind === 'group' ? String(last.sender_name || '').split(' ')[0] : '');
-        const fileLabel = /^audio\//i.test(last.file_mime || '') ? 'ðŸŽ¤ Voice note' : (last.file_name ? `ðŸ“Ž ${last.file_name}` : '');
+        const fileLabel = /^audio\//i.test(last.file_mime || '') ? '🎤 Voice note' : (last.file_name ? `📎 ${last.file_name}` : '');
         const text = last.deleted_at ? 'Message deleted' : (last.body || fileLabel);
         preview = who ? `${who}: ${text}` : text;
       }
@@ -409,7 +409,7 @@ router.put('/conversations/:id/members', (req, res) => {
     if (!conv) return;
     const me = req.me;
     if (conv.kind !== 'group') return res.status(400).json({ error: 'Members can only be changed on a group.' });
-    if (conv.system_key) return res.status(400).json({ error: 'Everyone is kept up to date automatically â€” members cannot be changed.' });
+    if (conv.system_key) return res.status(400).json({ error: 'Everyone is kept up to date automatically — members cannot be changed.' });
     if (!me.isHqAdmin) return res.status(403).json({ error: 'Only HQ administrators can change group members.' });
 
     const add = [...new Set((req.body?.add || []).map(p => String(p || '').trim().toLowerCase()))].filter(Boolean);
@@ -434,7 +434,7 @@ router.put('/conversations/:id/members', (req, res) => {
 });
 
 // Messages. No `after`: the latest page (plus the conversation and members).
-// `after=<id>`: only newer messages â€” what the open screen polls for.
+// `after=<id>`: only newer messages — what the open screen polls for.
 router.get('/conversations/:id/messages', (req, res) => {
   try {
     const conv = memberGuard(req, res);
@@ -543,12 +543,12 @@ router.post('/conversations/:id/read', (req, res) => {
   }
 });
 
-// "Kelete Distribution - KABWE" â†’ "Kabwe"; "HQ" stays.
+// "Kelete Distribution - KABWE" → "Kabwe"; "HQ" stays.
 const shortPlace = (name) => (String(name || '') === 'HQ' ? 'HQ' : String(name || '')
   .split(/\s+-\s+/).pop().replace(/\s+Depo$/i, '')
   .toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()));
 
-// Total unread for the badge, bell and tab title â€” plus the newest unread
+// Total unread for the badge, bell and tab title — plus the newest unread
 // message, which the app announces (pop-up, sound, desktop notification).
 router.get('/unread', (req, res) => {
   try {
@@ -576,7 +576,7 @@ router.get('/unread', (req, res) => {
       group: last.kind === 'group' ? last.title : null,
       preview: last.body
         ? String(last.body).slice(0, 140)
-        : (/^audio\//i.test(last.file_mime || '') ? 'ðŸŽ¤ Voice note' : `ðŸ“Ž ${last.file_name || 'File'}`),
+        : (/^audio\//i.test(last.file_mime || '') ? '🎤 Voice note' : `📎 ${last.file_name || 'File'}`),
     } : null;
     res.json({ total: row.n, latest });
   } catch (e) {

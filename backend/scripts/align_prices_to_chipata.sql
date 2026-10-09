@@ -61,7 +61,7 @@ SELECT p.code, p.name, x.was AS from_, p.selling_price AS to_
  WHERE ABS(COALESCE(p.selling_price,0) - x.now_) < 0.005
  ORDER BY x.code;
 
-SELECT '--- NOT CHANGED â€” decide these by hand ---';
+SELECT '--- NOT CHANGED — decide these by hand ---';
 SELECT x.code, COALESCE(p.name,'(no such live item)') AS name,
        p.selling_price AS hq_now, x.was AS i_expected, x.now_ AS chipata
   FROM _px x LEFT JOIN products p ON p.code = x.code AND p.deleted_at IS NULL

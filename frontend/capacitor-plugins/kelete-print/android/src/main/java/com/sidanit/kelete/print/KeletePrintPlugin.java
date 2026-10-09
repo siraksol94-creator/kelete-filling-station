@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONObject;
 
 /**
- * KeletePrint â€” printing for the Kelete site running inside the APK.
+ * KeletePrint — printing for the Kelete site running inside the APK.
  *
  * 2026-09-10. The APK's start page (mobile-shell/index.html) sends the app
  * straight on to the live site. From there the site runs in the app's
@@ -96,7 +96,7 @@ public class KeletePrintPlugin extends Plugin {
         call.resolve();
     }
 
-    // â”€â”€ The print window â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── The print window ───────────────────────────────────────────────────
 
     private void printHtml(final String html, final String name) {
         if (html == null || html.isEmpty()) return;
@@ -128,7 +128,7 @@ public class KeletePrintPlugin extends Plugin {
         });
     }
 
-    // â”€â”€ Silent: straight to the built-in printer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Silent: straight to the built-in printer ───────────────────────────
 
     private boolean hasBluetoothPermission() {
         if (Build.VERSION.SDK_INT < 31) return true; // granted at install below Android 12
@@ -142,8 +142,8 @@ public class KeletePrintPlugin extends Plugin {
     }
 
     // The paired device whose name says it is a printer: "vBtPrinter" on the
-    // KI-POS. Matching the name keeps other paired devices â€” a phone the
-    // terminal was once connected to â€” from ever being written to.
+    // KI-POS. Matching the name keeps other paired devices — a phone the
+    // terminal was once connected to — from ever being written to.
     @SuppressLint("MissingPermission")
     private BluetoothDevice findPrinter() {
         BluetoothManager bm = (BluetoothManager) getContext().getSystemService(Context.BLUETOOTH_SERVICE);
@@ -244,7 +244,7 @@ public class KeletePrintPlugin extends Plugin {
             });
         }
 
-        // The printer silent printing would use, or "" â€” for a settings
+        // The printer silent printing would use, or "" — for a settings
         // screen or a quick check from the browser console.
         @JavascriptInterface
         public String printerName() {

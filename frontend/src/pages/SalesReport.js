@@ -16,7 +16,7 @@ import InvoiceNo from '../components/InvoiceNo';
 import Portal from '../utils/Portal';
 import QRCode from 'qrcode';
 
-// 2026-08-30 â€” thousand separators on printed receipt figures. 306,000.00
+// 2026-08-30 — thousand separators on printed receipt figures. 306,000.00
 // reads at a glance; 306000.00 has to be counted. Fixed en-US grouping so a
 // till's locale cannot turn the decimal point into a comma on a tax invoice.
 const rcptMoney = (n) =>
@@ -24,12 +24,12 @@ const rcptMoney = (n) =>
 
 const _d = new Date(); const today = `${_d.getFullYear()}-${String(_d.getMonth()+1).padStart(2,'0')}-${String(_d.getDate()).padStart(2,'0')}`;
 
-// Partial reverse (per-item void) is disabled â€” it can flip AR negative on
+// Partial reverse (per-item void) is disabled — it can flip AR negative on
 // part-paid sales because the line refund reduces total_amount without
 // touching amount_received. For partial returns, use Sales Return / Credit
 // Notes instead. The backend route still exists; flip this flag back to
 // `true` to re-enable the UI without any other changes.
-// v1.8.12 â€” flipped to true for Kelete. Per-line reverse now refunds cash
+// v1.8.12 — flipped to true for Kelete. Per-line reverse now refunds cash
 // proportionally across USD/FRA/K (mirroring how the customer paid), so the
 // Cash Report's per-currency buckets stay in sync after a partial reverse.
 const PARTIAL_REVERSE_ENABLED = true;
@@ -38,7 +38,7 @@ const SalesReport = () => {
   const { hasPermission, user: authUser } = useAuth();
   const isAdmin = authUser?.role === 'Administrator';
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown } = useCurrency();
-  // v1.9.26 â€” gate the USD/FRA/K rows + columns on the branch's
+  // v1.9.26 — gate the USD/FRA/K rows + columns on the branch's
   // currency_mode. Mansa/Lusaka run K-only and should see one column.
   const showUSD = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
   const showFRA = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
@@ -46,7 +46,7 @@ const SalesReport = () => {
   const { t } = useLanguage();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  // 2026-09-23 â€” two pieces of state, not one. What is TYPED and what is being
+  // 2026-09-23 — two pieces of state, not one. What is TYPED and what is being
   // SEARCHED are different things now the search runs on a button: filtering on
   // every keystroke re-rendered a long table for each character, and half-typed
   // input flashed "nothing matches" before the number was finished.
@@ -60,41 +60,41 @@ const SalesReport = () => {
   const [viewLoading, setViewLoading] = useState(false);
   const [reversingItemId, setReversingItemId] = useState(null);
   const [reverseModal, setReverseModal] = useState(null); // { item, qtyToReverse }
-  // v1.13.38 â€” Debit note modal state. { order, amount, reason_cd, notes, saving, error }
+  // v1.13.38 — Debit note modal state. { order, amount, reason_cd, notes, saving, error }
   const [debitNoteModal, setDebitNoteModal] = useState(null);
-  // v1.13.136 â€” Reverse reason picker modal. Shown before the reversal fires
-  // so the cashier picks 01â€“07 (per ZRA VSDC spec Â§6.15). Sent to the backend
-  // as rfd_rsn_cd â€” used both in the ZRA saveSales payload (Garden) and to
+  // v1.13.136 — Reverse reason picker modal. Shown before the reversal fires
+  // so the cashier picks 01–07 (per ZRA VSDC spec §6.15). Sent to the backend
+  // as rfd_rsn_cd — used both in the ZRA saveSales payload (Garden) and to
   // stamp orders.zra_cn_rfd_rsn_cd for the CN reprint (Buseko). When '07 Other'
-  // is picked, an extra text field appears â€” spec Â§6.15 says "Provide other
-  // reason in brief" â€” persisted as orders.zra_cn_rfd_rsn_other.
+  // is picked, an extra text field appears — spec §6.15 says "Provide other
+  // reason in brief" — persisted as orders.zra_cn_rfd_rsn_other.
   //
-  // Flow: reason modal â†’ user picks â†’ Confirm â†’ we CLOSE reason modal +
-  // OPEN the pendingDelete AdminPasswordPrompt (Sirak requirement â€” admin
+  // Flow: reason modal → user picks → Confirm → we CLOSE reason modal +
+  // OPEN the pendingDelete AdminPasswordPrompt (Sirak requirement — admin
   // password gate on every reversal). Prompt's onConfirm fires the actual
   // reverseOrder API call carrying rfd_rsn_cd + rfd_rsn_other.
   const [reverseReasonModal, setReverseReasonModal] = useState(null);
   // { order, reason_cd, reason_other, error }
   const [businessName, setBusinessName] = useState('Kelete');
   const [businessPhone, setBusinessPhone] = useState('');
-  const [businessAddress, setBusinessAddress] = useState(''); // v1.10.63 â€” needed so reprints show address like the till receipt does.
-  // v1.13.96 â€” extra business identity fields the reprint template needs so
+  const [businessAddress, setBusinessAddress] = useState(''); // v1.10.63 — needed so reprints show address like the till receipt does.
+  // v1.13.96 — extra business identity fields the reprint template needs so
   // the columnar Tax Invoice / Invoice layout renders the same as POS.js
   // fresh-print does (TPIN, Branch or Depot, Serial No.).
   const [businessTpin, setBusinessTpin] = useState('');
   const [branchDepotId, setBranchDepotId] = useState('');
   const [deviceSerialNo, setDeviceSerialNo] = useState('');
   const [activeTab, setActiveTab] = useState('transactions');
-  // 2026-09-01 â€” COGS and Profit hidden on this page at the user's request.
+  // 2026-09-01 — COGS and Profit hidden on this page at the user's request.
   // Nothing is deleted: the figures are still computed, still exported, and
   // still drive the Profit summary card. Only the per-order columns and the
   // thermal report's margin lines are suppressed, because those are the two
   // surfaces a cashier or a customer can end up holding.
   //
-  // Flip this to true to bring both back â€” it is the only edit needed.
+  // Flip this to true to bring both back — it is the only edit needed.
   const SHOW_MARGIN_COLUMNS = false;
 
-  // v1.13.155 â€” possible duplicate sales. Pairs whose items, quantities,
+  // v1.13.155 — possible duplicate sales. Pairs whose items, quantities,
   // total and cashier all match within 60 seconds. The seconds gap rides on
   // each pair because that is what a person judges by: six seconds is a
   // duplicate, twenty-nine is two customers at opening time.
@@ -182,9 +182,9 @@ const SalesReport = () => {
       .catch(() => setUsers([]));
   }, [dateFrom, dateTo]);
 
-  // 2026-09-01 â€” was gated on activeTab === 'byItem'. Excel and CSV are now
+  // 2026-09-01 — was gated on activeTab === 'byItem'. Excel and CSV are now
   // by-item like the PDF, so the summary has to exist before the By Item tab
-  // has ever been opened â€” otherwise exporting from Transactions silently
+  // has ever been opened — otherwise exporting from Transactions silently
   // produced an empty sheet.
   useEffect(() => {
     fetchItemSummary();
@@ -218,7 +218,7 @@ const SalesReport = () => {
   const handleDismissDupe = async (p) => {
     if (!window.confirm(
       `Mark ${p.a_number} and ${p.b_number} as NOT duplicates?\n\n`
-      + `Both sales stay exactly as they are â€” nothing is reversed, deleted or `
+      + `Both sales stay exactly as they are — nothing is reversed, deleted or `
       + `refunded. This only stops the warning appearing again.`
     )) return;
     setDismissing(p.pair_key);
@@ -235,11 +235,11 @@ const SalesReport = () => {
     }
   };
 
-  // 2026-09-23 â€” find a sale by EITHER number.
+  // 2026-09-23 — find a sale by EITHER number.
   //
   // A row carries two identities: ZRA's receipt (INV0060003843/2755) and ours
   // (INV-2026-6CF8A5-2746). A customer quotes the first, a cashier remembers
-  // the second, and until now neither could be searched â€” you had to know the
+  // the second, and until now neither could be searched — you had to know the
   // date and scroll. Typing 2746 now matches both, as does the whole string.
   //
   // Credit and debit notes carry their own ZRA receipt, so those are matched
@@ -275,29 +275,29 @@ const SalesReport = () => {
   const totalRevenue = activeOrders.reduce((sum, o) => sum + parseFloat(o.total_amount || 0), 0);
   const totalDiscount = activeOrders.reduce((sum, o) => sum + parseFloat(o.discount || 0), 0);
   const totalSubtotal = activeOrders.reduce((sum, o) => sum + parseFloat(o.subtotal || 0), 0);
-  // v1.13.50 â€” COGS + Profit summary. Backend attaches per-order cogs from
+  // v1.13.50 — COGS + Profit summary. Backend attaches per-order cogs from
   // stock_movements.cost_at_sale (frozen at the moment of each sale). Profit
-  // is revenue minus cogs at the ROW level, then summed â€” no re-derivation
+  // is revenue minus cogs at the ROW level, then summed — no re-derivation
   // from live cost. Rows for reversed orders are already filtered above.
   const totalCogs   = activeOrders.reduce((sum, o) => sum + parseFloat(o.cogs || 0), 0);
   const totalProfit = totalRevenue - totalCogs;
   // Cash vs Credit split. Cash portion = the part of the sale paid at the till, capped at the
-  // sale total â€” over-payments come back as change to the customer, so they're NOT revenue.
+  // sale total — over-payments come back as change to the customer, so they're NOT revenue.
   // Credit portion = whatever wasn't paid at the till (becomes AR).
   const totalCashSales   = activeOrders.reduce((sum, o) => sum + Math.min(parseFloat(o.amount_received || 0), parseFloat(o.total_amount || 0)), 0);
-  // v1.8.76 â€” only count actual credit sales (payment_method Credit / Partial-Credit).
-  // Walk-in shortages within tolerance have total > received but are 'Cash' â€” those
+  // v1.8.76 — only count actual credit sales (payment_method Credit / Partial-Credit).
+  // Walk-in shortages within tolerance have total > received but are 'Cash' — those
   // are silent shop losses, NOT customer debt, so they shouldn't inflate Credit Sales.
   const totalCreditSales = activeOrders.reduce((sum, o) => {
     if (o.payment_method !== 'Credit' && o.payment_method !== 'Partial-Credit') return sum;
     return sum + Math.max(0, parseFloat(o.total_amount || 0) - parseFloat(o.amount_received || 0));
   }, 0);
 
-  // v1.8.1 â€” triple-currency breakdown for Cash Sales card + By Payment tab.
+  // v1.8.1 — triple-currency breakdown for Cash Sales card + By Payment tab.
   // Each in its own currency: USD net of USD change, FRA net of FRA change,
   // K net of K change. Kelete is cash-only across 3 currencies (no card / MoMo
   // / bank); these three buckets sum to the cash drawer in each currency.
-  // v1.8.68 â€” switched USD subtraction from change_amount (USD-equivalent of
+  // v1.8.68 — switched USD subtraction from change_amount (USD-equivalent of
   // ALL change owed) to usd_change_given (physical USD returned only). Fixes
   // the phantom negative-USD when customer overpaid in FRA.
   const totalUsdReceived = activeOrders.reduce((s, o) =>
@@ -307,14 +307,14 @@ const SalesReport = () => {
   const totalKReceived = activeOrders.reduce((s, o) =>
     s + parseFloat(o.k_received || 0) - parseFloat(o.k_change_given || 0), 0);
 
-  // v1.9.27 â€” method-axis totals for Liquor-style branches (Mansa/Lusaka).
-  // v1.9.29 â€” corrected field names. POS writes the walk-in modal's per-
+  // v1.9.27 — method-axis totals for Liquor-style branches (Mansa/Lusaka).
+  // v1.9.29 — corrected field names. POS writes the walk-in modal's per-
   // method amounts into cash_received / momo_received / bank_received
   // (not cash / momo / bank). On Kelete branches these same columns hold
   // the USD/FRA-equivalent breakdown, but isLiquorStyle gates the reads
   // so they only matter on K-only multi-method branches.
-  // v1.10.101 â€” subtract change_amount from Cash total on Liquor so the
-  // per-method Cash card matches the â‰ˆ total footer (both settle to the
+  // v1.10.101 — subtract change_amount from Cash total on Liquor so the
+  // per-method Cash card matches the ≈ total footer (both settle to the
   // capped-at-total_amount value). Change on Liquor always comes out of
   // Cash drawer, never from MoMo/Bank. These variables are only rendered
   // on isLiquorStyle branches (line 878), so Kassumbalesa is untouched.
@@ -327,7 +327,7 @@ const SalesReport = () => {
   const totalCreditByMethod = activeOrders.reduce((s, o) =>
     s + Math.max(0, parseFloat(o.total_amount || 0) - parseFloat(o.amount_received || 0)), 0);
 
-  // v1.8.68 â€” over-collections kept by cashier, summed per source currency.
+  // v1.8.68 — over-collections kept by cashier, summed per source currency.
   const totalOverpaidUSD = activeOrders.reduce((s, o) =>
     s + (o.overpaid_kept_ccy === 'USD' ? parseFloat(o.overpaid_kept_amt || 0) : 0), 0);
   const totalOverpaidFRA = activeOrders.reduce((s, o) =>
@@ -343,10 +343,10 @@ const SalesReport = () => {
     return s;
   }, 0);
 
-  // v1.13.152 â€” When true, the current View modal was opened from a
+  // v1.13.152 — When true, the current View modal was opened from a
   // Credit Note row (Sales Report flatMap emits both sale + CN rows for
   // reversed/partial orders). The modal footer hides Print Receipt +
-  // Reverse Order in this case â€” the CN view should only offer Close
+  // Reverse Order in this case — the CN view should only offer Close
   // and Print Credit Note, matching what the cashier expects when
   // clicking a CN's own row.
   const [viewedAsCn, setViewedAsCn] = useState(false);
@@ -355,7 +355,7 @@ const SalesReport = () => {
     setViewedAsCn(!!asCn);
     try {
       const res = await getOrder(orderId);
-      // v1.13.100 â€” hydrate any DNs so the Print Debit Note button in
+      // v1.13.100 — hydrate any DNs so the Print Debit Note button in
       // the modal footer shows a badge count and lets the user reprint.
       let dns = [];
       try {
@@ -376,18 +376,18 @@ const SalesReport = () => {
     setPendingDelete(null);
     if (job?.perform) await job.perform();
   };
-  // v1.13.136 â€” Reverse flow now opens a reason picker (ZRA UAT Â§3.8(b)
-  // requires the CN carry a reason). Default to '01 Wrong product' â€” first
-  // code in the ZRA VSDC spec Â§6.15 list. Cashier can change before
+  // v1.13.136 — Reverse flow now opens a reason picker (ZRA UAT §3.8(b)
+  // requires the CN carry a reason). Default to '01 Wrong product' — first
+  // code in the ZRA VSDC spec §6.15 list. Cashier can change before
   // confirming. The chosen code flows into both the ZRA CN payload (Garden)
   // and the local reprint (Buseko, where ZRA is off).
   const handleReverse = (order) => {
     if (order.status === 'Reversed') return;
     setReverseReasonModal({ order, reason_cd: '01', reason_other: '', error: null });
   };
-  // Reason picker â†’ Confirm â†’ validate â†’ close reason modal â†’ open
+  // Reason picker → Confirm → validate → close reason modal → open
   // AdminPasswordPrompt (pendingDelete). Actual reverseOrder call fires
-  // from AdminPasswordPrompt's onConfirm handler (confirmDelete â†’ perform).
+  // from AdminPasswordPrompt's onConfirm handler (confirmDelete → perform).
   const proceedToAdminPasswordAfterReason = () => {
     if (!reverseReasonModal) return;
     const { order, reason_cd, reason_other } = reverseReasonModal;
@@ -398,7 +398,7 @@ const SalesReport = () => {
     const otherText = reason_cd === '07' ? String(reason_other).trim() : null;
     setReverseReasonModal(null);
     setPendingDelete({
-      subject: `Reverse order ${fmtInvoiceNo(order.order_number)} â€” voids sale, restores stock, issues Credit Note (${reason_cd}${otherText ? ' â€” ' + otherText : ''})`,
+      subject: `Reverse order ${fmtInvoiceNo(order.order_number)} — voids sale, restores stock, issues Credit Note (${reason_cd}${otherText ? ' — ' + otherText : ''})`,
       actionLabel: 'Confirm Reverse',
       perform: async () => {
         try {
@@ -452,7 +452,7 @@ const SalesReport = () => {
     try {
       const otherText = reason_cd === '07' ? String(reason_other).trim() : null;
       await reverseOrderItem(viewOrder.id, item.id, qty, unit, { rfd_rsn_cd: reason_cd, rfd_rsn_other: otherText });
-      // v1.13.147 â€” the partial-reverse endpoint returns only the base
+      // v1.13.147 — the partial-reverse endpoint returns only the base
       // order shape (no items[] array), which was overwriting
       // viewOrder and blanking the modal until the cashier closed +
       // reopened it. Re-fetch the full order + DN list so the modal
@@ -478,10 +478,10 @@ const SalesReport = () => {
 
   const printDirect = (html) => printHtml(html);
 
-  // 2026-09-01 â€” Sales report on the 80mm thermal roll. Export PDF and Print
+  // 2026-09-01 — Sales report on the 80mm thermal roll. Export PDF and Print
   // Report both produce an A4 sheet; a depot wanting the day's figures at the
   // counter had to find a normal printer. Same by-item figures, same sort, cut
-  // to 72mm â€” the printable width of an 80mm roll, matching every receipt in
+  // to 72mm — the printable width of an 80mm roll, matching every receipt in
   // this file.
   //
   // Arial at normal weight for the same reason the receipts changed: bold
@@ -527,10 +527,10 @@ const SalesReport = () => {
 <style>
   @page { size: 72mm auto; margin: 0; }
   html, body { margin: 0; padding: 0; overflow-x: hidden; }
-  /* 2026-09-01 â€” was padding: 2mm all round. The left edge printed off
+  /* 2026-09-01 — was padding: 2mm all round. The left edge printed off
      the paper: RED SEA came out as ED SEA, Cashier as ashier. The page
      is exactly 72mm (box-sizing is border-box above), so nothing is
-     overflowing â€” the print head simply starts a couple of millimetres
+     overflowing — the print head simply starts a couple of millimetres
      right of where the browser puts x=0. Moving the padding from the
      right side to the left shifts the content across without making
      the content area any narrower: 4 + 0 is the same 4mm as 2 + 2.
@@ -585,7 +585,7 @@ const SalesReport = () => {
 </body></html>`);
   };
 
-  // v1.13.38 â€” Debit Note modal handlers.
+  // v1.13.38 — Debit Note modal handlers.
   const openDebitNoteModal = (order) => setDebitNoteModal({
     order,
     amount: '',
@@ -610,11 +610,11 @@ const SalesReport = () => {
         notes: debitNoteModal.notes || null,
       });
       const zraNote = data?.zra?.skipped
-        ? ' (ZRA skipped â€” original not fiscal)'
+        ? ' (ZRA skipped — original not fiscal)'
         : data?.zra?.ok
           ? ` (ZRA rcpt ${data?.zra?.rcptNo})`
           : data?.zra
-            ? ` (ZRA failed â€” will retry: ${data?.zra?.error || ''})`
+            ? ` (ZRA failed — will retry: ${data?.zra?.error || ''})`
             : '';
       setDebitNoteModal(m => ({ ...m, saving: false, success: `Debit note ${data.dn_number} created${zraNote}.`, createdDn: data }));
     } catch (e) {
@@ -623,22 +623,22 @@ const SalesReport = () => {
   };
 
   const handlePrintReceipt = async (order) => {
-    // v1.13.96 â€” SalesReport reprint now uses the same columnar Access-
+    // v1.13.96 — SalesReport reprint now uses the same columnar Access-
     // style layout as fresh POS.js prints (v1.13.95). SIGNED orders get
     // the full Tax Invoice with QR + fiscal footer; everything else
     // gets the plain "Invoice" variant. Always adds the "*** COPY /
     // DUPLICATE ***" band on top (ZRA UAT #24) so no one mistakes a
-    // reprint for the original. ESC/POS backend path deleted â€” the
+    // reprint for the original. ESC/POS backend path deleted — the
     // legacy Kelete/Liquor slip no longer prints from Sales Report.
-    // v1.13.136 â€” "Print Receipt" now ALWAYS prints the original invoice
-    // (as a COPY/DUPLICATE reprint), never the CN â€” even for reversed
-    // orders. This restores ZRA UAT Â§3.8 audit-trail requirement: the
+    // v1.13.136 — "Print Receipt" now ALWAYS prints the original invoice
+    // (as a COPY/DUPLICATE reprint), never the CN — even for reversed
+    // orders. This restores ZRA UAT §3.8 audit-trail requirement: the
     // original tax invoice must remain reprintable in its original form
     // so ZRA can see what was actually sold. Prior behavior (v1.13.122)
     // auto-swapped to CN mode on reversed orders, which meant the
     // original invoice paper trail was inaccessible from the UI.
     // Reprinting the CN itself is now done via the dedicated "Print CN"
-    // button (handlePrintCreditNote) â€” see line ~1625 for the button.
+    // button (handlePrintCreditNote) — see line ~1625 for the button.
     try {
       const html = await buildColumnarReprintHtml(order);
       printDirect(html);
@@ -650,7 +650,7 @@ const SalesReport = () => {
     }
   };
 
-  // 2026-09-10 â€” on a POS small terminal, a sale's receipt prints straight
+  // 2026-09-10 — on a POS small terminal, a sale's receipt prints straight
   // from its row: load the sale, print it, no window in between. The View
   // window is taller than a handheld's screen and its Print button sits out
   // of reach. View itself is unchanged and still opens the details.
@@ -665,23 +665,23 @@ const SalesReport = () => {
     await handlePrintReceipt(order);
   };
 
-  // v1.13.100 â€” Print Tax Credit Note (T08A #13). Only meaningful on
+  // v1.13.100 — Print Tax Credit Note (T08A #13). Only meaningful on
   // orders that were reversed AND had ZRA CN fiscal data returned. The
-  // template branch inside buildColumnarReprintHtml swaps INVâ†’CRN,
+  // template branch inside buildColumnarReprintHtml swaps INV→CRN,
   // switches the fiscal footer to zra_cn_*, and adds the cross-reference
   // to the original invoice + refund reason.
-  // v1.13.136 â€” Print CN is available on ANY reversed order â€” Garden
+  // v1.13.136 — Print CN is available on ANY reversed order — Garden
   // (ZRA-signed CN via zra_cn_rcpt_no) or Buseko (local CN number stamped
   // by the backend's non-fiscal reversal path). Both flows read the same
   // template branch; the template chooses which CN identifier to render
   // based on which fields are populated (zra_cn_signed_at gates the block;
   // rcptRef falls back to local_cn_number when zra_cn_rcpt_no is null).
   //
-  // v1.13.136 â€” Also owns the CN cn_first_printed_at tracking (moved out
+  // v1.13.136 — Also owns the CN cn_first_printed_at tracking (moved out
   // of the default Print Receipt handler when reversed-order Print Receipt
   // switched to reprint the ORIGINAL invoice instead of auto-printing CN).
   // First CN print stays clean; 2nd+ prints stamp *** COPY / DUPLICATE ***
-  // via opts.isCnDuplicate â†’ the title block header renders the extra band.
+  // via opts.isCnDuplicate → the title block header renders the extra band.
   const handlePrintCreditNote = async (order) => {
     const hasFiscalCn = !!(order?.zra_cn_signed_at && order?.zra_cn_rcpt_no);
     const hasLocalCn  = !!(order?.zra_cn_signed_at && order?.local_cn_number);
@@ -710,11 +710,11 @@ const SalesReport = () => {
     }
   };
 
-  // v1.13.96 â€” Access-style reprint. Mirrors POS.js printThermalReceiptFallback
+  // v1.13.96 — Access-style reprint. Mirrors POS.js printThermalReceiptFallback
   // structure so provisional and fiscal copies stay visually consistent
   // across fresh sale and reprint code paths.
   //
-  // v1.13.100 â€” added mode='credit-note' branch (T08A #13). When set, the
+  // v1.13.100 — added mode='credit-note' branch (T08A #13). When set, the
   // template renders as a Tax Credit Note: CRN prefix, own QR/sig/sdcId
   // from zra_cn_* fields, cross-reference to the original invoice, and a
   // reason-code line. mode='invoice' (default) is the ordinary reprint.
@@ -732,17 +732,17 @@ const SalesReport = () => {
     const isCreditNote = mode === 'credit-note';
     // For CN mode we require the CN's own fiscal signature. Fall back to
     // ordinary reprint if the CN hasn't been signed yet.
-    // v1.13.136 â€” CN mode is "signed" if EITHER (a) ZRA returned a fiscal
+    // v1.13.136 — CN mode is "signed" if EITHER (a) ZRA returned a fiscal
     // signature (Garden) OR (b) the backend stamped a local CN number for
     // a non-fiscal reversal (Buseko). Both paths get the CN block rendered.
     // Only difference is which identifier fills the Credit Note No. line
     // (see rcptRef computation below) and whether the fiscal signature
-    // block appears (QR, sdcId, security data â€” only for fiscal).
+    // block appears (QR, sdcId, security data — only for fiscal).
     const cnSigned = isCreditNote && !!order.zra_cn_signed_at
       && (!!order.zra_cn_rcpt_no || !!order.local_cn_number);
     const cnIsFiscal = isCreditNote && !!order.zra_cn_rcpt_no && !!order.zra_cn_sdc_id;
     const isSigned = isCreditNote ? cnSigned : (order.zra_status === 'SIGNED');
-    // 2026-09-01 â€” EMPTIES block on a reprint. The voucher comes from
+    // 2026-09-01 — EMPTIES block on a reprint. The voucher comes from
     // GET /orders/:id as empty_voucher, added the same day: the claim lives
     // in empty_voucher_claims and no endpoint had ever returned it, so a
     // duplicate used to say LESS than the original. Dispatch reads this
@@ -764,7 +764,7 @@ const SalesReport = () => {
     };
     const div42eq = '='.repeat(42);
     const div42da = '-'.repeat(42);
-    const fmtCode = (s) => (s ? String(s) : 'â€”');
+    const fmtCode = (s) => (s ? String(s) : '—');
     const buyerTpin = order.customer_tpin || '1000000000';
     const bName = businessName;
     const bAddress = businessAddress;
@@ -774,11 +774,11 @@ const SalesReport = () => {
     // MTV boost math identical to POS.js so provisional + fiscal
     // reprints show the same VAT.
     let totalVat = 0;
-    let totalNet = 0;   // v1.13.112 â€” Ref 4(ix) total exclusive of tax
-    // v1.13.137 â€” same MTV uplift accumulation as POS.js so reprints
+    let totalNet = 0;   // v1.13.112 — Ref 4(ix) total exclusive of tax
+    // v1.13.137 — same MTV uplift accumulation as POS.js so reprints
     // render the "MTV Uplift (Absorbed)" footer line consistently.
     let totalMtvUplift = 0;
-    // v1.13.126 â€” CN mode: only render items that were actually refunded
+    // v1.13.126 — CN mode: only render items that were actually refunded
     // (fully-reversed or partial-reversed), and show REFUND qty (not
     // remaining qty). Non-CN mode keeps original behavior.
     const sourceItems = isCreditNote
@@ -789,7 +789,7 @@ const SalesReport = () => {
       const origQty  = parseFloat(item.quantity || 0);
       const rq       = parseFloat(item.reversed_quantity || 0);
       const partial  = !item.reversed && rq > 0;
-      // v1.13.136 â€” Invoice mode now ALWAYS shows origQty for reversed lines
+      // v1.13.136 — Invoice mode now ALWAYS shows origQty for reversed lines
       // too. The "original tax invoice" reprint must show the invoice as it
       // was issued at sale time (COPY/DUPLICATE), not as-currently-adjusted.
       // Prior behavior (qty=0 with [VOID] strikethrough) contradicted the
@@ -805,7 +805,7 @@ const SalesReport = () => {
       const prc      = parseFloat(item.unit_price || 0);
       const dcU      = parseFloat(item.discount || 0);
       const netInc   = qty * (prc - dcU);
-      // v1.13.128j â€” Prefer frozen fiscal snapshot on order_items.
+      // v1.13.128j — Prefer frozen fiscal snapshot on order_items.
       // Reprints must show the invoice as issued, not today's math.
       const cat      = (item.zra_vat_cat_snap || item.zra_vat_cat_cd || 'A').toUpperCase();
       const rrpU     = parseFloat(item.zra_rrp_snap != null ? item.zra_rrp_snap : item.zra_rrp || 0);
@@ -817,9 +817,9 @@ const SalesReport = () => {
         ? (Number(item.zra_vat_amt) || 0)
         : (rate > 0 ? (boost - boost / 1.16) : 0);
       totalVat += vat;
-      // v1.13.140 â€” per ZRA meeting 2026-08-21: display convention is
-      // uniform â€” VAT Excl on the receipt is ALWAYS derived from actual
-      // sale price (netInc âˆ’ vat), regardless of whether VAT itself was
+      // v1.13.140 — per ZRA meeting 2026-08-21: display convention is
+      // uniform — VAT Excl on the receipt is ALWAYS derived from actual
+      // sale price (netInc − vat), regardless of whether VAT itself was
       // computed on RRP for Cat B undersells. This keeps per-line
       // arithmetic reconciling (Excl + VAT = Line Total = Amount Due
       // summed). Frozen zra_vat_taxbl_amt snapshot is no longer read
@@ -828,14 +828,14 @@ const SalesReport = () => {
       totalNet += netExcl;
       lines58.push({ cat, name: item.product_name, qty, price: prc - dcU, rate, netExcl, vat, total: netInc });
       const qtyStr   = qty % 1 === 0 ? qty.toFixed(0) : qty.toFixed(2);
-      // v1.13.136 â€” Never strikethrough / [VOID] individual lines on the
+      // v1.13.136 — Never strikethrough / [VOID] individual lines on the
       // reprint. The "*** REVERSED ***" banner in the header signals the
       // reversal at the invoice level; adding VOID marks to each line
       // implied a partial-void reading of the receipt that didn't match
-      // the totals. Kept for CN mode too â€” CN already isn't about voiding.
+      // the totals. Kept for CN mode too — CN already isn't about voiding.
       const showStrike = false;
       const nameLabel = String(item.product_name || '').replace(/</g, '&lt;');
-      // v1.13.140 â€” column set per ZRA meeting 2026-08-21:
+      // v1.13.140 — column set per ZRA meeting 2026-08-21:
       //   Descr | Cat | Qt | VAT Excl | Rate | VAT | Total
       //   Price column dropped (redundant with per-line Total).
       return `<tr${showStrike ? ' style="text-decoration:line-through;color:#666;"' : ''}>
@@ -850,7 +850,7 @@ const SalesReport = () => {
     }).join('');
 
     const dt = new Date(order.created_at + 'Z');
-    // v1.13.137 â€” add time (Anthony item #4).
+    // v1.13.137 — add time (Anthony item #4).
     const dateStr = dt.toLocaleString('en-GB', { hour12: false });
     const cashPaid = parseFloat(order.cash_received || 0) + parseFloat(order.fra_received || 0) + parseFloat(order.k_received || 0);
     const tendered = cashPaid > 0 ? cashPaid : parseFloat(order.amount_received || 0);
@@ -868,28 +868,28 @@ const SalesReport = () => {
     const qrActive      = isCreditNote ? order.zra_cn_qr_code_url       : order.zra_qr_code_url;
     const prefix        = isCreditNote ? 'CRN' : 'INV';
     const sdcSuffix     = String(sdcIdActive || '').replace(/^SDC/i, '');
-    // v1.13.101 â€” ZRA spec format is `INVSDCNUMBER/INVOICE NUMBER`
+    // v1.13.101 — ZRA spec format is `INVSDCNUMBER/INVOICE NUMBER`
     // (and `CRNSDCNUMBER/CREDITNOTE NUMBER` for CN). Dropped the
     // trailing `-00A` legacy suffix inherited from mimicking Access.
-    // v1.13.128c â€” Anthony fix #4: fallback rewrites the internal order
+    // v1.13.128c — Anthony fix #4: fallback rewrites the internal order
     // prefix from ORD- to INV- so pre-VSDC reprints show INV, not ORD.
     const fallbackNum   = String(fmtCode(order.order_number)).replace(/^ORD-/, 'INV-');
-    // v1.13.136 â€” In CN mode, prefer the fiscal CRN identifier when ZRA is
+    // v1.13.136 — In CN mode, prefer the fiscal CRN identifier when ZRA is
     // on. When ZRA is off (Garden vs Buseko), fall back to the local CN
-    // number stamped by the backend on reversal â€” e.g. "CN-2026-A5C013-0197".
-    // This is what ZRA UAT Â§3.8(c) wants: the CN must display a distinct
+    // number stamped by the backend on reversal — e.g. "CN-2026-A5C013-0197".
+    // This is what ZRA UAT §3.8(c) wants: the CN must display a distinct
     // number that is NOT the original invoice number.
-    // v1.13.148 â€” Show ZRA's rcptNo, NOT Kelete's cisInvcNo, in the
+    // v1.13.148 — Show ZRA's rcptNo, NOT Kelete's cisInvcNo, in the
     // composite receipt number. Sirak: "if the number after the slash
-    // is in the INV0060001067/â€¦ format, it MUST match what ZRA's portal
-    // shows for the same transaction â€” otherwise the receipt is lying".
+    // is in the INV0060001067/… format, it MUST match what ZRA's portal
+    // shows for the same transaction — otherwise the receipt is lying".
     // cisInvcNo (Kelete's counter) drifts ahead of rcptNo (ZRA's
-    // counter) whenever a saveSales attempt fails/times-out (see Â§5.1
-    // offline-mode gap). Printing cisInvcNo in an INV0060001067/â€¦
+    // counter) whenever a saveSales attempt fails/times-out (see §5.1
+    // offline-mode gap). Printing cisInvcNo in an INV0060001067/…
     // format that LOOKS like a ZRA-official receipt number is
     // misleading. If ZRA has signed the sale, use rcptNo (guaranteed
     // to match the portal). If not signed yet (offline queue), fall
-    // back to Kelete's internal INV-2026-â€¦ order number instead of
+    // back to Kelete's internal INV-2026-… order number instead of
     // fabricating a ZRA-style composite.
     const rcptRef       = isCreditNote
       ? (cnIsFiscal
@@ -913,13 +913,13 @@ const SalesReport = () => {
       } catch (_) { /* signature block still prints */ }
     }
 
-    // v1.13.128g â€” Reprint flags. Consumed by the title block JSX below,
+    // v1.13.128g — Reprint flags. Consumed by the title block JSX below,
     // which builds the header sequence directly from these booleans:
-    //   *** TAX INVOICE ***  â†’  *** COPY / DUPLICATE ***  â†’  subtitle.
+    //   *** TAX INVOICE ***  →  *** COPY / DUPLICATE ***  →  subtitle.
     const isCnReprint  = isCreditNote && !!opts.isCnDuplicate;
-    // v1.13.136 â€” Was `!isCreditNote && order.status !== 'Reversed'`. The
+    // v1.13.136 — Was `!isCreditNote && order.status !== 'Reversed'`. The
     // "!Reversed" clause dated from when reversed orders auto-printed as
-    // CN â€” invoice reprint of a reversed order was never reachable. That
+    // CN — invoice reprint of a reversed order was never reachable. That
     // path now exists (Print Receipt on a reversed row reprints the
     // ORIGINAL invoice), so the reprint MUST carry the COPY / DUPLICATE
     // band. ZRA UAT Part B #7 requires it on every reprint of an original
@@ -927,11 +927,11 @@ const SalesReport = () => {
     // ***" banner below stays as a separate line so ZRA can see both facts.
     const isInvReprint = !isCreditNote;
 
-    // v1.13.136 â€” Two footer variants:
-    //   (a) Full fiscal â€” ZRA-signed. Includes QR + security data + sdcId.
-    //   (b) Non-fiscal CN â€” ZRA off. Skips QR/security block but still shows
+    // v1.13.136 — Two footer variants:
+    //   (a) Full fiscal — ZRA-signed. Includes QR + security data + sdcId.
+    //   (b) Non-fiscal CN — ZRA off. Skips QR/security block but still shows
     //       Credit Note No., Original Invoice ref, and Reason so ZRA UAT
-    //       Â§3.8(a)+(b)+(c) requirements are visible on paper.
+    //       §3.8(a)+(b)+(c) requirements are visible on paper.
     const isCnNonFiscal = isCreditNote && isSigned && !cnIsFiscal;
     const fiscalFooter = isSigned && !isCnNonFiscal ? `
   <div class="divider">${div42eq}</div>
@@ -948,51 +948,51 @@ const SalesReport = () => {
     ${isCreditNote ? `
     <tr><td colspan="2" style="padding-top:3px;">Original Invoice:</td></tr>
     <tr><td colspan="2">${origRcptRef}</td></tr>
-    <tr><td>Reason:</td><td style="text-align:right;">${cnReasonCd} â€” ${cnReasonLbl}</td></tr>` : ''}
+    <tr><td>Reason:</td><td style="text-align:right;">${cnReasonCd} — ${cnReasonLbl}</td></tr>` : ''}
     <tr><td colspan="2" style="padding-top:3px;">Cash Sales</td></tr>
     <tr><td colspan="2">CUSTOMER TPIN ${buyerTpin}</td></tr>
   </table>` : `<div class="divider">${div42eq}</div>`;
 
-    // v1.13.136 â€” Non-fiscal CN footer (Buseko: ZRA off). Renders the three
-    // mandatory CN identifiers per ZRA UAT Â§3.8:
-    //   (a) Original Invoice reference â€” clearly labeled cross-reference
-    //   (b) Reason for reversal â€” one of 01â€“07 from spec Â§6.15
-    //   (c) Credit Note number â€” distinct from the original invoice number
+    // v1.13.136 — Non-fiscal CN footer (Buseko: ZRA off). Renders the three
+    // mandatory CN identifiers per ZRA UAT §3.8:
+    //   (a) Original Invoice reference — clearly labeled cross-reference
+    //   (b) Reason for reversal — one of 01–07 from spec §6.15
+    //   (c) Credit Note number — distinct from the original invoice number
     // Skips the fiscal signature / QR block since ZRA never signed this CN.
-    // v1.13.136 â€” Non-fiscal CN footer stripped per Sirak: Credit Note No.,
+    // v1.13.136 — Non-fiscal CN footer stripped per Sirak: Credit Note No.,
     // Original Invoice, and Reason all appear in the top header block
-    // already (see line ~726). Cash Sales + CUSTOMER TPIN removed â€” buyer
-    // TPIN is on the top block as "Buyer TPIN:" (ZRA UAT Â§3.8(vii)) and
+    // already (see line ~726). Cash Sales + CUSTOMER TPIN removed — buyer
+    // TPIN is on the top block as "Buyer TPIN:" (ZRA UAT §3.8(vii)) and
     // "Cash Sales" isn't in the mandatory items list. Footer intentionally
-    // empty for Buseko CN reprints â€” all CN metadata lives at the top.
+    // empty for Buseko CN reprints — all CN metadata lives at the top.
     const nonFiscalCnFooter = '';
 
-    // v1.13.128e â€” Framed banner shows the base document type only.
+    // v1.13.128e — Framed banner shows the base document type only.
     // Reprint marking is handled by the *** COPY / DUPLICATE *** band
-    // above (per user preference â€” same layout that was working before).
-    // "(Provisional)" wording dropped for CN â€” never a ZRA requirement.
-    // v1.13.15x â€” Dropped "Original" prefix on the signed title. ZRA's own
+    // above (per user preference — same layout that was working before).
+    // "(Provisional)" wording dropped for CN — never a ZRA requirement.
+    // v1.13.15x — Dropped "Original" prefix on the signed title. ZRA's own
     // Accounting Package Self-Check form (item 4i) only mandates the words
-    // "tax invoice" be shown prominently â€” "Original" was never required
-    // and, worse, contradicted the reprint's own "This is a reprint â€” not
+    // "tax invoice" be shown prominently — "Original" was never required
+    // and, worse, contradicted the reprint's own "This is a reprint — not
     // the original tax invoice" subtitle directly below it. POS.js's live
     // first-print template already prints plain "TAX INVOICE" for the
-    // signed case â€” this brings the reprint template in line with it.
+    // signed case — this brings the reprint template in line with it.
     const title = isCreditNote ? 'Tax Credit Note' : 'Tax Invoice';
 
-    // 2026-09-10 â€” on a POS small terminal (System Settings â†’ Device type)
+    // 2026-09-10 — on a POS small terminal (System Settings → Device type)
     // the reprint comes out on 58mm. Same figures, same flags and the same
     // title-block order as the 80mm reprint below; only the layout differs.
     if (isTerminal58()) {
       const bands = [`*** ${title.toUpperCase()} ***`];
       if (isCnReprint || isInvReprint) bands.push('*** COPY / DUPLICATE ***');
       if (isCnReprint)  bands.push({ text: 'This is a reprint of the credit note', sub: true });
-      if (isInvReprint) bands.push({ text: 'This is a reprint â€” not the original tax invoice', sub: true });
+      if (isInvReprint) bands.push({ text: 'This is a reprint — not the original tax invoice', sub: true });
       if (isCreditNote) bands.push({ text: `Reverses invoice ${origRcptRef}`, sub: true });
       if (!isCreditNote && order.status === 'Reversed') bands.push('*** REVERSED ***');
       if (!isCreditNote && order.status === 'Partial')  bands.push('*** PARTIALLY REVERSED ***');
 
-      const reasonText = `${cnReasonCd} â€” ${cnReasonLbl}`
+      const reasonText = `${cnReasonCd} — ${cnReasonLbl}`
         + ((order.zra_cn_rfd_rsn_other && cnReasonCd === '07') ? ` (${order.zra_cn_rfd_rsn_other})` : '');
       const v = order.empty_voucher;
       const vQty = v ? (parseInt(v.qty_claimed, 10) || 0) : 0;
@@ -1042,7 +1042,7 @@ const SalesReport = () => {
           { label: 'sdcId',           value: fmtCode(sdcIdActive) },
           ...(isCreditNote ? [
             { label: 'Original Invoice:', value: origRcptRef },
-            { label: 'Reason:',           value: `${cnReasonCd} â€” ${cnReasonLbl}` },
+            { label: 'Reason:',           value: `${cnReasonCd} — ${cnReasonLbl}` },
           ] : []),
         ] : null,
         fiscalTail: ['Cash Sales', `CUSTOMER TPIN ${buyerTpin}`],
@@ -1055,39 +1055,39 @@ const SalesReport = () => {
 <head>
 <meta charset="UTF-8">
 <style>
-  /* 2026-08-30 â€” 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
+  /* 2026-08-30 — 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
      head only covers 72mm. The driver says so itself: its paper setting
-     reads "ZPrinter Paper(80(72) x 3276mm)" â€” 80mm roll, 72mm printable.
+     reads "ZPrinter Paper(80(72) x 3276mm)" — 80mm roll, 72mm printable.
      Declaring 80mm made Chrome lay the receipt out 8mm wider than the
      printer can reach, and the driver simply dropped the overhang. Every
      line lost the same three or four characters off the right: Walk-i(n),
      ZM(W), INV0060001067/9(0), 77.3(7). It read as a table problem, but the
-     header and totals were clipped too â€” the canvas was just too wide.
+     header and totals were clipped too — the canvas was just too wide.
      Matching the canvas to the print head means nothing can fall off. */
   @page { size: 72mm auto; margin: 0; }
   html, body { margin: 0; padding: 0; overflow-x: hidden; }
   * { box-sizing: border-box; }
   body {
     width: 72mm; max-width: 72mm;
-    /* 2026-09-01 â€” was padding: 2mm all round. The left edge printed off
+    /* 2026-09-01 — was padding: 2mm all round. The left edge printed off
        the paper: RED SEA came out as ED SEA, Cashier as ashier. The page
        is exactly 72mm (box-sizing is border-box above), so nothing is
-       overflowing â€” the print head simply starts a couple of millimetres
+       overflowing — the print head simply starts a couple of millimetres
        right of where the browser puts x=0. Moving the padding from the
        right side to the left shifts the content across without making
        the content area any narrower: 4 + 0 is the same 4mm as 2 + 2.
        If the left is STILL clipped, raise the 4mm. If the right now
        clips instead, lower it. */
-    /* 2026-09-02 â€” matched to POS.js. At 4mm left with no right padding the
+    /* 2026-09-02 — matched to POS.js. At 4mm left with no right padding the
        content ran to the print head's last dot and the header lost its
        closing bracket: RED SEA IMPORT & EXPORT (2 */
-    /* 2026-09-02 â€” 3mm/2mm -> 2mm/3mm. Same 67mm of content, moved 1mm
+    /* 2026-09-02 — 3mm/2mm -> 2mm/3mm. Same 67mm of content, moved 1mm
        left because the right edge was still shaving the last digit.
        2mm on the left is what clipped the LEFT edge back in v1.13.87,
        so this is the end of what shifting can do: if the left starts
        cutting now, the fix is narrower content, not more offset. */
     padding: 2mm 3mm 2mm 2mm;
-    /* 2026-09-01 â€” was 'Courier New' at weight 700 throughout.
+    /* 2026-09-01 — was 'Courier New' at weight 700 throughout.
        Two separate problems, one line of CSS. Courier is monospace, so a
        thin 'i' claims the same width as a 'W' and the 38px description
        column held about seven characters: "Appletiser/Grapetiser 300ml"
@@ -1095,7 +1095,7 @@ const SalesReport = () => {
        9px merges adjacent dots on a 203dpi head, which is what made it look
        smeared rather than merely small.
        Arial is proportional and averages 4.3px per character against
-       Courier's fixed 5.4px â€” roughly a quarter more text per line â€” and
+       Courier's fixed 5.4px — roughly a quarter more text per line — and
        normal weight keeps the strokes separate. Bold is kept where it now
        means something: column headers, Amount Due, the business name and
        the invoice title. */
@@ -1105,41 +1105,41 @@ const SalesReport = () => {
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
 
   td { padding: 1px 0; vertical-align: top; }
-  /* Keep header/metadata + amount-block labels on ONE line â€” long
+  /* Keep header/metadata + amount-block labels on ONE line — long
      values (invoice #, address) were making the browser squeeze the
      first column and wrap "Buyer TPIN:" / "Buyer Name:" mid-label.
      Scoped to first-child in non-.items tables so item description
      cells (which need to wrap on spaces) are unaffected. */
   table:not(.items) tr > td:first-child { white-space: nowrap; }
-  /* 2026-08-30 â€” THIS is why the right-hand side kept getting cut, and why
+  /* 2026-08-30 — THIS is why the right-hand side kept getting cut, and why
      narrowing the page did not help.
      width:100% on a table is only a SUGGESTION under the default
      table-layout:auto. The browser will grow a table past 100% when its
-     content demands it â€” and here it did: the label column is nowrap, and
+     content demands it — and here it did: the label column is nowrap, and
      values like INV0060001067/90 or 1000000000 have no spaces, so they
      cannot wrap either. The single widest row therefore set the width of
      the WHOLE table, and because columns are shared across rows, every
      right-aligned value shifted outward together and off the paper.
-     That is exactly the gap in the middle of each row â€” the table stretched
+     That is exactly the gap in the middle of each row — the table stretched
      wider than the receipt and pushed the right column out with it.
      Ordinary centred text ("This is a reprint...") was never affected,
      because a div simply wraps inside the body. That difference is what
      gave it away.
      Letting the value column break anywhere removes the minimum width that
      was forcing the overflow; the table can then honour 100%. */
-  /* 2026-08-30 â€” tables stop at 86% of the body. The remaining 14% is
+  /* 2026-08-30 — tables stop at 86% of the body. The remaining 14% is
      deliberately never printed on.
-     Four earlier attempts tried to make the content FIT inside 100% â€”
+     Four earlier attempts tried to make the content FIT inside 100% —
      narrower page, narrower columns, smaller font, wrapping cells. But 100%
      is where the loss happens: a right-aligned value sits on the print
      head's last dot, and that dot is unreliable. It is why even 77.37 came
      out as 77.3 while the centred lines beside it printed in full.
-     The reference receipt this was compared against does the same thing â€”
+     The reference receipt this was compared against does the same thing —
      its item table visibly stops well short of the edge. Leaving slack means
      an overflow eats into the margin instead of falling off the paper, and
-     the Total column â€” the number that matters most and was always last in
-     the row â€” is no longer the one closest to the cut. */
-  /* 2026-09-02 â€” was 86%, which left 13.5mm of printable paper blank while
+     the Total column — the number that matters most and was always last in
+     the row — is no longer the one closest to the cut. */
+  /* 2026-09-02 — was 86%, which left 13.5mm of printable paper blank while
      the money columns were too narrow for their own figures. The gutter
      below keeps the Total off the print head's last dot. */
   table { width: 100%; max-width: 100%; }
@@ -1147,17 +1147,17 @@ const SalesReport = () => {
   /* The item table has explicit colgroup widths, so pin the layout to them
      rather than letting the widest number stretch the lot. */
   .items { table-layout: fixed; }
-  /* 2026-08-30 â€” item cells must WRAP, not overflow.
+  /* 2026-08-30 — item cells must WRAP, not overflow.
      table-layout:fixed pins each column to its colgroup width, but a value
      wider than its cell then spills over the next column instead of being
      clipped. On a K306,000 sale that produced
         AQUA  B 3400263,042.7d6% 42,957.206,000.00
-     â€” quantity welded to VAT-exclusive, the rate mangled, the total
+     — quantity welded to VAT-exclusive, the rate mangled, the total
      unreadable. The earlier overflow-wrap rule was scoped to
      table:not(.items), so the one table that most needed it was excluded.
      Wrapping puts the tail on a second line, exactly as the reference
      receipt does with 1,384.49. */
-  /* 2026-09-02 â€” anywhere shredded product names a character at a time.
+  /* 2026-09-02 — anywhere shredded product names a character at a time.
      Kept on the numeric cells, where it stops a long figure widening the
      table. */
   .items td.n { overflow-wrap: anywhere; word-break: break-word; }
@@ -1165,28 +1165,28 @@ const SalesReport = () => {
   .c { text-align: center; }
   .divider { text-align: center; font-size: 10px; overflow: hidden; white-space: nowrap; margin: 3px 0; }
   .items { font-size: 9px; }
-  /* v1.13.97 â€” fixed column widths + Qt right-padding so numeric
+  /* v1.13.97 — fixed column widths + Qt right-padding so numeric
      columns don't visually bleed into each other (see POS.js). */
-  /* 2026-09-01 â€” tabular figures at the table level, not just on .n.
+  /* 2026-09-01 — tabular figures at the table level, not just on .n.
      The plain-slip builder right-aligns its numbers with inline styles
      and has no .n rule at all, so a .n-scoped declaration reached the
-     tax invoice and silently missed the slip. Digits only â€” letters are
+     tax invoice and silently missed the slip. Digits only — letters are
      unaffected, so applying it to every cell is safe. */
   .items td { padding: 1px 1px; font-variant-numeric: tabular-nums; }
   .items thead td { font-weight: 700; border-bottom: 1px solid #000; }
   .items col.desc  { width: auto; }
-  /* 2026-08-30 â€” narrowed so the table fits 80mm paper, and kept IDENTICAL
+  /* 2026-08-30 — narrowed so the table fits 80mm paper, and kept IDENTICAL
      to the POS slip: both render the same seven columns, so the reprint
      must not lay out differently from the original.
      Was 18+22+50+44+28+46 = 208px of fixed columns plus 28px of cell
-     padding inside a 246px body â€” about 10px left for the product name.
+     padding inside a 246px body — about 10px left for the product name.
      The browser widened the table past the paper and sliced the right-hand
      column, which is why invoice numbers and totals printed truncated.
      The col.rrp rule that used to sit here matched nothing: RRP is used in
      the MTV maths but has never been a printed column. Removed. */
-  /* 2026-09-02 â€” same widths as POS.js so an invoice and its reprint are
+  /* 2026-09-02 — same widths as POS.js so an invoice and its reprint are
      identical. Sized for 186,000.00 at 9px, which measures 45px. */
-  .items col.vat   { width: 47px; }  /* v1.13.137 â€” new VAT amount */
+  .items col.vat   { width: 47px; }  /* v1.13.137 — new VAT amount */
   .items col.rate  { width: 20px; }  /* Cat header (D/B/A) */
   .items col.qt    { width: 22px; }  /* holds 4 digits */
   .items col.net   { width: 47px; }  /* 186,000.00 */
@@ -1194,12 +1194,12 @@ const SalesReport = () => {
   .items col.total { width: 47px; }
   /* The gutter that replaces the old 86%. */
   tr > td:last-child { padding-right: 6px; }
-  /* v1.13.128d â€” Anthony post-UAT: headers centered above right-aligned
+  /* v1.13.128d — Anthony post-UAT: headers centered above right-aligned
      numeric data. Data still right-aligned so decimals line up.
      VAT Excl column widened to 50px so the label doesn't wrap onto
      two lines. */
   .items thead td.n { text-align: center; }
-  /* 2026-08-30 â€” TOP, not middle. The description and Cat cells inherit
+  /* 2026-08-30 — TOP, not middle. The description and Cat cells inherit
      vertical-align: top, so on a product name that wraps to two lines the
      numbers alone drifted to the centre of the taller row: "AQUA CLEAR /
      1000mls" printed with B level with line one and 1 / 77.37 / 16% /
@@ -1208,15 +1208,15 @@ const SalesReport = () => {
   .items tbody td.n { text-align: right; padding-right: 3px; vertical-align: top;
                       font-variant-numeric: tabular-nums; }
   .amtline td { font-size: 12px; font-variant-numeric: tabular-nums; }
-  /* 2026-09-02 â€” Courier dropped so the fiscal block matches the rest of
+  /* 2026-09-02 — Courier dropped so the fiscal block matches the rest of
      the receipt. It was monospace on purpose: Security Data and Signature
      are long random strings and a fixed pitch makes them easier to read
      back character by character during an audit. Put the font-family line
      back if that ever matters more than the look. */
   .fisc { font-size: 9px; word-break: break-all; }
-  /* v1.13.128g â€” Title block sits between two dashed dividers. Contains
+  /* v1.13.128g — Title block sits between two dashed dividers. Contains
      the document title + (on reprints) COPY/DUPLICATE + informational
-     subtitle. No borders on the title itself â€” the dividers frame it. */
+     subtitle. No borders on the title itself — the dividers frame it. */
   .invoice-title { text-align: center; font-weight: 800; font-size: 13px; letter-spacing: 2px; margin: 2px 0; text-transform: uppercase; }
   .invoice-dup   { text-align: center; font-weight: 800; font-size: 12px; margin: 2px 0; }
   .invoice-sub   { text-align: center; font-size: 10px; margin: 1px 0; }
@@ -1229,7 +1229,7 @@ const SalesReport = () => {
   ${bAddress ? `<div class="c" style="font-size:11px;">${String(bAddress).replace(/\n/g, '<br/>').toUpperCase()}</div>` : ''}
   ${bPhone ? `<div class="c" style="font-size:11px;">Tel: ${bPhone}</div>` : ''}
 
-  <!-- v1.13.128h â€” Title block between THICK dividers (=== not ---).
+  <!-- v1.13.128h — Title block between THICK dividers (=== not ---).
        Order inside the block:
          1. *** TAX INVOICE ***  (or *** TAX CREDIT NOTE ***)
          2. *** COPY / DUPLICATE ***          (reprints only)
@@ -1253,7 +1253,7 @@ const SalesReport = () => {
     ${branchDepotId ? `<tr><td>Branch:</td><td style="text-align:right;">${branchDepotId}</td></tr>` : ''}
     <tr><td>${isCreditNote ? 'Credit Note #:' : 'Invoice #:'}</td>
         <td style="text-align:right;font-family:monospace;font-size:10px;">${rcptRef}</td></tr>
-    ${isCreditNote ? `<tr><td>Reason:</td><td style="text-align:right;">${cnReasonCd} â€” ${cnReasonLbl}${(order.zra_cn_rfd_rsn_other && cnReasonCd === '07') ? ' (' + String(order.zra_cn_rfd_rsn_other).replace(/</g, '&lt;') + ')' : ''}</td></tr>` : ''}
+    ${isCreditNote ? `<tr><td>Reason:</td><td style="text-align:right;">${cnReasonCd} — ${cnReasonLbl}${(order.zra_cn_rfd_rsn_other && cnReasonCd === '07') ? ' (' + String(order.zra_cn_rfd_rsn_other).replace(/</g, '&lt;') + ')' : ''}</td></tr>` : ''}
     <tr><td>Date:</td>
         <td style="text-align:right;">${dateStr}</td></tr>
     <tr><td>Buyer TPIN:</td>
@@ -1297,7 +1297,7 @@ const SalesReport = () => {
     ${/* MTV Uplift (Absorbed) removed per user 2026-08-18 to match POS.js
         receipt templates. Same JSX block feeds ALL Sales Report reprints:
         invoice reprint (COPY/DUPLICATE), Credit Note, and reversed invoice
-        reprint (REVERSED band) â€” all three suppress the uplift row together.
+        reprint (REVERSED band) — all three suppress the uplift row together.
         totalMtvUplift is still computed above so a future internal-only
         report can surface the absorbed uplift for margin-erosion analysis.
         See ZRA Accounting Package Self-Declaration Q4(viii)/(ix): only
@@ -1316,7 +1316,7 @@ const SalesReport = () => {
 </html>`;
   };
 
-  // v1.13.100 â€” Tax Debit Note reprint (T08A #14). Distinct template
+  // v1.13.100 — Tax Debit Note reprint (T08A #14). Distinct template
   // because DN fiscal data lives on the debit_notes row, not the order.
   // Layout mirrors buildColumnarReprintHtml so a stack of Invoice /
   // Credit Note / Debit Note reprints reads consistently on the 80mm
@@ -1326,7 +1326,7 @@ const SalesReport = () => {
     const dnSigned = !!dn.zra_rcpt_no && dn.zra_status === 'SIGNED';
     const div42eq = '='.repeat(42);
     const div42da = '-'.repeat(42);
-    const fmtCode = (s) => (s ? String(s) : 'â€”');
+    const fmtCode = (s) => (s ? String(s) : '—');
     const buyerTpin = order?.customer_tpin || dn.customer_tpin || '1000000000';
     const bName = businessName;
     const bAddress = businessAddress;
@@ -1345,7 +1345,7 @@ const SalesReport = () => {
           ? `DBT${sdcSuffix}/${dn.zra_rcpt_no}`
           : `DBT${sdcSuffix}/${dn.zra_rcpt_no}`)
       : fmtCode(dn.dn_number);
-    // v1.13.148 â€” same rcptNo-first rule for DN's original-invoice ref.
+    // v1.13.148 — same rcptNo-first rule for DN's original-invoice ref.
     const origSdcSuffix = String(order?.zra_sdc_id || dn.zra_org_sdc_id || '').replace(/^SDC/i, '');
     const origRcptNoRef = order?.zra_rcpt_no || dn.zra_org_rcpt_no;
     const origRcptRef   = origRcptNoRef
@@ -1381,14 +1381,14 @@ const SalesReport = () => {
     <tr><td colspan="2">sdcId ${fmtCode(dn.zra_sdc_id)}</td></tr>
     <tr><td colspan="2" style="padding-top:3px;">Original Invoice:</td></tr>
     <tr><td colspan="2">${origRcptRef}</td></tr>
-    <tr><td>Reason:</td><td style="text-align:right;">${reasonCd} â€” ${reasonLbl}</td></tr>
+    <tr><td>Reason:</td><td style="text-align:right;">${reasonCd} — ${reasonLbl}</td></tr>
     <tr><td colspan="2" style="padding-top:3px;">Cash Sales</td></tr>
     <tr><td colspan="2">CUSTOMER TPIN ${buyerTpin}</td></tr>
   </table>` : `<div class="divider">${div42eq}</div>`;
 
-    // v1.13.101 â€” ZRA T08A page 14 says the DN "must read 'Debit Note'"
+    // v1.13.101 — ZRA T08A page 14 says the DN "must read 'Debit Note'"
     // (unlike CN which is "Tax Credit Note"). Dropped the "Tax" prefix.
-    // v1.13.128d â€” "(Provisional)" removed everywhere per user; a DN is a
+    // v1.13.128d — "(Provisional)" removed everywhere per user; a DN is a
     // DN whether VSDC-signed or not. Adaptive "Copy of" prefix would be
     // added here if/when a reprint flow exists for DNs (not today).
     const title = 'Debit Note';
@@ -1398,31 +1398,31 @@ const SalesReport = () => {
 <head>
 <meta charset="UTF-8">
 <style>
-  /* 2026-08-30 â€” 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
+  /* 2026-08-30 — 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
      head only covers 72mm. The driver says so itself: its paper setting
-     reads "ZPrinter Paper(80(72) x 3276mm)" â€” 80mm roll, 72mm printable.
+     reads "ZPrinter Paper(80(72) x 3276mm)" — 80mm roll, 72mm printable.
      Declaring 80mm made Chrome lay the receipt out 8mm wider than the
      printer can reach, and the driver simply dropped the overhang. Every
      line lost the same three or four characters off the right: Walk-i(n),
      ZM(W), INV0060001067/9(0), 77.3(7). It read as a table problem, but the
-     header and totals were clipped too â€” the canvas was just too wide.
+     header and totals were clipped too — the canvas was just too wide.
      Matching the canvas to the print head means nothing can fall off. */
   @page { size: 72mm auto; margin: 0; }
   html, body { margin: 0; padding: 0; overflow-x: hidden; }
   * { box-sizing: border-box; }
   body {
     width: 72mm; max-width: 72mm;
-    /* 2026-09-01 â€” was padding: 2mm all round. The left edge printed off
+    /* 2026-09-01 — was padding: 2mm all round. The left edge printed off
        the paper: RED SEA came out as ED SEA, Cashier as ashier. The page
        is exactly 72mm (box-sizing is border-box above), so nothing is
-       overflowing â€” the print head simply starts a couple of millimetres
+       overflowing — the print head simply starts a couple of millimetres
        right of where the browser puts x=0. Moving the padding from the
        right side to the left shifts the content across without making
        the content area any narrower: 4 + 0 is the same 4mm as 2 + 2.
        If the left is STILL clipped, raise the 4mm. If the right now
        clips instead, lower it. */
     padding: 2mm 0 2mm 4mm;
-    /* 2026-09-01 â€” was 'Courier New' at weight 700 throughout.
+    /* 2026-09-01 — was 'Courier New' at weight 700 throughout.
        Two separate problems, one line of CSS. Courier is monospace, so a
        thin 'i' claims the same width as a 'W' and the 38px description
        column held about seven characters: "Appletiser/Grapetiser 300ml"
@@ -1430,7 +1430,7 @@ const SalesReport = () => {
        9px merges adjacent dots on a 203dpi head, which is what made it look
        smeared rather than merely small.
        Arial is proportional and averages 4.3px per character against
-       Courier's fixed 5.4px â€” roughly a quarter more text per line â€” and
+       Courier's fixed 5.4px — roughly a quarter more text per line — and
        normal weight keeps the strokes separate. Bold is kept where it now
        means something: column headers, Amount Due, the business name and
        the invoice title. */
@@ -1440,51 +1440,51 @@ const SalesReport = () => {
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
 
   td { padding: 1px 0; vertical-align: top; }
-  /* Keep header/metadata + amount-block labels on ONE line â€” long
+  /* Keep header/metadata + amount-block labels on ONE line — long
      values (invoice #, address) were making the browser squeeze the
      first column and wrap "Buyer TPIN:" / "Buyer Name:" mid-label.
      Scoped to first-child in non-.items tables so item description
      cells (which need to wrap on spaces) are unaffected. */
   table:not(.items) tr > td:first-child { white-space: nowrap; }
-  /* 2026-08-30 â€” THIS is why the right-hand side kept getting cut, and why
+  /* 2026-08-30 — THIS is why the right-hand side kept getting cut, and why
      narrowing the page did not help.
      width:100% on a table is only a SUGGESTION under the default
      table-layout:auto. The browser will grow a table past 100% when its
-     content demands it â€” and here it did: the label column is nowrap, and
+     content demands it — and here it did: the label column is nowrap, and
      values like INV0060001067/90 or 1000000000 have no spaces, so they
      cannot wrap either. The single widest row therefore set the width of
      the WHOLE table, and because columns are shared across rows, every
      right-aligned value shifted outward together and off the paper.
-     That is exactly the gap in the middle of each row â€” the table stretched
+     That is exactly the gap in the middle of each row — the table stretched
      wider than the receipt and pushed the right column out with it.
      Ordinary centred text ("This is a reprint...") was never affected,
      because a div simply wraps inside the body. That difference is what
      gave it away.
      Letting the value column break anywhere removes the minimum width that
      was forcing the overflow; the table can then honour 100%. */
-  /* 2026-08-30 â€” tables stop at 86% of the body. The remaining 14% is
+  /* 2026-08-30 — tables stop at 86% of the body. The remaining 14% is
      deliberately never printed on.
-     Four earlier attempts tried to make the content FIT inside 100% â€”
+     Four earlier attempts tried to make the content FIT inside 100% —
      narrower page, narrower columns, smaller font, wrapping cells. But 100%
      is where the loss happens: a right-aligned value sits on the print
      head's last dot, and that dot is unreliable. It is why even 77.37 came
      out as 77.3 while the centred lines beside it printed in full.
-     The reference receipt this was compared against does the same thing â€”
+     The reference receipt this was compared against does the same thing —
      its item table visibly stops well short of the edge. Leaving slack means
      an overflow eats into the margin instead of falling off the paper, and
-     the Total column â€” the number that matters most and was always last in
-     the row â€” is no longer the one closest to the cut. */
+     the Total column — the number that matters most and was always last in
+     the row — is no longer the one closest to the cut. */
   table { width: 86%; max-width: 86%; }
   table:not(.items) tr > td:last-child { overflow-wrap: anywhere; word-break: break-word; }
   /* The item table has explicit colgroup widths, so pin the layout to them
      rather than letting the widest number stretch the lot. */
   .items { table-layout: fixed; }
-  /* 2026-08-30 â€” item cells must WRAP, not overflow.
+  /* 2026-08-30 — item cells must WRAP, not overflow.
      table-layout:fixed pins each column to its colgroup width, but a value
      wider than its cell then spills over the next column instead of being
      clipped. On a K306,000 sale that produced
         AQUA  B 3400263,042.7d6% 42,957.206,000.00
-     â€” quantity welded to VAT-exclusive, the rate mangled, the total
+     — quantity welded to VAT-exclusive, the rate mangled, the total
      unreadable. The earlier overflow-wrap rule was scoped to
      table:not(.items), so the one table that most needed it was excluded.
      Wrapping puts the tail on a second line, exactly as the reference
@@ -1493,16 +1493,16 @@ const SalesReport = () => {
   .c { text-align: center; }
   .divider { text-align: center; font-size: 10px; overflow: hidden; white-space: nowrap; margin: 3px 0; }
   .items { font-size: 9px; }
-  /* 2026-09-01 â€” tabular figures at the table level, not just on .n.
+  /* 2026-09-01 — tabular figures at the table level, not just on .n.
      The plain-slip builder right-aligns its numbers with inline styles
      and has no .n rule at all, so a .n-scoped declaration reached the
-     tax invoice and silently missed the slip. Digits only â€” letters are
+     tax invoice and silently missed the slip. Digits only — letters are
      unaffected, so applying it to every cell is safe. */
   .items td { padding: 1px 1px; font-variant-numeric: tabular-nums; }
   .items thead td { font-weight: 700; border-bottom: 1px solid #000; }
   .amtline td { font-size: 12px; font-variant-numeric: tabular-nums; }
   .fisc { font-size: 9px; font-family: 'Courier New', Courier, monospace; word-break: break-all; }
-  /* v1.13.128g â€” same title-block style as invoices / credit notes. */
+  /* v1.13.128g — same title-block style as invoices / credit notes. */
   .invoice-title { text-align: center; font-weight: 800; font-size: 13px; letter-spacing: 2px; margin: 2px 0; text-transform: uppercase; }
   .invoice-dup   { text-align: center; font-weight: 800; font-size: 12px; margin: 2px 0; }
 </style>
@@ -1514,7 +1514,7 @@ const SalesReport = () => {
   ${bAddress ? `<div class="c" style="font-size:11px;">${String(bAddress).replace(/\n/g, '<br/>').toUpperCase()}</div>` : ''}
   ${bPhone ? `<div class="c" style="font-size:11px;">Tel: ${bPhone}</div>` : ''}
 
-  <!-- v1.13.128h â€” Title block between THICK dividers, matching the
+  <!-- v1.13.128h — Title block between THICK dividers, matching the
        Invoice / CN templates. Simpler here (no MTV, no reprint). -->
   <div class="divider">${div42eq}</div>
   <div class="invoice-title">*** ${title.toUpperCase()} ***</div>
@@ -1572,7 +1572,7 @@ const SalesReport = () => {
 </html>`;
   };
 
-  // v1.13.100 â€” Print handler for a debit note. Fetches the DN row from
+  // v1.13.100 — Print handler for a debit note. Fetches the DN row from
   // the backend by orderId (list) and prints the newest one, or accepts
   // an already-hydrated DN row via opts.dn to avoid the extra fetch.
   const handlePrintDebitNote = async (order, dn) => {
@@ -1584,7 +1584,7 @@ const SalesReport = () => {
           alert('No debit notes on this order yet.');
           return;
         }
-        dnRow = data[0]; // newest first â€” created_at DESC on server
+        dnRow = data[0]; // newest first — created_at DESC on server
       }
       const html = await buildDebitNoteHtml(order, dnRow);
       printDirect(html);
@@ -1594,7 +1594,7 @@ const SalesReport = () => {
     }
   };
 
-  // Explicit "Download PDF" path â€” skips the backend ESC/POS attempt and
+  // Explicit "Download PDF" path — skips the backend ESC/POS attempt and
   // goes straight to PDF generation. Shown only when the user picked PDF
   // Download in System Settings AND is on a phone-sized screen.
   const handleDownloadPdfReceipt = (order) => {
@@ -1606,18 +1606,18 @@ const SalesReport = () => {
   // and the explicit Download PDF button. Single source of truth so the
   // two paths produce identical output.
   const buildReceiptHtml = (order, opts = {}) => {
-    // v1.13.37 â€” isReprint flag (ZRA checklist #24). When true, the
+    // v1.13.37 — isReprint flag (ZRA checklist #24). When true, the
     // "SALES RECEIPT" title band is replaced with "*** COPY /
     // DUPLICATE ***" and a subtitle explaining it's not the original.
     const isReprint = !!opts.isReprint;
     const div = '='.repeat(42);
     const fmt2 = (n) => (parseFloat(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const fmt0 = (n) => (parseFloat(n) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    // v1.10.63 â€” track whether any line was sold in a non-default unit
+    // v1.10.63 — track whether any line was sold in a non-default unit
     // so we can print the "** sold in alternate unit" legend at the
     // bottom, matching POS.js.
     let hasAltUnit = false;
-    // v1.10.59/63 â€” Liquor keeps its 2-line format with PRICE and TOTAL
+    // v1.10.59/63 — Liquor keeps its 2-line format with PRICE and TOTAL
     // columns (matches ESC/POS backend and POS.js till receipt). Kelete
     // renders Name + Qty only per the dual-currency redesign.
     const itemRows = (order.items || []).map(item => {
@@ -1642,7 +1642,7 @@ const SalesReport = () => {
       const nameLabel = item.product_name + (item.reversed ? ' [VOID]' : '') + marker;
       if (!isLiquorStyle) {
         // Kelete: Name + Qty only, single row per item.
-        const partialNoteKelete = partial ? `<tr><td colspan="2" style="font-size:9px;color:#b45309;padding-left:6px">was ${origQty} ${item.unit || ''} â€” reversed ${rq}</td></tr>` : '';
+        const partialNoteKelete = partial ? `<tr><td colspan="2" style="font-size:9px;color:#b45309;padding-left:6px">was ${origQty} ${item.unit || ''} — reversed ${rq}</td></tr>` : '';
         return `
         <tr style="${rowWeight}${item.reversed ? 'text-decoration:line-through;color:#999;' : ''}">
           <td style="font-weight:700;padding-top:4px;">${nameLabel}</td>
@@ -1650,10 +1650,10 @@ const SalesReport = () => {
         </tr>
         ${partialNoteKelete}`;
       }
-      // Liquor: 2-line format â€” name on line 1, indented qty + unit_price + gross on line 2.
-      // v1.10.63 â€” unit_price and gross now prefixed with curSym so the
+      // Liquor: 2-line format — name on line 1, indented qty + unit_price + gross on line 2.
+      // v1.10.63 — unit_price and gross now prefixed with curSym so the
       // paper matches the POS till receipt.
-      const partialNote = partial ? `<tr><td colspan="4" style="font-size:9px;color:#b45309;padding-left:6px">was ${origQty} ${item.unit || ''} â€” reversed ${rq}</td></tr>` : '';
+      const partialNote = partial ? `<tr><td colspan="4" style="font-size:9px;color:#b45309;padding-left:6px">was ${origQty} ${item.unit || ''} — reversed ${rq}</td></tr>` : '';
       return `
       <tr><td colspan="4" style="font-weight:700;padding-top:4px;${item.reversed ? 'text-decoration:line-through;color:#999;' : ''}">${nameLabel}</td></tr>
       <tr style="${rowWeight}${item.reversed ? 'color:#999;' : ''}">
@@ -1665,7 +1665,7 @@ const SalesReport = () => {
       ${partialNote}`;
     }).join('');
 
-    // v1.10.63 â€” Payment section labels now respect isLiquorStyle. Liquor
+    // v1.10.63 — Payment section labels now respect isLiquorStyle. Liquor
     // (Mansa/Lusaka) uses Cash / MoMo / Bank; Kelete (Kassumbalesa) keeps
     // USD ($) / FRA / K. Same field routing convention as CashBook:
     // cash_received=Cash, fra_received=MoMo, k_received=Bank on Liquor.
@@ -1692,23 +1692,23 @@ const SalesReport = () => {
 
     const dt = new Date(order.created_at + 'Z');
     const dateTimeStr = `${dt.toLocaleDateString('en-GB')} ${dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })}`;
-    // Cashier name â€” orders may store it under a couple of legacy fields.
+    // Cashier name — orders may store it under a couple of legacy fields.
     // Whichever we get, fall back to "Staff" so we never print blank.
     const cashierName = order.served_by || order.cashier_name || order.created_by_name || 'Staff';
 
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
     <style>
-      /* v1.10.63 â€” @page margin cleared, padding moved to body to match
+      /* v1.10.63 — @page margin cleared, padding moved to body to match
          POS.js render pattern. Same asymmetric left offset (extra 3mm)
          to survive the Epson TM-T88VII paper-feed offset. */
-      /* 2026-08-30 â€” 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
+      /* 2026-08-30 — 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
      head only covers 72mm. The driver says so itself: its paper setting
-     reads "ZPrinter Paper(80(72) x 3276mm)" â€” 80mm roll, 72mm printable.
+     reads "ZPrinter Paper(80(72) x 3276mm)" — 80mm roll, 72mm printable.
      Declaring 80mm made Chrome lay the receipt out 8mm wider than the
      printer can reach, and the driver simply dropped the overhang. Every
      line lost the same three or four characters off the right: Walk-i(n),
      ZM(W), INV0060001067/9(0), 77.3(7). It read as a table problem, but the
-     header and totals were clipped too â€” the canvas was just too wide.
+     header and totals were clipped too — the canvas was just too wide.
      Matching the canvas to the print head means nothing can fall off. */
   @page { size: 72mm auto; margin: 0; }
       html, body { height: auto; margin: 0; padding: 0; overflow-x: hidden; }
@@ -1717,7 +1717,7 @@ const SalesReport = () => {
         width: 72mm;
         max-width: 72mm;
         padding: 2mm;
-        /* v1.10.62 â€” Liquor uses Arial Black so sans-serif survives
+        /* v1.10.62 — Liquor uses Arial Black so sans-serif survives
            thermal rasterisation; regular Arial-bold prints thin grey.
            Kelete stays on Courier for the dual-currency reprint. */
         font-family: ${isLiquorStyle ? "'Arial Black', 'Impact', Arial, Helvetica, sans-serif" : "'Courier New', monospace"};
@@ -1726,21 +1726,21 @@ const SalesReport = () => {
         font-weight: 700;
       }
       table { width: 100%; border-collapse: collapse; font-size: 11px; }
-      /* 2026-08-30 â€” see the tax-invoice templates: width:100% is only a
+      /* 2026-08-30 — see the tax-invoice templates: width:100% is only a
          suggestion under table-layout:auto, so an unbreakable value stretches
          the table past the paper and takes every right-aligned figure with it. */
-      /* 2026-08-30 â€” tables stop at 86% of the body. The remaining 14% is
+      /* 2026-08-30 — tables stop at 86% of the body. The remaining 14% is
      deliberately never printed on.
-     Four earlier attempts tried to make the content FIT inside 100% â€”
+     Four earlier attempts tried to make the content FIT inside 100% —
      narrower page, narrower columns, smaller font, wrapping cells. But 100%
      is where the loss happens: a right-aligned value sits on the print
      head's last dot, and that dot is unreliable. It is why even 77.37 came
      out as 77.3 while the centred lines beside it printed in full.
-     The reference receipt this was compared against does the same thing â€”
+     The reference receipt this was compared against does the same thing —
      its item table visibly stops well short of the edge. Leaving slack means
      an overflow eats into the margin instead of falling off the paper, and
-     the Total column â€” the number that matters most and was always last in
-     the row â€” is no longer the one closest to the cut. */
+     the Total column — the number that matters most and was always last in
+     the row — is no longer the one closest to the cut. */
   table { width: 86%; max-width: 86%; }
       table tr > td:last-child { overflow-wrap: anywhere; word-break: break-word; }
       td { padding: 1px 0; vertical-align: top; }
@@ -1754,7 +1754,7 @@ const SalesReport = () => {
     ${businessPhone ? `<div class="c" style="font-size:11px;">Tel: ${businessPhone}</div>` : ''}
     <div class="div">${div}</div>
     <div class="c" style="font-weight:700;font-size:12px;">${order.status === 'Reversed' ? '*** REVERSED ***' : (isReprint ? '*** COPY / DUPLICATE ***' : 'SALES RECEIPT')}</div>
-    ${isReprint && order.status !== 'Reversed' ? '<div class="c" style="font-size:10px;">This is a reprint â€” not the original tax invoice</div>' : ''}
+    ${isReprint && order.status !== 'Reversed' ? '<div class="c" style="font-size:10px;">This is a reprint — not the original tax invoice</div>' : ''}
     <div class="div">${div}</div>
     <table>
       <tr><td>Receipt #:</td><td></td><td style="text-align:right">${fmtInvoiceNo(order.order_number)}</td></tr>
@@ -1765,7 +1765,7 @@ const SalesReport = () => {
     <div class="div">${div}</div>
     <table>
       ${isLiquorStyle
-        ? '' /* Liquor: no header row â€” matches ESC/POS. */
+        ? '' /* Liquor: no header row — matches ESC/POS. */
         : '<tr style="font-size:10px"><td style="font-weight:700;">ITEM</td><td style="text-align:right;font-weight:700;">QTY</td></tr>'}
       ${itemRows}
     </table>
@@ -1792,10 +1792,10 @@ const SalesReport = () => {
     return html;
   };
 
-  // v1.13.116 â€” Print Report now delegates to handleExportPDF so the
+  // v1.13.116 — Print Report now delegates to handleExportPDF so the
   // "Print" button opens the browser print dialog with the SAME rich A4
   // Sales-by-Item layout the Export PDF button produces. Previous
-  // implementation rendered a thermal 80mm receipt-style summary â€” no
+  // implementation rendered a thermal 80mm receipt-style summary — no
   // longer used (thermal print was unusable on regular office printers
   // and diverged from the exported PDF, confusing ZRA auditors comparing
   // the printed vs saved report).
@@ -1803,14 +1803,14 @@ const SalesReport = () => {
     return handleExportPDF();
   };
 
-  // â”€â”€ Export the By-Item view as an A4 PDF (mirrors GRN/SIV design) â”€â”€â”€â”€â”€â”€â”€â”€
-  // Opens a print preview in a new tab â€” user clicks "Save as PDF" in the
+  // ── Export the By-Item view as an A4 PDF (mirrors GRN/SIV design) ────────
+  // Opens a print preview in a new tab — user clicks "Save as PDF" in the
   // browser dialog. Same look-and-feel as the GRN/SIV print pages so reports
   // across the system stay consistent.
   const handleExportPDF = async () => {
     const dateLabel = dateFrom === dateTo
       ? new Date(dateFrom).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-      : `${new Date(dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} â€” ${new Date(dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      : `${new Date(dateFrom).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} — ${new Date(dateTo).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
 
     // Fetch the per-item breakdown on demand so the PDF works from any tab,
     // not just after the user has visited By Item. Fallback to cached state
@@ -1828,7 +1828,7 @@ const SalesReport = () => {
     const fmt = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const fmtQty = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const printedBy = [authUser?.firstName, authUser?.lastName].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.firstName, authUser?.lastName].filter(Boolean).join(' ') || '—';
 
     const rows = items.map((it, idx) => {
       const qInDisp = displayInDefaultUnit(it.total_qty, it);
@@ -1836,8 +1836,8 @@ const SalesReport = () => {
       return `<tr style="background:${idx % 2 === 1 ? '#f5f5f5' : '#fff'};border-bottom:1px solid #ddd">
         <td style="padding:7px 10px;color:#000;font-size:10.5px">${idx + 1}</td>
         <td style="padding:7px 10px;font-weight:700;font-family:monospace">${fmtQty(qInDisp.qty)} ${avgInDisp.unit}</td>
-        <td style="padding:7px 10px;font-weight:600">${it.product_name || 'â€”'}</td>
-        <td style="padding:7px 10px;font-size:10.5px;color:#444">${it.category_name || 'â€”'}</td>
+        <td style="padding:7px 10px;font-weight:600">${it.product_name || '—'}</td>
+        <td style="padding:7px 10px;font-size:10.5px;color:#444">${it.category_name || '—'}</td>
         <td style="padding:7px 10px;font-size:10.5px">${avgInDisp.unit}</td>
         <td style="padding:7px 10px;text-align:right;font-family:monospace">${curSym}${fmt(avgInDisp.price)} <span style="font-size:9px;color:#666">/ ${avgInDisp.unit}</span></td>
         <td style="padding:7px 10px;text-align:right;font-weight:700;font-family:monospace">${curSym}${fmt(it.total_revenue)}</td>
@@ -1846,7 +1846,7 @@ const SalesReport = () => {
 
     const grandRevenue = items.reduce((s, it) => s + parseFloat(it.total_revenue || 0), 0);
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sales by Item â€” ${dateLabel}</title><style>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sales by Item — ${dateLabel}</title><style>
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
@@ -1890,7 +1890,7 @@ const SalesReport = () => {
           </tr></thead>
           <tbody>${rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#666">No sales in this period</td></tr>'}</tbody>
           <tfoot><tr>
-            <td colspan="6">GRAND TOTAL â€” ${items.length} product${items.length !== 1 ? 's' : ''}</td>
+            <td colspan="6">GRAND TOTAL — ${items.length} product${items.length !== 1 ? 's' : ''}</td>
             <td style="text-align:right;font-size:13px;font-family:monospace">${curSym}${fmt(grandRevenue)}</td>
           </tr></tfoot>
         </table>
@@ -1905,7 +1905,7 @@ const SalesReport = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:9px;color:#000">${businessName} â€” Confidential</span>
+        <span style="font-size:9px;color:#000">${businessName} — Confidential</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
     </body></html>`;
@@ -1922,10 +1922,10 @@ const SalesReport = () => {
           <p>{t('salesReportSubtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* v1.13.43 â€” universal Excel/CSV/PDF export (ZRA checklist #30).
-              v1.13.116 â€” PDF hidden here; the richer Export PDF button
+          {/* v1.13.43 — universal Excel/CSV/PDF export (ZRA checklist #30).
+              v1.13.116 — PDF hidden here; the richer Export PDF button
               below replaces it (avoids two competing PDF flows). */}
-          {/* 2026-09-01 â€” by ITEM, not by transaction. Export PDF and Print
+          {/* 2026-09-01 — by ITEM, not by transaction. Export PDF and Print
               Report have produced a Sales-by-Item layout since v1.13.116
               while these two still emitted the invoice list, so the same
               button row handed out two different reports. The user asked for
@@ -1955,11 +1955,11 @@ const SalesReport = () => {
             ]}
             pdfOptions={{
               title: 'Sales by Item',
-              subtitle: dateFrom === dateTo ? dateFrom : `${dateFrom} â†’ ${dateTo}`,
+              subtitle: dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`,
               businessName,
             }}
           />
-          {/* v1.13.92 â€” reverted v1.13.91 removal; both PDF exports live
+          {/* v1.13.92 — reverted v1.13.91 removal; both PDF exports live
               side-by-side again per user request. */}
           <button
             onClick={handleExportPDF}
@@ -2019,7 +2019,7 @@ const SalesReport = () => {
             }}>
               {dateFrom === dateTo && dateFrom
                 ? dateFrom === today ? t('today') : dateFrom
-                : `${dateFrom || '...'} â†’ ${dateTo || '...'}`}
+                : `${dateFrom || '...'} → ${dateTo || '...'}`}
             </span>
           )}
         </div>
@@ -2047,7 +2047,7 @@ const SalesReport = () => {
           </div>
 
           {/* Arrow separator */}
-          <div style={{ paddingBottom: 10, color: '#9ca3af', fontSize: 18, fontWeight: 300, flexShrink: 0 }}>â†’</div>
+          <div style={{ paddingBottom: 10, color: '#9ca3af', fontSize: 18, fontWeight: 300, flexShrink: 0 }}>→</div>
 
           {/* To Date */}
           <div style={{ flex: '0 0 auto' }}>
@@ -2095,7 +2095,7 @@ const SalesReport = () => {
           </button>
         </div>
 
-        {/* 2026-09-23 â€” search by either invoice number. Sits under the date
+        {/* 2026-09-23 — search by either invoice number. Sits under the date
             row rather than in it: while a search is running the dates do not
             apply, and putting it alongside them would suggest they combine. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
@@ -2134,7 +2134,7 @@ const SalesReport = () => {
                            border: '1px solid #fecaca', borderRadius: 7, padding: '6px 11px' }}>
               {filtered.length === 0
                 ? 'Nothing matches that number.'
-                : `${filtered.length} match${filtered.length === 1 ? '' : 'es'} â€” all dates searched.`}
+                : `${filtered.length} match${filtered.length === 1 ? '' : 'es'} — all dates searched.`}
             </span>
           )}
         </div>
@@ -2147,7 +2147,7 @@ const SalesReport = () => {
         gap: 16,
         marginBottom: 24
       }}>
-        {/* Total Revenue (accrual â€” all sales billed) */}
+        {/* Total Revenue (accrual — all sales billed) */}
         <div style={{
           borderRadius: 14, padding: '20px 22px',
           background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
@@ -2161,7 +2161,7 @@ const SalesReport = () => {
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{t('totalRevenue')}</div>
             <div style={{ fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{curSym}{(parseFloat(totalRevenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            {/* v1.10.101 â€” over-collected label hidden on Liquor. The
+            {/* v1.10.101 — over-collected label hidden on Liquor. The
                 concept only applies where the cashier can *choose* to keep
                 surplus in a specific currency drawer (Kassumbalesa tri-
                 currency). On Liquor branches change always goes back to
@@ -2170,21 +2170,21 @@ const SalesReport = () => {
                 overpaid_kept_amt but they no longer represent till reality. */}
             {!isLiquorStyle && totalOverpaidAsUSD > 0.005 && (
               <div style={{ fontSize: 11, opacity: 0.9, marginTop: 3, color: '#fef3c7' }}>
-                + Over-collected â‰ˆ {curSym}{totalOverpaidAsUSD.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+                + Over-collected ≈ {curSym}{totalOverpaidAsUSD.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                 {' '}
                 <span style={{ opacity: 0.8 }}>
                   ({totalOverpaidUSD > 0 ? `USD ${totalOverpaidUSD.toFixed(2)}` : ''}
-                  {totalOverpaidFRA > 0 ? `${totalOverpaidUSD > 0 ? ' Â· ' : ''}FRA ${totalOverpaidFRA.toFixed(0)}` : ''}
-                  {totalOverpaidK   > 0 ? `${(totalOverpaidUSD > 0 || totalOverpaidFRA > 0) ? ' Â· ' : ''}K ${totalOverpaidK.toFixed(0)}` : ''})
+                  {totalOverpaidFRA > 0 ? `${totalOverpaidUSD > 0 ? ' · ' : ''}FRA ${totalOverpaidFRA.toFixed(0)}` : ''}
+                  {totalOverpaidK   > 0 ? `${(totalOverpaidUSD > 0 || totalOverpaidFRA > 0) ? ' · ' : ''}K ${totalOverpaidK.toFixed(0)}` : ''})
                 </span>
               </div>
             )}
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>{activeOrders.length} order(s){filtered.length > activeOrders.length ? ` Â· ${filtered.length - activeOrders.length} reversed` : ''}</div>
+            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>{activeOrders.length} order(s){filtered.length > activeOrders.length ? ` · ${filtered.length - activeOrders.length} reversed` : ''}</div>
           </div>
         </div>
 
-        {/* Cash Sales â€” v1.8.1 triple currency. Each row is net cash received
-            in that currency (paid âˆ’ change given), in the currency's own
+        {/* Cash Sales — v1.8.1 triple currency. Each row is net cash received
+            in that currency (paid − change given), in the currency's own
             units. Kelete is cash-only; no card / MoMo / bank to break out. */}
         <div style={{
           borderRadius: 14, padding: '16px 18px',
@@ -2195,16 +2195,16 @@ const SalesReport = () => {
           <div style={{ position: 'absolute', right: -12, top: -12, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
           <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('cashSales')}</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {/* v1.9.27 â€” Liquor branches break Cash Sales by method
+            {/* v1.9.27 — Liquor branches break Cash Sales by method
                 (Cash / MoMo / Bank); Kelete multi-currency branches break
-                by currency (USD/FRA/K). The bottom â‰ˆ total line stays. */}
+                by currency (USD/FRA/K). The bottom ≈ total line stays. */}
             {isLiquorStyle ? (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontSize: 11, opacity: 0.8 }}>Cash</span>
                   <span style={{ fontSize: 17, fontWeight: 800 }}>{curSym}{(parseFloat(totalCashReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                 </div>
-                {/* 2026-09-11 â€” a hidden method shows only if money sits on it. */}
+                {/* 2026-09-11 — a hidden method shows only if money sits on it. */}
                 {(methodShown('momo') || (parseFloat(totalMomoReceived) || 0) > 0.004) && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: 11, opacity: 0.8 }}>MoMo</span>
@@ -2242,7 +2242,7 @@ const SalesReport = () => {
             )}
           </div>
           <div style={{ fontSize: 10, opacity: 0.7, marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 4 }}>
-            â‰ˆ {curSym}{(parseFloat(totalCashSales)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} total
+            ≈ {curSym}{(parseFloat(totalCashSales)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} total
           </div>
         </div>
 
@@ -2264,7 +2264,7 @@ const SalesReport = () => {
           </div>
         </div>
 
-        {/* Total Discounts (kept as 4th â€” useful context) */}
+        {/* Total Discounts (kept as 4th — useful context) */}
         <div style={{
           borderRadius: 14, padding: '20px 22px',
           background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
@@ -2282,9 +2282,9 @@ const SalesReport = () => {
           </div>
         </div>
 
-        {/* v1.13.50 â€” Profit tile: revenue minus per-sale COGS (frozen at
+        {/* v1.13.50 — Profit tile: revenue minus per-sale COGS (frozen at
             time of each sale via stock_movements.cost_at_sale).
-            2026-09-01 â€” hidden with the rest of the margin figures. It was the
+            2026-09-01 — hidden with the rest of the margin figures. It was the
             most visible of them: a 24px number in a green tile at the top of a
             page every cashier opens. */}
         {SHOW_MARGIN_COLUMNS && <div style={{
@@ -2306,7 +2306,7 @@ const SalesReport = () => {
 
       </div>
 
-      {/* v1.13.155 â€” possible duplicates. Sits above the tabs so it is seen
+      {/* v1.13.155 — possible duplicates. Sits above the tabs so it is seen
           before the day is closed, not found afterwards. Renders nothing at
           all when there is nothing to review. */}
       {dupes.length > 0 && (
@@ -2317,7 +2317,7 @@ const SalesReport = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <FiAlertTriangle size={17} style={{ color: '#b45309', flex: 'none' }} />
             <strong style={{ color: '#92400e', fontSize: 14 }}>
-              {dupes.length} possible duplicate{dupes.length > 1 ? 's' : ''} â€” review before closing the day
+              {dupes.length} possible duplicate{dupes.length > 1 ? 's' : ''} — review before closing the day
             </strong>
             <button onClick={() => setDupesOpen(o => !o)}
               style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 8, border: '1px solid #fcd34d', background: '#fff', color: '#92400e', cursor: 'pointer', fontSize: 12.5, fontWeight: 700 }}>
@@ -2333,7 +2333,7 @@ const SalesReport = () => {
                   padding: '10px 12px', background: '#fff', border: '1px solid #fde68a', borderRadius: 9,
                 }}>
                   <span style={{ fontFamily: 'monospace', fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>
-                    {fmtInvoiceNo(p.a_number)} â†’ {fmtInvoiceNo(p.b_number)}
+                    {fmtInvoiceNo(p.a_number)} → {fmtInvoiceNo(p.b_number)}
                   </span>
                   <span style={{ fontWeight: 700, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
                     {curSym}{(parseFloat(p.total) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -2343,7 +2343,7 @@ const SalesReport = () => {
                   )}
                   {/* The gap is the whole point. Six seconds is a duplicate;
                       twenty-nine is two customers at opening time. No threshold
-                      can tell those apart â€” a person reading this number can. */}
+                      can tell those apart — a person reading this number can. */}
                   <span style={{
                     fontSize: 12.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
                     color: p.secs_apart <= 15 ? '#b91c1c' : '#b45309',
@@ -2355,13 +2355,13 @@ const SalesReport = () => {
                     disabled={dismissing === p.pair_key}
                     title="Both sales stay as they are. This only stops the warning."
                     style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: dismissing === p.pair_key ? 'wait' : 'pointer', fontSize: 12.5, fontWeight: 700 }}>
-                    {dismissing === p.pair_key ? 'Savingâ€¦' : 'Reviewed â€” not duplicates'}
+                    {dismissing === p.pair_key ? 'Saving…' : 'Reviewed — not duplicates'}
                   </button>
                 </div>
               ))}
               <div style={{ fontSize: 11.5, color: '#92400e', paddingLeft: 2 }}>
                 To undo a sale use its <strong>Reverse</strong> button in the table below.
-                â€œReviewedâ€ changes nothing â€” it only hides the warning.
+                “Reviewed” changes nothing — it only hides the warning.
               </div>
             </div>
           )}
@@ -2407,7 +2407,7 @@ const SalesReport = () => {
             <table className="data-table">
               <thead>
                 <tr>
-                  {/* 2026-09-03 â€” Receipt Number and ZRA Receipt merged into
+                  {/* 2026-09-03 — Receipt Number and ZRA Receipt merged into
                       one column. The ZRA composite is what a customer quotes
                       off their paper receipt and what ZRA's portal knows, so
                       it leads; our order number sits under it. Also buys back
@@ -2427,14 +2427,14 @@ const SalesReport = () => {
               </thead>
               <tbody>
                 {filtered.flatMap(order => {
-                  // v1.13.50 â€” per-order COGS + profit. Backend attaches cogs
-                  // via stock_movements.cost_at_sale; profit = total âˆ’ cogs.
-                  // v1.13.155 â€” is this row half of a suspect pair?
+                  // v1.13.50 — per-order COGS + profit. Backend attaches cogs
+                  // via stock_movements.cost_at_sale; profit = total − cogs.
+                  // v1.13.155 — is this row half of a suspect pair?
                   const dupePair = dupeSyncIds.get(order.sync_id) || null;
                   const rowCogs   = parseFloat(order.cogs || 0);
                   const rowProfit = parseFloat(order.total_amount || 0) - rowCogs;
                   const sdcSuffix = String(order.zra_sdc_id || '').replace(/^SDC/i, '');
-                  // v1.13.150 â€” Sale row's ZRA Receipt always uses the SALE's
+                  // v1.13.150 — Sale row's ZRA Receipt always uses the SALE's
                   // rcptNo (never the CN's) now that CNs get their own row
                   // below. Fixes the earlier "sequence looks skipped" bug
                   // where a Reversed row showed only CRN/N and hid the
@@ -2443,7 +2443,7 @@ const SalesReport = () => {
                   const saleRow = (
                     <tr key={`s-${order.id}`} style={{
                       opacity: order.status === 'Reversed' ? 0.6 : 1,
-                      // v1.13.155 â€” an amber bar down the left edge joins the
+                      // v1.13.155 — an amber bar down the left edge joins the
                       // two halves of a suspect pair, so the eye catches them
                       // together rather than as two unrelated rows.
                       ...(dupePair ? { background: '#fffbeb', boxShadow: 'inset 3px 0 0 #f59e0b' } : {}),
@@ -2503,18 +2503,18 @@ const SalesReport = () => {
                               <FiRotateCcw size={13} /> Reverse
                             </button>
                           )}
-                          {/* v1.13.136 â€” Row-level CN button removed. See
+                          {/* v1.13.136 — Row-level CN button removed. See
                               older comment; Print CN now lives inside the
                               View modal only. */}
                         </div>
                       </td>
                     </tr>
                   );
-                  // v1.13.151 â€” Emit a CN row for BOTH full-reversed AND
+                  // v1.13.151 — Emit a CN row for BOTH full-reversed AND
                   // partial-refunded orders. For full-reverse the CN
                   // amount = full total (every line refunded). For
                   // partial the CN amount = order_items reversed_quantity
-                  // Ã— line price, aggregated server-side as
+                  // × line price, aggregated server-side as
                   // partial_refund_amount on the /orders response
                   // (v1.13.151 backend). Also show CN row when the order
                   // has a local_cn_number (ZRA-off branches still stamp
@@ -2527,11 +2527,11 @@ const SalesReport = () => {
                   if (hasAnyCn) {
                     const cnZraRcpt = order.zra_cn_rcpt_no
                       ? `CRN${sdcSuffix}/${order.zra_cn_rcpt_no}`
-                      : 'â€”';
+                      : '—';
                     const cnKeleteRef = order.local_cn_number
                       || String(order.order_number || '').replace(/^INV-/, 'CN-').replace(/^ORD-/, 'CN-');
                     const cnDate = order.zra_cn_signed_at || order.partial_refund_at || order.created_at;
-                    // Amount: full-reverse â†’ -total; partial â†’ -partial_refund_amount.
+                    // Amount: full-reverse → -total; partial → -partial_refund_amount.
                     const cnAmountRaw = hasFullReverse
                       ? parseFloat(order.total_amount || 0)
                       : parseFloat(order.partial_refund_amount || 0);
@@ -2539,7 +2539,7 @@ const SalesReport = () => {
                     const negSubtotal   = -Math.abs(cnAmountRaw);
                     const negDiscount   = 0;
                     const negTotal      = -Math.abs(cnAmountRaw);
-                    // Rough proportional profit hit â€” full-reverse wipes
+                    // Rough proportional profit hit — full-reverse wipes
                     // full profit; partial wipes proportional slice. Best
                     // effort until backend attaches a real per-CN cogs.
                     const negProfit     = hasFullReverse
@@ -2548,9 +2548,9 @@ const SalesReport = () => {
                     const negReceived   = -Math.abs(cnAmountRaw);
                     const cnRow = (
                       <tr key={`c-${order.id}`} style={{ background: '#fef2f2' }}>
-                        {/* 2026-09-03 â€” same merge as the sale row above. The
-                            CN keeps its OWN numbers (CRNâ€¦, CN-â€¦) and never
-                            borrows the invoice's â€” v1.13.150. */}
+                        {/* 2026-09-03 — same merge as the sale row above. The
+                            CN keeps its OWN numbers (CRN…, CN-…) and never
+                            borrows the invoice's — v1.13.150. */}
                         <td>
                           <div style={{ lineHeight: 1.25 }}>
                             <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{cnZraRcpt}</div>
@@ -2558,12 +2558,12 @@ const SalesReport = () => {
                           </div>
                         </td>
                         <td>{formatDate(cnDate)}</td>
-                        <td style={{ color: '#b91c1c' }}>âˆ’{curSym}{Math.abs(negSubtotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                        <td style={{ color: '#b91c1c' }}>−{curSym}{Math.abs(negSubtotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         <td style={{ color: '#374151' }}>{negDiscount > 0 ? `-${curSym}${negDiscount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : `${curSym}0.00`}</td>
-                        <td style={{ color: '#b91c1c' }}><strong>âˆ’{curSym}{Math.abs(negTotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+                        <td style={{ color: '#b91c1c' }}><strong>−{curSym}{Math.abs(negTotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
                         {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b45309' }}>{curSym}0.00</td>}
-                        {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b91c1c', fontWeight: 600 }}>âˆ’{curSym}{Math.abs(negProfit).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
-                        <td style={{ color: '#b91c1c' }}>âˆ’{curSym}{Math.abs(negReceived).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                        {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b91c1c', fontWeight: 600 }}>−{curSym}{Math.abs(negProfit).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
+                        <td style={{ color: '#b91c1c' }}>−{curSym}{Math.abs(negReceived).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         <td style={{ color: '#9ca3af' }}>{curSym}0.00</td>
                         <td>
                           <span className="badge badge-danger" style={{ background: '#fee2e2', color: '#b91c1c', borderColor: '#fca5a5' }}>Credit Note</span>
@@ -2581,7 +2581,7 @@ const SalesReport = () => {
                         </td>
                       </tr>
                     );
-                    // CN row shows ABOVE its parent sale â€” CN is more
+                    // CN row shows ABOVE its parent sale — CN is more
                     // recent chronologically and matches ZRA's newest-first
                     // portal ordering. flatMap concatenates as [cn, sale].
                     return [cnRow, saleRow];
@@ -2640,7 +2640,7 @@ const SalesReport = () => {
                   }}>
                     <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
                     <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
-                      qty {(parseFloat(s.qty)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} Â· {curSym}{(parseFloat(s.revenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+                      qty {(parseFloat(s.qty)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} · {curSym}{(parseFloat(s.revenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </span>
                   </div>
                 ))}
@@ -2673,9 +2673,9 @@ const SalesReport = () => {
                         <td style={{ color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
                         <td><strong>{formatStockForProduct(item.total_qty, item)}</strong></td>
                         <td><strong style={{ color: '#2563eb' }}>{item.product_name}</strong></td>
-                        <td style={{ color: '#6b7280', fontSize: 12 }}>{item.category_name || 'â€”'}</td>
+                        <td style={{ color: '#6b7280', fontSize: 12 }}>{item.category_name || '—'}</td>
                         <td style={{ color: '#6b7280' }}>
-                          {disp.name || 'â€”'}
+                          {disp.name || '—'}
                           {disp.conv > 1 && (
                             <div style={{ fontSize: 10, color: '#9ca3af' }}>1 {disp.name} = {disp.conv} {item.unit}</div>
                           )}
@@ -2699,15 +2699,15 @@ const SalesReport = () => {
         );
       })()}
 
-      {/* By Payment / Currency Tab â€” v1.8.1 */}
+      {/* By Payment / Currency Tab — v1.8.1 */}
       {activeTab === 'byPayment' && isLiquorStyle && (() => {
-        // v1.9.27 â€” Liquor-style branches: simple Cash / MoMo / Bank /
-        // Credit breakdown. No currency split, no Given/Net/Â± because the
+        // v1.9.27 — Liquor-style branches: simple Cash / MoMo / Bank /
+        // Credit breakdown. No currency split, no Given/Net/± because the
         // single-screen Pay modal collects whole amounts in each method.
         const fmtK = (n) => `${curSym}${(parseFloat(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
         const totalRevenue = activeOrders.reduce((s, o) => s + (parseFloat(o.total_amount)||0), 0);
         const pct = (n) => totalRevenue > 0 ? `${((n / totalRevenue) * 100).toFixed(1)}% of revenue` : '0% of revenue';
-        // 2026-09-11 â€” a method the branch hides is left out, unless money
+        // 2026-09-11 — a method the branch hides is left out, unless money
         // sits on it in this period.
         const showMomo = methodShown('momo') || (parseFloat(totalMomoReceived) || 0) > 0.004;
         const showBank = methodShown('bank') || (parseFloat(totalBankReceived) || 0) > 0.004;
@@ -2715,7 +2715,7 @@ const SalesReport = () => {
           <div className="card">
             <div className="card-header">
               <h3>Sales by Payment Method</h3>
-              <span style={{ fontSize: 13, color: '#6b7280' }}>{activeOrders.length} order(s) Â· {fmtK(totalRevenue)}</span>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>{activeOrders.length} order(s) · {fmtK(totalRevenue)}</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${2 + (showMomo ? 1 : 0) + (showBank ? 1 : 0)}, 1fr)`, gap: 14, padding: '16px 20px' }}>
               {[
@@ -2746,7 +2746,7 @@ const SalesReport = () => {
               </thead>
               <tbody>
                 {activeOrders.map(o => {
-                  // v1.9.29 â€” read cash_received / momo_received / bank_received
+                  // v1.9.29 — read cash_received / momo_received / bank_received
                   // (the actual POS save columns), not cash/momo/bank.
                   const cash = parseFloat(o.cash_received || 0);
                   const momo = parseFloat(o.momo_received || 0);
@@ -2754,16 +2754,16 @@ const SalesReport = () => {
                   const credit = Math.max(0, parseFloat(o.total_amount || 0) - parseFloat(o.amount_received || 0));
                   return (
                     <tr key={o.id}>
-                      {/* v1.13.128k â€” was reading o.date which the /orders API doesn't
+                      {/* v1.13.128k — was reading o.date which the /orders API doesn't
                           return; use o.created_at (UTC) to match every other tab. */}
-                      <td style={{ padding: '8px 12px' }}>{o.created_at ? new Date(o.created_at + 'Z').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”'}</td>
+                      <td style={{ padding: '8px 12px' }}>{o.created_at ? new Date(o.created_at + 'Z').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
                       <td style={{ padding: '8px 12px', fontFamily: 'monospace' }}>{fmtInvoiceNo(o.order_number)}</td>
                       <td style={{ padding: '8px 12px' }}>{o.customer_name || 'Walk-in'}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>{fmtK(o.total_amount)}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: cash > 0 ? '#16a34a' : '#cbd5e1' }}>{cash > 0 ? fmtK(cash) : 'â€”'}</td>
-                      {showMomo && <td style={{ padding: '8px 12px', textAlign: 'right', color: momo > 0 ? '#ea580c' : '#cbd5e1' }}>{momo > 0 ? fmtK(momo) : 'â€”'}</td>}
-                      {showBank && <td style={{ padding: '8px 12px', textAlign: 'right', color: bank > 0 ? '#2563eb' : '#cbd5e1' }}>{bank > 0 ? fmtK(bank) : 'â€”'}</td>}
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: credit > 0 ? '#dc2626' : '#cbd5e1' }}>{credit > 0 ? fmtK(credit) : 'â€”'}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: cash > 0 ? '#16a34a' : '#cbd5e1' }}>{cash > 0 ? fmtK(cash) : '—'}</td>
+                      {showMomo && <td style={{ padding: '8px 12px', textAlign: 'right', color: momo > 0 ? '#ea580c' : '#cbd5e1' }}>{momo > 0 ? fmtK(momo) : '—'}</td>}
+                      {showBank && <td style={{ padding: '8px 12px', textAlign: 'right', color: bank > 0 ? '#2563eb' : '#cbd5e1' }}>{bank > 0 ? fmtK(bank) : '—'}</td>}
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: credit > 0 ? '#dc2626' : '#cbd5e1' }}>{credit > 0 ? fmtK(credit) : '—'}</td>
                     </tr>
                   );
                 })}
@@ -2787,8 +2787,8 @@ const SalesReport = () => {
         // Kelete is cash-only across 3 currencies. Per-order breakdown shows
         // what the customer paid IN each currency (net of change in that same
         // currency) plus any unpaid balance (Credit, always in USD).
-        // v1.8.76 â€” full per-currency breakdown for each order: Paid, Change Given,
-        // Net (= Paid âˆ’ Given), and Â± (over-collection in that source currency).
+        // v1.8.76 — full per-currency breakdown for each order: Paid, Change Given,
+        // Net (= Paid − Given), and ± (over-collection in that source currency).
         // Uses usd_change_given (physical USD returned) instead of change_amount
         // so over-payments kept in FRA/K don't bleed into the USD column.
         const adjusted = (o) => {
@@ -2800,10 +2800,10 @@ const SalesReport = () => {
           const kGiven   = parseFloat(o.k_change_given || 0) || 0;
           const keptCcy  = (o.overpaid_kept_ccy || '').toUpperCase();
           const keptAmt  = parseFloat(o.overpaid_kept_amt || 0) || 0;
-          // v1.8.88 â€” absorbed shortage: walk-in customer paid less than
+          // v1.8.88 — absorbed shortage: walk-in customer paid less than
           // total_amount and cashier let them go (payment_method='Cash', within
           // tolerance). Source-currency attribution mirrors the backend
-          // /cash-reports/daily endpoint (K â†’ FRA â†’ USD priority).
+          // /cash-reports/daily endpoint (K → FRA → USD priority).
           let absorbedUSD = 0, absorbedFRA = 0, absorbedK = 0;
           if (o.payment_method === 'Cash') {
             const shortUSD = (parseFloat(o.total_amount) || 0) - (parseFloat(o.amount_received) || 0);
@@ -2819,12 +2819,12 @@ const SalesReport = () => {
             usdPaid, usdGiven, usdNet: usdPaid - usdGiven,
             fraPaid, fraGiven, fraNet: fraPaid - fraGiven,
             kPaid,   kGiven,   kNet:   kPaid   - kGiven,
-            // Â± Signed. Positive = kept in drawer (over). Negative = absorbed (short).
-            // An order is either over or under, never both â€” so these are exclusive.
+            // ± Signed. Positive = kept in drawer (over). Negative = absorbed (short).
+            // An order is either over or under, never both — so these are exclusive.
             usdDiff: (keptCcy === 'USD' ? keptAmt : 0) - absorbedUSD,
             fraDiff: (keptCcy === 'FRA' ? keptAmt : 0) - absorbedFRA,
             kDiff:   (keptCcy === 'K'   ? keptAmt : 0) - absorbedK,
-            // v1.8.76 â€” only Credit / Partial-Credit rows contribute to credit.
+            // v1.8.76 — only Credit / Partial-Credit rows contribute to credit.
             credit:  (o.payment_method === 'Credit' || o.payment_method === 'Partial-Credit')
               ? Math.max(0, parseFloat(o.total_amount || 0) - parseFloat(o.amount_received || 0))
               : 0,
@@ -2865,7 +2865,7 @@ const SalesReport = () => {
               ))}
             </div>
 
-            {/* v1.8.76 â€” wide grouped table: per-currency Paid / Given / Net / Â±.
+            {/* v1.8.76 — wide grouped table: per-currency Paid / Given / Net / ±.
                 Two header rows: top has merged ccy groups; bottom has sub-labels. */}
             <div style={{ overflow: 'auto' }}>
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, margin: '0 0 16px', minWidth: 1100 }}>
@@ -2881,13 +2881,13 @@ const SalesReport = () => {
                   <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Credit ($)</th>
                 </tr>
                 <tr style={{ background: '#f9fafb' }}>
-                  {['Paid', 'Given', 'Net', 'Â±'].map((h, i) => (
+                  {['Paid', 'Given', 'Net', '±'].map((h, i) => (
                     <th key={`u${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#16a34a', borderBottom: '1px solid #e5e7eb', background: '#f0fdf4' }}>{h}</th>
                   ))}
-                  {['Paid', 'Given', 'Net', 'Â±'].map((h, i) => (
+                  {['Paid', 'Given', 'Net', '±'].map((h, i) => (
                     <th key={`f${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#7c3aed', borderBottom: '1px solid #e5e7eb', background: '#faf5ff' }}>{h}</th>
                   ))}
-                  {['Paid', 'Given', 'Net', 'Â±'].map((h, i) => (
+                  {['Paid', 'Given', 'Net', '±'].map((h, i) => (
                     <th key={`k${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#ea580c', borderBottom: '1px solid #e5e7eb', background: '#fff7ed' }}>{h}</th>
                   ))}
                 </tr>
@@ -2900,18 +2900,18 @@ const SalesReport = () => {
                   const usdCol = '#16a34a', fraCol = '#7c3aed', kCol = '#ea580c';
                   const cell = (val, dec, sym, color) => {
                     const n = parseFloat(val) || 0;
-                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#d1d5db' }}>â€”</span>;
+                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#d1d5db' }}>—</span>;
                     return <span style={{ color }}>{sym}{n.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}</span>;
                   };
-                  // v1.8.88 â€” signed display. Positive (kept) keeps the passed
+                  // v1.8.88 — signed display. Positive (kept) keeps the passed
                   // amber color; negative (absorbed) overrides to red so loss
                   // is visually distinct from gain at a glance.
                   const diffCell = (val, dec, sym, color) => {
                     const n = parseFloat(val) || 0;
-                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#d1d5db' }}>â€”</span>;
+                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#d1d5db' }}>—</span>;
                     const isNeg = n < 0;
                     const c = isNeg ? '#dc2626' : color;
-                    const sign = isNeg ? 'âˆ’' : '+';
+                    const sign = isNeg ? '−' : '+';
                     return <span style={{ color: c, fontWeight: 700 }}>{sign}{sym}{Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}</span>;
                   };
                   return (
@@ -2935,7 +2935,7 @@ const SalesReport = () => {
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fff7ed1a' }}>{cell(r.kGiven, 0, '', kCol)}</td>
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fff7ed1a', fontWeight: 600 }}>{cell(r.kNet, 0, '', kCol)}</td>
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fffbeb' }}>{diffCell(r.kDiff, 0, '', '#92400e')}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: r.credit > 0 ? '#dc2626' : '#9ca3af', fontWeight: r.credit > 0 ? 700 : 400 }}>{r.credit > 0 ? `$${(parseFloat(r.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'â€”'}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: r.credit > 0 ? '#dc2626' : '#9ca3af', fontWeight: r.credit > 0 ? 700 : 400 }}>{r.credit > 0 ? `$${(parseFloat(r.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}</td>
                     </tr>
                   );
                 })}
@@ -2948,30 +2948,30 @@ const SalesReport = () => {
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#16a34a' }}>${totals.usdPaid.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#16a34a' }}>${totals.usdGiven.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#16a34a' }}>${totals.usdNet.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    {/* v1.8.88 â€” signed totals: positive (kept) amber, negative (absorbed) red.
+                    {/* v1.8.88 — signed totals: positive (kept) amber, negative (absorbed) red.
                         sumCell renders the aggregate with the correct sign and colour
-                        and folds to 'â€”' when within rounding-dust tolerance. */}
+                        and folds to '—' when within rounding-dust tolerance. */}
                     {(() => null)()}
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: totals.usdDiff < -0.005 ? '#dc2626' : '#92400e', background: '#fffbeb' }}>
                       {Math.abs(totals.usdDiff) < 0.005
-                        ? 'â€”'
-                        : `${totals.usdDiff < 0 ? 'âˆ’' : '+'}$${Math.abs(totals.usdDiff).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`}
+                        ? '—'
+                        : `${totals.usdDiff < 0 ? '−' : '+'}$${Math.abs(totals.usdDiff).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`}
                     </td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#7c3aed' }}>{totals.fraPaid.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#7c3aed' }}>{totals.fraGiven.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#7c3aed' }}>{totals.fraNet.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: totals.fraDiff < -0.5 ? '#dc2626' : '#92400e', background: '#fffbeb' }}>
                       {Math.abs(totals.fraDiff) < 0.5
-                        ? 'â€”'
-                        : `${totals.fraDiff < 0 ? 'âˆ’' : '+'}${Math.abs(totals.fraDiff).toLocaleString(undefined,{maximumFractionDigits:0})}`}
+                        ? '—'
+                        : `${totals.fraDiff < 0 ? '−' : '+'}${Math.abs(totals.fraDiff).toLocaleString(undefined,{maximumFractionDigits:0})}`}
                     </td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#ea580c' }}>{totals.kPaid.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#ea580c' }}>{totals.kGiven.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#ea580c' }}>{totals.kNet.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: totals.kDiff < -0.5 ? '#dc2626' : '#92400e', background: '#fffbeb' }}>
                       {Math.abs(totals.kDiff) < 0.5
-                        ? 'â€”'
-                        : `${totals.kDiff < 0 ? 'âˆ’' : '+'}${Math.abs(totals.kDiff).toLocaleString(undefined,{maximumFractionDigits:0})}`}
+                        ? '—'
+                        : `${totals.kDiff < 0 ? '−' : '+'}${Math.abs(totals.kDiff).toLocaleString(undefined,{maximumFractionDigits:0})}`}
                     </td>
                     <td style={{ padding: '11px 12px', textAlign: 'right', color: '#dc2626' }}>{curSym}{(parseFloat(totals.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                   </tr>
@@ -3020,14 +3020,14 @@ const SalesReport = () => {
         .sr-btn-reverse:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(220,38,38,0.4); }
       `}</style>
 
-      {/* 2026-09-13 â€” every pop-up on this page renders through <Portal>. The
+      {/* 2026-09-13 — every pop-up on this page renders through <Portal>. The
           page's slide-in transform turns position:fixed into "fixed to the
           page", so on the POS terminal the receipt opened in the page flow
           with the report under it instead of over it. */}
       {(viewOrder || viewLoading) && (
         <Portal>
         <div className="sr-no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          {/* 2026-09-10 â€” the receipt scrolls and the buttons below it stay put.
+          {/* 2026-09-10 — the receipt scrolls and the buttons below it stay put.
               The whole box used to scroll with the buttons at the very end, and
               at a fixed 420px it was wider than a handheld's screen: on the
               terminal the buttons were out of sight and out of reach. */}
@@ -3045,7 +3045,7 @@ const SalesReport = () => {
                     <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>Official Receipt</p>
                     {viewOrder.status === 'Reversed' && (
                       <div style={{ marginTop: 8, padding: '3px 12px', background: '#fee2e2', color: '#dc2626', borderRadius: 20, display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
-                        âœ• REVERSED
+                        ✕ REVERSED
                       </div>
                     )}
                     {viewOrder.status === 'Partial' && (
@@ -3064,7 +3064,7 @@ const SalesReport = () => {
                       ['Date',      new Date(viewOrder.created_at + 'Z').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })],
                       ['Time',      new Date(viewOrder.created_at + 'Z').toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })],
                       ['Customer',  viewOrder.customer_name || 'Walk-in'],
-                      ['Cashier',   viewOrder.created_by_name || (viewOrder.created_by ? (users.find(u => String(u.created_by) === String(viewOrder.created_by))?.full_name || `User #${viewOrder.created_by}`) : 'â€”')],
+                      ['Cashier',   viewOrder.created_by_name || (viewOrder.created_by ? (users.find(u => String(u.created_by) === String(viewOrder.created_by))?.full_name || `User #${viewOrder.created_by}`) : '—')],
                       ['Payment',   (() => {
                         const c = parseFloat(viewOrder.cash_received || 0);
                         const m = parseFloat(viewOrder.momo_received || 0);
@@ -3093,8 +3093,8 @@ const SalesReport = () => {
                     </div>
                     {(viewOrder.items || []).map((item, idx) => {
                       // Show the NET line after any partial reversal:
-                      //   netQty   = original quantity âˆ’ reversed_quantity
-                      //   netTotal = unit_price Ã— netQty
+                      //   netQty   = original quantity − reversed_quantity
+                      //   netTotal = unit_price × netQty
                       // Fully-reversed lines (item.reversed = 1) keep the strike-through look.
                       const origQty = parseFloat(item.quantity || 0);
                       const rq      = parseFloat(item.reversed_quantity || 0);
@@ -3102,7 +3102,7 @@ const SalesReport = () => {
                       const netQty  = partial ? Math.max(0, origQty - rq) : origQty;
                       const unitPx  = parseFloat(item.unit_price || 0);
                       // TOTAL column shows the PRE-line-discount value so the math
-                      // (unit price Ã— qty) is honest. The line discount, if any,
+                      // (unit price × qty) is honest. The line discount, if any,
                       // is rendered as a separate sub-row immediately below.
                       const netTotal = unitPx * netQty;
                       const lineDisc = parseFloat(item.discount || 0);
@@ -3131,7 +3131,7 @@ const SalesReport = () => {
                           {/* ** flag when the line was sold in a non-default unit
                               (e.g. default is Box but cashier rang it up in pcs). */}
                           {soldInNonDefault && (
-                            <span style={{ marginLeft: 4, color: '#dc2626', fontWeight: 700 }} title={`Sold in ${item.unit} â€” default is ${dispUnit.name}`}>**</span>
+                            <span style={{ marginLeft: 4, color: '#dc2626', fontWeight: 700 }} title={`Sold in ${item.unit} — default is ${dispUnit.name}`}>**</span>
                           )}
                           {/* item.reversed is a SQLite int (0/1). Use !! so React
                               doesn't render literal "0" when not reversed. */}
@@ -3142,7 +3142,7 @@ const SalesReport = () => {
                           )}
                           {partial && (
                             <span style={{ marginLeft: 4, fontSize: 9, fontWeight: 700, color: '#b45309', background: '#fef3c7', borderRadius: 4, padding: '1px 4px', verticalAlign: 'middle' }}>
-                              was {origQty} {item.unit || ''} â€” reversed {rq}
+                              was {origQty} {item.unit || ''} — reversed {rq}
                             </span>
                           )}
                         </span>
@@ -3151,7 +3151,7 @@ const SalesReport = () => {
                         </span>
                         <span style={{ textAlign: 'right', flex: 1, textDecoration: item.reversed ? 'line-through' : 'none' }}>{curSym}{(parseFloat(unitPx)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                         <span style={{ textAlign: 'right', flex: 1, textDecoration: item.reversed ? 'line-through' : 'none', fontWeight: partial ? 700 : 400 }}>{curSym}{(parseFloat(netTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-                        {/* Per-item void button â€” hidden on print, gated on
+                        {/* Per-item void button — hidden on print, gated on
                             PARTIAL_REVERSE_ENABLED, and 2026-09-23 restricted to
                             Administrators. Voiding one line of a fiscalised sale
                             issues a credit note to ZRA; that is not a decision for
@@ -3176,10 +3176,10 @@ const SalesReport = () => {
                           )}
                         </span>
                       </div>
-                      {/* Per-line adjustment sub-row â€” shown when this line had a
+                      {/* Per-line adjustment sub-row — shown when this line had a
                           discount OR surcharge applied. Same format as the thermal
                           print.
-                          v1.10.106 â€” on Kassumbalesa (!isLiquorStyle), also print
+                          v1.10.106 — on Kassumbalesa (!isLiquorStyle), also print
                           the sub-row when discount < 0 (that's a per-unit price
                           markup via Change Price). Otherwise the receipt hides
                           the markup and the summary "Total surcharge" number has
@@ -3193,7 +3193,7 @@ const SalesReport = () => {
                           opacity: item.reversed ? 0.5 : 1,
                         }}>
                           <span style={{ flex: 2, paddingLeft: 16 }}>
-                            {lineDisc > 0 ? 'discount' : 'surcharge'} {netQty}{item.unit ? ` ${item.unit}` : ''} Ã— {lineDisc > 0 ? '-' : '+'}{curSym}{Math.abs(parseFloat(lineDisc)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+                            {lineDisc > 0 ? 'discount' : 'surcharge'} {netQty}{item.unit ? ` ${item.unit}` : ''} × {lineDisc > 0 ? '-' : '+'}{curSym}{Math.abs(parseFloat(lineDisc)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </span>
                           <span style={{ flex: 1 }} />
                           <span style={{ flex: 1 }} />
@@ -3210,10 +3210,10 @@ const SalesReport = () => {
 
                   <div style={{ borderTop: '1px dashed #d1d5db', margin: '12px 0' }} />
 
-                  {/* Totals â€” ORIGINAL transaction values + Partial Refunds section if any */}
+                  {/* Totals — ORIGINAL transaction values + Partial Refunds section if any */}
                   {(() => {
                     const items = viewOrder.items || [];
-                    // Pre-discount subtotal = sum of (unit_price Ã— original quantity).
+                    // Pre-discount subtotal = sum of (unit_price × original quantity).
                     // Using `quantity` (not netQty) so the totals reflect the ORIGINAL
                     // transaction; partial reverses are shown below as Refunds.
                     const originalSubtotal = items.reduce((s, it) =>
@@ -3223,7 +3223,7 @@ const SalesReport = () => {
                     const cartDiscount = parseFloat(viewOrder.discount || 0);
                     const originalDiscount = lineDiscountSum + cartDiscount;
                     const originalTotal = originalSubtotal - originalDiscount;
-                    // Refunds: per-line refund = (reversed_quantity / quantity) Ã— total_price
+                    // Refunds: per-line refund = (reversed_quantity / quantity) × total_price
                     const refundLines = items
                       .map(it => {
                         const rq = parseFloat(it.reversed_quantity || 0);
@@ -3244,9 +3244,9 @@ const SalesReport = () => {
                           <span style={{ color: '#6b7280' }}>Subtotal</span>
                           <span>{curSym}{(parseFloat(originalSubtotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                         </div>
-                        {/* v1.8.57 â€” discount can be negative (= markup). Show
+                        {/* v1.8.57 — discount can be negative (= markup). Show
                             "Total discount" in red for + values, "Total surcharge"
-                            in blue for âˆ’ values. */}
+                            in blue for − values. */}
                         {Math.abs(originalDiscount) > 0.001 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                             <span style={{ color: originalDiscount > 0 ? '#dc2626' : '#2563eb' }}>
@@ -3307,7 +3307,7 @@ const SalesReport = () => {
                           <span>{curSym}{(parseFloat(originalChange)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                         </div>
 
-                        {/* v1.8.51 â€” Credit / Partial-Credit sales: print the unpaid balance
+                        {/* v1.8.51 — Credit / Partial-Credit sales: print the unpaid balance
                             so the customer's receipt shows what they still owe. */}
                         {(() => {
                           const total = parseFloat(viewOrder.total_amount || 0);
@@ -3322,7 +3322,7 @@ const SalesReport = () => {
                           );
                         })()}
 
-                        {/* Partial Refunds section â€” only shown if any reversal occurred */}
+                        {/* Partial Refunds section — only shown if any reversal occurred */}
                         {refundLines.length > 0 && (
                           <>
                             <div style={{ borderTop: '1px dashed #d1d5db', margin: '12px 0 8px' }} />
@@ -3332,9 +3332,9 @@ const SalesReport = () => {
                             {refundLines.map((r, idx) => (
                               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 11.5 }}>
                                 <span style={{ color: '#374151' }}>
-                                  {r.item.product_name} âˆ’{(parseFloat(Number(r.qty))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {r.item.unit || ''}
+                                  {r.item.product_name} −{(parseFloat(Number(r.qty))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {r.item.unit || ''}
                                 </span>
-                                <span style={{ color: '#b45309' }}>âˆ’{curSym}{(parseFloat(r.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                                <span style={{ color: '#b45309' }}>−{curSym}{(parseFloat(r.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                               </div>
                             ))}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, paddingTop: 6, borderTop: '1px solid #fde68a', fontWeight: 700, color: '#b45309' }}>
@@ -3358,9 +3358,9 @@ const SalesReport = () => {
                     <p style={{ margin: '2px 0 0' }}>Please come again.</p>
                   </div>
 
-                  {/* v1.13.151 â€” CN reference block. Shown when a credit
+                  {/* v1.13.151 — CN reference block. Shown when a credit
                       note (full reverse OR partial refund) exists for
-                      this order â€” regardless of whether ZRA is enabled.
+                      this order — regardless of whether ZRA is enabled.
                       Local-only CNs at ZRA-off branches (e.g. Buseko)
                       still get local_cn_number stamped and display their
                       reference here, just without a ZRA rcptNo row. */}
@@ -3375,7 +3375,7 @@ const SalesReport = () => {
                       '07': 'Other',
                     };
                     const rsnCd = viewOrder.zra_cn_rfd_rsn_cd || '';
-                    const rsnLbl = CN_REASON_LABEL_MAP[rsnCd] || (viewOrder.zra_cn_rfd_rsn_other || 'â€”');
+                    const rsnLbl = CN_REASON_LABEL_MAP[rsnCd] || (viewOrder.zra_cn_rfd_rsn_other || '—');
                     // CN Kelete ref: swap INV-/ORD- prefix for CN- if we
                     // don't have a stored local_cn_number.
                     const cnKeleteRef = viewOrder.local_cn_number
@@ -3401,7 +3401,7 @@ const SalesReport = () => {
                           {rsnCd && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                               <span>CN Reason:</span>
-                              <strong>{rsnCd} â€” {rsnLbl}</strong>
+                              <strong>{rsnCd} — {rsnLbl}</strong>
                             </div>
                           )}
                         </div>
@@ -3420,8 +3420,8 @@ const SalesReport = () => {
                   <button className="sr-btn-close" onClick={() => setViewOrder(null)}>
                     <FiX size={14} /> Close
                   </button>
-                  {/* v1.13.152 â€” When View was clicked from a CN row,
-                      hide the Print Receipt button â€” the cashier
+                  {/* v1.13.152 — When View was clicked from a CN row,
+                      hide the Print Receipt button — the cashier
                       opened the modal to inspect/print the CREDIT NOTE,
                       not the underlying sale receipt. Same rule below
                       hides Reverse Order in the CN-view path. */}
@@ -3430,9 +3430,9 @@ const SalesReport = () => {
                       <FiPrinter size={14} /> Print Receipt
                     </button>
                   )}
-                  {/* v1.13.100 â€” Print Tax Credit Note (T08A #13). Only
+                  {/* v1.13.100 — Print Tax Credit Note (T08A #13). Only
                       shown when the reversal has a signed CN response.
-                      v1.13.136 â€” Also shown when the backend stamped a local
+                      v1.13.136 — Also shown when the backend stamped a local
                       CN number for a non-fiscal reversal (Buseko / ZRA off). */}
                   {viewOrder.zra_cn_signed_at && (viewOrder.zra_cn_rcpt_no || viewOrder.local_cn_number) && (
                     <button
@@ -3443,7 +3443,7 @@ const SalesReport = () => {
                       <FiPrinter size={14} /> Print Credit Note
                     </button>
                   )}
-                  {/* v1.13.94 â€” Retry ZRA fiscalisation for a stuck order.
+                  {/* v1.13.94 — Retry ZRA fiscalisation for a stuck order.
                       Visible only when zra_status is FAILED (sale committed
                       locally but VSDC hadn't accepted it). Same call the
                       60s background queue uses, just forced immediately. */}
@@ -3470,7 +3470,7 @@ const SalesReport = () => {
                       <FiRefreshCw size={14} /> Retry ZRA
                     </button>
                   )}
-                  {/* Explicit PDF button â€” visible only on phones AND only
+                  {/* Explicit PDF button — visible only on phones AND only
                       when Mobile Print Mode is set to PDF Download.
                       Bypasses the backend ESC/POS chain entirely so the
                       flow is debuggable and predictable. */}
@@ -3488,11 +3488,11 @@ const SalesReport = () => {
                       <FiRotateCcw size={14} /> Reverse Order
                     </button>
                   )}
-                  {/* v1.13.101 â€” Debit Note UI hidden for ZRA UAT
+                  {/* v1.13.101 — Debit Note UI hidden for ZRA UAT
                       (2026-07-29). DN is optional per ZRA T08A #15
                       ("if the debit note feature has been implemented")
                       and Red Sea's business model doesn't use it. The
-                      backend endpoints + fiscal wiring stay intact â€”
+                      backend endpoints + fiscal wiring stay intact —
                       flip the `false && ...` guards to restore. */}
                   {false && viewOrder.status !== 'Reversed' && (
                     <button
@@ -3594,13 +3594,13 @@ const SalesReport = () => {
                       onChange={e => setReverseModal(m => ({ ...m, reason_cd: e.target.value, error: null }))}
                       style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff' }}
                     >
-                      <option value="01">01 â€” Wrong product(s)</option>
-                      <option value="02">02 â€” Wrong price</option>
-                      <option value="03">03 â€” Damaged goods</option>
-                      <option value="04">04 â€” Wrong customer invoiced</option>
-                      <option value="05">05 â€” Duplicated invoice</option>
-                      <option value="06">06 â€” Excess supplies</option>
-                      <option value="07">07 â€” Other (brief text required)</option>
+                      <option value="01">01 — Wrong product(s)</option>
+                      <option value="02">02 — Wrong price</option>
+                      <option value="03">03 — Damaged goods</option>
+                      <option value="04">04 — Wrong customer invoiced</option>
+                      <option value="05">05 — Duplicated invoice</option>
+                      <option value="06">06 — Excess supplies</option>
+                      <option value="07">07 — Other (brief text required)</option>
                     </select>
                     {reverseModal.reason_cd === '07' && (
                       <div style={{ marginTop: 10 }}>
@@ -3629,7 +3629,7 @@ const SalesReport = () => {
             <div style={{ padding: '14px 24px 20px', display: 'flex', gap: 8, justifyContent: 'flex-end', borderTop: '1px solid #f3f4f6' }}>
               <button onClick={() => setReverseModal(null)} className="sr-btn-close">Cancel</button>
               <button onClick={confirmReverseItem} className="sr-btn-reverse" disabled={reversingItemId === reverseModal.item.id}>
-                <FiRotateCcw size={14} /> {reversingItemId === reverseModal.item.id ? 'Reversingâ€¦' : 'Reverse'}
+                <FiRotateCcw size={14} /> {reversingItemId === reverseModal.item.id ? 'Reversing…' : 'Reverse'}
               </button>
             </div>
           </div>
@@ -3647,7 +3647,7 @@ const SalesReport = () => {
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>{breakdown.productName}</h3>
                 <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>
-                  Individual sales Â· {dateFrom === dateTo ? dateFrom : `${dateFrom} â†’ ${dateTo}`}
+                  Individual sales · {dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`}
                 </p>
               </div>
               <button onClick={() => setBreakdown(null)} style={{ padding: '6px 14px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151' }}>Close</button>
@@ -3700,10 +3700,10 @@ const SalesReport = () => {
         </Portal>
       )}
 
-      {/* v1.13.136 â€” Reverse reason picker modal (ZRA UAT Â§3.8(b) â€” the CN
+      {/* v1.13.136 — Reverse reason picker modal (ZRA UAT §3.8(b) — the CN
           must reflect a reason for the reversal). Dropdown of the 7 codes
-          from VSDC spec Â§6.15. Default is '01 Wrong product'. Cancel aborts.
-          On Continue, opens the AdminPasswordPrompt (pendingDelete) â€” the
+          from VSDC spec §6.15. Default is '01 Wrong product'. Cancel aborts.
+          On Continue, opens the AdminPasswordPrompt (pendingDelete) — the
           actual reversal only fires once admin password is entered. */}
       {reverseReasonModal && (
         <Portal>
@@ -3712,7 +3712,7 @@ const SalesReport = () => {
             <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb' }}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Reverse Sale</h3>
               <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>
-                {fmtInvoiceNo(reverseReasonModal.order.order_number)} â€” pick a reason, then confirm with admin password.
+                {fmtInvoiceNo(reverseReasonModal.order.order_number)} — pick a reason, then confirm with admin password.
               </p>
             </div>
             <div style={{ padding: '18px 22px' }}>
@@ -3724,13 +3724,13 @@ const SalesReport = () => {
                 onChange={e => setReverseReasonModal(m => ({ ...m, reason_cd: e.target.value, error: null }))}
                 style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff' }}
               >
-                <option value="01">01 â€” Wrong product(s)</option>
-                <option value="02">02 â€” Wrong price</option>
-                <option value="03">03 â€” Damaged goods</option>
-                <option value="04">04 â€” Wrong customer invoiced</option>
-                <option value="05">05 â€” Duplicated invoice</option>
-                <option value="06">06 â€” Excess supplies</option>
-                <option value="07">07 â€” Other (brief text required)</option>
+                <option value="01">01 — Wrong product(s)</option>
+                <option value="02">02 — Wrong price</option>
+                <option value="03">03 — Damaged goods</option>
+                <option value="04">04 — Wrong customer invoiced</option>
+                <option value="05">05 — Duplicated invoice</option>
+                <option value="06">06 — Excess supplies</option>
+                <option value="07">07 — Other (brief text required)</option>
               </select>
               {reverseReasonModal.reason_cd === '07' && (
                 <div style={{ marginTop: 12 }}>
@@ -3772,7 +3772,7 @@ const SalesReport = () => {
         </Portal>
       )}
 
-      {/* v1.13.38 â€” Debit Note modal (ZRA checklist #21) */}
+      {/* v1.13.38 — Debit Note modal (ZRA checklist #21) */}
       {debitNoteModal && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -3781,7 +3781,7 @@ const SalesReport = () => {
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Debit Note</h3>
               <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>
                 Additional charge on invoice <strong>{fmtInvoiceNo(debitNoteModal.order.order_number)}</strong>
-                {debitNoteModal.order.customer_name ? ` Â· ${debitNoteModal.order.customer_name}` : ''}
+                {debitNoteModal.order.customer_name ? ` · ${debitNoteModal.order.customer_name}` : ''}
               </p>
             </div>
             <div style={{ padding: '18px 22px' }}>
@@ -3808,13 +3808,13 @@ const SalesReport = () => {
                       value={debitNoteModal.reason_cd}
                       onChange={e => setDebitNoteModal(m => ({ ...m, reason_cd: e.target.value }))}
                       style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', background: '#fff' }}>
-                      <option value="01">01 â€” Wrong product</option>
-                      <option value="02">02 â€” Wrong price</option>
-                      <option value="03">03 â€” Damaged</option>
-                      <option value="04">04 â€” Wrong customer</option>
-                      <option value="05">05 â€” Duplicate</option>
-                      <option value="06">06 â€” Excess</option>
-                      <option value="07">07 â€” Other</option>
+                      <option value="01">01 — Wrong product</option>
+                      <option value="02">02 — Wrong price</option>
+                      <option value="03">03 — Damaged</option>
+                      <option value="04">04 — Wrong customer</option>
+                      <option value="05">05 — Duplicate</option>
+                      <option value="06">06 — Excess</option>
+                      <option value="07">07 — Other</option>
                     </select>
                   </div>
                   <div style={{ marginBottom: 14 }}>
@@ -3846,10 +3846,10 @@ const SalesReport = () => {
                   onClick={submitDebitNote}
                   disabled={debitNoteModal.saving}
                   style={{ padding: '9px 20px', border: 'none', borderRadius: 8, background: debitNoteModal.saving ? '#d97706' : '#b45309', color: '#fff', cursor: debitNoteModal.saving ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700 }}>
-                  {debitNoteModal.saving ? 'Issuingâ€¦' : 'Issue Debit Note'}
+                  {debitNoteModal.saving ? 'Issuing…' : 'Issue Debit Note'}
                 </button>
               )}
-              {/* v1.13.100 â€” Print the freshly-issued Tax Debit Note (T08A #14). */}
+              {/* v1.13.100 — Print the freshly-issued Tax Debit Note (T08A #14). */}
               {debitNoteModal.success && debitNoteModal.createdDn && (
                 <button
                   onClick={() => handlePrintDebitNote(debitNoteModal.order, debitNoteModal.createdDn)}

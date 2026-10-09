@@ -1,12 +1,12 @@
 /**
- * setAllProductsBx.js â€” v1.13.101 (2026-07-28)
+ * setAllProductsBx.js — v1.13.101 (2026-07-28)
  *
  * One-shot: set zra_pkg_unit_cd = 'BX' and zra_qty_unit_cd = 'BX' on
- * every product row, on every DB. Prep for ZRA UAT on 2026-07-29 â€”
+ * every product row, on every DB. Prep for ZRA UAT on 2026-07-29 —
  * Red Sea sells everything in Box units, so both packaging and quantity
  * codes should be BX.
  *
- * Idempotent â€” running twice does nothing (WHERE clause skips rows
+ * Idempotent — running twice does nothing (WHERE clause skips rows
  * already at BX).
  *
  * Usage on VPS:

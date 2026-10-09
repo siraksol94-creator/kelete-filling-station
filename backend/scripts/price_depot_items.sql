@@ -1,8 +1,8 @@
 -- Prices for the items created at 0.00.
 -- 2026-08-31
 --
--- A zero-priced item is one a till rings up FREE â€” nothing in orders.js or the
--- POS screen blocks it â€” so each of these closes a real hole.
+-- A zero-priced item is one a till rings up FREE — nothing in orders.js or the
+-- POS screen blocks it — so each of these closes a real hole.
 --
 -- Run:
 --   cd /var/www/kelete-pos-tenant

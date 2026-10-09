@@ -1,12 +1,12 @@
-// receipt58 â€” the till receipt for a small handheld POS terminal (58mm roll).
+// receipt58 — the till receipt for a small handheld POS terminal (58mm roll).
 //
 // 2026-09-10. Red Sea is putting the system on phone-sized terminals with a
 // built-in 58mm printer. The existing receipt is laid out for the depot tills'
 // 80mm printers and stays exactly as it is: this file adds a second layout,
-// chosen per device by System Settings â†’ Device type.
+// chosen per device by System Settings → Device type.
 //
-//   PC                  â†’ the existing 80mm receipt (default, unchanged)
-//   POS small terminal  â†’ this 58mm receipt
+//   PC                  → the existing 80mm receipt (default, unchanged)
+//   POS small terminal  → this 58mm receipt
 //
 // Per device, not per branch: a depot can run a PC till and a handheld side by
 // side, each printing on its own paper.
@@ -14,7 +14,7 @@
 // The callers pass the figures they have ALREADY computed for the 80mm layout
 // (VAT, VAT Excl, totals), so the two layouts can never disagree on a number.
 //
-// 2026-09-10 â€” made compact on the paper, at Red Sea's request: address and
+// 2026-09-10 — made compact on the paper, at Red Sea's request: address and
 // TPIN share a line; each item is its name, then qty x price and a bold total;
 // no tax category, no per-item VAT Excl / VAT and no column titles; Buyer TPIN
 // and Buyer Name only for a named customer or a walk-in who gave a TPIN.
@@ -25,16 +25,16 @@ import { isMobileApp } from './platform';
 
 export const DEVICE_TYPE_KEY = 'kelete.deviceType';
 
-// 2026-09-23 â€” a handheld defaults to its own receipt.
+// 2026-09-23 — a handheld defaults to its own receipt.
 //
 // The setting is per device and lives in that browser's localStorage, so it can
 // only be set ON the terminal. A batch went out to the depots with nobody having
-// touched it, and every one of them fell to the 'pc' default â€” printing the 80mm
+// touched it, and every one of them fell to the 'pc' default — printing the 80mm
 // layout on a 58mm roll, with no way to correct it remotely.
 //
 // So when NOTHING has been chosen and we are inside the Kelete APK, start on the
 // 58mm receipt. A device that has been set explicitly keeps whatever it was
-// given, including 'pc' â€” a depot may legitimately run the APK on a tablet next
+// given, including 'pc' — a depot may legitimately run the APK on a tablet next
 // to an 80mm printer, and that choice must outlive this default.
 export const getDeviceType = () => {
   try {
@@ -69,18 +69,18 @@ const DA = '-'.repeat(64);
 //   title,                         <title>, also the PDF's file name
 //   bizLines: ['RED SEA IMPORT & EXPORT', '(Z) LIMITED'],
 //   address, tpin, phone,          header, in that order after the name
-//   bands:    ['*** TAX INVOICE ***', { text, sub: true }, â€¦]
+//   bands:    ['*** TAX INVOICE ***', { text, sub: true }, …]
 //             title block, in print order: strings are bold bands,
 //             { sub: true } entries are small note lines
-//   subs:     ['Reverses invoice â€¦', â€¦]    small lines under the title
+//   subs:     ['Reverses invoice …', …]    small lines under the title
 //   meta:     [{ label, value, mono, bold }]
-//   lines:    [{ name, qty, price, total, â€¦ }]   price = what one unit sold for
+//   lines:    [{ name, qty, price, total, … }]   price = what one unit sold for
 //   money:    formatter for amounts (the caller's rcptMoney)
 //   totals:   [{ label, value, strong }]
 //   empties:  { voucher, qty } | null
 //   qrDataUrl,                     '' on an unsigned receipt
 //   fiscal:   [{ label, value }] | null   the ZRA block under the QR
-//   fiscalTail: ['Cash Sales', 'CUSTOMER TPIN â€¦']
+//   fiscalTail: ['Cash Sales', 'CUSTOMER TPIN …']
 //   footer,
 // }
 export function buildReceipt58(r) {
@@ -167,7 +167,7 @@ export function buildReceipt58(r) {
   .qr img { width: 30mm; height: 30mm; }
   /* The ZRA block runs smaller so each detail fits label and value on one
      line; anything longer than usual wraps rather than being cut.
-     2026-09-11 â€” values in the same font as their labels. They were in
+     2026-09-11 — values in the same font as their labels. They were in
      Courier New, which Android does not have: it substitutes a thin
      typewriter face that the terminal's printer barely marked. 6.6px is the
      largest size at which the longest line, "Security Data:" and its 26
@@ -182,7 +182,7 @@ export function buildReceipt58(r) {
   ${(r.address || r.tpin) ? `<div class="hd">${[
       r.address ? esc(String(r.address).replace(/\s*\n\s*/g, ', ').toUpperCase()) : '',
       r.tpin ? `TPIN: ${esc(r.tpin)}` : '',
-    ].filter(Boolean).join(' Â· ')}</div>` : ''}
+    ].filter(Boolean).join(' · ')}</div>` : ''}
   ${r.phone ? `<div class="hd">Tel: ${esc(r.phone)}</div>` : ''}
 
   <div class="rule">${EQ}</div>

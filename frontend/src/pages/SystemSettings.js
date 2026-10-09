@@ -15,10 +15,10 @@ import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { MOBILE_PRINT_MODE_KEY, readMobilePrintMode } from '../utils/printHtml';
 import { getDeviceType, setDeviceType } from '../utils/receipt58';
 
-// SystemSettings â€” POS/device-level configuration extracted from the old Profile page.
+// SystemSettings — POS/device-level configuration extracted from the old Profile page.
 // Holds everything that is NOT identity/contact info: currencies, default deposit,
 // single-location mode, receipt printer, drawer port, cloud sync, LAN sync, factory reset.
-// 2026-09-11 â€” System Settings redesign. One line per setting: its name and
+// 2026-09-11 — System Settings redesign. One line per setting: its name and
 // a short explanation on the left, the control on the right.
 const Switch = ({ on, onChange, label, disabled }) => (
   <button type="button" role="switch" aria-checked={!!on} aria-label={label} disabled={disabled}
@@ -46,10 +46,10 @@ const Row = ({ title, help, admin, stack, children }) => (
 
 const SystemSettings = () => {
   const { logout, user } = useAuth();
-  // 2026-09-11 â€” "Payment methods shown" is for administrators only.
+  // 2026-09-11 — "Payment methods shown" is for administrators only.
   const isAdmin = user?.role === 'Administrator';
   const { refresh: refreshCurrency } = useCurrency();
-  // 2026-09-15 â€” Deposit to: the other depots this one can send deposits to.
+  // 2026-09-15 — Deposit to: the other depots this one can send deposits to.
   const onHqHost = isHqHost();
   const ownSlug = String(window.location.hostname || '').split('.')[0].toLowerCase();
   const [depotChoices, setDepotChoices] = useState([]);
@@ -76,17 +76,17 @@ const SystemSettings = () => {
     // lusaka1, mansa1). 'USD+FRA' unlocks them (kassumbalesa1).
     currencyMode: 'K',
     // Workflow mode swaps the single-screen POS for the 3-station flow
-    // (Sales â†’ Cashier â†’ Dispatch). 'single_pos' is the default for lusaka1,
+    // (Sales → Cashier → Dispatch). 'single_pos' is the default for lusaka1,
     // mansa1. 'three_station' is used for kassumbalesa1.
     workflowMode: 'single_pos',
-    // v1.3.9 â€” re-exposes the legacy GRN + Suppliers + AP sidebar
+    // v1.3.9 — re-exposes the legacy GRN + Suppliers + AP sidebar
     // entries on this branch so an operator can record initial stock /
     // openings before HQ Procurement is in routine use. Off by default;
     // OK to leave on temporarily at launch then switch off later.
     legacyProcurementEnabled: false,
   });
   const [saving, setSaving] = useState(false);
-  // 2026-09-11 â€” redesign. savedForm is the depot's settings as last loaded
+  // 2026-09-11 — redesign. savedForm is the depot's settings as last loaded
   // or saved; the save bar shows only while `form` differs from it.
   const [savedForm, setSavedForm] = useState(null);
   const [toast, setToast] = useState('');
@@ -110,7 +110,7 @@ const SystemSettings = () => {
   const [drawerPort, setDrawerPort] = useState('POS-80');
   const [savingPort, setSavingPort] = useState(false);
 
-  // 2026-09-18 â€” the phone app now checks every depot's licence key with the
+  // 2026-09-18 — the phone app now checks every depot's licence key with the
   // server before it opens that depot. HQ has no licence key of its own, so
   // this is what its phones are asked for instead. HQ + Administrator only;
   // the code is never read back, only whether one is set.
@@ -135,9 +135,9 @@ const SystemSettings = () => {
     setSavingPasscode(false);
   };
 
-  // Mobile-only print behaviour. Per-device (localStorage) â€” see printHtml.js.
+  // Mobile-only print behaviour. Per-device (localStorage) — see printHtml.js.
   //
-  // 2026-09-23 â€” this read the key itself and applied its own rule, so when
+  // 2026-09-23 — this read the key itself and applied its own rule, so when
   // printHtml started defaulting an untouched APK to 'print' the page carried on
   // showing 'PDF download'. It said one thing while the printer did another.
   // It now asks printHtml, exactly as Device type below asks getDeviceType().
@@ -147,7 +147,7 @@ const SystemSettings = () => {
     try { localStorage.setItem(MOBILE_PRINT_MODE_KEY, mode); } catch (_) {}
   };
 
-  // Which receipt this device prints â€” 80mm (PC) or 58mm (small terminal).
+  // Which receipt this device prints — 80mm (PC) or 58mm (small terminal).
   // Per-device, like Mobile Print Mode: see utils/receipt58.js.
   const [deviceType, setDeviceTypeState] = useState(() => getDeviceType());
   const updateDeviceType = (v) => {
@@ -195,16 +195,16 @@ const SystemSettings = () => {
         defaultCrateDeposit: parseFloat(b.default_crate_deposit) || 57,
         currencyMode: ((cm => ['USD+FRA+K','USD+FRA'].includes(cm) ? cm : 'K')(String(b.currency_mode || 'K').toUpperCase())),
         workflowMode: ((wm => ['three_station','two_station','pos_dispatch'].includes(wm) ? wm : 'single_pos')(String(b.workflow_mode || 'single_pos').toLowerCase())),
-        // v1.9.26 â€” third dial: which payment methods the Pay modal shows.
+        // v1.9.26 — third dial: which payment methods the Pay modal shows.
         paymentMethods: ((pm => ['cash_only','cash_momo_bank'].includes(pm) ? pm : 'cash_momo_bank')(String(b.payment_methods || 'cash_momo_bank').toLowerCase())),
         legacyProcurementEnabled: !!parseInt(b.legacy_procurement_enabled || 0, 10),
-        // 2026-09-11 â€” which payment methods the screens show (Cash always).
+        // 2026-09-11 — which payment methods the screens show (Cash always).
         shownMethods: String(b.shown_payment_methods || 'cash,momo,bank').toLowerCase(),
-        // 2026-09-11 â€” Cash Report save â†’ PENDING deposits to HQ.
+        // 2026-09-11 — Cash Report save → PENDING deposits to HQ.
         autoDeposit: !!parseInt(b.auto_deposit_enabled || 0, 10),
-        // 2026-09-15 â€” '' = HQ.
+        // 2026-09-15 — '' = HQ.
         depositTo: String(b.deposit_to_slug || '').toLowerCase(),
-        // 2026-09-18 â€” most this depot may pay out in expenses in one day.
+        // 2026-09-18 — most this depot may pay out in expenses in one day.
         dailyExpenseLimit: b.daily_expense_limit == null ? 5000 : (parseFloat(b.daily_expense_limit) || 0),
       };
       setForm(loaded);
@@ -225,7 +225,7 @@ const SystemSettings = () => {
     if (e) e.preventDefault();
     setSaving(true);
     try {
-      // v1.9.26 â€” auto-align Primary currency to match currency_mode so
+      // v1.9.26 — auto-align Primary currency to match currency_mode so
       // "K-only mode" doesn't end up with USD as Primary (the bug that
       // caused Mansa's till to price in $ even though the radio said K).
       // For K-only: K becomes Primary, USD/FRA rows are dropped.
@@ -281,11 +281,11 @@ const SystemSettings = () => {
         } : {}),
       });
       refreshCurrency();
-      // 2026-09-11 â€” the new baseline for the save bar.
+      // 2026-09-11 — the new baseline for the save bar.
       setSavedForm(form);
       flash('Saved for this depot');
     } catch {
-      flash('Failed to save â€” please try again.');
+      flash('Failed to save — please try again.');
     }
     setSaving(false);
   };
@@ -307,7 +307,7 @@ const SystemSettings = () => {
   };
   const handleConnectToCloud = () => {
     setPendingDelete({
-      subject: 'Disconnect sync settings â€” Cloud Setup screen will reload',
+      subject: 'Disconnect sync settings — Cloud Setup screen will reload',
       actionLabel: 'Reset Sync',
       perform: async () => {
         setResetting(true);
@@ -353,7 +353,7 @@ const SystemSettings = () => {
     }
   };
 
-  // 2026-09-11 â€” redesign. Depot settings save together from the bar at the
+  // 2026-09-11 — redesign. Depot settings save together from the bar at the
   // bottom, which appears only once something differs from what was loaded;
   // device settings save as they are clicked; sync keeps its own buttons.
   // Currency Mode, Payment Methods and the Currencies editor were one-option
@@ -381,11 +381,11 @@ const SystemSettings = () => {
       <header className="ss-head">
         <div>
           <h1>System Settings</h1>
-          <p>{businessName || 'This depot'} Â· {window.location.hostname}</p>
+          <p>{businessName || 'This depot'} · {window.location.hostname}</p>
         </div>
         <div className="ss-legend">
-          <span className="ss-scope depot">This depot Â· saved with Save</span>
-          <span className="ss-scope device">This device Â· saved instantly</span>
+          <span className="ss-scope depot">This depot · saved with Save</span>
+          <span className="ss-scope device">This device · saved instantly</span>
         </div>
       </header>
 
@@ -405,7 +405,7 @@ const SystemSettings = () => {
         </nav>
 
         <div className="ss-content">
-          {/* â•â•â• This depot â•â•â• */}
+          {/* ═══ This depot ═══ */}
           <section id="ss-selling">
             <div className="ss-group-head"><span className="ss-scope depot">This depot</span><h2>Selling</h2></div>
             <div className="ss-card">
@@ -414,8 +414,8 @@ const SystemSettings = () => {
                   {[
                     { val: 'single_pos',    label: 'Single-screen POS',          sub: 'One cashier does everything. Most depots.' },
                     { val: 'pos_dispatch',  label: 'POS + Dispatch',             sub: 'Writes and pays at POS; a dispatcher hands over the goods. Stock deducts on Dispatch.' },
-                    { val: 'two_station',   label: 'Sales â†’ Cashier',            sub: 'Different people. The cashier takes payment and dispatches.' },
-                    { val: 'three_station', label: 'Sales â†’ Cashier â†’ Dispatch', sub: 'Three people, the order handed along.' },
+                    { val: 'two_station',   label: 'Sales → Cashier',            sub: 'Different people. The cashier takes payment and dispatches.' },
+                    { val: 'three_station', label: 'Sales → Cashier → Dispatch', sub: 'Three people, the order handed along.' },
                   ].map(o => (
                     <label key={o.val} className={`ss-tile${form.workflowMode === o.val ? ' on' : ''}`}>
                       <input type="radio" name="workflow-mode" checked={form.workflowMode === o.val} onChange={() => set('workflowMode')(o.val)} />
@@ -448,7 +448,7 @@ const SystemSettings = () => {
               )}
               {isAdmin && (
                 <Row admin title="Auto deposit" help={(() => {
-                  // 2026-09-15 â€” names where the deposits go (Deposit to below), not always HQ.
+                  // 2026-09-15 — names where the deposits go (Deposit to below), not always HQ.
                   const to = form.depositTo
                     ? (depotChoices.find(b => b.slug === form.depositTo)?.name || form.depositTo)
                     : 'HQ';
@@ -480,7 +480,7 @@ const SystemSettings = () => {
                   </div>
                 </Row>
               )}
-              <Row title="Default crate / empty-bottle deposit" help="Pre-fills each GRN line that has a returnable container (set under Item Details â†’ Returnable Container). Can still be changed per line.">
+              <Row title="Default crate / empty-bottle deposit" help="Pre-fills each GRN line that has a returnable container (set under Item Details → Returnable Container). Can still be changed per line.">
                 <div className="ss-money">
                   <span>{curSymbol}</span>
                   <input type="number" step="0.01" min="0" aria-label="Default crate deposit"
@@ -491,7 +491,7 @@ const SystemSettings = () => {
               <div className="ss-row fixed">
                 <div className="ss-fixed">
                   <span>Currency <b>Kwacha (K) only</b></span>
-                  <span>Pay window columns <b>Cash Â· Mobile Money Â· Bank</b></span>
+                  <span>Pay window columns <b>Cash · Mobile Money · Bank</b></span>
                   <span className="ss-lock">Fixed for Kelete</span>
                 </div>
               </div>
@@ -507,16 +507,16 @@ const SystemSettings = () => {
               <div className="ss-card">
                 <Row admin stack
                   title="Head Office passcode"
-                  help={`Asked for the first time someone opens Head Office in the phone app. Every depot is asked for its licence key instead, which HQ does not have. ${passcodeSet ? 'A passcode is set â€” typing a new one replaces it.' : 'No passcode is set, so the app opens Head Office without asking.'} Phones that already went through are not asked again.`}>
+                  help={`Asked for the first time someone opens Head Office in the phone app. Every depot is asked for its licence key instead, which HQ does not have. ${passcodeSet ? 'A passcode is set — typing a new one replaces it.' : 'No passcode is set, so the app opens Head Office without asking.'} Phones that already went through are not asked again.`}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                     <input type="password" aria-label="Head Office passcode"
-                      value={passcode} placeholder={passcodeSet ? 'Set â€” type to replace' : 'At least 4 characters'}
+                      value={passcode} placeholder={passcodeSet ? 'Set — type to replace' : 'At least 4 characters'}
                       autoComplete="new-password" data-keep-case
                       onChange={e => setPasscode(e.target.value)}
                       style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 220 }} />
                     <button type="button" className="ss-btn" disabled={savingPasscode || passcode.trim().length < 4}
                       onClick={() => handleSavePasscode(passcode.trim())}>
-                      {savingPasscode ? 'Savingâ€¦' : 'Save passcode'}
+                      {savingPasscode ? 'Saving…' : 'Save passcode'}
                     </button>
                     {passcodeSet && (
                       <button type="button" className="ss-btn danger" disabled={savingPasscode}
@@ -560,7 +560,7 @@ const SystemSettings = () => {
                     <label htmlFor="ss-pname">Windows printer name</label>
                     <input id="ss-pname" className="mono" value={form.receiptPrinterName || ''} placeholder="e.g. POS-80"
                       onChange={e => set('receiptPrinterName')(e.target.value)} />
-                    <small>Windows â†’ Devices and Printers â†’ right-click the printer â†’ Printer properties â†’ Sharing.</small>
+                    <small>Windows → Devices and Printers → right-click the printer → Printer properties → Sharing.</small>
                   </div>
                 )}
                 <details className="ss-adv">
@@ -572,7 +572,7 @@ const SystemSettings = () => {
                         onChange={e => setDrawerPort(e.target.value)} />
                     </div>
                     <button type="button" className="ss-btn" onClick={handleSaveDrawerPort} disabled={savingPort}>
-                      {savingPort ? 'Savingâ€¦' : 'Save drawer port'}
+                      {savingPort ? 'Saving…' : 'Save drawer port'}
                     </button>
                   </div>
                   <small className="ss-note">Used by the standalone Open Drawer fallback when no printer is set above. Saved on its own.</small>
@@ -590,7 +590,7 @@ const SystemSettings = () => {
             </div>
           </section>
 
-          {/* â•â•â• This device â•â•â• */}
+          {/* ═══ This device ═══ */}
           <section id="ss-device">
             <div className="ss-group-head">
               <span className="ss-scope device">This device</span><h2>Device &amp; display</h2>
@@ -614,7 +614,7 @@ const SystemSettings = () => {
             </div>
           </section>
 
-          {/* â•â•â• Sync â•â•â• */}
+          {/* ═══ Sync ═══ */}
           <section id="ss-sync">
             <div className="ss-group-head">
               <span className="ss-scope sync">Sync</span><h2>Cloud &amp; LAN</h2>
@@ -625,22 +625,22 @@ const SystemSettings = () => {
                 <div>
                   <h3>Cloud</h3>
                   {!syncInfo ? (
-                    <p className="ss-help">Loading sync statusâ€¦</p>
+                    <p className="ss-help">Loading sync status…</p>
                   ) : cloudOff ? (
-                    <p className="ss-help">Offline only â€” not connected to the cloud.</p>
+                    <p className="ss-help">Offline only — not connected to the cloud.</p>
                   ) : (
                     <div className="ss-status">
                       <span className="ss-ok">Connected</span>
                       <span className="ss-ids mono">
-                        {syncInfo.vpsUrl ? `${syncInfo.vpsUrl.replace('https://', '').split('.')[0]} Â· ` : ''}
-                        tenant {syncInfo.tenantId?.substring(0, 8)}â€¦ Â· branch {syncInfo.branchId?.substring(0, 8)}â€¦
+                        {syncInfo.vpsUrl ? `${syncInfo.vpsUrl.replace('https://', '').split('.')[0]} · ` : ''}
+                        tenant {syncInfo.tenantId?.substring(0, 8)}… · branch {syncInfo.branchId?.substring(0, 8)}…
                       </span>
                     </div>
                   )}
                 </div>
                 {syncInfo && (
                   <button type="button" className={`ss-btn${cloudOff ? ' primary' : ''}`} onClick={handleConnectToCloud} disabled={resetting}>
-                    {resetting ? 'Resettingâ€¦' : cloudOff ? 'Connect to Cloud' : 'Change / Disconnect'}
+                    {resetting ? 'Resetting…' : cloudOff ? 'Connect to Cloud' : 'Change / Disconnect'}
                   </button>
                 )}
               </div>
@@ -653,10 +653,10 @@ const SystemSettings = () => {
                   <>
                     <div className="ss-field">
                       <label>This PC's LAN IP (give it to the other PCs)</label>
-                      <div className="ss-ip mono">{lanConfig.localIp || 'â€”'}</div>
+                      <div className="ss-ip mono">{lanConfig.localIp || '—'}</div>
                       <small>Give this PC a static IP on the router so the others don't lose it.</small>
                       {lanConfig.allLocalIps && lanConfig.allLocalIps.length > 1 && (
-                        <small>Other addresses on this PC, if that one doesn't work: <span className="mono">{lanConfig.allLocalIps.join(' Â· ')}</span></small>
+                        <small>Other addresses on this PC, if that one doesn't work: <span className="mono">{lanConfig.allLocalIps.join(' · ')}</span></small>
                       )}
                     </div>
                     <div className="ss-children">
@@ -682,7 +682,7 @@ const SystemSettings = () => {
                 ) : (
                   <div className="ss-field" style={{ maxWidth: 420 }}>
                     <label htmlFor="ss-mip">Mother PC's IP address</label>
-                    <input id="ss-mip" className="mono" value={lanConfig.motherIp} placeholder="e.g. 192.168.1.10 â€” empty = cloud direct"
+                    <input id="ss-mip" className="mono" value={lanConfig.motherIp} placeholder="e.g. 192.168.1.10 — empty = cloud direct"
                       onChange={e => setLanConfig({ ...lanConfig, motherIp: e.target.value })} />
                   </div>
                 )}
@@ -693,7 +693,7 @@ const SystemSettings = () => {
                 </div>
                 <div className="ss-inline">
                   <button type="button" className="ss-btn primary" onClick={handleSaveLan} disabled={savingLan}>
-                    {savingLan ? 'Savingâ€¦' : 'Save LAN settings'}
+                    {savingLan ? 'Saving…' : 'Save LAN settings'}
                   </button>
                   {lanMessage && <span className={`ss-msg${lanMessage.includes('Failed') ? ' bad' : ''}`}>{lanMessage}</span>}
                 </div>
@@ -704,7 +704,7 @@ const SystemSettings = () => {
           <section id="ss-danger">
             <div className="ss-card danger">
               <Row title="Factory reset" help="Wipes everything on this device (products, orders, GRN, SIV, customers, suppliers) and disconnects it from the cloud. Cannot be undone.">
-                <button type="button" className="ss-btn danger" onClick={() => setResetStep(1)}>Factory resetâ€¦</button>
+                <button type="button" className="ss-btn danger" onClick={() => setResetStep(1)}>Factory reset…</button>
               </Row>
             </div>
           </section>
@@ -717,7 +717,7 @@ const SystemSettings = () => {
               </div>
               <div className="ss-inline">
                 <button type="button" className="ss-btn ghost" onClick={() => setForm(savedForm)} disabled={saving}>Discard</button>
-                <button type="button" className="ss-btn save" onClick={() => handleSave()} disabled={saving}>{saving ? 'Savingâ€¦' : 'Save changes'}</button>
+                <button type="button" className="ss-btn save" onClick={() => handleSave()} disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button>
               </div>
             </div>
           )}
@@ -726,7 +726,7 @@ const SystemSettings = () => {
 
       {toast && <div className="ss-toast" role="status">{toast}</div>}
 
-      {/* â”€â”€ Confirm reset modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Confirm reset modals ────────────────────────────────────────── */}
       {resetStep === 1 && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -736,7 +736,7 @@ const SystemSettings = () => {
             </div>
             <h3 style={{ margin: '0 0 8px', fontSize: 20 }}>Factory Reset?</h3>
             <p style={{ color: '#6b7280', fontSize: 14, margin: '0 0 24px' }}>
-              This will permanently delete <strong>all data</strong> on this device â€” orders, products, GRN, SIV, customers, suppliers â€” and disconnect from cloud. This <strong>cannot be undone</strong>.
+              This will permanently delete <strong>all data</strong> on this device — orders, products, GRN, SIV, customers, suppliers — and disconnect from cloud. This <strong>cannot be undone</strong>.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <button onClick={() => setResetStep(0)} style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
@@ -757,10 +757,10 @@ const SystemSettings = () => {
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button onClick={() => doFactoryReset(true)}  disabled={factoryResetting} style={{ padding: '12px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
-                {factoryResetting ? 'Resetting...' : 'Yes â€” Delete Everything'}
+                {factoryResetting ? 'Resetting...' : 'Yes — Delete Everything'}
               </button>
               <button onClick={() => doFactoryReset(false)} disabled={factoryResetting} style={{ padding: '12px', background: '#f97316', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
-                {factoryResetting ? 'Resetting...' : 'No â€” Keep Company Settings'}
+                {factoryResetting ? 'Resetting...' : 'No — Keep Company Settings'}
               </button>
               <button onClick={() => setResetStep(0)} disabled={factoryResetting} style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
             </div>

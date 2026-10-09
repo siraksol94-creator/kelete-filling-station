@@ -7,7 +7,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 function initTenantDb(db) {
-  // â”€â”€ Core tables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Core tables ────────────────────────────────────────────────────────────
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -241,7 +241,7 @@ function initTenantDb(db) {
     -- cash_reports is keyed on (date, cashier_id) so each cashier can save
     -- their own daily report for the same date. The composite uniqueness
     -- is enforced by an index further down (and back-migrated for tenant
-    -- DBs that pre-date this change â€” see the cash_reports rewrite block
+    -- DBs that pre-date this change — see the cash_reports rewrite block
     -- after the CREATE TABLE pass).
     CREATE TABLE IF NOT EXISTS cash_reports (
       id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -380,7 +380,7 @@ function initTenantDb(db) {
       deleted_at       TEXT
     );
 
-    -- Stock Reconciliation (discrete physical count events; â‰  initial Stock Count sessions)
+    -- Stock Reconciliation (discrete physical count events; ≠ initial Stock Count sessions)
     CREATE TABLE IF NOT EXISTS stock_reconciliations (
       id           INTEGER PRIMARY KEY AUTOINCREMENT,
       count_date   TEXT NOT NULL,
@@ -391,7 +391,7 @@ function initTenantDb(db) {
       updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- Customer Payments (Accounts Receivable) â€” after-sale payments from credit customers
+    -- Customer Payments (Accounts Receivable) — after-sale payments from credit customers
     CREATE TABLE IF NOT EXISTS customer_payments (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       customer_id     INTEGER,
@@ -423,12 +423,12 @@ function initTenantDb(db) {
     );
   `);
 
-  // Tables that may not exist in older tenant DBs â€” create them here so the
+  // Tables that may not exist in older tenant DBs — create them here so the
   // sync-column loop below doesn't crash on first run.
   db.exec(`
-    -- â”€â”€ Main categories + units â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Main categories + units ─────────────────────────────────────────────
     -- These were originally only created by server.js into the default DB.
-    -- Per-tenant DBs need them too â€” products/items routes JOIN against these
+    -- Per-tenant DBs need them too — products/items routes JOIN against these
     -- tables and crash with SQLITE_ERROR ("no such table") if missing.
     CREATE TABLE IF NOT EXISTS main_categories (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -451,10 +451,10 @@ function initTenantDb(db) {
       created_at  TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Empty Returns â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Empty Returns ───────────────────────────────────────────────────────
     -- Stand-alone document for sending empty crates / bottles back to the supplier
     -- and receiving a deposit credit. Distinct from GRN because there are no goods
-    -- being received â€” only containers leaving the yard and an AP credit landing.
+    -- being received — only containers leaving the yard and an AP credit landing.
     CREATE TABLE IF NOT EXISTS empty_returns (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
       return_number TEXT NOT NULL,
@@ -479,7 +479,7 @@ function initTenantDb(db) {
       updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Stock count + Quick items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Stock count + Quick items ───────────────────────────────────────────
     -- Same fix as main_categories/units: these were only defined in server.js
     -- (default DB), so per-tenant DBs lacked them and any feature using them 500-ed.
     CREATE TABLE IF NOT EXISTS stock_count_sessions (
@@ -509,9 +509,9 @@ function initTenantDb(db) {
       UNIQUE(tenant_id, product_sync_id)
     );
 
-    -- â”€â”€ Cash transfers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Cash transfers ──────────────────────────────────────────────────────
     -- Moves money between cash buckets (Cash <-> Bank <-> Mobile Money).
-    -- Doesn't affect the company's TOTAL cash balance â€” only redistributes
+    -- Doesn't affect the company's TOTAL cash balance — only redistributes
     -- between methods. Lives in its own table so it doesn't pollute CR / PV.
     CREATE TABLE IF NOT EXISTS cash_transfers (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -526,7 +526,7 @@ function initTenantDb(db) {
       updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Supplier Credit Notes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Supplier Credit Notes ───────────────────────────────────────────────
     -- Documents a credit the supplier owes you. Two real-world sources:
     --   Discount / Other  -> real income event, counted in Profit Report as
     --                        "Supplier Rebates" (positive line under gross)
@@ -560,7 +560,7 @@ function initTenantDb(db) {
       updated_at              TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Capital Account â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Capital Account ────────────────────────────────────────────────────
     -- Owner equity ledger. Two flows in one table:
     --   Injection : owner puts money INTO the business (cash inflow, +equity)
     --   Drawing   : owner takes money OUT of the business (cash outflow, -equity)
@@ -583,9 +583,9 @@ function initTenantDb(db) {
       updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Dividend Account â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Dividend Account ───────────────────────────────────────────────────
     -- Profit distribution to the owner(s). Always an outflow. Excluded from
-    -- the Profit Report â€” dividends are paid out of retained earnings, not
+    -- the Profit Report — dividends are paid out of retained earnings, not
     -- treated as an operating expense.
     CREATE TABLE IF NOT EXISTS dividend_account (
       id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -603,7 +603,7 @@ function initTenantDb(db) {
       updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Shareholders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Shareholders ───────────────────────────────────────────────────────
     -- Master list of people/entities holding equity in the business. Used as
     -- the source for the dropdown on Capital and Dividend entries so the
     -- system can answer per-shareholder questions: "How much has Sirak
@@ -620,8 +620,8 @@ function initTenantDb(db) {
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Loans â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    -- The loan AGREEMENT itself â€” one row per active or paid-off loan.
+    -- ── Loans ──────────────────────────────────────────────────────────────
+    -- The loan AGREEMENT itself — one row per active or paid-off loan.
     -- Outstanding balance is derived from loan_transactions, not stored, so
     -- it can never drift out of sync with the underlying transactions.
     CREATE TABLE IF NOT EXISTS loans (
@@ -629,7 +629,7 @@ function initTenantDb(db) {
       loan_number       TEXT NOT NULL,
       lender_name       TEXT,
       principal_amount  REAL NOT NULL DEFAULT 0,
-      interest_rate     REAL NOT NULL DEFAULT 0,   -- annual % â€” informational
+      interest_rate     REAL NOT NULL DEFAULT 0,   -- annual % — informational
       start_date        TEXT,
       maturity_date     TEXT,
       status            TEXT NOT NULL DEFAULT 'Active', -- 'Active' | 'Paid Off' | 'Defaulted'
@@ -640,16 +640,16 @@ function initTenantDb(db) {
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Discount Requests â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Discount Requests ──────────────────────────────────────────────────
     -- Async approval workflow for cashier discounts. When a non-admin enters
     -- a discount on the POS, a pending row is created here; an Administrator
     -- approves or rejects from the Approvals page; the cashier's POS polls
     -- this row by sync_id and applies the discount when status flips to
     -- 'approved'. Admins skip this flow entirely (handled client-side).
     --
-    -- target='line' â†’ product_*, unit, quantity, unit_price populated;
+    -- target='line' → product_*, unit, quantity, unit_price populated;
     --                  discount_amount is the per-unit Kwacha off.
-    -- target='cart' â†’ only subtotal populated; discount_amount is a flat
+    -- target='cart' → only subtotal populated; discount_amount is a flat
     --                  Kwacha off the whole sale.
     CREATE TABLE IF NOT EXISTS discount_requests (
       id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -663,10 +663,10 @@ function initTenantDb(db) {
       unit_price        REAL NOT NULL DEFAULT 0,
       subtotal          REAL NOT NULL DEFAULT 0,
       discount_amount   REAL NOT NULL DEFAULT 0,
-      -- v1.8.98 â€” Change Price feature. When set, this is the new final
+      -- v1.8.98 — Change Price feature. When set, this is the new final
       -- unit price the cashier wants to apply (replaces unit_price on approval).
       -- discount_amount is auto-computed as (unit_price - new_price) * quantity
-      -- for back-compat with reports â€” can be negative for surcharges.
+      -- for back-compat with reports — can be negative for surcharges.
       -- change_reason captures the cashier's text (required, min 3 chars).
       new_price         REAL,
       change_reason     TEXT,
@@ -679,7 +679,7 @@ function initTenantDb(db) {
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- v1.8.87 â€” Order Payment Edits audit log.
+    -- v1.8.87 — Order Payment Edits audit log.
     -- Admin-only post-payment corrections (typos, wrong currency, wrong rate)
     -- write a row here. old_payload / new_payload are JSON snapshots of the
     -- 12 mutable payment fields on the order so we can replay any sequence.
@@ -703,11 +703,11 @@ function initTenantDb(db) {
       updated_at         TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Loan Transactions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Loan Transactions ──────────────────────────────────────────────────
     -- Every cash movement against a loan, of three kinds:
-    --   'Disbursement' â†’ lender pays us; cash IN; not income; +outstanding
-    --   'Principal'    â†’ we pay lender; cash OUT; not expense; -outstanding
-    --   'Interest'     â†’ we pay lender; cash OUT; IS expense; no balance effect
+    --   'Disbursement' → lender pays us; cash IN; not income; +outstanding
+    --   'Principal'    → we pay lender; cash OUT; not expense; -outstanding
+    --   'Interest'     → we pay lender; cash OUT; IS expense; no balance effect
     CREATE TABLE IF NOT EXISTS loan_transactions (
       id                 INTEGER PRIMARY KEY AUTOINCREMENT,
       transaction_number TEXT NOT NULL,
@@ -726,16 +726,16 @@ function initTenantDb(db) {
     );
   `);
 
-  // â”€â”€ Add sync columns to all tables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Add sync columns to all tables ────────────────────────────────────────
   function addCol(table, col, def) {
     const cols = db.prepare(`PRAGMA table_info(${table})`).all();
-    // 2026-08-31 â€” a table that does not exist yet is skipped, not fatal.
+    // 2026-08-31 — a table that does not exist yet is skipped, not fatal.
     //
     // PRAGMA table_info on a missing table returns [] rather than throwing, so
     // this fell straight through to an ALTER that failed with "no such table".
     // On an existing branch every table is already there and nothing showed;
     // on a BRAND-NEW tenant the database is empty and whichever addCol sits
-    // above its CREATE kills the whole build â€” which is what half-created
+    // above its CREATE kills the whole build — which is what half-created
     // Mandevu and Chawama, leaving them listed with no tenant id.
     //
     // Skipping is safe because migrations run on every boot: a column whose
@@ -759,8 +759,8 @@ function initTenantDb(db) {
     'stock_reconciliations', 'stock_reconciliation_items',
     'customer_payments', 'pv_types',
     'empty_returns', 'empty_return_items',
-    // v1.1.2 added these tables but missed adding them here â€” routes querying
-    // them with WHERE tenant_id = ? threw "no such column: tenant_id" â†’ 500.
+    // v1.1.2 added these tables but missed adding them here — routes querying
+    // them with WHERE tenant_id = ? threw "no such column: tenant_id" → 500.
     'main_categories', 'units', 'stock_count_sessions', 'stock_count_items', 'quick_items',
     'cash_transfers',
     'supplier_credit_notes', 'supplier_credit_note_items',
@@ -787,26 +787,26 @@ function initTenantDb(db) {
     }
   }
 
-  // v1.8.98 â€” Change Price feature on existing DBs.
+  // v1.8.98 — Change Price feature on existing DBs.
   addCol('discount_requests',  'new_price',         'REAL');
   addCol('discount_requests',  'change_reason',     'TEXT');
 
   addCol('stock_movements',    'reference_sync_id', 'TEXT');
   addCol('stock_movements',    'product_sync_id',   'TEXT');
-  // v1.13.49 â€” event-level cost lock. Stamp the WAC live at the moment of
+  // v1.13.49 — event-level cost lock. Stamp the WAC live at the moment of
   // the movement (sale, sale_reverse, sales_return, transit_writeoff) so
   // profitHelper's COGS/damages queries can read the exact cost that was
   // true at the moment of the event, not whatever the current WAC happens
   // to be at recalc time. NULL for rows written before this column existed
   // (backfill script handles them).
   addCol('stock_movements',    'cost_at_sale',      'REAL');
-  // v1.13.49 â€” auto-stamp cost_at_sale on INSERT via SQL trigger so every
+  // v1.13.49 — auto-stamp cost_at_sale on INSERT via SQL trigger so every
   // route that writes a cost-bearing movement (sale, sale_reverse,
   // sales_return, transit_writeoff) automatically freezes the live WAC
   // without changing any of the ~10 INSERT sites in orders.js /
   // salesReturns.js / hqDamages.js / hqGrns.js / hq.js. IF NEW.cost_at_sale
   // IS NOT NULL the caller can still override (backfill or explicit stamp).
-  // Fallback chain matches profitHelper: p.avg_cost_price â†’ p.cost_price â†’ 0.
+  // Fallback chain matches profitHelper: p.avg_cost_price → p.cost_price → 0.
   try {
     db.exec(`
       CREATE TRIGGER IF NOT EXISTS trg_stamp_cost_at_sale
@@ -853,25 +853,25 @@ function initTenantDb(db) {
   addCol('siv_items',          'unit',               'TEXT');
   addCol('sales_return_items', 'unit',               'TEXT');
   addCol('products',           'category_sync_id',  'TEXT');
-  // Multi-unit support â€” alt_unit + conversion + alt_price (Kelete feature)
+  // Multi-unit support — alt_unit + conversion + alt_price (Kelete feature)
   addCol('products',           'alt_unit',          'TEXT');
   addCol('products',           'conversion_factor', 'REAL');
   addCol('products',           'alt_price',         'REAL');
-  // Customer credit (Kelete feature) â€” limit on outstanding, payment terms, hold flag
+  // Customer credit (Kelete feature) — limit on outstanding, payment terms, hold flag
   addCol('customers',          'credit_limit',         'REAL NOT NULL DEFAULT 0');
-  // 2026-09-07 â€” balance carried over from whatever ran before this system.
+  // 2026-09-07 — balance carried over from whatever ran before this system.
   // Counted in the customer's outstanding alongside orders and payments, so
   // an account shows what is really owed without inventing a backdated sale.
   addCol('customers', 'opening_balance', 'REAL NOT NULL DEFAULT 0');
   addCol('customers',          'payment_terms_days',   'INTEGER NOT NULL DEFAULT 0');
   addCol('customers',          'credit_status',        "TEXT NOT NULL DEFAULT 'Active'");
-  // v1.13.62 â€” empties deposit tracking.
+  // v1.13.62 — empties deposit tracking.
   //   empty_balance is the running count of empty containers (EMPTY ZB
   //   crates + bottles) Kelete is holding on the customer's behalf. It
-  //   is a physical count, NOT money â€” Sales Report and Cash Book stay
+  //   is a physical count, NOT money — Sales Report and Cash Book stay
   //   untouched by it.
   //     + when the customer over-returns (Case 3) or does a pure return (Case 4)
-  //     âˆ’ when the customer under-returns and we draw against the credit
+  //     − when the customer under-returns and we draw against the credit
   //   Never goes negative: if credit is exhausted, the remaining shortfall
   //   is charged as EMPTY ZB line items on the sale invoice.
   //   Walk-ins (no customer record) can't accrue credit; over-returns
@@ -880,13 +880,13 @@ function initTenantDb(db) {
   // AR payments mint their own Cash Receipt voucher (standard accrual-to-cash entry).
   // The CR is linked back via this sync_id so edits/deletes cascade.
   addCol('customer_payments',  'cash_receipt_sync_id', 'TEXT');
-  // Split payment-method amounts â€” a single AR/AP payment can be made with a
+  // Split payment-method amounts — a single AR/AP payment can be made with a
   // combination of Cash + Bank + Mobile Money. Total `amount` is the sum.
   // Legacy single-method rows get backfilled from the existing `payment_method` column.
   addCol('customer_payments',  'cash_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('customer_payments',  'bank_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('customer_payments',  'momo_amount', 'REAL NOT NULL DEFAULT 0');
-  // v1.8.55 â€” triple-currency AR receipts (Kelete). cash_amount stays as
+  // v1.8.55 — triple-currency AR receipts (Kelete). cash_amount stays as
   // the dollar VALUE of the receipt (matches existing cash_receipts /
   // Cash Book aggregations). usd_amount is the physical USD portion;
   // fra_amount + k_amount are the foreign-currency portions; the
@@ -899,19 +899,19 @@ function initTenantDb(db) {
   addCol('ap_payments',        'cash_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('ap_payments',        'bank_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('ap_payments',        'momo_amount', 'REAL NOT NULL DEFAULT 0');
-  // v1.13.23 â€” per-currency columns on ap_payments (Kelete forked from
+  // v1.13.23 — per-currency columns on ap_payments (Kelete forked from
   // Kelete v1.10.99, which was BEFORE Kelete added these). Cash Book
   // /stats and /ledger both sum these unconditionally; without them
   // the endpoints 500 with "no such column: usd_amount / k_amount".
   addCol('ap_payments',        'usd_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('ap_payments',        'fra_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('ap_payments',        'k_amount',   'REAL NOT NULL DEFAULT 0');
-  // Same split on cash_receipts + payment_vouchers â€” needed for the Cash Book
+  // Same split on cash_receipts + payment_vouchers — needed for the Cash Book
   // to show current balance per method (Cash / Bank / Mobile Money).
   addCol('cash_receipts',      'cash_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('cash_receipts',      'bank_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('cash_receipts',      'momo_amount', 'REAL NOT NULL DEFAULT 0');
-  // v1.8.31 â€” triple-currency receipts. Same pattern as payment_vouchers
+  // v1.8.31 — triple-currency receipts. Same pattern as payment_vouchers
   // (see v1.8.5). One CR = one currency. Legacy cash/bank/momo kept for
   // back-compat; reads should prefer usd/fra/k via CASE WHEN.
   addCol('cash_receipts',      'usd_amount',  'REAL NOT NULL DEFAULT 0');
@@ -920,16 +920,16 @@ function initTenantDb(db) {
   addCol('payment_vouchers',   'cash_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('payment_vouchers',   'bank_amount', 'REAL NOT NULL DEFAULT 0');
   addCol('payment_vouchers',   'momo_amount', 'REAL NOT NULL DEFAULT 0');
-  // v1.8.5 â€” triple-currency payment vouchers. Each in its own currency
+  // v1.8.5 — triple-currency payment vouchers. Each in its own currency
   // (USD in $, FRA in FRA, K in K). Legacy cash/bank/momo kept at 0.
   addCol('payment_vouchers',   'usd_amount',  'REAL NOT NULL DEFAULT 0');
   addCol('payment_vouchers',   'fra_amount',  'REAL NOT NULL DEFAULT 0');
   addCol('payment_vouchers',   'k_amount',    'REAL NOT NULL DEFAULT 0');
 
-  // v1.8.6 â€” currency_exchanges. Append-only ledger; mistakes corrected by
+  // v1.8.6 — currency_exchanges. Append-only ledger; mistakes corrected by
   // a reverse entry, never deleted (so deleted_at column omitted on purpose).
-  //   scope='drawer' â†’ cashier's till exchange (shown on Cash Report)
-  //   scope='book'   â†’ cash book / accounting ledger exchange (Cash Book tab)
+  //   scope='drawer' → cashier's till exchange (shown on Cash Report)
+  //   scope='book'   → cash book / accounting ledger exchange (Cash Book tab)
   db.prepare(`
     CREATE TABLE IF NOT EXISTS currency_exchanges (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -955,24 +955,24 @@ function initTenantDb(db) {
   `).run();
   db.prepare(`CREATE INDEX IF NOT EXISTS idx_currency_exchanges_scope_date ON currency_exchanges(scope, date)`).run();
   db.prepare(`CREATE INDEX IF NOT EXISTS idx_currency_exchanges_cashier ON currency_exchanges(scope, date, cashier_id)`).run();
-  // Invoice attachment â€” stored under uploads/invoices/. The column holds the
+  // Invoice attachment — stored under uploads/invoices/. The column holds the
   // relative path (e.g. "invoices/grn_1700000000_abcd.pdf") so the same file
   // can be served from /uploads/<path> on any host.
   addCol('grn',                'invoice_attachment', 'TEXT');
   addCol('payment_vouchers',   'invoice_attachment', 'TEXT');
-  // 2026-09-17 â€” who deleted a PV and why (HQ â†’ All Depots â†’ Delete).
+  // 2026-09-17 — who deleted a PV and why (HQ → All Depots → Delete).
   addCol('payment_vouchers',   'deleted_by',         'INTEGER');
   addCol('payment_vouchers',   'deleted_by_name',    'TEXT');
   addCol('payment_vouchers',   'delete_reason',      'TEXT');
 
-  // 2026-09-18 â€” how much a depot may pay out in expenses in one day.
+  // 2026-09-18 — how much a depot may pay out in expenses in one day.
   // K5,000 everywhere to start; editable per depot in System Settings.
   // 0 or NULL = no limit. HQ is never limited (checked by host, not here).
   addCol('business_settings', 'daily_expense_limit', 'REAL NOT NULL DEFAULT 5000');
 
   // A voucher that would take the day over the limit is not saved. The depot
   // sends it here for HQ to approve; on approval the voucher can be saved
-  // once, and the row becomes 'used'. Local to the depot's book â€” HQ reads
+  // once, and the row becomes 'used'. Local to the depot's book — HQ reads
   // every depot's book the same way the All Depots PV list does.
   try {
     db.exec(`
@@ -1012,11 +1012,11 @@ function initTenantDb(db) {
     console.warn('[migrations] pv_expense_requests:', e.message);
   }
 
-  // 2026-09-18 â€” which phones to wake. One row per device per user, in the
+  // 2026-09-18 — which phones to wake. One row per device per user, in the
   // book that user belongs to: a depot's users live in that depot's database,
   // HQ's in HQ's own, so the tokens sit beside them. See services/push.js.
   //
-  // Not synced anywhere â€” a token is about one physical handset talking to
+  // Not synced anywhere — a token is about one physical handset talking to
   // Firebase, it means nothing on another machine, and it goes stale on its
   // own when the app is reinstalled.
   try {
@@ -1037,28 +1037,28 @@ function initTenantDb(db) {
   }
   addCol('ap_payments',        'invoice_attachment', 'TEXT');
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.9.7 â€” HQ-PO-linked GRN flow.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.9.7 — HQ-PO-linked GRN flow.
+  // ─────────────────────────────────────────────────────────────────────────
   // Kelete's procurement model: HQ creates the PO (keletezm.com/hq/purchases),
   // each line targets one branch. Branch sees the PO in their "Incoming"
-  // queue and either rejects it OR clicks "Accept & Generate GRN" â€” which
+  // queue and either rejects it OR clicks "Accept & Generate GRN" — which
   // opens a normal GRN form pre-filled with the PO number in notes. Branch
   // enters the invoice qty per line, attaches credit notes for any short/
   // damage/discount, and submits. The submitted GRN is NOT immediately
-  // posted to stock â€” it waits for HQ to confirm. On HQ confirm, the
+  // posted to stock — it waits for HQ to confirm. On HQ confirm, the
   // GRN's line items finally drive stock_movements at the branch (always
-  // location='sales' for Kelete â€” no store layer) and HQ AP locks in.
+  // location='sales' for Kelete — no store layer) and HQ AP locks in.
   //
   // New columns on grn:
-  //   linked_purchase_sync_id   â€” points at hq_purchases.sync_id when the
+  //   linked_purchase_sync_id   — points at hq_purchases.sync_id when the
   //                               GRN was generated from a PO accept.
   //                               NULL for legacy / manual GRNs.
-  //   linked_purchase_number    â€” denormalised PO# for display + receipt.
-  //   hq_status                 â€” 'PENDING_HQ_CONFIRM' | 'CONFIRMED' |
+  //   linked_purchase_number    — denormalised PO# for display + receipt.
+  //   hq_status                 — 'PENDING_HQ_CONFIRM' | 'CONFIRMED' |
   //                               'REJECTED' | NULL (legacy = no HQ gate)
-  //   hq_confirmed_by/_name/_at â€” audit stamp for HQ confirmation.
-  //   hq_reject_reason          â€” reason HQ sent the GRN back to branch.
+  //   hq_confirmed_by/_name/_at — audit stamp for HQ confirmation.
+  //   hq_reject_reason          — reason HQ sent the GRN back to branch.
   addCol('grn', 'linked_purchase_sync_id', 'TEXT');
   addCol('grn', 'linked_purchase_number',  'TEXT');
   addCol('grn', 'hq_status',               'TEXT');
@@ -1066,56 +1066,56 @@ function initTenantDb(db) {
   addCol('grn', 'hq_confirmed_by_name',    'TEXT');
   addCol('grn', 'hq_confirmed_at',         'TEXT');
   addCol('grn', 'hq_reject_reason',        'TEXT');
-  // v1.9.12 â€” supplier's printed invoice number captured at GRN time.
+  // v1.9.12 — supplier's printed invoice number captured at GRN time.
   // Mandatory on the branch-side GRN form so HQ sees what paper invoice
   // the purchase matched against when auditing AP.
   addCol('grn', 'supplier_invoice_number', 'TEXT');
 
-  // v1.9.20 â€” supplier name copied from the HQ PO. Kelete branches no
+  // v1.9.20 — supplier name copied from the HQ PO. Kelete branches no
   // longer maintain a supplier list (AP lives at HQ only), so the GRN
   // stores the supplier name as plain text rather than relying on a
   // local suppliers row. supplier_id may be NULL for HQ-linked GRNs.
   addCol('grn', 'supplier_name', 'TEXT');
 
-  // v1.9.13 â€” GRN-scoped credit notes. supplier_credit_notes is the
+  // v1.9.13 — GRN-scoped credit notes. supplier_credit_notes is the
   // existing master table; this new column ties each CN to the GRN it
   // belongs to so the GRN form can list / total CNs alongside line
   // items. NULL = standalone CN (legacy / not from a GRN).
   addCol('supplier_credit_notes', 'grn_sync_id', 'TEXT');
 
-  // â”€â”€ Single-location mode (Option 2: auto-SIV after each GRN) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Single-location mode (Option 2: auto-SIV after each GRN) ────────────────
   // When ON, GRN saves trigger an auto-generated SIV that issues 100% of the receipt
   // to the sales counter, so a small one-room shop never has to do a manual SIV.
-  // Default OFF â€” existing clients keep the dual-location flow.
+  // Default OFF — existing clients keep the dual-location flow.
   addCol('business_settings', 'single_location_mode', 'INTEGER NOT NULL DEFAULT 0');
   // Stock guard for POS: when 1, refuse to sell items with sales_balance<=0
-  // and cap cart quantities at available stock. Default 0 â€” preserves the
+  // and cap cart quantities at available stock. Default 0 — preserves the
   // long-standing behaviour of letting cashiers oversell when needed.
   addCol('business_settings', 'block_oversell',       'INTEGER NOT NULL DEFAULT 0');
   // Links each auto-SIV back to the GRN that triggered it. NULL for manually-created SIVs.
-  // Bin Card uses it to render "from GRN-â€¦" alongside the SIV reference.
+  // Bin Card uses it to render "from GRN-…" alongside the SIV reference.
   addCol('siv',               'source_grn_sync_id',   'TEXT');
 
-  // â”€â”€ Returnable container deposits (crates / bottles) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Returnable container deposits (crates / bottles) ───────────────────────
   // Each beverage product can be linked to a separate "container" product (an empty crate)
   // that has its own stock and cost. When a GRN is saved, the cashier records how many
   // empties were returned to the supplier and how many new crates were received. The system
   // posts a stock movement for the container product and includes the net deposit cost in the
-  // GRN total. Customers bring their own empties â€” POS is untouched.
+  // GRN total. Customers bring their own empties — POS is untouched.
   addCol('products',          'container_product_sync_id', 'TEXT');  // link to the matching empty-crate product
   addCol('products',          'units_per_container',       'REAL');  // e.g. 24 bottles per crate
-  // Per-product preferred unit â€” auto-selected on GRN/SIV/POS lines instead of always defaulting to base unit.
+  // Per-product preferred unit — auto-selected on GRN/SIV/POS lines instead of always defaulting to base unit.
   // Holds the unit name (must match one entry in units_json or the base `unit`). NULL = use base unit.
   addCol('products',          'default_unit',              'TEXT');
   addCol('business_settings', 'default_crate_deposit',     'REAL DEFAULT 57');
-  // v1.13.62 â€” sync_id of the single "EMPTY ZB" (or equivalent) product
-  // used for the customer-side empties deposit flow. Nullable â€” feature
+  // v1.13.62 — sync_id of the single "EMPTY ZB" (or equivalent) product
+  // used for the customer-side empties deposit flow. Nullable — feature
   // stays dormant until admin picks one via System Settings. When set,
-  // POS auto-charges this product's price Ã— N for any short return
+  // POS auto-charges this product's price × N for any short return
   // and updates its stock on return.
   addCol('business_settings', 'empty_container_product_sync_id', 'TEXT');
 
-  // 2026-08-30 â€” which empty this voucher is for.
+  // 2026-08-30 — which empty this voucher is for.
   //
   // The empties flow assumed ONE empty product, named once in
   // business_settings.empty_container_product_sync_id. Real stock is not like
@@ -1124,10 +1124,10 @@ function initTenantDb(db) {
   // every voucher and the rest never moved.
   //
   // The voucher now records the product itself, chosen at issue time from the
-  // Crates category. One product per voucher â€” a person handing in two kinds
+  // Crates category. One product per voucher — a person handing in two kinds
   // gets two slips, which keeps the bearer slip redeemable as a single line at
   // POS. The old setting stays as a fallback for anything already issued.
-  // (empty_vouchers columns moved below â€” the table is not created until
+  // (empty_vouchers columns moved below — the table is not created until
   //  much later in this file, so altering it here failed on a fresh DB.)
   // Per-line container settlement captured on each grn_items row.
   addCol('grn_items',         'containers_received',       'REAL NOT NULL DEFAULT 0');
@@ -1135,18 +1135,18 @@ function initTenantDb(db) {
   addCol('grn_items',         'container_deposit',         'REAL NOT NULL DEFAULT 0');
   addCol('grn_items',         'container_product_sync_id', 'TEXT');
 
-  // â”€â”€ Empty Returns â€” supplier-side sync linking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Empty Returns — supplier-side sync linking ────────────────────────────
   addCol('empty_returns',      'supplier_sync_id',        'TEXT');
   addCol('empty_return_items', 'empty_return_sync_id',    'TEXT');
   addCol('empty_return_items', 'product_sync_id',         'TEXT');
-  // Legacy AP credit linking (pre-Phase-4A â€” kept so old rows still update/delete cleanly).
+  // Legacy AP credit linking (pre-Phase-4A — kept so old rows still update/delete cleanly).
   addCol('empty_returns',      'ap_payment_sync_id',      'TEXT');
   // Phase 4A: new empty returns mint a Credit Note (reason='Crate Return') instead
   // of an ap_payment. The CN goes through the same supplier_credit_notes pipeline
   // as discounts, so AP balance + Profit Report stay consistent.
   addCol('empty_returns',      'credit_note_sync_id',     'TEXT');
 
-  // â”€â”€ Supplier Credit Notes â€” sync linking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Supplier Credit Notes — sync linking ──────────────────────────────────
   addCol('supplier_credit_notes',      'supplier_sync_id',     'TEXT');
   addCol('supplier_credit_note_items', 'credit_note_sync_id',  'TEXT');
   addCol('supplier_credit_note_items', 'product_sync_id',      'TEXT');
@@ -1159,11 +1159,11 @@ function initTenantDb(db) {
   // Profit Report: Supplier Rebates line. Only Discount + Other credit notes
   // count; Crate/Bottle returns are deposit refunds (not income).
   addCol('daily_profit_summary',       'supplier_rebates',     'REAL NOT NULL DEFAULT 0');
-  // Profit Report: Interest Expense line â€” sum of loan_transactions
+  // Profit Report: Interest Expense line — sum of loan_transactions
   // WHERE type='Interest'. Principal repayments and disbursements stay out.
   addCol('daily_profit_summary',       'interest_expense',     'REAL NOT NULL DEFAULT 0');
 
-  // â”€â”€ Equity / Liabilities â€” sync linking â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Equity / Liabilities — sync linking ───────────────────────────────────
   // Capital and Dividend entries get linked to a shareholder via sync_id, so
   // per-shareholder reporting works across devices regardless of integer ids.
   addCol('capital_account',  'shareholder_id',      'INTEGER');
@@ -1174,9 +1174,9 @@ function initTenantDb(db) {
   // as grn_items.grn_sync_id, siv_items.siv_sync_id, etc.).
   addCol('loan_transactions', 'loan_sync_id', 'TEXT');
 
-  // â”€â”€ Receipt printer configuration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Receipt printer configuration ───────────────────────────────────────────
   // USB mode: prints via the Windows Print Spooler queue named `receipt_printer_name`
-  //           (the same queue you'd see in Windows â†’ Devices and Printers).
+  //           (the same queue you'd see in Windows → Devices and Printers).
   // LAN mode: opens a raw TCP socket to `receipt_printer_ip:receipt_printer_port` (default 9100).
   // Default `usb` keeps every existing tenant on the existing flow.
   addCol('business_settings', 'receipt_printer_type', "TEXT NOT NULL DEFAULT 'usb'");
@@ -1184,21 +1184,21 @@ function initTenantDb(db) {
   addCol('business_settings', 'receipt_printer_ip',   'TEXT');
   addCol('business_settings', 'receipt_printer_port', 'INTEGER DEFAULT 9100');
 
-  // â”€â”€ Currencies (multi-currency display) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Currencies (multi-currency display) ─────────────────────────────────────
   // JSON array of { code, symbol, is_primary }. The primary entry's symbol is used
-  // everywhere prices show. Default backfill = one row, USD/$, marked primary â€”
+  // everywhere prices show. Default backfill = one row, USD/$, marked primary —
   // identical to today's behavior for any tenant that hasn't configured anything.
   addCol('business_settings', 'currencies_json', 'TEXT');
   try {
     const defaultCurrencies = JSON.stringify([{ code: 'K', symbol: 'K', is_primary: true }]);
     db.prepare(`UPDATE business_settings SET currencies_json = ? WHERE currencies_json IS NULL OR currencies_json = ''`).run(defaultCurrencies);
-  } catch { /* fresh DB â€” no row yet, defaults applied on first save */ }
+  } catch { /* fresh DB — no row yet, defaults applied on first save */ }
 
-  // â”€â”€ Currency mode (per-branch UI gate) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Currency mode (per-branch UI gate) ─────────────────────────────────────
   // Switches dual-currency UI features on/off PER TENANT (which now maps to
   // PER BRANCH in the new subdomain-per-branch architecture):
-  //   'K'       â€” Kwacha only. Standard flow. Used for lusaka1, mansa1.
-  //   'USD+FRA' â€” Dual currency. Unlocks: sell/buy FX rates, dual-currency
+  //   'K'       — Kwacha only. Standard flow. Used for lusaka1, mansa1.
+  //   'USD+FRA' — Dual currency. Unlocks: sell/buy FX rates, dual-currency
   //               payment modal, USD+FRA receipt lines, FX columns on orders.
   //               Used for kasumbalesa1.
   // Default 'K' so every existing tenant keeps the same behaviour it has
@@ -1206,7 +1206,7 @@ function initTenantDb(db) {
   // 'USD+FRA' (via Settings UI later, or one-off UPDATE for now).
   addCol('business_settings', 'currency_mode', "TEXT NOT NULL DEFAULT 'K'");
 
-  // Multi-unit support â€” JSON array of { name, conv, price, is_base } stored on the product.
+  // Multi-unit support — JSON array of { name, conv, price, is_base } stored on the product.
   // The base unit (conv=1) is always the smallest packaging (e.g. PCS for kelete).
   // Other rows are larger packagings: { name:"Box", conv:24, price:40 } means 1 box = 24 base units.
   // Legacy fields (unit, alt_unit, conversion_factor, alt_price) remain populated for backward
@@ -1227,7 +1227,7 @@ function initTenantDb(db) {
       }
       updUnits.run(JSON.stringify(arr), p.id);
     }
-  } catch (e) { /* fresh DB or no products â€” fine */ }
+  } catch (e) { /* fresh DB or no products — fine */ }
   // Backfill CR splits from payment_method
   try {
     db.prepare(`
@@ -1239,7 +1239,7 @@ function initTenantDb(db) {
         AND amount > 0
         AND payment_method != 'Mixed'
     `).run();
-    // Mixed CRs (AR payments) â€” pull split from the linked customer_payments row
+    // Mixed CRs (AR payments) — pull split from the linked customer_payments row
     db.prepare(`
       UPDATE cash_receipts
       SET cash_amount = (SELECT cp.cash_amount FROM customer_payments cp WHERE cp.id = cash_receipts.source_customer_payment_id),
@@ -1247,11 +1247,11 @@ function initTenantDb(db) {
           momo_amount = (SELECT cp.momo_amount FROM customer_payments cp WHERE cp.id = cash_receipts.source_customer_payment_id)
       WHERE payment_method = 'Mixed' AND source_customer_payment_id IS NOT NULL
     `).run();
-    // 2026-09-11 â€” on a Kwacha-only book the PV window's three slots ARE the
+    // 2026-09-11 — on a Kwacha-only book the PV window's three slots ARE the
     // methods (usd_amount = Cash, fra_amount = Mobile Money, k_amount =
     // Bank), and the Cash Book reads cash/momo/bank_amount. The PV route
     // used to write those as 0, and the paid_from guess below then booked
-    // every PV as Cash â€” the window always sends "Cash drawer" â€” so MoMo and
+    // every PV as Cash — the window always sends "Cash drawer" — so MoMo and
     // Bank PVs came off Cash on Hand. Take the method from the slots, and
     // correct any row the guess already got wrong.
     let kOnlyBook = false;
@@ -1271,7 +1271,7 @@ function initTenantDb(db) {
              OR ABS(COALESCE(bank_amount,0) - COALESCE(k_amount,0))   > 0.004)
       `).run();
     }
-    // Backfill PV splits from paid_from (best-effort heuristic) â€” on a
+    // Backfill PV splits from paid_from (best-effort heuristic) — on a
     // Kwacha-only book only for old PVs that have no slots to go by.
     db.prepare(`
       UPDATE payment_vouchers
@@ -1324,7 +1324,7 @@ function initTenantDb(db) {
       const { randomUUID } = require('crypto');
       db.transaction(() => {
         for (const p of orphans) {
-          // Use the customer_payment.id as a stable, unique suffix â€” guaranteed
+          // Use the customer_payment.id as a stable, unique suffix — guaranteed
           // collision-proof against itself and unlikely to clash with normal CRs
           // (which use the seq-based scheme).
           const receiptNum = `CR-BACKFILL-${String(p.id).padStart(6, '0')}`;
@@ -1338,7 +1338,7 @@ function initTenantDb(db) {
           `).run(
             receiptNum,
             p.customer_name || 'Customer',
-            p.notes ? `AR Payment â€” ${p.notes}` : 'AR Payment',
+            p.notes ? `AR Payment — ${p.notes}` : 'AR Payment',
             p.payment_method || 'Cash',
             parseFloat(p.amount),
             p.payment_date,
@@ -1353,7 +1353,7 @@ function initTenantDb(db) {
     }
   } catch (e) { console.error('[migrations] AR payment CR backfill failed:', e.message); }
   // Link orders to a specific customer record (prevents same-name customers sharing balances).
-  // Legacy orders carry NULL â€” user has to claim them via the "Claim orphan orders" action.
+  // Legacy orders carry NULL — user has to claim them via the "Claim orphan orders" action.
   addCol('orders',             'customer_id',          'INTEGER');
   addCol('orders',             'customer_sync_id',     'TEXT');
   // Split payment methods on the order itself. amount_received remains the sum;
@@ -1361,27 +1361,27 @@ function initTenantDb(db) {
   addCol('orders',             'cash_received',        'REAL NOT NULL DEFAULT 0');
   addCol('orders',             'momo_received',        'REAL NOT NULL DEFAULT 0');
   addCol('orders',             'bank_received',        'REAL NOT NULL DEFAULT 0');
-  // v1.13.20 â€” REMOVED two restart-time backfills that mirrored Kelete's
+  // v1.13.20 — REMOVED two restart-time backfills that mirrored Kelete's
   // deleted ones (see project_kelete_phantom_change_backfill for the
   // failure pattern). Both would silently mutate NEW data if a later
   // write path regressed:
-  //   (a) payment_method â†’ cash/momo/bank bucket seed
-  //   (b) orders â†’ customer_id auto-link by unambiguous name
+  //   (a) payment_method → cash/momo/bank bucket seed
+  //   (b) orders → customer_id auto-link by unambiguous name
   // Legacy rows were already backfilled on every deployed DB. Use the
   // Merge tool for future customer-name disambiguation.
   addCol('grn',                'supplier_sync_id',  'TEXT');
   addCol('ap_payments',        'supplier_sync_id',  'TEXT');
 
-  // 2026-08-30 â€” link a payment to the GRN it settles.
+  // 2026-08-30 — link a payment to the GRN it settles.
   //
   // The AP flow already passed a grnSyncId, but only used it to stamp the GRN
   // as PAID; it was never stored on the payment. So the money was recorded at
-  // SUPPLIER level with no way to say how much of a given GRN was settled â€”
+  // SUPPLIER level with no way to say how much of a given GRN was settled —
   // which is why a K10,000 payment against a K90,000 GRN marked the whole
   // thing paid and hid the K80,000 still owed.
   addCol('ap_payments',        'grn_sync_id',       'TEXT');
 
-  // 2026-08-30 â€” batch payments. One payment against several GRNs of the same
+  // 2026-08-30 — batch payments. One payment against several GRNs of the same
   // supplier is stored as one ROW PER GRN (grn_sync_id above holds a single
   // GRN, and payment_number is UNIQUE so the rows cannot share one). batch_ref
   // is what ties them back together as a single act of paying, for the AP
@@ -1389,13 +1389,13 @@ function initTenantDb(db) {
   // single-GRN payment.
   addCol('ap_payments',        'batch_ref',         'TEXT');
 
-  // 2026-08-31 â€” a standalone credit note walks the same road as a GRN.
+  // 2026-08-31 — a standalone credit note walks the same road as a GRN.
   //
   // Two kinds of supplier credit exist and they are not the same thing:
   //
-  //   attached  â€” damage or shortage found at delivery. Belongs to that GRN,
+  //   attached  — damage or shortage found at delivery. Belongs to that GRN,
   //               already reduces its payable, already rides its approval.
-  //   standalone â€” empties handed back weeks later, a rebate, a goodwill
+  //   standalone — empties handed back weeks later, a rebate, a goodwill
   //               credit. Belongs to NO invoice.
   //
   // The second kind used to lower the supplier's balance the moment it was
@@ -1403,8 +1403,8 @@ function initTenantDb(db) {
   // matched GRN by GRN, so the credit sat reducing a total while every GRN
   // still showed its full amount.
   //
-  // It now carries the same stages a GRN does â€” Awaiting Check, Awaiting
-  // Confirmation, Ready for Payment â€” and ends APPLIED rather than PAID,
+  // It now carries the same stages a GRN does — Awaiting Check, Awaiting
+  // Confirmation, Ready for Payment — and ends APPLIED rather than PAID,
   // because a credit is consumed against a payment rather than paid out.
   addCol('supplier_credit_notes', 'ap_status',                "TEXT NOT NULL DEFAULT 'PENDING'");
   addCol('supplier_credit_notes', 'checked_at',               'TEXT');
@@ -1420,14 +1420,14 @@ function initTenantDb(db) {
   addCol('supplier_credit_notes', 'sent_back_by_name',        'TEXT');
   addCol('supplier_credit_notes', 'sent_back_reason',         'TEXT');
   // Consumed. Without this the same credit could be applied to every payment
-  // for ever â€” the one column that must not be skipped.
+  // for ever — the one column that must not be skipped.
   addCol('supplier_credit_notes', 'applied_at',               'TEXT');
   addCol('supplier_credit_notes', 'applied_payment_sync_id',  'TEXT');
   addCol('supplier_credit_notes', 'applied_amount',           'REAL NOT NULL DEFAULT 0');
 
-  // 2026-09-04 â€” a depot raises the credit note for damage on its own
+  // 2026-09-04 — a depot raises the credit note for damage on its own
   // delivery. The row is written into HQ's book, because AP is HQ-only and
-  // HQ's Credit Notes page reads its own table â€” a note left at the branch is
+  // HQ's Credit Notes page reads its own table — a note left at the branch is
   // raised and then invisible.
   //
   // grn_sync_id stays NULL until HQ agrees. recomputeGrnPayable sums every
@@ -1450,7 +1450,7 @@ function initTenantDb(db) {
     ).run();
   } catch (_) { /* column just created on an empty table */ }
 
-  // 2026-08-30 â€” one payment, many invoices.
+  // 2026-08-30 — one payment, many invoices.
   //
   // ap_payments used to carry a single grn_sync_id, so paying K44,000 across
   // two GRNs wrote TWO payment rows. Both the AP Payments list and the Cash
@@ -1460,7 +1460,7 @@ function initTenantDb(db) {
   // The fix is the standard AP shape: the PAYMENT is one record, and its
   // ALLOCATIONS say how it was applied. Every screen that lists payments then
   // shows one line with no change of its own, and per-GRN paid/remaining is
-  // still exact â€” it just reads from here instead of from the payment row.
+  // still exact — it just reads from here instead of from the payment row.
   //
   // ap_payments.grn_sync_id is kept and still written for single-GRN payments:
   // it costs nothing, and it keeps older builds and the sync bridge working
@@ -1492,7 +1492,7 @@ function initTenantDb(db) {
   // settled GRN would spring back to unpaid.
   //
   // Guarded by the unique index above, so re-running is a no-op rather than a
-  // doubling â€” this file runs on every boot.
+  // doubling — this file runs on every boot.
   try {
     const hasRows = db.prepare('SELECT COUNT(*) AS n FROM ap_payment_allocations').get()?.n || 0;
     const legacy  = db.prepare(
@@ -1551,15 +1551,15 @@ function initTenantDb(db) {
       }
       if (linked) console.log(`[migration] linked ${linked} existing AP payment(s) to their GRN`);
     }
-  } catch (_) { /* master.db absent (a till before first sync) â€” skip */ }
+  } catch (_) { /* master.db absent (a till before first sync) — skip */ }
   addCol('daily_actual_balance','product_sync_id',  'TEXT');
   addCol('daily_profit_summary','stock_adj',        'REAL NOT NULL DEFAULT 0');
-  // Sales Damages â€” items destroyed/expired, cost subtracted from gross profit.
+  // Sales Damages — items destroyed/expired, cost subtracted from gross profit.
   addCol('daily_profit_summary','damages',          'REAL NOT NULL DEFAULT 0');
 
-  // â”€â”€ Parity with server.js addCol calls that were missing here â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Parity with server.js addCol calls that were missing here ──────────────
   // These were added in server.js (Electron default DB) but never to initTenantDb.
-  // The first one â€” categories.main_category_id â€” is what was crashing /api/products
+  // The first one — categories.main_category_id — is what was crashing /api/products
   // on web tenants ("no such column: c.main_category_id"). Adding the rest as a
   // single audit so we stop chasing them one at a time.
   addCol('categories',     'main_category_id',      'INTEGER');
@@ -1567,19 +1567,19 @@ function initTenantDb(db) {
   addCol('products',       'product_type',          "TEXT NOT NULL DEFAULT 'finished'");
   addCol('cash_reports',   'cashier_id',            'INTEGER DEFAULT 0');
   addCol('cash_reports',   'bank',                  'REAL NOT NULL DEFAULT 0');
-  // v1.8.1 â€” triple-currency cash report. Each holds the NET cash in that
+  // v1.8.1 — triple-currency cash report. Each holds the NET cash in that
   // currency (received minus change given), in that currency's own units.
   addCol('cash_reports',   'usd_received',          'REAL NOT NULL DEFAULT 0');
   addCol('cash_reports',   'fra_received',          'REAL NOT NULL DEFAULT 0');
   addCol('cash_reports',   'k_received',            'REAL NOT NULL DEFAULT 0');
-  // v1.8.13 â€” per-currency Expected snapshot at save time. The difference
+  // v1.8.13 — per-currency Expected snapshot at save time. The difference
   // per currency = received - expected, computed at read. Stored so the
   // history shows what the POS said vs what the cashier counted, even if
   // the order table changes later (reversals, edits, etc.).
   addCol('cash_reports',   'usd_expected',          'REAL NOT NULL DEFAULT 0');
   addCol('cash_reports',   'fra_expected',          'REAL NOT NULL DEFAULT 0');
   addCol('cash_reports',   'k_expected',            'REAL NOT NULL DEFAULT 0');
-  // v1.8.26 â€” per-currency expenses snapshot at save time so the history
+  // v1.8.26 — per-currency expenses snapshot at save time so the history
   // table can show what was paid out of each currency's drawer for that
   // shift without re-querying payment_vouchers per row.
   addCol('cash_reports',   'usd_expenses',          'REAL NOT NULL DEFAULT 0');
@@ -1597,9 +1597,9 @@ function initTenantDb(db) {
     db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_dcs_product_sync_date ON daily_cost_snapshot (product_sync_id, date)`).run();
   } catch (_) {}
 
-  // â”€â”€â”€ Indexes on sync_id for every sync table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── Indexes on sync_id for every sync table ───────────────────────────────
   // Sync push/pull does WHERE sync_id = ? on every row. Without these indexes,
-  // every lookup is a full table scan â€” Mother freezes under load with big tables.
+  // every lookup is a full table scan — Mother freezes under load with big tables.
   const SYNC_TABLES = [
     'users', 'categories', 'main_categories', 'units', 'products', 'customers', 'suppliers',
     'orders', 'order_items', 'grn', 'grn_items', 'siv', 'siv_items',
@@ -1608,7 +1608,7 @@ function initTenantDb(db) {
     'stock_movements', 'cash_receipts', 'payment_vouchers', 'cash_book',
     'business_settings', 'cash_reports', 'stock_adjustments', 'daily_actual_balance',
     'ap_payments', 'daily_profit_summary',
-    // v1.8.33 â€” newer tables that participate in sync. Without these
+    // v1.8.33 — newer tables that participate in sync. Without these
     // index entries Mother does full-table scans on big sync push/pull.
     'customer_payments', 'stock_reconciliations', 'stock_reconciliation_items',
     'supplier_credit_notes', 'supplier_credit_note_items',
@@ -1630,11 +1630,11 @@ function initTenantDb(db) {
     } catch (_) {}
   }
 
-  // 2026-09-13 â€” the joins every sales report makes. The VAT Transaction
+  // 2026-09-13 — the joins every sales report makes. The VAT Transaction
   // Report (services/vatReport.js) reads orders in a date range, their items
   // by order_items.order_sync_id and each item's product by products.sync_id.
-  // None of those had an index â€” the loop above indexes order_items.sync_id,
-  // not the order it belongs to â€” so each report run left SQLite to build a
+  // None of those had an index — the loop above indexes order_items.sync_id,
+  // not the order it belongs to — so each report run left SQLite to build a
   // throw-away index or scan every item for every order, sixteen books over.
   // IF NOT EXISTS: a no-op wherever one is already there.
   try {
@@ -1643,16 +1643,16 @@ function initTenantDb(db) {
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders (created_at)`).run();
   } catch (_) { /* indexes are an optimisation, not a requirement */ }
 
-  // No default admin â€” the Setup screen creates the real admin during registration
+  // No default admin — the Setup screen creates the real admin during registration
 
-  // â”€â”€â”€ One-time cleanup: remove daily_profit_summary rows with malformed date (timestamp instead of YYYY-MM-DD)
+  // ─── One-time cleanup: remove daily_profit_summary rows with malformed date (timestamp instead of YYYY-MM-DD)
   // Caused by an old bug in order reverse where `created_at.split('T')[0]` returned the full SQLite timestamp.
   try {
     db.prepare(`DELETE FROM daily_profit_summary WHERE length(date) > 10`).run();
   } catch (_) {}
 
-  // â”€â”€â”€ One-time cleanup: recompute cost_at_count on existing stock_reconciliation_items.
-  // Earlier rows used an un-converted avg from grn_items (mixed pcs/box totals) â€” yielding cost per box
+  // ─── One-time cleanup: recompute cost_at_count on existing stock_reconciliation_items.
+  // Earlier rows used an un-converted avg from grn_items (mixed pcs/box totals) — yielding cost per box
   // when it should have been per base unit. This makes variance_value correct on rows posted before the fix.
   try {
     const { baseQtyExpr: _bq } = require('./unitsHelper');
@@ -1673,20 +1673,20 @@ function initTenantDb(db) {
     }
   } catch (_) {}
 
-  // v1.13.20 â€” REMOVED (see also the deleted block earlier in this file).
-  // Second, near-duplicate copy of the orders â†’ customer_id auto-link
+  // v1.13.20 — REMOVED (see also the deleted block earlier in this file).
+  // Second, near-duplicate copy of the orders → customer_id auto-link
   // backfill. Same reason for removal: on every restart it would guess
   // and could wrongly link a newly-added same-named customer to an old
   // sale. Use the Merge tool for legacy fix-ups.
 
-  // â”€â”€ Cash Reports per-cashier migration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Cash Reports per-cashier migration ────────────────────────────────────
   // The original schema had UNIQUE on the `date` column alone, which blocked
   // a second cashier from saving their own Cash Report for the same day
   // (only one row per date could exist across all cashiers). This block
   // detects a tenant DB carrying the old date-only UNIQUE index and
   // rewrites the table without it, then creates a composite
   // UNIQUE(date, cashier_id) index. Mirrors the same migration that's in
-  // server.js for Electron default DBs. Idempotent â€” no-op after first run.
+  // server.js for Electron default DBs. Idempotent — no-op after first run.
   try {
     const idxList = db.prepare("PRAGMA index_list('cash_reports')").all();
     const hasDateOnlyUnique = idxList.some(idx => {
@@ -1736,10 +1736,10 @@ function initTenantDb(db) {
     db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cash_reports_date_cashier ON cash_reports(date, cashier_id)`).run();
   } catch (_) { /* migration is idempotent and best-effort */ }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Phase 1 â€” Multi-currency schema, but Kelete is K-only
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Kelete is a K-only system â€” all branches (HQ + branches) use K, no dual
+  // ─────────────────────────────────────────────────────────────────────────
+  // Phase 1 — Multi-currency schema, but Kelete is K-only
+  // ─────────────────────────────────────────────────────────────────────────
+  // Kelete is a K-only system — all branches (HQ + branches) use K, no dual
   // currency. The multi-currency schema (branches.secondary_currency, selling/
   // buying rates, orders.fra_received, etc.) is inherited from the upstream
   // codebase but every branch is seeded with primary_currency='K' and
@@ -1747,7 +1747,7 @@ function initTenantDb(db) {
   // (no FRA fields, no FX rate inputs). The columns stay in case a future
   // Kelete variant needs them; unused today.
   try {
-    // Branches â€” meta info about each physical location. The `id` here is
+    // Branches — meta info about each physical location. The `id` here is
     // the same TEXT UUID the sync layer already stamps on rows as branch_id.
     db.exec(`
       CREATE TABLE IF NOT EXISTS branches (
@@ -1771,7 +1771,7 @@ function initTenantDb(db) {
     // Per-branch product price overrides. When a row exists for a given
     // (product_id, branch_id) pair, POS / receipts at that branch use these
     // values instead of products.cost_price / products.selling_price. When
-    // missing, the fallback is the legacy single-price columns â€” so Branches
+    // missing, the fallback is the legacy single-price columns — so Branches
     // 1 & 2 keep working without any data entry.
     db.exec(`
       CREATE TABLE IF NOT EXISTS product_branch_prices (
@@ -1795,23 +1795,23 @@ function initTenantDb(db) {
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_pbp_product ON product_branch_prices(product_id)`).run();
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_pbp_branch  ON product_branch_prices(branch_id)`).run();
 
-    // â”€â”€ Orders: frozen FX snapshot + FRA payment buckets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Orders: frozen FX snapshot + FRA payment buckets ──────────────────
     // currency           = the branch's primary at sale time ('K' or 'USD')
     // fra_received       = how much FRA the cashier physically took
     // fra_change_given   = how much FRA the cashier physically returned
-    // selling_rate_used  = FRAâ†’primary rate frozen at sale  (used for receive)
-    // buying_rate_used   = primaryâ†’FRA rate frozen at sale  (used for change)
+    // selling_rate_used  = FRA→primary rate frozen at sale  (used for receive)
+    // buying_rate_used   = primary→FRA rate frozen at sale  (used for change)
     addCol('orders', 'currency',          "TEXT DEFAULT 'K'");
     addCol('orders', 'fra_received',      'REAL DEFAULT 0');
     addCol('orders', 'fra_change_given',  'REAL DEFAULT 0');
     addCol('orders', 'selling_rate_used', 'REAL');
     addCol('orders', 'buying_rate_used',  'REAL');
 
-    // â”€â”€ Seed Kelete's three branches the first time the table is empty â”€â”€â”€â”€â”€â”€
+    // ── Seed Kelete's three branches the first time the table is empty ──────
     // Idempotent: re-running this migration does nothing once rows exist.
     // The IDs are stable UUIDs derived from sync-friendly randomness; the
     // existing device's sync_config.branch_id may point at a different UUID
-    // â€” that's fine, we leave that untouched and the device can be assigned
+    // — that's fine, we leave that untouched and the device can be assigned
     // to a branch later through the Settings UI (Phase 2).
     const branchCount = db.prepare('SELECT COUNT(*) AS n FROM branches').get().n;
     if (branchCount === 0) {
@@ -1832,23 +1832,23 @@ function initTenantDb(db) {
     // best-effort; later phases can re-attempt
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // 3-Station workflow (Sales â†’ Cashier â†’ Dispatch)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // 3-Station workflow (Sales → Cashier → Dispatch)
+  // ─────────────────────────────────────────────────────────────────────────
   // Per-branch UI gate that swaps the single-screen POS for a 3-station flow
   // used at kasumbalesa1:
-  //   'single_pos'    â€” one cashier creates + pays + dispatches in one step
-  //                     (lusaka1, mansa1 â€” existing behaviour).
-  //   'three_station' â€” Sales creates the order â†’ Cashier collects payment â†’
+  //   'single_pos'    — one cashier creates + pays + dispatches in one step
+  //                     (lusaka1, mansa1 — existing behaviour).
+  //   'three_station' — Sales creates the order → Cashier collects payment →
   //                     Dispatch releases goods. Each station is a separate
   //                     screen; orders move through a status state machine.
   //
   // orders.status values used in this flow:
-  //   'PENDING_PAYMENT' â€” Sales confirmed; awaiting Cashier
-  //   'PAID'            â€” Cashier collected; awaiting Dispatch
-  //   'DISPATCHED'      â€” Goods released; stock decremented HERE (not at sale)
-  //   'CANCELLED'       â€” Voided at any stage
-  //   NULL              â€” Legacy single_pos completed sale (unchanged)
+  //   'PENDING_PAYMENT' — Sales confirmed; awaiting Cashier
+  //   'PAID'            — Cashier collected; awaiting Dispatch
+  //   'DISPATCHED'      — Goods released; stock decremented HERE (not at sale)
+  //   'CANCELLED'       — Voided at any stage
+  //   NULL              — Legacy single_pos completed sale (unchanged)
   addCol('business_settings', 'workflow_mode', "TEXT NOT NULL DEFAULT 'single_pos'");
   addCol('orders', 'sales_user_id',    'INTEGER');
   addCol('orders', 'cashier_user_id',  'INTEGER');
@@ -1857,12 +1857,12 @@ function initTenantDb(db) {
   addCol('orders', 'paid_at',          'TEXT');
   addCol('orders', 'dispatched_at',    'TEXT');
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.9.1 â€” cross-device cashier-name fix.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.9.1 — cross-device cashier-name fix.
+  // ─────────────────────────────────────────────────────────────────────────
   // orders.created_by / cashier_user_id / sales_user_id / dispatch_user_id
   // all stored the LOCAL users.id (INTEGER AUTOINCREMENT per DB). When an
-  // order pushed from Electron to VPS, the integer was copied as-is â€” but
+  // order pushed from Electron to VPS, the integer was copied as-is — but
   // users.id=4 on Electron rarely matches users.id=4 on VPS, so the receipt
   // JOIN on the OTHER side picked whoever happened to occupy that id. Real
   // incident: Electron showed cashier "milan milan" while web showed the
@@ -1870,7 +1870,7 @@ function initTenantDb(db) {
   // milan=id4, VPS milan=id2; Electron yonas=id2, VPS yonas=id4.
   //
   // Fix: store users.sync_id (UUID) in parallel mirror columns. Backfill
-  // existing rows from the local users table at boot â€” pre-fix rows that
+  // existing rows from the local users table at boot — pre-fix rows that
   // arrived via cross-device push may resolve to the wrong sync_id on this
   // side (no way to recover original creator), but new rows going forward
   // get stamped by the source device, so the JOIN always finds the right
@@ -1879,7 +1879,7 @@ function initTenantDb(db) {
   addCol('orders', 'cashier_user_sync_id', 'TEXT');
   addCol('orders', 'sales_user_sync_id',   'TEXT');
   addCol('orders', 'dispatch_user_sync_id','TEXT');
-  // Backfill from local users table â€” runs once per row (skips already-filled).
+  // Backfill from local users table — runs once per row (skips already-filled).
   try {
     db.prepare(`UPDATE orders SET created_by_sync_id    = (SELECT sync_id FROM users WHERE id = orders.created_by)     WHERE created_by_sync_id    IS NULL AND created_by     IS NOT NULL`).run();
     db.prepare(`UPDATE orders SET cashier_user_sync_id  = (SELECT sync_id FROM users WHERE id = orders.cashier_user_id) WHERE cashier_user_sync_id  IS NULL AND cashier_user_id  IS NOT NULL`).run();
@@ -1887,18 +1887,18 @@ function initTenantDb(db) {
     db.prepare(`UPDATE orders SET dispatch_user_sync_id = (SELECT sync_id FROM users WHERE id = orders.dispatch_user_id) WHERE dispatch_user_sync_id IS NULL AND dispatch_user_id IS NOT NULL`).run();
   } catch (e) { /* tolerate empty users table on a fresh DB */ }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.3.1 â€” Sales Damages state machine
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.3.1 — Sales Damages state machine
+  // ─────────────────────────────────────────────────────────────────────────
   // Spec: branches can only declare damages; HQ must confirm before the
   // sales-floor stock is decremented + the damages cost flows into
   // daily_profit_summary.damages. This keeps fraud / data-entry mistakes
   // off the books until HQ has eyes on them.
   //
   // Status enum on sales_returns:
-  //   PENDING   â€” branch declared, awaiting HQ confirmation, no stock yet
-  //   CONFIRMED â€” HQ approved, stock decremented + profit recalculated
-  //   REJECTED  â€” HQ rejected with confirm_notes explaining why
+  //   PENDING   — branch declared, awaiting HQ confirmation, no stock yet
+  //   CONFIRMED — HQ approved, stock decremented + profit recalculated
+  //   REJECTED  — HQ rejected with confirm_notes explaining why
   //
   // Default is 'CONFIRMED' so EXISTING legacy rows stay marked
   // already-actioned (they already created their stock_movements). New
@@ -1909,40 +1909,40 @@ function initTenantDb(db) {
   addCol('sales_returns', 'confirmed_at',      'TEXT');
   addCol('sales_returns', 'confirm_notes',     'TEXT');
 
-  // v1.3.9 â€” per-branch toggle that re-enables the legacy GRN + Suppliers
+  // v1.3.9 — per-branch toggle that re-enables the legacy GRN + Suppliers
   // sidebar entries (otherwise hidden on branches by v1.3.2's lockdown).
   // Use case: seeding initial stock at a freshly-deployed branch before
   // the HQ Procurement loop is producing receipts, or one-off rescues.
-  // OFF by default â€” only branches that flip this ON see the legacy
+  // OFF by default — only branches that flip this ON see the legacy
   // pages. HQ host always sees them regardless of this flag.
   addCol('business_settings', 'legacy_procurement_enabled', 'INTEGER NOT NULL DEFAULT 0');
 
-  // v1.9.26 â€” payment_methods is the third independent dial alongside
+  // v1.9.26 — payment_methods is the third independent dial alongside
   // currency_mode + workflow_mode. 'cash_only' = Kelete 3-currency cash
   // branches (no MoMo, no Bank). 'cash_momo_bank' = Liquor-style
   // branches that take Cash + MoMo + Bank. Default cash_momo_bank so
   // existing tenants keep their current Pay-modal behaviour.
   addCol('business_settings', 'payment_methods', "TEXT NOT NULL DEFAULT 'cash_momo_bank'");
 
-  // 2026-09-11 â€” which payment methods this branch SHOWS ('cash,momo,bank' by
+  // 2026-09-11 — which payment methods this branch SHOWS ('cash,momo,bank' by
   // default). Hiding only: nothing is deleted and no maths changes, and a
   // screen still shows a hidden method wherever money already sits on it.
   // Kept apart from payment_methods, whose 'cash_only' also switches the
   // money pages over to the three-currency model.
   addCol('business_settings', 'shown_payment_methods', "TEXT NOT NULL DEFAULT 'cash,momo,bank'");
 
-  // 2026-09-11 â€” a saved Cash Report sends its counted money to HQ as PENDING
+  // 2026-09-11 — a saved Cash Report sends its counted money to HQ as PENDING
   // deposits (services/autoDeposit.js). Off by default; on for the Lusaka
   // depots.
   addCol('business_settings', 'auto_deposit_enabled', 'INTEGER NOT NULL DEFAULT 0');
-  // 2026-09-15 â€” System Settings â†’ Deposit to. NULL = HQ (every depot's
+  // 2026-09-15 — System Settings → Deposit to. NULL = HQ (every depot's
   // default); a depot slug sends this depot's deposits to that depot instead.
   addCol('business_settings', 'deposit_to_slug', 'TEXT');
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.4.0 â€” FX Rates (Accounting â†’ Currency Rates)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Per-branch history of USD â†” FRA rates. Cashier reads the latest row
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.4.0 — FX Rates (Accounting → Currency Rates)
+  // ─────────────────────────────────────────────────────────────────────────
+  // Per-branch history of USD ↔ FRA rates. Cashier reads the latest row
   // where effective_date <= today AND deleted_at IS NULL; receipts replay
   // with the rate snapshotted on the order (selling_rate_used /
   // buying_rate_used columns added back in Phase 1) so old prints stay
@@ -1972,23 +1972,23 @@ function initTenantDb(db) {
     CREATE INDEX IF NOT EXISTS idx_fx_rates_effective ON fx_rates (effective_date);
   `);
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.5.0 â€” HQ-owned products marker
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.5.0 — HQ-owned products marker
+  // ─────────────────────────────────────────────────────────────────────────
   // Marks a branch product as managed by HQ. Set to 1 by pushToBranches.
   // The branch UI uses this to lock HQ-owned fields (code, name, category,
-  // unit, packagings, default_unit, photo, container, UB barcode) â€” branch
+  // unit, packagings, default_unit, photo, container, UB barcode) — branch
   // only edits price, status, min stock, notes, opening stock. The branch
   // PUT /api/products/:id ALSO enforces this server-side so a hostile
   // client can't bypass the UI lock.
   addCol('products', 'is_hq_owned', 'INTEGER NOT NULL DEFAULT 0');
 
-  // v1.10.53 â€” Persisted Weighted Average Cost per product per branch.
+  // v1.10.53 — Persisted Weighted Average Cost per product per branch.
   // Populated on:
   //   - GRN save (supplier receipt, branch-side)
   //   - HQ GRN generate (HQ pushes stock to branch)
   //   - Stock Transfer receive
-  // Never overwritten by cost_price on product edit â€” cost_price is the
+  // Never overwritten by cost_price on product edit — cost_price is the
   // catalogue's "current buy price" (typing/reference), avg_cost_price is
   // the real weighted mean of on-hand stock. profitHelper.js COGS calc
   // reads this column directly instead of re-scanning grn_items every day.
@@ -1996,21 +1996,21 @@ function initTenantDb(db) {
   // (backward-compat during backfill window).
   addCol('products', 'avg_cost_price', 'REAL');
 
-  // v1.13.12 â€” ZRA Smart Invoice (VSDC) prep. Populated later; NULL until
+  // v1.13.12 — ZRA Smart Invoice (VSDC) prep. Populated later; NULL until
   // then (no runtime effect until vsdc.js client is wired in).
-  //   hs_code   â€” for Imports endpoint only (17-char customs code)
-  //   tax_label â€” legacy client export label (A/B/C/D/NB) â€” kept for the
+  //   hs_code   — for Imports endpoint only (17-char customs code)
+  //   tax_label — legacy client export label (A/B/C/D/NB) — kept for the
   //               Excel importer that reads their old system's export.
   addCol('products', 'hs_code',   'TEXT');
   addCol('products', 'tax_label', 'TEXT');
 
-  // v1.13.13 â€” ZRA VSDC schema expansion (Step 1 of ZRA integration).
+  // v1.13.13 — ZRA VSDC schema expansion (Step 1 of ZRA integration).
   // Full breakdown of endpoints/behaviour in the project memory
   // (project_kelete_zra.md). All columns nullable, all tables IF NOT
-  // EXISTS â€” no runtime effect until vsdc.js client is written and
+  // EXISTS — no runtime effect until vsdc.js client is written and
   // POS/product/GRN routes call it. Safe to deploy today.
 
-  // â”€â”€ Per-device / per-branch VSDC identifiers on business_settings â”€â”€
+  // ── Per-device / per-branch VSDC identifiers on business_settings ──
   // Set once during "Initialize Device" on the ZRA Config page. `env`
   // toggles between sandbox and production. `last_*` counters mirror
   // what VSDC returns from selectInitInfo so we can validate the next
@@ -2034,8 +2034,8 @@ function initTenantDb(db) {
   addCol('business_settings', 'zra_last_copy_invc_no',  'INTEGER');
   addCol('business_settings', 'zra_initialized_at',     'TEXT');
 
-  // â”€â”€ Item classification / packaging on products â”€â”€
-  // vat_cat_cd is the ZRA VSDC vatCatCd (A/B/C1/C2/C3/D/RVAT/E/F/â€¦) â€” this
+  // ── Item classification / packaging on products ──
+  // vat_cat_cd is the ZRA VSDC vatCatCd (A/B/C1/C2/C3/D/RVAT/E/F/…) — this
   // is DIFFERENT from `tax_label` above, which holds the legacy
   // single-letter code from the client's old system. Mapping between the
   // two lives in the Excel importer.
@@ -2043,15 +2043,15 @@ function initTenantDb(db) {
   addCol('products', 'zra_item_cls_cd',   'TEXT');   // UNSPSC 8-digit, e.g. 50202100 (Beer)
   addCol('products', 'zra_item_ty_cd',    'TEXT');   // 1=raw material, 2=finished, 3=service
   addCol('products', 'zra_orgn_nat_cd',   'TEXT');   // origin country (ISO)
-  addCol('products', 'zra_pkg_unit_cd',   'TEXT');   // BX/CT/BO/KZ/JY/BA/BE/BGâ€¦
-  addCol('products', 'zra_qty_unit_cd',   'TEXT');   // U/L/LTR/KG/BXâ€¦
-  addCol('products', 'zra_vat_cat_cd',    'TEXT');   // A/B/C1/C2/C3/D/RVAT/E/F/â€¦
+  addCol('products', 'zra_pkg_unit_cd',   'TEXT');   // BX/CT/BO/KZ/JY/BA/BE/BG…
+  addCol('products', 'zra_qty_unit_cd',   'TEXT');   // U/L/LTR/KG/BX…
+  addCol('products', 'zra_vat_cat_cd',    'TEXT');   // A/B/C1/C2/C3/D/RVAT/E/F/…
   addCol('products', 'zra_excise_ty_cd',  'TEXT');   // for beer/spirits/tobacco
-  // v1.13.80 â€” Cache for /trnsPurchase/selectTrnsPurchaseSales pulls.
+  // v1.13.80 — Cache for /trnsPurchase/selectTrnsPurchaseSales pulls.
   //   Each row is a supplier invoice VSDC has already registered against
   //   our TPIN. Operator inspects and either APPROVES (fires
   //   /trnsPurchase/savePurchase with regTyCd='A') or REJECTS (marks
-  //   locally, no VSDC call â€” since ZRA has already recorded the
+  //   locally, no VSDC call — since ZRA has already recorded the
   //   supplier's side, our reject is just an internal audit note).
   //
   //   UNIQUE(spplr_tpin, spplr_invc_no) dedups on repeated pulls.
@@ -2088,60 +2088,60 @@ function initTenantDb(db) {
       ON zra_pending_purchases(status);
   `);
 
-  // v1.13.77 â€” Buyer TPIN on customer records + captured per order.
-  //   customers.tpin       â€” persistent B2B customer TPIN (10-digit).
-  //   orders.customer_tpin â€” snapshot taken at sale time so the fiscal
+  // v1.13.77 — Buyer TPIN on customer records + captured per order.
+  //   customers.tpin       — persistent B2B customer TPIN (10-digit).
+  //   orders.customer_tpin — snapshot taken at sale time so the fiscal
   //                          receipt stays accurate even if the master
   //                          record is edited later. Walk-in sales fall
   //                          back to ZRA's '1000000000' at receipt time.
   addCol('customers', 'tpin',              'TEXT');
   addCol('orders',    'customer_tpin',     'TEXT');
-  // v1.13.137 â€” supplier TPIN. Populated by /api/zra/purchases/:id/approve
+  // v1.13.137 — supplier TPIN. Populated by /api/zra/purchases/:id/approve
   // (find-or-create supplier from a pulled VSDC purchase) and read by
   // routes/grn.js when a GRN fires savePurchase to VSDC. Without it the
-  // approve endpoint 500s with "no such column: tpin" â€” surfaced during
-  // Â§5.11 UAT-2 walkthrough.
+  // approve endpoint 500s with "no such column: tpin" — surfaced during
+  // §5.11 UAT-2 walkthrough.
   addCol('suppliers', 'tpin',              'TEXT');
-  // v1.13.101 â€” snapshot the customer's address at sale time so the
+  // v1.13.101 — snapshot the customer's address at sale time so the
   // ZRA tax invoice can print it (Part B Q4(vi) requires "customer's
   // name and address"). Walk-in sales (no customer_id) leave this
   // NULL and the receipt renders no address line.
   addCol('orders',    'customer_address',  'TEXT');
-  // v1.13.101 â€” T11A offline-block toggle. When 1 AND zra_enabled=1,
+  // v1.13.101 — T11A offline-block toggle. When 1 AND zra_enabled=1,
   // POST /orders pre-flights VSDC connectivity and rejects the sale
   // with 503 if VSDC is unreachable. Default OFF (0) preserves the
   // existing provisional-receipt behaviour. Toggle to 1 during ZRA
-  // UAT so the T11A test â€” which expects "invoice should not be
-  // created on the CIS" when VSDC is offline â€” passes strictly.
+  // UAT so the T11A test — which expects "invoice should not be
+  // created on the CIS" when VSDC is offline — passes strictly.
   //
-  // v1.13.141 â€” DEFAULT flipped 0 â†’ 1. Compliance is not optional:
+  // v1.13.141 — DEFAULT flipped 0 → 1. Compliance is not optional:
   // every tenant now boots with strict blocking on. UI toggle removed
   // in ZraConfig.js so no one can disable it. Existing tenants that
   // pre-date this bump keep their prior value (addCol only sets DEFAULT
   // on new rows); backfill script below is the one-shot fix for those.
   addCol('business_settings', 'zra_block_offline_sales', 'INTEGER NOT NULL DEFAULT 1');
-  // v1.13.153 â€” HQ has no VSDC device of its own by default (Pattern A
+  // v1.13.153 — HQ has no VSDC device of its own by default (Pattern A
   // decision). The T06A purchase-pull endpoints (pull/list/approve/
   // reject in routes/zra.js) need SOME live device to talk to ZRA on
   // Red Sea's behalf when the calling tenant (usually HQ) has none.
-  // This column names which branch tenant to proxy through â€” a plain
+  // This column names which branch tenant to proxy through — a plain
   // "phone line" to ZRA (the pulled data is TPIN-scoped, not
   // branch-owned, so proxying doesn't misattribute anything). Default
   // 'garden' matches what's actually been tested; clear it (empty
-  // string / NULL) once/if HQ registers its own device directly â€” the
+  // string / NULL) once/if HQ registers its own device directly — the
   // resolver in routes/zra.js checks the calling tenant's own device
   // first and only falls back to this column when that's absent.
-  // 2026-09-02 â€” default was 'garden'. Every branch was born pointing at
+  // 2026-09-02 — default was 'garden'. Every branch was born pointing at
   // Garden as its VSDC proxy without anyone choosing it, which would have
   // signed an Electron till's sales with Garden's sandbox device. Only
   // read when the VSDC URL is a proxy URL, so it was invisible. Existing
   // databases keep their value until updated; this is for new ones.
   addCol('business_settings', 'zra_proxy_branch_slug', "TEXT NOT NULL DEFAULT ''");
 
-  // 2026-08-27 â€” shared secret for the VSDC proxy (see routes/zra.js
+  // 2026-08-27 — shared secret for the VSDC proxy (see routes/zra.js
   // POST /vsdc-proxy/*). An Electron till has no Tomcat, so it reaches
-  // VSDC through the VPS; but vsdcClient is machine-to-machine â€” it
-  // fires during a sale and carries no user session â€” so the proxy
+  // VSDC through the VPS; but vsdcClient is machine-to-machine — it
+  // fires during a sale and carries no user session — so the proxy
   // cannot sit behind the normal `auth` middleware. It authenticates on
   // this per-tenant secret instead.
   //
@@ -2159,8 +2159,8 @@ function initTenantDb(db) {
       const upd = db.prepare('UPDATE business_settings SET zra_proxy_secret = ? WHERE id = ?');
       for (const r of needs) upd.run(gen, r.id);
     }
-  } catch (_) { /* fresh DB â€” column just created, nothing to seed yet */ }
-  // 2026-08-28 â€” the one-shot backfill that used to live here was NOT
+  } catch (_) { /* fresh DB — column just created, nothing to seed yet */ }
+  // 2026-08-28 — the one-shot backfill that used to live here was NOT
   // one-shot. It ran on every boot, so it re-enabled the toggle every
   // time the app started and the operator's choice never survived a
   // restart (Electron carries its own backend, so that is every launch).
@@ -2168,27 +2168,27 @@ function initTenantDb(db) {
   // strict blocking, so only rows that were NEVER set need seeding.
   try {
     db.prepare("UPDATE business_settings SET zra_block_offline_sales = 1 WHERE zra_block_offline_sales IS NULL").run();
-  } catch (_) { /* column not populated yet â€” fresh DB, ignore */ }
-  // v1.13.82 â€” link an approved ZRA purchase back to the draft GRN
+  } catch (_) { /* column not populated yet — fresh DB, ignore */ }
+  // v1.13.82 — link an approved ZRA purchase back to the draft GRN
   // auto-created by /api/zra/purchases/:id/approve.
   addCol('zra_pending_purchases', 'grn_id',        'INTEGER');
   addCol('zra_pending_purchases', 'grn_number',    'TEXT');
   addCol('zra_pending_purchases', 'match_summary', 'TEXT');
-  // v1.13.139 â€” approve now creates an HQ Purchase (master.db
+  // v1.13.139 — approve now creates an HQ Purchase (master.db
   // hq_purchases + hq_purchase_items) instead of a Flow-B DRAFT_ZRA
   // GRN, so the ZRA-pulled invoice enters Red Sea's normal 3-step
-  // workflow (Branch submits GRN â†’ HQ confirms â†’ stock bumps + ZRA
+  // workflow (Branch submits GRN → HQ confirms → stock bumps + ZRA
   // stock chain fires). These columns cross-reference the created HQ
   // purchase so the UI can badge / link back to it.
   addCol('zra_pending_purchases', 'hq_purchase_id',     'INTEGER');
   addCol('zra_pending_purchases', 'hq_purchase_number', 'TEXT');
 
-  // 2026-08-26 â€” Supplier item mapping for the ZRA Purchase Queue.
+  // 2026-08-26 — Supplier item mapping for the ZRA Purchase Queue.
   //
   // A supplier's ZRA item codes belong to THEIR TPIN, not ours: Chambishi
   // sends ZM2BGU23755 for a product we carry as ZM2NTBX0000023. The two
   // namespaces never coincide, so the approve handler's "match on
-  // zra_item_cd, else match on name" heuristic essentially never hits â€”
+  // zra_item_cd, else match on name" heuristic essentially never hits —
   // every line fell through to auto-create, quietly filling the catalogue
   // with duplicate products under the supplier's own naming.
   //
@@ -2196,12 +2196,12 @@ function initTenantDb(db) {
   // code to one of our products once and every future invoice from that
   // supplier matches it automatically.
   //
-  // Keyed on (spplr_tpin, spplr_item_cd) â€” scoped per supplier, because
+  // Keyed on (spplr_tpin, spplr_item_cd) — scoped per supplier, because
   // two suppliers' codes for the same physical product are unrelated.
   //
-  // action: 'MAP'    â€” spplr_item_cd is our product_sync_id
-  //         'CREATE' â€” always bring in as a new product
-  //         'IGNORE' â€” never bring this line onto a PO
+  // action: 'MAP'    — spplr_item_cd is our product_sync_id
+  //         'CREATE' — always bring in as a new product
+  //         'IGNORE' — never bring this line onto a PO
   // Storing CREATE/IGNORE (not just MAP) means a deliberate "this really
   // is new" or "never import this" decision is also remembered, instead
   // of re-prompting on every delivery.
@@ -2222,13 +2222,13 @@ function initTenantDb(db) {
       ON zra_supplier_item_map(spplr_tpin, spplr_item_cd);
   `);
 
-  // 2026-08-30 â€” remember which LOCAL supplier a ZRA supplier is, the same way
+  // 2026-08-30 — remember which LOCAL supplier a ZRA supplier is, the same way
   // zra_supplier_item_map remembers items.
   //
   // A pulled purchase carries only the supplier's TPIN and their registered
   // name. hqGrns.js resolves the supplier for a GRN by exact name match
   // against the local suppliers table, so a ZRA name with no local counterpart
-  // silently produces a GRN with no supplier link â€” which lands in AP as an
+  // silently produces a GRN with no supplier link — which lands in AP as an
   // orphan with a name but nothing to reconcile against.
   //
   // Keyed on TPIN, not name: the TPIN is the supplier's identity at ZRA and
@@ -2250,7 +2250,7 @@ function initTenantDb(db) {
       ON zra_supplier_map(spplr_tpin);
   `);
 
-  // 2026-08-26 (T05A) â€” Cache for /imports/selectImportItems pulls.
+  // 2026-08-26 (T05A) — Cache for /imports/selectImportItems pulls.
   //   Deliberately mirrors zra_pending_purchases above so the Import
   //   Queue page behaves identically to the ZRA Purchase Queue: pull to
   //   a local queue, inspect, decide, and let stock land only when the
@@ -2264,13 +2264,13 @@ function initTenantDb(db) {
   //      '3' = approved, '4' = rejected). Contrast the purchase queue,
   //      where ZRA already holds the supplier's side and a reject is
   //      pure bookkeeping.
-  //   2. Quantity is editable. T05A Test Procedure step 3 â€” "the user
-  //      updates the quantities accordingly" â€” the declared customs qty
+  //   2. Quantity is editable. T05A Test Procedure step 3 — "the user
+  //      updates the quantities accordingly" — the declared customs qty
   //      may differ from what physically arrived, so approved_qty is
   //      stored per line alongside the declared qty.
   //
   //   Granularity: ZRA returns import declarations as a flat item list,
-  //   each row keyed by (taskCd, dclNo, itemSeq) â€” there is no invoice
+  //   each row keyed by (taskCd, dclNo, itemSeq) — there is no invoice
   //   header to group by, so one row here is one declared ITEM, not one
   //   document. Dedup is on that triple.
   db.exec(`
@@ -2319,7 +2319,7 @@ function initTenantDb(db) {
       ON zra_pending_imports(status);
   `);
 
-  // v1.13.72 â€” Recommended Retail Price for MTV items (vatCatCd='B').
+  // v1.13.72 — Recommended Retail Price for MTV items (vatCatCd='B').
   // ZRA declares an RRP per SKU (usually via the manufacturer, e.g.
   // Zambian Breweries). Kelete may sell BELOW RRP; when they do, VSDC
   // needs VAT computed on MAX(actual_price, rrp) so the manufacturer's
@@ -2328,7 +2328,7 @@ function initTenantDb(db) {
   // NULL / 0 means "no RRP set" and the standard price-based VAT applies.
   addCol('products', 'zra_rrp',           'REAL');
 
-  // 2026-09-02 â€” the manufacturer's own item code for this SKU.
+  // 2026-09-02 — the manufacturer's own item code for this SKU.
   //
   // ZRA's /items/selectRrpItems returns RRPs keyed by the MANUFACTURER's
   // item code, not ours: Varun files "AQUACLEAR PET 500ML/12", we sell the
@@ -2345,7 +2345,7 @@ function initTenantDb(db) {
   addCol('products', 'zra_registered_at', 'TEXT');   // when saveItem returned 000
   addCol('products', 'zra_last_error',    'TEXT');
 
-  // â”€â”€ Fiscal fields on orders (sales invoices) â”€â”€
+  // ── Fiscal fields on orders (sales invoices) ──
   // cis_invc_no is what WE send; rcpt_no is what VSDC assigns and is the
   // permanent fiscal reference (used as orgIncNo on later credit notes).
   addCol('orders', 'zra_cis_invc_no',        'INTEGER');
@@ -2359,14 +2359,14 @@ function initTenantDb(db) {
   addCol('orders', 'zra_currency_ty_cd',     "TEXT DEFAULT 'ZMW'");
   addCol('orders', 'zra_exchange_rt',        'REAL DEFAULT 1');
   addCol('orders', 'zra_status',             "TEXT NOT NULL DEFAULT 'PENDING'"); // PENDING | SIGNED | FAILED | SKIPPED
-  // 2026-08-28 â€” WHY a fiscalisation failed, not just that it did.
+  // 2026-08-28 — WHY a fiscalisation failed, not just that it did.
   // 'OFFLINE'  = nothing answered; the retry queue will fix it, wait.
   // 'SETTINGS' = ZRA answered and refused, or the address/credentials are
-  //              wrong. Retrying cannot help â€” someone must correct the
+  //              wrong. Retrying cannot help — someone must correct the
   //              ZRA settings on this machine. The receipt says so.
   addCol('orders', 'zra_error_kind',         'TEXT');
 
-  // 2026-08-28 â€” rescue stock movements orphaned by the HQ GRN bug.
+  // 2026-08-28 — rescue stock movements orphaned by the HQ GRN bug.
   //
   // GRN confirmations written at HQ stamped tenant_id NULL (they read it from
   // hq_grns, which has no such column). The branch pull filters
@@ -2400,14 +2400,14 @@ function initTenantDb(db) {
   addCol('orders', 'zra_error_message',      'TEXT');
   addCol('orders', 'zra_last_attempt_at',    'TEXT');
   addCol('orders', 'zra_retry_count',        'INTEGER NOT NULL DEFAULT 0');
-  // 2026-08-27 â€” the sale response no longer waits for the ZRA stock
+  // 2026-08-27 — the sale response no longer waits for the ZRA stock
   // chain (saveStockItems + saveStockMaster): only saveSales produces the
   // signature and QR the receipt needs, so making the cashier wait for
   // the other two roughly doubled time-to-print for no benefit.
   //
   // Deferring it opens a window: if the process dies between responding
   // and finishing the chain, the sale is SIGNED but its stock never
-  // reaches ZRA â€” and nothing retries a stock chain for an already-signed
+  // reaches ZRA — and nothing retries a stock chain for an already-signed
   // order. This flag closes that. Set when the chain completes; the retry
   // queue sweeps signed orders still missing it.
   //
@@ -2421,29 +2421,29 @@ function initTenantDb(db) {
       `UPDATE orders SET zra_stock_chain_done = 1
         WHERE zra_status = 'SIGNED' AND COALESCE(zra_stock_chain_done, 0) = 0`
     ).run();
-  } catch (_) { /* fresh DB â€” nothing to backfill */ }
+  } catch (_) { /* fresh DB — nothing to backfill */ }
   // Sale-type qualifier for reprints. VSDC sees the same invoice as a
   // "COPY" (salesTyCd=C) instead of a duplicate original.
   addCol('orders', 'zra_reprint_count',      'INTEGER NOT NULL DEFAULT 0');
 
-  // LPO (Local Purchase Order) invoicing â€” T08A #6. When set, every line
+  // LPO (Local Purchase Order) invoicing — T08A #6. When set, every line
   // on this sale is treated as vatCatCd='C2' (zero-rated LPO) regardless
   // of the product's declared category, and the LPO number rides on the
   // header lpoNumber field for ZRA cross-verification against TaxOnline.
   // A valid LPO number requires (seller TPIN, buyer TPIN, lpoNumber) to
-  // match a live LPO certificate â€” sandbox test data uses 109506957.
+  // match a live LPO certificate — sandbox test data uses 109506957.
   addCol('orders', 'lpo_number',             'TEXT');
 
-  // v1.13.100 â€” Credit-note fiscal fields on the same order row (T08A
+  // v1.13.100 — Credit-note fiscal fields on the same order row (T08A
   // #13/14). When /reverse or /:id/items/:itemId/reverse fires a
   // rcptTyCd='R' saveSales, ZRA hands back a NEW receipt (rcptNo,
   // intrlData, rcptSign, qrCodeUrl, sdcId, vsdcRcptPbctDate) that must
   // be preserved so the CN can be reprinted with its own fiscal
-  // signature â€” not the original sale's. Earlier revisions passed
+  // signature — not the original sale's. Earlier revisions passed
   // skipOrderPersist=true and threw the response away, which means
   // Kelete had no fiscal proof of the reversal at all. Multiple partial
   // reversals overwrite these fields with the latest CN; that's a
-  // conscious trade-off â€” the tester will only issue one CN per order
+  // conscious trade-off — the tester will only issue one CN per order
   // during T08A, and stacking-history isn't a documented ZRA
   // requirement. If it becomes one, migrate to sales_returns rows.
   addCol('orders', 'zra_cn_cis_invc_no',        'INTEGER');
@@ -2454,24 +2454,24 @@ function initTenantDb(db) {
   addCol('orders', 'zra_cn_mrc_no',             'TEXT');
   addCol('orders', 'zra_cn_vsdc_rcpt_pbct_date','TEXT');
   addCol('orders', 'zra_cn_qr_code_url',        'TEXT');
-  addCol('orders', 'zra_cn_rfd_rsn_cd',         'TEXT'); // 01â€“07 per spec 6.15
-  // v1.13.136 â€” Free-text description required when zra_cn_rfd_rsn_cd = '07'.
-  // ZRA VSDC spec Â§6.15 wording: "Other (Provide other reason in brief)".
-  // Rendered on the CN receipt as "Reason: 07 â€” Other (<brief>)". NULL when
-  // reason is 01â€“06 (label alone suffices). Not sent to VSDC â€” kept local
+  addCol('orders', 'zra_cn_rfd_rsn_cd',         'TEXT'); // 01–07 per spec 6.15
+  // v1.13.136 — Free-text description required when zra_cn_rfd_rsn_cd = '07'.
+  // ZRA VSDC spec §6.15 wording: "Other (Provide other reason in brief)".
+  // Rendered on the CN receipt as "Reason: 07 — Other (<brief>)". NULL when
+  // reason is 01–06 (label alone suffices). Not sent to VSDC — kept local
   // for audit + receipt display.
   addCol('orders', 'zra_cn_rfd_rsn_other',      'TEXT');
   addCol('orders', 'zra_cn_signed_at',          'TEXT');
-  // v1.13.136 â€” Local CN display number for non-fiscal reversals (ZRA off).
-  // Format like "CN-2026-A5C013-0197" â€” generated via syncConfig.generateNumber
+  // v1.13.136 — Local CN display number for non-fiscal reversals (ZRA off).
+  // Format like "CN-2026-A5C013-0197" — generated via syncConfig.generateNumber
   // on the reverse route when the original sale was not fiscal-signed. Read by
   // the CN receipt template to render a proper "Credit Note No." line even
   // without a ZRA fiscal signature. Lets Buseko (ZRA off during UAT-1)
   // produce a compliant-looking CN with a distinct number that does not
-  // reuse the original invoice number. NULL when ZRA is on â€” the CN gets
+  // reuse the original invoice number. NULL when ZRA is on — the CN gets
   // its number from zra_cn_rcpt_no (VSDC-returned CRN) instead.
   addCol('orders', 'local_cn_number',           'TEXT');
-  // v1.13.124 â€” mark when the CN was first printed. Subsequent prints
+  // v1.13.124 — mark when the CN was first printed. Subsequent prints
   // add a "COPY / DUPLICATE" band above the "TAX CREDIT NOTE" band so
   // ZRA Attachment 4 (Duplicate CN) is visually distinguishable from
   // Attachment 3 (Original CN). Kept on orders row (not a separate
@@ -2486,14 +2486,14 @@ function initTenantDb(db) {
   addCol('sales_returns', 'zra_rcpt_sign',          'TEXT');
   addCol('sales_returns', 'zra_sdc_id',             'TEXT');
   addCol('sales_returns', 'zra_qr_code_url',        'TEXT');
-  addCol('sales_returns', 'zra_org_incc_no',        'INTEGER'); // orgIncNo â€” the original invoice's rcptNo
+  addCol('sales_returns', 'zra_org_incc_no',        'INTEGER'); // orgIncNo — the original invoice's rcptNo
   addCol('sales_returns', 'zra_org_sdc_id',         'TEXT');
-  addCol('sales_returns', 'zra_rfd_rsn_cd',         'TEXT');    // 01â€“07 (see spec 6.15)
+  addCol('sales_returns', 'zra_rfd_rsn_cd',         'TEXT');    // 01–07 (see spec 6.15)
   addCol('sales_returns', 'zra_status',             "TEXT NOT NULL DEFAULT 'PENDING'");
   addCol('sales_returns', 'zra_error_code',         'TEXT');
   addCol('sales_returns', 'zra_error_message',      'TEXT');
 
-  // Purchase fiscal fields on GRN â€” VSDC's savePurchase (regTyCd=M for
+  // Purchase fiscal fields on GRN — VSDC's savePurchase (regTyCd=M for
   // non-VSDC suppliers, or approve rows from selectTrnsPurchaseSales).
   addCol('grn', 'zra_pchs_invc_no',   'INTEGER');
   addCol('grn', 'zra_spplr_tpin',     'TEXT');
@@ -2504,19 +2504,19 @@ function initTenantDb(db) {
   addCol('grn', 'zra_error_code',     'TEXT');
   addCol('grn', 'zra_error_message',  'TEXT');
 
-  // â”€â”€ Debit Notes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.13.38 â€” post-sale ADDITIONAL charge tied to an original invoice.
+  // ── Debit Notes ────────────────────────────────────────────────────────
+  // v1.13.38 — post-sale ADDITIONAL charge tied to an original invoice.
   // Mirrors the credit-note (reverse) shape but adds money the customer
   // owes instead of refunding. VSDC saveSales with rcptTyCd='D' and
   // orgIncNo/orgSdcId back-referencing the original invoice.
   //
-  // Reason codes (ZRA spec 6.16 â€” same list as credit notes):
-  //   01 wrong product Â· 02 wrong price Â· 03 damaged Â· 04 wrong customer
-  //   05 duplicate     Â· 06 excess      Â· 07 other
+  // Reason codes (ZRA spec 6.16 — same list as credit notes):
+  //   01 wrong product · 02 wrong price · 03 damaged · 04 wrong customer
+  //   05 duplicate     · 06 excess      · 07 other
   //
   // For the distributor case the common trigger is "we forgot to bill
   // the delivery fee" or "the item was more expensive than invoiced".
-  // Kept monetary-only for v1 â€” the ZRA payload uses a single synthetic
+  // Kept monetary-only for v1 — the ZRA payload uses a single synthetic
   // "Additional charge" line at std VAT. Physical-item DNs can be layered
   // on later without changing the schema.
   db.exec(`
@@ -2562,14 +2562,14 @@ function initTenantDb(db) {
     CREATE INDEX IF NOT EXISTS idx_debit_notes_date ON debit_notes (date);
   `);
 
-  // v1.13.62 â€” Customer-side empties ledger.
+  // v1.13.62 — Customer-side empties ledger.
   //   Audit trail of every event that moved a customer's empty_balance:
-  //     order_id NOT NULL, kind='sale'          â†’ happened on a POS sale
-  //     order_id IS  NULL, kind='pure_return'   â†’ Case 4 standalone slip
+  //     order_id NOT NULL, kind='sale'          → happened on a POS sale
+  //     order_id IS  NULL, kind='pure_return'   → Case 4 standalone slip
   //   qty is signed:
   //     + credit added to customer (returned more than kept)
-  //     âˆ’ credit drawn (customer used up prior credit to reduce a shortfall)
-  //   Not money â€” never touches AR / Cash Book / Sales Report.
+  //     − credit drawn (customer used up prior credit to reduce a shortfall)
+  //   Not money — never touches AR / Cash Book / Sales Report.
   db.exec(`
     CREATE TABLE IF NOT EXISTS customer_empty_returns (
       id                INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -2579,7 +2579,7 @@ function initTenantDb(db) {
       customer_name     TEXT,
       kind              TEXT NOT NULL DEFAULT 'sale',   -- 'sale' | 'pure_return' | 'adjustment'
       qty               INTEGER NOT NULL,               -- signed; see above
-      order_id          INTEGER,                        -- nullable â€” set when kind='sale'
+      order_id          INTEGER,                        -- nullable — set when kind='sale'
       order_sync_id     TEXT,
       order_number      TEXT,
       balance_after     INTEGER NOT NULL,               -- customer.empty_balance right after this row landed
@@ -2597,13 +2597,13 @@ function initTenantDb(db) {
     CREATE INDEX IF NOT EXISTS idx_cust_empty_returns_order ON customer_empty_returns (order_id);
   `);
 
-  // v1.13.67 â€” Bearer voucher system for empty containers.
+  // v1.13.67 — Bearer voucher system for empty containers.
   //   Replaces the customers.empty_balance flow (v1.13.62). Anyone can
-  //   return empties at the Controller station â€” no customer registration
+  //   return empties at the Controller station — no customer registration
   //   required. The Controller issues an EMP- voucher with the qty;
   //   whoever holds the physical slip can redeem it at POS.
   //
-  //   Sales Report + Cash Book are NEVER touched by this table â€” empties
+  //   Sales Report + Cash Book are NEVER touched by this table — empties
   //   are physical stock, not money.
   //
   //   Partial redemption is supported: qty_remaining drops per claim;
@@ -2638,7 +2638,7 @@ function initTenantDb(db) {
     CREATE INDEX IF NOT EXISTS idx_empty_vouchers_status ON empty_vouchers (status);
     CREATE INDEX IF NOT EXISTS idx_empty_vouchers_number ON empty_vouchers (voucher_number);
 
-    -- v1.13.155 â€” duplicate-sale review. A pair of sales is flagged when the
+    -- v1.13.155 — duplicate-sale review. A pair of sales is flagged when the
     -- items, quantities, total and cashier all match and they are seconds
     -- apart; INV-0067 and INV-0068 at Chawama were 6 seconds apart with an
     -- identical basket. The cause is a checkout that saved but whose response
@@ -2647,7 +2647,7 @@ function initTenantDb(db) {
     -- again.
     --
     -- This table records ONLY that a human looked at a pair and judged it
-    -- fine. It reverses nothing, deletes nothing and moves no money â€” both
+    -- fine. It reverses nothing, deletes nothing and moves no money — both
     -- sales stay exactly as they are. It exists so the same pair stops being
     -- raised tomorrow.
     --
@@ -2698,7 +2698,7 @@ function initTenantDb(db) {
     CREATE INDEX IF NOT EXISTS idx_empty_voucher_claims_order   ON empty_voucher_claims (order_id);
   `);
 
-  // 2026-08-31 â€” which empty this voucher is for. Placed HERE, immediately
+  // 2026-08-31 — which empty this voucher is for. Placed HERE, immediately
   // after empty_vouchers is created, not up with the other addCol calls: the
   // table does not exist at that point in this file, so a fresh tenant DB
   // failed to build at all.
@@ -2711,10 +2711,10 @@ function initTenantDb(db) {
   addCol('empty_vouchers', 'product_sync_id', 'TEXT');
   addCol('empty_vouchers', 'product_name',    'TEXT');
 
-  // â”€â”€ ZRA code cache tables â”€â”€
+  // ── ZRA code cache tables ──
   // Populated by daily cron pulls from /code/selectCodes and
   // /itemClass/selectItemsClass. Local cache so the POS never round-trips
-  // to VSDC just to render a dropdown. Large â€” expect ~40k rows in
+  // to VSDC just to render a dropdown. Large — expect ~40k rows in
   // zra_item_classes (UNSPSC), a few hundred in zra_codes.
   db.exec(`
     CREATE TABLE IF NOT EXISTS zra_codes (
@@ -2780,14 +2780,14 @@ function initTenantDb(db) {
     CREATE INDEX IF NOT EXISTS idx_zra_audit_result  ON zra_audit_log (result_cd);
   `);
 
-  // v1.6.0 â€” Categories, main_categories and units are also HQ-owned now.
+  // v1.6.0 — Categories, main_categories and units are also HQ-owned now.
   // Same mechanism as products: HQ writes push to every branch with
   // is_hq_owned=1; branches can't edit/delete those rows.
   addCol('categories',      'is_hq_owned', 'INTEGER NOT NULL DEFAULT 0');
   addCol('main_categories', 'is_hq_owned', 'INTEGER NOT NULL DEFAULT 0');
   addCol('units',           'is_hq_owned', 'INTEGER NOT NULL DEFAULT 0');
 
-  // v1.7.0 â€” Triple currency (USD + FRA + K). Adds a parallel set of K
+  // v1.7.0 — Triple currency (USD + FRA + K). Adds a parallel set of K
   // columns to fx_rates + orders, mirroring the FRA columns from v1.4.0
   // / v1.0. K is a foreign-cash currency the cashier may accept; items
   // stay priced in USD (base). currency_mode='USD+FRA+K' enables it
@@ -2801,13 +2801,13 @@ function initTenantDb(db) {
   // one based on the order's created_at, and the chart can plot intra-day.
   addCol('fx_rates', 'effective_at', 'TEXT'); // SQLite DATETIME (YYYY-MM-DD HH:MM:SS)
 
-  // v1.8.82 â€” TZ FIX self-heal: previously effective_at was stored as the
+  // v1.8.82 — TZ FIX self-heal: previously effective_at was stored as the
   // user's LOCAL time string but compared against SQLite datetime('now')
   // (UTC) in /current. Any row whose effective_at is > current UTC NOW is
   // a misstored local-time value (no one legitimately back-sets future
   // effective times in practice).
   //
-  // v1.8.81's heal tried to convert localâ†’UTC using new Date() â€” but on a
+  // v1.8.81's heal tried to convert local→UTC using new Date() — but on a
   // UTC server that's a no-op (server tz == UTC means the conversion adds
   // nothing). So those rows stayed broken.
   //
@@ -2834,17 +2834,17 @@ function initTenantDb(db) {
   addCol('orders',   'selling_rate_k_used','REAL');
   addCol('orders',   'buying_rate_k_used', 'REAL');
 
-  // v1.8.68 â€” split phantom-debt change_amount into per-currency tracking.
+  // v1.8.68 — split phantom-debt change_amount into per-currency tracking.
   // BEFORE: change_amount stored USD-equivalent of every over-payment, even
   // when the over-payment was paid in FRA/K. Cash Report subtracted it from
-  // the USD drawer â†’ phantom surplus on USD when customer overpaid in FRA.
+  // the USD drawer → phantom surplus on USD when customer overpaid in FRA.
   // AFTER: usd_change_given holds ONLY physical USD returned. overpaid_kept_*
   // captures over-payments the cashier kept in the original currency.
   addCol('orders',   'usd_change_given',   'REAL NOT NULL DEFAULT 0');
   addCol('orders',   'overpaid_kept_ccy',  'TEXT');   // 'USD' | 'FRA' | 'K' | NULL
   addCol('orders',   'overpaid_kept_amt',  'REAL NOT NULL DEFAULT 0'); // in source ccy
 
-  // v1.13.128 â€” ZRA branch-registry sync tracking for users + customers.
+  // v1.13.128 — ZRA branch-registry sync tracking for users + customers.
   // Mirrors the products.zra_registered_at / zra_last_error pattern so
   // /branches/saveBrancheUser + /branches/saveBrancheCustomers can record
   // "did this row make it to ZRA and when." Retry sweeps look for
@@ -2852,13 +2852,13 @@ function initTenantDb(db) {
   // (failed last time).
   addCol('users',     'zra_registered_at', 'TEXT');
   addCol('users',     'zra_last_error',    'TEXT');
-  // 2026-09-15 â€” route seller tick (Users â†’ Edit). Their sales are counted as
-  // route selling in HQ â†’ Route Selling; stock and cash stay with the depot.
+  // 2026-09-15 — route seller tick (Users → Edit). Their sales are counted as
+  // route selling in HQ → Route Selling; stock and cash stay with the depot.
   addCol('users',     'is_route_seller',   'INTEGER NOT NULL DEFAULT 0');
   addCol('customers', 'zra_registered_at', 'TEXT');
   addCol('customers', 'zra_last_error',    'TEXT');
 
-  // v1.13.128j â€” Fiscal snapshot columns on order_items. A tax invoice
+  // v1.13.128j — Fiscal snapshot columns on order_items. A tax invoice
   // MUST be immutable: once issued, reprints and reports must show the
   // exact figures the customer saw at the time of sale, regardless of
   // later changes to product master (RRP, VAT category) or receipt
@@ -2868,13 +2868,13 @@ function initTenantDb(db) {
   // history on old invoices. These five columns freeze the fiscal
   // fields at sale time:
   //
-  //   zra_rrp_snap        â€” RRP Ã— qty on this line at the moment of sale
-  //   zra_vat_cat_snap    â€” VAT category code (A/B/C1/â€¦/D/E) at sale time
-  //   zra_vat_rate        â€” the rate applied (16 for A/B, 0 for C/D/E)
-  //   zra_vat_taxbl_amt   â€” Net (VAT-exclusive) per ZRA VSDC spec Â§5.9:
-  //                          max(sale, RRP Ã— qty) / (1 + rate/100)
+  //   zra_rrp_snap        — RRP × qty on this line at the moment of sale
+  //   zra_vat_cat_snap    — VAT category code (A/B/C1/…/D/E) at sale time
+  //   zra_vat_rate        — the rate applied (16 for A/B, 0 for C/D/E)
+  //   zra_vat_taxbl_amt   — Net (VAT-exclusive) per ZRA VSDC spec §5.9:
+  //                          max(sale, RRP × qty) / (1 + rate/100)
   //                          For Cat B sold < RRP this is RRP-boosted.
-  //   zra_vat_amt         â€” VAT: max(sale, RRP Ã— qty) Ã— rate / (rate+100)
+  //   zra_vat_amt         — VAT: max(sale, RRP × qty) × rate / (rate+100)
   //
   // Reprints, VAT Report, Sales Report and VSDC saveSales all read
   // from these columns when present; the previous live-recompute path
@@ -2887,11 +2887,11 @@ function initTenantDb(db) {
 
   // One-shot backfill for rows created before the snapshot columns
   // existed. Uses the CURRENT products.zra_vat_cat_cd + zra_rrp because
-  // those are the only historical values we have â€” better than leaving
+  // those are the only historical values we have — better than leaving
   // NULL, which would force reads to fall back to live recompute
   // (defeating the immutability purpose for pre-migration invoices).
   // Runs once: only touches rows where the snapshot is still NULL.
-  // ZRA VAT_RATES follow the VSDC API spec Â§6.1: A/B/RVAT = 16, F = 10,
+  // ZRA VAT_RATES follow the VSDC API spec §6.1: A/B/RVAT = 16, F = 10,
   // everything else (C1/C2/C3/D/E) = 0.
   try {
     const info = db.prepare("PRAGMA table_info(order_items)").all();
@@ -2939,13 +2939,13 @@ function initTenantDb(db) {
     console.warn('[migration] order_items ZRA snapshot backfill skipped:', e.message);
   }
 
-  // v1.10.109 (from Kelete) â€” REMOVED the v1.8.68 backfill block that copied
-  // change_amount â†’ usd_change_given on every startup. On Kelete it inflated
+  // v1.10.109 (from Kelete) — REMOVED the v1.8.68 backfill block that copied
+  // change_amount → usd_change_given on every startup. On Kelete it inflated
   // FRA-change orders on Kassumbalesa; on Kelete (K-only) it would similarly
   // stamp phantom USD change onto K change_amount rows. Kelete is fresh DBs
-  // and never uses USD, so the block has no legitimate work to do â€” dropped.
+  // and never uses USD, so the block has no legitimate work to do — dropped.
 
-  // v1.8.77 â€” SELF-HEALING fix for orders confirmed before v1.8.74 when the
+  // v1.8.77 — SELF-HEALING fix for orders confirmed before v1.8.74 when the
   // backend defaulted overpaid_kept_ccy='USD' any time the customer paid some
   // USD, even though the actual over-payment was in FRA/K. Symptom: Cash
   // Report Over-Collections shows "USD +$0.11" but Sales Report USD column
@@ -2953,13 +2953,13 @@ function initTenantDb(db) {
   // the FRA-overpayment USD-equivalent.
   //
   // Heals only the orders that match the bug fingerprint:
-  //   â€¢ overpaid_kept_ccy = 'USD'
-  //   â€¢ cash_received > 0 (USD was paid)
-  //   â€¢ fra_received > 0 OR k_received > 0 (foreign currency also paid)
-  //   â€¢ usd_change_given > 0 (USD supposedly returned, but it shouldn't have been)
-  //   â€¢ fra_change_given = 0 AND k_change_given = 0 (cashier kept the change)
+  //   • overpaid_kept_ccy = 'USD'
+  //   • cash_received > 0 (USD was paid)
+  //   • fra_received > 0 OR k_received > 0 (foreign currency also paid)
+  //   • usd_change_given > 0 (USD supposedly returned, but it shouldn't have been)
+  //   • fra_change_given = 0 AND k_change_given = 0 (cashier kept the change)
   // Re-attributes overpaid_kept_ccy/amt using source-currency priority
-  // (USD pays first â†’ FRA â†’ K, surplus lives in the LAST currency used),
+  // (USD pays first → FRA → K, surplus lives in the LAST currency used),
   // and zeroes usd_change_given since no USD was actually returned.
   try {
     const sus = db.prepare(`
@@ -2993,7 +2993,7 @@ function initTenantDb(db) {
         const paidK    = parseFloat(r.k_received     || 0) || 0;
         const sellR    = parseFloat(r.selling_rate_used   || 0) || 0;
         const sellRK   = parseFloat(r.selling_rate_k_used || 0) || 0;
-        // Source-currency over-payment chain (USD â†’ FRA â†’ K)
+        // Source-currency over-payment chain (USD → FRA → K)
         let rem = totalDue - Math.min(paidUSD, totalDue);
         let overUSD  = paidUSD - Math.min(paidUSD, totalDue);
         let overFRA = 0, overK = 0;
@@ -3018,15 +3018,15 @@ function initTenantDb(db) {
         upd.run(newCcy, newAmt, r.id);
         healed++;
       }
-      if (healed > 0) console.log(`[self-heal overpaid_kept] re-attributed ${healed} order(s) from USD default â†’ source currency`);
+      if (healed > 0) console.log(`[self-heal overpaid_kept] re-attributed ${healed} order(s) from USD default → source currency`);
     }
   } catch (e) { /* table may not yet have all columns on a fresh DB */ }
 
-  // v1.8.80 â€” SELF-HEALING zero-out for usd_change_given when the surplus is
+  // v1.8.80 — SELF-HEALING zero-out for usd_change_given when the surplus is
   // actually in a FRA or K drawer. The v1.8.68 backfill blindly seeded
   // usd_change_given = change_amount for ALL orders, but for orders where the
   // cashier kept the surplus in FRA/K (overpaid_kept_ccy != 'USD'), no USD
-  // was physically returned â€” so usd_change_given should be 0.
+  // was physically returned — so usd_change_given should be 0.
   // Symptom: Sales Report By Payment USD column shows '$199.89' instead of
   // '$200.00' for orders where the customer paid USD + FRA and the FRA
   // surplus was kept by the cashier (e.g. ORD-0016).
@@ -3045,34 +3045,34 @@ function initTenantDb(db) {
     }
   } catch (e) { /* fresh DB or columns not yet present */ }
 
-  // v1.13.20 â€” REMOVED two Kelete-inherited self-healers that are dead
+  // v1.13.20 — REMOVED two Kelete-inherited self-healers that are dead
   // code on Kelete's K-only Liquor setup:
-  //   (a) v1.8.83 self-heal cash_receipts FRA/K from cash_reports â€”
+  //   (a) v1.8.83 self-heal cash_receipts FRA/K from cash_reports —
   //       fra_received / k_received in cash_reports are always 0 on
   //       Kelete, so this was a permanent no-op that would only ever
   //       fire on a currency_mode change (in which case it would
   //       silently mutate CRs). Same risk profile as the deleted
   //       Kelete v1.8.68 usd_change_given backfill.
-  //   (b) v1.8.58 self-heal orders.cash_received â€” WHERE requires
+  //   (b) v1.8.58 self-heal orders.cash_received — WHERE requires
   //       fra_received > 0 OR k_received > 0, both permanently 0 on
   //       K-only Kelete. Dead code with a mutating time bomb if
   //       currency mode ever changes.
   // If Kelete moves to USD+FRA+K later, port the Kelete versions back.
 
-  // â”€â”€ v1.8.95 â€” SELF-HEALING products.current_stock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── v1.8.95 — SELF-HEALING products.current_stock ────────────────────────
   // current_stock is a cached/denormalized snapshot of total on-hand stock
   // per product. Truth lives in stock_movements (sum of in/out moves).
   // The cache gets out of sync because some legacy code paths bypass the
   // movements log when editing it. Real incident: SAVANNA 330ML showed
   // 300 Bottle on Inter-Branch Transfer page while Stock Reconciliation
-  // (which computes live from stock_movements) showed 22,398 Bottle â€” a
+  // (which computes live from stock_movements) showed 22,398 Bottle — a
   // 75x discrepancy that almost let a cashier under-transfer by 22,000.
   //
   // Strategy C heal: on every backend boot, rebuild current_stock for
   // every product by summing its non-deleted stock_movements. Brings the
   // cache back to truth so the 9 readers that still trust it (HQ
   // Inventory, Branch Dashboard low-stock widget, Stock Count baseline,
-  // etc.) display correct numbers. Idempotent â€” running again gives
+  // etc.) display correct numbers. Idempotent — running again gives
   // identical results. ~50ms for 1000 products.
   try {
     const result = db.prepare(`
@@ -3095,7 +3095,7 @@ function initTenantDb(db) {
     console.warn('[self-heal current_stock] skipped:', e.message);
   }
 
-  // v1.10.53 â€” Seed products.avg_cost_price for rows that still have NULL.
+  // v1.10.53 — Seed products.avg_cost_price for rows that still have NULL.
   // Uses the same formula profitHelper.js was computing on the fly:
   //   avg = SUM(grn_items.total_price) / SUM(base_qty_from_units_json)
   // Only touches products where avg_cost_price IS NULL, so subsequent

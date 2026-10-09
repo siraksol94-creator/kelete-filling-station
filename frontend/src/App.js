@@ -10,7 +10,7 @@ import { isHqHost, setBranchSlug } from './services/api';
 // install (per-branch subdomain OR Electron desktop) those queries
 // either fail or return empty + the UI is meaningless. So if the host
 // isn't HQ we redirect anywhere a /hq/* URL is hit. Sidebar entries are
-// already hidden by Layout.js â€” this catches direct URL navigation +
+// already hidden by Layout.js — this catches direct URL navigation +
 // retained-from-prior-session URLs after a v1.3.12 update.
 const HqRoute = ({ children }) => {
   if (!isHqHost()) return <Navigate to="/" replace />;
@@ -43,9 +43,9 @@ import HqConfirmDamages from './pages/HqConfirmDamages';
 import HqProducts from './pages/HqProducts';
 import IncomingStock from './pages/IncomingStock';
 import ItemDetails from './pages/ItemDetails';
-import QuickPrice from './pages/QuickPrice'; // v1.8.34 â€” bulk price editor
-import OpeningBalance from './pages/OpeningBalance'; // v1.13.153 â€” branch opening stock + price
-import BranchPrices from './pages/BranchPrices'; // v1.13.154 â€” HQ sets one branch's prices
+import QuickPrice from './pages/QuickPrice'; // v1.8.34 — bulk price editor
+import OpeningBalance from './pages/OpeningBalance'; // v1.13.153 — branch opening stock + price
+import BranchPrices from './pages/BranchPrices'; // v1.13.154 — HQ sets one branch's prices
 import GRN from './pages/GRN';
 import EmptyReturns from './pages/EmptyReturns';
 import SIV from './pages/SIV';
@@ -107,14 +107,14 @@ const PrivateRoute = ({ children }) => {
 };
 
 // Blocks page access if user lacks the required permission(s)
-// perms: array of permission strings â€” user needs at least one
+// perms: array of permission strings — user needs at least one
 // adminOnly: true = only Administrators can access
 // allAccessOnly: true = only users with All/Full Access (not Custom) can access
 const PermRoute = ({ children, perms = [], adminOnly = false, allAccessOnly = false }) => {
   const { user, hasPermission, hasPageAccess, isAllAccess } = useAuth();
   if (!user) return <Navigate to="/login" />;
   const fallback = () => {
-    // 2026-08-30 â€” mirror DefaultRedirect: on HQ, prefer HQ pages, otherwise a
+    // 2026-08-30 — mirror DefaultRedirect: on HQ, prefer HQ pages, otherwise a
     // blocked HQ user bounces to /no-access with permissions they can use.
     const lists = isHqHost() ? [HQ_PRIORITY, CUSTOM_PRIORITY] : [CUSTOM_PRIORITY];
     for (const list of lists) {
@@ -131,9 +131,9 @@ const PermRoute = ({ children, perms = [], adminOnly = false, allAccessOnly = fa
 };
 
 // Redirects based on access level:
-// - All access â†’ /dashboard
-// - POS only â†’ /pos
-// - Custom permissions â†’ /settings/profile (safe landing page everyone can see)
+// - All access → /dashboard
+// - POS only → /pos
+// - Custom permissions → /settings/profile (safe landing page everyone can see)
 const broaderPerms = ['Sales','Stock','GRN','SIV','Accounting','Suppliers','Customers','Reports'];
 
 const CUSTOM_PRIORITY = [
@@ -176,7 +176,7 @@ const CUSTOM_PRIORITY = [
   { page: 'Customers',        path: '/suppliers-customers/customers' },
 ];
 
-// 2026-08-30 â€” the HQ equivalent of CUSTOM_PRIORITY.
+// 2026-08-30 — the HQ equivalent of CUSTOM_PRIORITY.
 //
 // CUSTOM_PRIORITY is entirely branch pages. Once HQ Overview stopped being
 // the unconditional landing page, an HQ user who lacks it had nothing in that
@@ -204,10 +204,10 @@ const DefaultRedirect = () => {
   if (!user) return <Navigate to="/login" />;
   // HQ users land on the cross-branch overview by default. Use the
   // shared isHqHost() so the Electron-is-never-HQ rule (v1.3.12) is
-  // honoured here too â€” otherwise a localhost Electron would land on
+  // honoured here too — otherwise a localhost Electron would land on
   // /hq/overview, get bounced by HqRoute back to "/", land here again,
-  // re-redirect to /hq/overviewâ€¦ infinite loop.
-  // 2026-08-30 â€” only land on the overview if the user may actually see it.
+  // re-redirect to /hq/overview… infinite loop.
+  // 2026-08-30 — only land on the overview if the user may actually see it.
   // This used to be unconditional, which is how a Staff account ended up on a
   // cross-branch revenue page it had no permission for. Everyone else falls
   // through to the same first-accessible-page search as a branch user.
@@ -216,7 +216,7 @@ const DefaultRedirect = () => {
   }
   if (isAllAccess()) return <Navigate to="/dashboard" />;
   // Find first page the custom user has access to. On HQ, try the HQ pages
-  // first â€” the branch list below still applies for pages both sides share.
+  // first — the branch list below still applies for pages both sides share.
   const lists = isHqHost() ? [HQ_PRIORITY, CUSTOM_PRIORITY] : [CUSTOM_PRIORITY];
   for (const list of lists) {
     for (const entry of list) {
@@ -241,7 +241,7 @@ function AppRoutes() {
       })
       .then(async data => {
         if (!data) return;
-        // On web, subdomain identifies the tenant â€” skip Setup, go straight to login
+        // On web, subdomain identifies the tenant — skip Setup, go straight to login
         setIsConfigured(isWeb ? true : !!data.isConfigured);
         // Electron-only: cache this install's branch slug for pages that
         // need it client-side (e.g. Inter-Branch Transfers). Derived from
@@ -256,7 +256,7 @@ function AppRoutes() {
         if (data.isConfigured && data.tenantId && data.tenantId !== 'local-only') {
           const base = data.vpsUrl || '';
           // 3-second timeout so the license check doesn't hang forever if VPS is unreachable.
-          // It's fire-and-forget anyway â€” the app still loads even if this fails.
+          // It's fire-and-forget anyway — the app still loads even if this fails.
           const licenseAbort = new AbortController();
           const licenseTimer = setTimeout(() => licenseAbort.abort(), 3000);
           fetch(`${base}/api/sync/license-status?tenantId=${data.tenantId}`, { signal: licenseAbort.signal })
@@ -281,7 +281,7 @@ function AppRoutes() {
   if (!syncChecked) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
-        <div style={{ fontSize: 32 }}>ðŸ·</div>
+        <div style={{ fontSize: 32 }}>🍷</div>
       </div>
     );
   }
@@ -290,14 +290,14 @@ function AppRoutes() {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #fff1f1 0%, #fdf2f8 100%)' }}>
         <div style={{ background: '#fff', borderRadius: 16, padding: '48px 40px', width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.1)', textAlign: 'center' }}>
-          <div style={{ fontSize: 64, marginBottom: 16 }}>ðŸ”’</div>
+          <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
           <h1 style={{ color: '#dc2626', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Subdomain Not Registered</h1>
           <p style={{ color: '#6b7280', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
             This subdomain has not been registered on Kelete.<br />
             Please contact <strong style={{ color: '#111827' }}>SIDAN IT & Business Solutions</strong> to get your account set up.
           </p>
           <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#374151' }}>
-            ðŸ“ž Contact us to register your business and get started.
+            📞 Contact us to register your business and get started.
           </div>
         </div>
       </div>
@@ -314,11 +314,11 @@ function AppRoutes() {
     );
   }
 
-  // Cloud license expired â€” block access
+  // Cloud license expired — block access
   if (licenseStatus?.isExpired) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fef2f2', padding: 32, textAlign: 'center' }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>ðŸ”’</div>
+        <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
         <h1 style={{ color: '#dc2626', fontSize: 24, marginBottom: 8 }}>License Expired</h1>
         <p style={{ color: '#7f1d1d', fontSize: 15, maxWidth: 400 }}>
           Your Kelete license expired on <strong>{licenseStatus.expiresAt?.substring(0,10)}</strong>.
@@ -341,7 +341,7 @@ function AppRoutes() {
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<DefaultRedirect />} />
         <Route path="dashboard" element={<PermRoute allAccessOnly><Dashboard /></PermRoute>} />
-        {/* 2026-09-14 â€” Messages: every signed-in user, HQ and depots. */}
+        {/* 2026-09-14 — Messages: every signed-in user, HQ and depots. */}
         <Route path="messages" element={<Messages />} />
         <Route path="pos" element={<PermRoute perms={['POS','Sales','POS:View','POS:Add','POS:Edit','POS:Delete']}><POS /></PermRoute>} />
         <Route path="pos/cashier"  element={<PermRoute perms={['Cashier','Cashier:View','Cashier:Add','Cashier:Edit','Cashier:Delete']}><Cashier /></PermRoute>} />
@@ -369,7 +369,7 @@ function AppRoutes() {
         <Route path="stock/items" element={<PermRoute perms={['Stock','GRN','SIV','Items:View','Items:Add','Items:Edit','Items:Delete']}><ItemDetails /></PermRoute>} />
         <Route path="stock/quick-price" element={<PermRoute perms={['Stock','Items:Edit','QuickPrice:View']}><QuickPrice /></PermRoute>} />
         <Route path="stock/opening-balance" element={<PermRoute perms={['Stock','Items:Edit','OpeningBalance:View']}><OpeningBalance /></PermRoute>} />
-        {/* HQ only â€” the page exists to set a price at a branch OTHER than
+        {/* HQ only — the page exists to set a price at a branch OTHER than
             the one you are logged into, which is meaningless from a branch. */}
         <Route path="stock/branch-prices" element={<HqRoute><PermRoute perms={['Stock','Items:Edit','BranchPrices:View']}><BranchPrices /></PermRoute></HqRoute>} />
         <Route path="stock/grn" element={<PermRoute perms={['GRN','Stock','GRN:View','GRN:Add','GRN:Edit','GRN:Delete']}><GRN /></PermRoute>} />
@@ -403,16 +403,16 @@ function AppRoutes() {
         <Route path="accounting/profit-report" element={<PermRoute perms={['Accounting','ProfitReport:View']}><ProfitReport /></PermRoute>} />
         <Route path="suppliers-customers/suppliers" element={<PermRoute perms={['Suppliers','Suppliers:View','Suppliers:Add','Suppliers:Edit','Suppliers:Delete']}><Suppliers /></PermRoute>} />
         <Route path="suppliers-customers/customers" element={<PermRoute perms={['Customers','Customers:View','Customers:Add','Customers:Edit','Customers:Delete']}><Customers /></PermRoute>} />
-        {/* v1.13.62 â€” customer empties deposit tracking (legacy â€” kept for
+        {/* v1.13.62 — customer empties deposit tracking (legacy — kept for
             existing balance data; superseded by voucher system below) */}
         <Route path="suppliers-customers/empty-balances" element={<PermRoute perms={['Customers','Customers:View','Customers:Add','Customers:Edit']}><CustomerEmptyBalances /></PermRoute>} />
-        {/* v1.13.67 â€” bearer voucher system (Controller station).
-            Standalone from Customers â€” anyone can return empties. */}
+        {/* v1.13.67 — bearer voucher system (Controller station).
+            Standalone from Customers — anyone can return empties. */}
         <Route path="store/empty-vouchers" element={<PermRoute perms={['Store','GRN:View','GRN:Add','SIV:View','SIV:Add','EmptyVouchers:View']}><EmptyVouchers /></PermRoute>} />
         <Route path="settings/profile" element={<PermRoute allAccessOnly><Profile /></PermRoute>} />
         <Route path="settings/system" element={<PermRoute allAccessOnly><SystemSettings /></PermRoute>} />
         <Route path="settings/zra" element={<PermRoute allAccessOnly adminOnly><ZraConfig /></PermRoute>} />
-        {/* v1.13.85 â€” supplier invoice pull is HQ-only. All Kelete procurement
+        {/* v1.13.85 — supplier invoice pull is HQ-only. All Kelete procurement
             flows through HQ (drop-ship model), so branches never see raw
             supplier invoices. HqRoute redirects branch hosts back to /. */}
         <Route path="hq/zra-purchases" element={<HqRoute><PermRoute allAccessOnly adminOnly><ZraPurchases /></PermRoute></HqRoute>} />
@@ -430,7 +430,7 @@ function AppRoutes() {
         <Route path="fuel/fleet"         element={<FleetCustomers />} />
         <Route path="no-access" element={
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#6b7280', textAlign: 'center' }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>ðŸ”’</div>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
             <h2 style={{ margin: '0 0 8px', color: '#111827' }}>No Pages Available</h2>
             <p style={{ margin: 0, fontSize: 14 }}>You don't have access to any pages. Contact your administrator.</p>
           </div>
@@ -442,7 +442,7 @@ function AppRoutes() {
 }
 
 function App() {
-  // v1.10.86 â€” HQ gets its own purple palette so operators can tell at a
+  // v1.10.86 — HQ gets its own purple palette so operators can tell at a
   // glance they're on HQ vs a branch. Host doesn't change at runtime, so
   // a one-shot class toggle on mount is enough; CSS variable overrides
   // under `body.hq-theme` in index.css swing --primary/--sidebar-* etc.
@@ -450,7 +450,7 @@ function App() {
     document.body.classList.toggle('hq-theme', isHqHost());
   }, []);
 
-  // Render customer display immediately â€” no auth, no sync check, no license check
+  // Render customer display immediately — no auth, no sync check, no license check
   if (window.location.pathname === '/customer-display') {
     return <CustomerDisplay />;
   }

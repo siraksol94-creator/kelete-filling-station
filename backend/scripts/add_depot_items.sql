@@ -4,7 +4,7 @@
 -- Found by comparing ten depot stock sheets against HQ's 70-item catalogue.
 -- All 26 are created. 20 carry confirmed prices; the last six are at 0.00 on
 -- the user's instruction. A zero-price item is one a till can sell for
--- nothing â€” no guard exists anywhere â€” so those six need pricing before the
+-- nothing — no guard exists anywhere — so those six need pricing before the
 -- tills go live. They are listed again at the end of this script's output.
 --
 -- Run:
@@ -16,7 +16,7 @@
 -- product rather than hard-coded: guessing them would create items that look
 -- right but sit outside the tenant, and they would sync to nowhere.
 --
--- cost_price is 0.00 to match the other 67 items â€” being handled separately.
+-- cost_price is 0.00 to match the other 67 items — being handled separately.
 -- sync_id is a proper UUID v4 so each row syncs to the branches like any other.
 -- Re-running is safe: every insert is skipped if the code already exists.
 
@@ -62,7 +62,7 @@ INSERT INTO _new (code, name, price) VALUES
   ('RS085', 'PEPSI PET 750mls X24',       240),
   ('RS086', 'BRUTAL FRUIT LITCHI CANNED', 300),
   ('RS087', 'COKE PET 500mls',            125),
-  -- 2026-08-31 â€” the last six, added at 0.00 on the user's instruction after
+  -- 2026-08-31 — the last six, added at 0.00 on the user's instruction after
   -- the risk was raised. NOTHING blocks a zero-price sale: neither routes/
   -- orders.js nor the POS screen checks it, so a till will ring these up FREE
   -- until a price is set. Price them before the tills go live.
@@ -91,7 +91,7 @@ SELECT code, name, unit, cost_price AS cost, selling_price AS sell, status
   FROM products WHERE code IN (SELECT code FROM _new) AND deleted_at IS NULL
  ORDER BY code;
 
-SELECT '--- âš  PRICED AT ZERO â€” a till will sell these FREE until priced ---';
+SELECT '--- ⚠ PRICED AT ZERO — a till will sell these FREE until priced ---';
 SELECT code, name, selling_price FROM products
  WHERE deleted_at IS NULL AND COALESCE(selling_price, 0) = 0 ORDER BY code;
 

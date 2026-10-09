@@ -13,9 +13,9 @@ const { auth } = require('../middleware/auth');
 const { getLicense, activateLicense, registerBranch, getTenant } = require('../config/masterDb');
 const masterDb = require('../config/masterDb').masterDb;
 
-// v1.9.3 â€” slog matches the helper in services/syncService.js. The push
+// v1.9.3 — slog matches the helper in services/syncService.js. The push
 // timestamp-REJECT log on line ~437 was calling slog() since v1.8.91 but
-// it was never defined in this file â†’ every rejected-by-timestamp row
+// it was never defined in this file → every rejected-by-timestamp row
 // crashed the whole push transaction with ReferenceError, returning 500
 // to clients silently for a full week. Define it locally so the call
 // works without coupling routes/sync.js to the service module.
@@ -24,12 +24,12 @@ function slog(msg) {
   try { fs.appendFileSync(_slogFile, `[${new Date().toISOString()}] [Sync.route] ${msg}\n`); } catch (e) {}
 }
 
-// Central admin lives on Butchery's VPS â€” it owns the CB- prefix license
+// Central admin lives on Butchery's VPS — it owns the CB- prefix license
 // pool for bespoke deployments. Overridable via env for local dev.
 const CB_ACTIVATE_URL = process.env.CB_ACTIVATE_URL
   || 'https://sidanitsolutions.com/admin/clientbased/activate';
 
-// Minimal POST helper using node's built-in https â€” no axios pull-in
+// Minimal POST helper using node's built-in https — no axios pull-in
 // just for one call on the activation path. 15s ceiling so a hung
 // central admin can't block the Cloud Sync Setup form forever.
 function postJSON(urlString, body, timeoutMs = 15000) {
@@ -69,7 +69,7 @@ function postJSON(urlString, body, timeoutMs = 15000) {
 // For CB- prefix keys (Client Based), validate against the central admin
 // at sidanitsolutions.com and cache the result in our own master.db's
 // licenses table. After the first successful activation, subsequent
-// branches activate offline against the cache â€” phone-home happens once.
+// branches activate offline against the cache — phone-home happens once.
 //
 // Returns { ok, license? , error? } where `license` matches the shape of
 // getLicense() so the rest of register-branch can treat it the same as a
@@ -77,11 +77,11 @@ function postJSON(urlString, body, timeoutMs = 15000) {
 async function ensureCbLicenseCached(licenseKey, slug, businessName, email) {
   const key = licenseKey.trim().toUpperCase();
 
-  // Cache hit â€” skip the network call entirely.
+  // Cache hit — skip the network call entirely.
   const cached = getLicense(key);
   if (cached) return { ok: true, license: cached };
 
-  // Cache miss â€” phone home.
+  // Cache miss — phone home.
   let resp;
   try {
     resp = await postJSON(CB_ACTIVATE_URL, {
@@ -103,14 +103,14 @@ async function ensureCbLicenseCached(licenseKey, slug, businessName, email) {
 
   // Cache the license info in Kelete's own master.db so register-branch
   // can run its existing logic unchanged from this point on. tenant_email
-  // doubles as a "claimed by" marker â€” set to the slug so the existing
+  // doubles as a "claimed by" marker — set to the slug so the existing
   // line-67 check ("This license key is already registered to a different
   // account") works correctly for retries.
   try {
     masterDb.prepare(
       `INSERT INTO licenses (key, max_branches, expires_at, notes, tenant_email, tenant_id, activated_at)
        VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`
-    ).run(key, max_branches || 1, expires_at, 'Client Based â€” issued by central admin', slug, tenant_id);
+    ).run(key, max_branches || 1, expires_at, 'Client Based — issued by central admin', slug, tenant_id);
   } catch (e) {
     // Likely a UNIQUE constraint race; try to re-read.
     const again = getLicense(key);
@@ -122,10 +122,10 @@ async function ensureCbLicenseCached(licenseKey, slug, businessName, email) {
 }
 
 // All tables that participate in sync
-// v1.13.105 â€” Tables whose IDENTITY (which rows exist) is owned by HQ.
+// v1.13.105 — Tables whose IDENTITY (which rows exist) is owned by HQ.
 // mirrorAllHqToBranches / pushProductToBranches are the only writers that
 // may INSERT into these tables at a branch DB. Branch pushes via /sync/push
-// may only UPDATE existing rows (matched by sync_id), never INSERT â€” see
+// may only UPDATE existing rows (matched by sync_id), never INSERT — see
 // processBatch below for the reject path and the incident it prevents.
 const HQ_OWNED_TABLES = new Set(['products', 'categories', 'main_categories', 'units']);
 
@@ -135,7 +135,7 @@ const SYNC_TABLES = [
   'production', 'production_inputs', 'production_outputs',
   'sales_returns', 'sales_return_items',
   'stock_movements', 'cash_receipts', 'payment_vouchers', 'cash_book',
-  // 2026-08-27 â€” business_settings REMOVED from sync.
+  // 2026-08-27 — business_settings REMOVED from sync.
   //
   // These rows describe a MACHINE, not shared business data: VSDC URL,
   // device serial, SDC ID, proxy secret, receipt-printer type/IP. Syncing
@@ -143,7 +143,7 @@ const SYNC_TABLES = [
   //
   // It bit us live: an Electron till pushed its settings row to the VPS,
   // and because the VPS's original row predates sync (no sync_id) there
-  // was nothing to match on â€” so it INSERTED a second row. garden.db
+  // was nothing to match on — so it INSERTED a second row. garden.db
   // ended up with two, the ZRA page began reading the till's empty one,
   // and Garden showed NOT INITIALISED with its real config still sitting
   // untouched in row 1. Had the till's row matched instead, its
@@ -157,34 +157,34 @@ const SYNC_TABLES = [
   // Kelete-specific tables added during the credit-sales / reconciliation rework
   'customer_payments', 'stock_reconciliations', 'stock_reconciliation_items',
   'daily_cost_snapshot', 'pv_types',
-  // Supplier Credit Notes (Discount / Crate Return / Bottle Return / Other) â€”
+  // Supplier Credit Notes (Discount / Crate Return / Bottle Return / Other) —
   // reduce AP balance, and 'Discount'/'Other' rebates feed the Profit Report.
   'supplier_credit_notes', 'supplier_credit_note_items',
-  // Owner equity ledgers â€” flow through Cash Book but excluded from Profit Report.
+  // Owner equity ledgers — flow through Cash Book but excluded from Profit Report.
   'capital_account', 'dividend_account',
-  // Shareholders + Loans liability ledger â€” sync IDs link entries cross-device.
+  // Shareholders + Loans liability ledger — sync IDs link entries cross-device.
   'shareholders', 'loans', 'loan_transactions',
-  // Cash transfers between methods (Cash â†” Bank â†” MoMo) â€” must sync or the
+  // Cash transfers between methods (Cash ↔ Bank ↔ MoMo) — must sync or the
   // per-method Cash Book cards diverge across PCs even though totals match.
   'cash_transfers',
-  // Stock count audit trail â€” sessions + per-item counts. The resulting
+  // Stock count audit trail — sessions + per-item counts. The resulting
   // stock_adjustments already sync; this adds the "who counted what" record.
   'stock_count_sessions', 'stock_count_items',
-  // Discount approval requests â€” pending/approved/rejected rows so an admin
+  // Discount approval requests — pending/approved/rejected rows so an admin
   // approving on one device propagates to the requesting cashier's device.
   'discount_requests',
-  // Phase 1 multi-currency (Kelete only â€” Branch 1/2 K-only, Branch 3 USD/FRA).
+  // Phase 1 multi-currency (Kelete only — Branch 1/2 K-only, Branch 3 USD/FRA).
   // Both tables must sync so per-branch prices + FX rates stay consistent
   // across devices. KEEP IN SYNC with syncService.js.
   'branches', 'product_branch_prices',
-  // v1.8.33 â€” KEEP IN SYNC with syncService.js. Missing both of these
+  // v1.8.33 — KEEP IN SYNC with syncService.js. Missing both of these
   // before release would have meant: drawer currency exchanges done on
   // one device never reach the others (cash report Expected drifts);
   // FX rate changes never propagate (cashier rings up at stale rate).
   'currency_exchanges', 'fx_rates',
 ];
 
-// â”€â”€â”€ Push guardrails (ported from Liquor v1.5.7) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Push guardrails (ported from Liquor v1.5.7) ─────────────────────────────
 // A sync PUSH is never allowed to un-reverse an order, decrease a partial
 // reverse quantity, blank a Reversed/Partial order status, or un-soft-delete
 // a row. Legitimate un-reverse / restore must go through explicit routes.
@@ -211,7 +211,7 @@ function pushWouldRegress(table, existing, row) {
   return null;
 }
 
-// â”€â”€â”€ POST /api/sync/register â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/register ─────────────────────────────────────────────────
 // Called by a new device to get/create a tenant + branch
 // Requires: branchName + licenseKey. Subdomain must be pre-registered by admin.
 router.post('/register', async (req, res) => {
@@ -221,14 +221,14 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'branchName and licenseKey are required' });
     }
 
-    // â”€â”€ Check subdomain is pre-registered by admin â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Check subdomain is pre-registered by admin ────────────────────────
     const slug = (req.headers['x-tenant'] || req.hostname || '').toLowerCase().split('.')[0];
     const tenant = getTenant(slug);
     if (!tenant) {
       return res.status(403).json({ error: 'Subdomain not registered. Please contact SIDAN IT & Business Solutions.' });
     }
 
-    // â”€â”€ Resolve license: CB- keys go through central admin first â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Resolve license: CB- keys go through central admin first ──────────
     // Client Based keys (CB- prefix) are owned by the central admin at
     // sidanitsolutions.com. First time we see one, phone home to validate
     // and cache the result in our own master.db. Locally-issued keys
@@ -240,7 +240,7 @@ router.post('/register', async (req, res) => {
       if (!cb.ok) return res.status(403).json({ error: cb.error });
     }
 
-    // â”€â”€ Validate license from master.db â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Validate license from master.db ───────────────────────────────────
     const license = getLicense(licenseKey.trim().toUpperCase());
     if (!license)           return res.status(403).json({ error: 'Invalid license key.' });
     if (!license.is_active) return res.status(403).json({ error: 'This license has been deactivated.' });
@@ -249,7 +249,7 @@ router.post('/register', async (req, res) => {
     if (license.tenant_email && license.tenant_email !== tenant.email && license.tenant_email !== slug)
       return res.status(403).json({ error: 'This license key is already registered to a different account.' });
 
-    // â”€â”€ Find or create tenant entry in sync_config (keyed by slug) â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Find or create tenant entry in sync_config (keyed by slug) ────────
     let tenantRow = db.prepare('SELECT * FROM sync_config WHERE key = ?').get(`tenant:${slug}`);
     let tenantId;
     if (tenantRow) {
@@ -259,7 +259,7 @@ router.post('/register', async (req, res) => {
       db.prepare('INSERT INTO sync_config (key, value) VALUES (?, ?)').run(`tenant:${slug}`, tenantId);
     }
 
-    // â”€â”€ Check branch limit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Check branch limit ────────────────────────────────────────────────
     const branchCount = db.prepare(
       "SELECT COUNT(*) AS cnt FROM sync_config WHERE key LIKE ?"
     ).get(`branch:${tenantId}:%`);
@@ -269,14 +269,14 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // â”€â”€ Create branch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Create branch ─────────────────────────────────────────────────────
     const branchId = randomUUID();
     db.prepare('INSERT INTO sync_config (key, value) VALUES (?, ?)').run(
       `branch:${tenantId}:${branchId}`, branchName
     );
     registerBranch(tenantId, branchId, branchName, slug);
 
-    // â”€â”€ Activate license in master.db (stamp email + tenantId on first use)
+    // ── Activate license in master.db (stamp email + tenantId on first use)
     if (!license.tenant_email) {
       activateLicense(licenseKey.trim().toUpperCase(), tenant.email || slug, tenantId);
     }
@@ -287,7 +287,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/license-status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/license-status ────────────────────────────────────────────
 // Device checks if its license is still valid (called on startup + every 24h)
 router.get('/license-status', (req, res) => {
   try {
@@ -317,15 +317,15 @@ router.get('/license-status', (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/verify-license â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// 2026-09-18 â€” what the phone app's first-run licence box calls.
+// ─── GET /api/sync/verify-license ─────────────────────────────────────────────
+// 2026-09-18 — what the phone app's first-run licence box calls.
 //
 // Until now that box checked only that at least 3 characters had been typed
 // and saved them on the phone; nothing was ever sent anywhere, so a real key
 // and "ABC" behaved identically. This checks the key against master.db and,
 // on top of that, that it is the key belonging to the branch being opened.
 //
-// Public on purpose â€” it runs before anyone has logged in. It tells the
+// Public on purpose — it runs before anyone has logged in. It tells the
 // caller nothing about a licence beyond whether this key opens this branch.
 router.get('/verify-license', (req, res) => {
   try {
@@ -333,7 +333,7 @@ router.get('/verify-license', (req, res) => {
     const slug = String(req.query.slug || '').trim().toLowerCase();
     if (!key)  return res.json({ ok: false, reason: 'Licence is required.' });
     if (!slug) return res.json({ ok: false, reason: 'No branch chosen.' });
-    if (!masterDb) return res.status(503).json({ ok: false, reason: 'Licence server unavailable â€” try again.' });
+    if (!masterDb) return res.status(503).json({ ok: false, reason: 'Licence server unavailable — try again.' });
 
     const license = masterDb.prepare('SELECT * FROM licenses WHERE UPPER(key) = ?').get(key);
     if (!license)           return res.json({ ok: false, reason: 'Licence not found. Check the key and type it again.' });
@@ -344,7 +344,7 @@ router.get('/verify-license', (req, res) => {
       return res.json({ ok: false, reason: `This licence expired on ${String(license.expires_at).substring(0, 10)}.` });
     }
 
-    // The key must belong to the branch being opened. branches.slug â†’ tenant_id
+    // The key must belong to the branch being opened. branches.slug → tenant_id
     // is the same mapping middleware/tenant.js already trusts to route a
     // subdomain to its data. A branch with no row there yet (never activated)
     // can't be compared, so a live key is accepted rather than locking a depot
@@ -359,18 +359,18 @@ router.get('/verify-license', (req, res) => {
 
     res.json({ ok: true, daysRemaining, expiresAt: license.expires_at, matched: !!branchTenantId });
   } catch (error) {
-    res.status(500).json({ ok: false, reason: 'Could not check the licence â€” try again.' });
+    res.status(500).json({ ok: false, reason: 'Could not check the licence — try again.' });
   }
 });
 
-// â”€â”€â”€ POST /api/sync/verify-hq-passcode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// 2026-09-18 â€” HQ's equivalent of the licence check. HQ has no licence key
+// ─── POST /api/sync/verify-hq-passcode ────────────────────────────────────────
+// 2026-09-18 — HQ's equivalent of the licence check. HQ has no licence key
 // (tenant 'local-only'), so an HQ Administrator sets a passcode in System
 // Settings instead and the phone app asks about it here. See
 // services/appPasscode.js. Public for the same reason as /verify-license.
 //
 // Guessing is slowed down per IP: ten wrong tries and that address is told to
-// wait 10 minutes. The counter lives in memory, so a restart clears it â€” it is
+// wait 10 minutes. The counter lives in memory, so a restart clears it — it is
 // there to stop typing attempts, not as a security boundary of its own.
 const HQ_TRIES = new Map();
 const HQ_MAX_TRIES = 10;
@@ -399,11 +399,11 @@ router.post('/verify-hq-passcode', (req, res) => {
     HQ_TRIES.delete(who);
     res.json(result);
   } catch (error) {
-    res.status(500).json({ ok: false, reason: 'Could not check the passcode â€” try again.' });
+    res.status(500).json({ ok: false, reason: 'Could not check the passcode — try again.' });
   }
 });
 
-// â”€â”€â”€ GET /api/sync/identity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/identity ───────────────────────────────────────────────────
 // Returns business email, branch name, license info for a registered device
 // Query: ?tenantId=...&branchId=...
 router.get('/identity', (req, res) => {
@@ -449,7 +449,7 @@ router.get('/identity', (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/join-branch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/join-branch ──────────────────────────────────────────────
 // Called by a new PC joining an EXISTING branch (no new branch created)
 // Body: { branchCode, licenseKey }
 router.post('/join-branch', (req, res) => {
@@ -459,7 +459,7 @@ router.post('/join-branch', (req, res) => {
       return res.status(400).json({ error: 'branchCode and licenseKey are required' });
     }
 
-    // â”€â”€ Find branch by code (first 8 chars of branchId, uppercase) â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Find branch by code (first 8 chars of branchId, uppercase) ────────
     const branchRows = masterDb.prepare('SELECT * FROM branches').all();
 
     let foundTenantId = null;
@@ -479,7 +479,7 @@ router.post('/join-branch', (req, res) => {
       return res.status(404).json({ error: 'Branch not found. Please check your Branch Code.' });
     }
 
-    // â”€â”€ Verify license belongs to this tenant â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Verify license belongs to this tenant ─────────────────────────────
     const license = masterDb.prepare('SELECT * FROM licenses WHERE key = ?').get(licenseKey.trim().toUpperCase());
     if (!license)           return res.status(403).json({ error: 'Invalid license key.' });
     if (!license.is_active) return res.status(403).json({ error: 'This license has been deactivated.' });
@@ -490,7 +490,7 @@ router.post('/join-branch', (req, res) => {
       return res.status(403).json({ error: 'This license key does not belong to that branch.' });
     }
 
-    // â”€â”€ Return existing IDs â€” no new branch created â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Return existing IDs — no new branch created ───────────────────────
     res.json({ tenantId: foundTenantId, branchId: foundBranchId, expiresAt: license.expires_at });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -498,17 +498,17 @@ router.post('/join-branch', (req, res) => {
 });
 
 // In-memory tracker of child PCs that have recently synced to this Mother.
-// Key: deviceId  â†’  { ip, lastSeenAt, lastEndpoint }
-// Cleared on backend restart (which is fine â€” children re-register on next sync tick).
+// Key: deviceId  →  { ip, lastSeenAt, lastEndpoint }
+// Cleared on backend restart (which is fine — children re-register on next sync tick).
 const childActivity = new Map();
 
 // LAN gate: when this PC is configured as Mother, any incoming /push or /pull
 // from another PC on the LAN must include the matching X-Lan-Sync-Key header.
-// VPS-deployed code: lan_role is empty/null â†’ behaves as today (no header check).
+// VPS-deployed code: lan_role is empty/null → behaves as today (no header check).
 function lanGate(req, res, next) {
   try {
     const lan = syncConfig.getLanConfig();
-    if (lan.role !== 'mother' || !lan.lanSyncKey) return next(); // not a Mother PC â†’ passthrough
+    if (lan.role !== 'mother' || !lan.lanSyncKey) return next(); // not a Mother PC → passthrough
     const provided = req.headers['x-lan-sync-key'];
     // If a child PC on the LAN is talking to us, require matching key.
     // We only enforce when the request is NOT from localhost (Mother itself or VPS).
@@ -531,7 +531,7 @@ function lanGate(req, res, next) {
   } catch { next(); }
 }
 
-// â”€â”€â”€ POST /api/sync/push â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/push ──────────────────────────────────────────────────────
 // Device pushes local unsynced records to server.
 // Body: { tenantId, branchId, deviceId, records: { tableName: [...rows] } }
 // BATCHED: writes happen in chunks of 200 with event-loop yields between them so
@@ -554,7 +554,7 @@ router.post('/push', lanGate, async (req, res) => {
           if (!row.sync_id) continue;
           const existing = db.prepare(`SELECT * FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
           if (!existing) {
-            // v1.13.105 â€” HQ owns product identity (products, categories,
+            // v1.13.105 — HQ owns product identity (products, categories,
             // main_categories, units). Branches only PULL these tables via
             // mirrorAllHqToBranches / pushProductToBranches. Without this
             // guard, an Electron install whose local HQ minted its own
@@ -566,7 +566,7 @@ router.post('/push', lanGate, async (req, res) => {
             // inside units_json).
             if (HQ_OWNED_TABLES.has(table)) {
               conflicts.push({ table, sync_id: row.sync_id, reason: 'HQ-owned: branch INSERT rejected' });
-              slog(`push: REJECT [${table}] sync_id=${row.sync_id} â€” HQ-owned table, branch cannot INSERT (pull from HQ to obtain the canonical row)`);
+              slog(`push: REJECT [${table}] sync_id=${row.sync_id} — HQ-owned table, branch cannot INSERT (pull from HQ to obtain the canonical row)`);
               continue;
             }
             const insertCols = cols.filter(c => c !== 'id' && row[c] !== undefined);
@@ -575,7 +575,7 @@ router.post('/push', lanGate, async (req, res) => {
             db.prepare(
               `INSERT OR IGNORE INTO ${table} (${insertCols.join(', ')}) VALUES (${placeholders})`
             ).run(...values);
-            // v1.9.5 â€” DO NOT overwrite updated_at with datetime('now') after
+            // v1.9.5 — DO NOT overwrite updated_at with datetime('now') after
             // INSERT. Previous code did so for incremental-pull bookkeeping,
             // but it broke the symmetric timestamp check used by push: after
             // server stamps the row with server-clock "now", any subsequent
@@ -589,13 +589,13 @@ router.post('/push', lanGate, async (req, res) => {
             // through preserves the cross-client ordering the rest of the
             // sync engine assumes.
           } else {
-            // v1.8.89 â€” TIMESTAMP CHECK (defense against stale pushes).
-            // Before: server accepted any pushed row unconditionally â†’ if a
+            // v1.8.89 — TIMESTAMP CHECK (defense against stale pushes).
+            // Before: server accepted any pushed row unconditionally → if a
             // client pushed a stale local copy (e.g. after PROTECT rule
             // blocked a pull), the server's correct state got OVERWRITTEN
             // with old data. Real incident: ORD-0055 reversed on web at T2,
             // Electron pushed stale PENDING_PAYMENT (updated_at=T1) at T3,
-            // server accepted â†’ Reversed status destroyed.
+            // server accepted → Reversed status destroyed.
             // Now: reject incoming rows whose updated_at < server's. Last-
             // writer-wins by wall-clock, which is the correct policy when
             // both clients have synced clocks.
@@ -603,28 +603,28 @@ router.post('/push', lanGate, async (req, res) => {
               const parse = (s) => new Date(typeof s === 'string' && !s.includes('T') ? s.replace(' ', 'T') + 'Z' : s).getTime();
               const incomingMs = parse(row.updated_at);
               const existingMs = parse(existing.updated_at);
-              // v1.8.91 â€” strict <= rejection. v1.8.89 used < which missed the
+              // v1.8.91 — strict <= rejection. v1.8.89 used < which missed the
               // EQUAL-timestamp clobbering case: both clients hold rows updated
               // in the same earlier batch, so when one pushes, incoming == server,
               // check didn't fire, server got overwritten with stale data. Equal
               // timestamps = same data, so rejecting is always safe (no real edit
               // to lose) and closes the hole completely.
               if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs <= existingMs) {
-                slog(`push: REJECT [${table}] sync_id=${row.sync_id} â€” incoming ${row.updated_at} <= server ${existing.updated_at}`);
+                slog(`push: REJECT [${table}] sync_id=${row.sync_id} — incoming ${row.updated_at} <= server ${existing.updated_at}`);
                 continue;
               }
             }
             const stale = pushWouldRegress(table, existing, row);
             if (stale) {
               conflicts.push({ table, sync_id: row.sync_id, reason: stale });
-              slog(`push: REJECT [${table}] sync_id=${row.sync_id} â€” ${stale}`);
+              slog(`push: REJECT [${table}] sync_id=${row.sync_id} — ${stale}`);
               continue;
             }
             const updateCols = cols.filter(c => c !== 'id' && c !== 'sync_id' && row[c] !== undefined);
             const setClause = updateCols.map(c => `${c} = ?`).join(', ');
             const values = [...updateCols.map(c => row[c]), row.sync_id];
             db.prepare(`UPDATE ${table} SET ${setClause} WHERE sync_id = ?`).run(...values);
-            // v1.9.5 â€” same as the INSERT path above: no longer overwrite
+            // v1.9.5 — same as the INSERT path above: no longer overwrite
             // updated_at with datetime('now'). Client's updated_at flows
             // through unchanged so the next push's timestamp check compares
             // apples to apples. See INSERT-branch comment for the incident.
@@ -652,7 +652,7 @@ router.post('/push', lanGate, async (req, res) => {
     res.json({ success: true, conflicts, rejected: conflicts.length });
   } catch (error) {
     db.pragma('foreign_keys = ON');
-    // v1.9.2 â€” log the full stack to pm2 logs so silent push failures are
+    // v1.9.2 — log the full stack to pm2 logs so silent push failures are
     // diagnosable. Previously the catch only returned 500 with error.message,
     // which meant the actual row + SQL that crashed never reached the server
     // log. Real incident 2026-06-29: discount_requests pushes returned 500
@@ -662,10 +662,10 @@ router.post('/push', lanGate, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/pull â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/pull ───────────────────────────────────────────────────────
 // Device pulls records updated on VPS since last pull.
 // If deviceId is provided, records that originated from this same device are
-// excluded â€” this prevents the "echo" loop where a device pulls back its own
+// excluded — this prevents the "echo" loop where a device pulls back its own
 // pushed records (Mother re-stamps updated_at on push, which otherwise causes
 // the record to match the next pull's time filter).
 // Query: ?tenantId=T1&since=2024-01-01T00:00:00.000Z&deviceId=<requester-uuid>
@@ -676,7 +676,7 @@ router.get('/pull', lanGate, async (req, res) => {
 
     const sinceTs = since || '1970-01-01T00:00:00.000Z';
     const isInitialPull = sinceTs === '1970-01-01T00:00:00.000Z';
-    // Normalize to SQLite space format: '2026-03-06T14:50:22.739Z' â†’ '2026-03-06 14:50:22'
+    // Normalize to SQLite space format: '2026-03-06T14:50:22.739Z' → '2026-03-06 14:50:22'
     const sinceSQLite = sinceTs.replace('T', ' ').replace('Z', '').substring(0, 19);
     const result = {};
 
@@ -694,7 +694,7 @@ router.get('/pull', lanGate, async (req, res) => {
       //   1. Soft-deleted rows always come through (delete by anyone must reach
       //      the creator).
       //   2. Rows whose updated_at > created_at have been touched after their
-      //      original insert â€” let them through too so third-party edits land
+      //      original insert — let them through too so third-party edits land
       //      on the original creator's copy. The minor cost is an idempotent
       //      echo when the creator edits their own row (incoming values
       //      already match locally, so the UPDATE is a no-op).
@@ -711,7 +711,7 @@ router.get('/pull', lanGate, async (req, res) => {
 
       let rows;
       if (isInitialPull) {
-        // First sync â€” return everything for this tenant regardless of timestamps
+        // First sync — return everything for this tenant regardless of timestamps
         rows = db.prepare(`SELECT * FROM ${table} WHERE tenant_id = ?${excludeMine}`).all(tenantId, ...extraParams);
       } else if (hasUpdatedAt) {
         const timeCol = hasCreatedAt ? 'COALESCE(updated_at, created_at)' : 'updated_at';
@@ -731,7 +731,7 @@ router.get('/pull', lanGate, async (req, res) => {
       }
 
       // Yield event loop between tables so other API requests stay responsive
-      // during pulls â€” prevents Mother from freezing while a Child pulls.
+      // during pulls — prevents Mother from freezing while a Child pulls.
       await new Promise(resolve => setImmediate(resolve));
     }
 
@@ -741,8 +741,8 @@ router.get('/pull', lanGate, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/current-status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Returns live sync service state â€” polled by the SyncStatus UI component
+// ─── GET /api/sync/current-status ────────────────────────────────────────────
+// Returns live sync service state — polled by the SyncStatus UI component
 router.get('/current-status', (req, res) => {
   try {
     const syncService = require('../services/syncService');
@@ -752,12 +752,12 @@ router.get('/current-status', (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/run-now â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.9.4 â€” fire a sync cycle on demand. POS Change Price flow calls this
+// ─── POST /api/sync/run-now ──────────────────────────────────────────────────
+// v1.9.4 — fire a sync cycle on demand. POS Change Price flow calls this
 // twice: once after creating a discount_request (so the cashier doesn't wait
 // up to 30s for the next scheduled push to reach the admin), and again every
 // few seconds while the cashier is waiting on the verdict (so the admin's
-// approval pulls back quickly). Returns 200 with {triggered: bool} â€”
+// approval pulls back quickly). Returns 200 with {triggered: bool} —
 // triggered=false means either the sync engine isn't running (VPS mode) or
 // a cycle is already in flight. Either way the call is harmless.
 router.post('/run-now', (req, res) => {
@@ -769,7 +769,7 @@ router.post('/run-now', (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/status ────────────────────────────────────────────────────
 // Returns current sync configuration (used by Setup screen to check registration)
 router.get('/status', (req, res) => {
   try {
@@ -788,12 +788,12 @@ router.get('/status', (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/trial-status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/trial-status ──────────────────────────────────────────────
 // Returns 14-day trial info for local-only (offline) users
 router.get('/trial-status', (_req, res) => {
   try {
     const cfg = syncConfig.getConfig();
-    // Cloud-registered tenants have a real license â€” trial doesn't apply
+    // Cloud-registered tenants have a real license — trial doesn't apply
     if (cfg.tenantId && cfg.tenantId !== 'local-only') {
       return res.json({ trialApplicable: false });
     }
@@ -810,7 +810,7 @@ router.get('/trial-status', (_req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/reset ────────────────────────────────────────────────────
 // Clears tenant_id + branch_id so the Setup screen appears on next reload
 router.post('/reset', (req, res) => {
   try {
@@ -821,7 +821,7 @@ router.post('/reset', (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/configure â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/configure ────────────────────────────────────────────────
 // Save tenantId + branchId on local device after registration
 router.post('/configure', (req, res) => {
   try {
@@ -837,27 +837,27 @@ router.post('/configure', (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/force-resync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.8.90 â€” REWRITTEN. Was: marked all local rows synced=0 â†’ pushed them up.
+// ─── POST /api/sync/force-resync ─────────────────────────────────────────────
+// v1.8.90 — REWRITTEN. Was: marked all local rows synced=0 → pushed them up.
 // That destroyed VPS state when local was stale (ORD-0055 incident: client
 // pushed stale PENDING_PAYMENT, overwrote VPS 'Reversed').
 //
 // Now: PULL from VPS first with PROTECT bypassed (opts.force=true), then any
 // genuinely-newer local edits will still get pushed on the next normal cycle.
-// Semantically this is "I trust the VPS â€” overwrite my local copy where they
+// Semantically this is "I trust the VPS — overwrite my local copy where they
 // differ." Use this when a client is stuck on stale data.
 router.post('/force-resync', async (req, res) => {
   try {
     // Step 1: Clear last_pull_time so the next pull replays from epoch (full history)
     db.prepare("DELETE FROM sync_config WHERE key = 'last_pull_time'").run();
-    // 2026-08-30 â€” and the MASTER cursor too. Force Resync only ever replayed
+    // 2026-08-30 — and the MASTER cursor too. Force Resync only ever replayed
     // the branch's own tables, so a bad row in master.db (a deposit, transfer,
     // HQ purchase) had no recovery path at all: the operator pressed the one
     // button named "fix my data" and master.db was not touched.
     db.prepare("DELETE FROM sync_config WHERE key = 'last_master_pull_time'").run();
 
     // Step 2: Pull from VPS immediately with PROTECT bypassed.
-    // Loaded lazily â€” syncService starts on app boot and the require() chain
+    // Loaded lazily — syncService starts on app boot and the require() chain
     // here would create a circular dep if loaded at module top.
     const syncService = require('../services/syncService');
     let pullResult;
@@ -866,7 +866,7 @@ router.post('/force-resync', async (req, res) => {
     } catch (pullErr) {
       return res.status(500).json({ error: 'pull failed: ' + pullErr.message });
     }
-    // master.db as well â€” registry first, since the rest is scoped by slug.
+    // master.db as well — registry first, since the rest is scoped by slug.
     // Non-fatal: a branch with no master mirror should still get its own data
     // back rather than being told the whole resync failed.
     let masterPull = { ok: true };
@@ -890,11 +890,11 @@ router.post('/force-resync', async (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/clear-pending â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.8.42 â€” OPPOSITE of force-resync. Flips synced=0 â†’ synced=1 across all
+// ─── POST /api/sync/clear-pending ────────────────────────────────────────────
+// v1.8.42 — OPPOSITE of force-resync. Flips synced=0 → synced=1 across all
 // SYNC_TABLES, so the PROTECT-on-pull rule (services/syncService.js:214-216)
 // stops blocking remote overwrites. Used to recover from "Electron stuck
-// with stale local state because pushes failed silently" â€” declares the
+// with stale local state because pushes failed silently" — declares the
 // VPS as truth, drops any unpushed local edits.
 //
 // Also nukes last_pull_time so the next pull replays history from epoch
@@ -918,7 +918,7 @@ router.post('/clear-pending', (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/wipe-tenant â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/wipe-tenant ──────────────────────────────────────────────
 // Called by VPS: hard-deletes all data records for a given tenantId
 router.post('/wipe-tenant', (req, res) => {
   try {
@@ -948,7 +948,7 @@ router.post('/wipe-tenant', (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/sync/factory-reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── POST /api/sync/factory-reset ────────────────────────────────────────────
 // Wipes all local data. includeSettings=true also clears business_settings.
 router.post('/factory-reset', async (req, res) => {
   try {
@@ -995,7 +995,7 @@ router.post('/factory-reset', async (req, res) => {
           body: JSON.stringify({ tenantId }),
           signal: AbortSignal.timeout(8000),
         });
-      } catch (_) {} // offline or VPS down â€” local reset still succeeds
+      } catch (_) {} // offline or VPS down — local reset still succeeds
     }
 
     res.json({ success: true });
@@ -1004,7 +1004,7 @@ router.post('/factory-reset', async (req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/lan-config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/lan-config ────────────────────────────────────────────────
 // Returns current LAN sync configuration + this PC's LAN IPv4 address (for the
 // Mother UI to show "give this IP to children").
 //
@@ -1016,7 +1016,7 @@ router.get('/lan-config', (_req, res) => {
     const os = require('os');
     const nets = os.networkInterfaces();
 
-    // Pattern of interface names to ignore â€” these are virtual/loopback adapters
+    // Pattern of interface names to ignore — these are virtual/loopback adapters
     // that won't be reachable from another physical PC on the LAN.
     const VIRTUAL_RE = /vmware|virtualbox|hyper-?v|vethernet|wsl|loopback|tunnel|vpn|tap|tailscale|zerotier|docker|npcap/i;
 
@@ -1025,7 +1025,7 @@ router.get('/lan-config', (_req, res) => {
       if (VIRTUAL_RE.test(ifaceName)) continue;
       for (const n of list || []) {
         if (n.family !== 'IPv4' || n.internal) continue;
-        // Skip APIPA (link-local) addresses â€” means DHCP failed
+        // Skip APIPA (link-local) addresses — means DHCP failed
         if (n.address.startsWith('169.254.')) continue;
         candidates.push({ iface: ifaceName, address: n.address });
       }
@@ -1048,7 +1048,7 @@ router.get('/lan-config', (_req, res) => {
   }
 });
 
-// â”€â”€â”€ GET /api/sync/lan-status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── GET /api/sync/lan-status ────────────────────────────────────────────────
 // Returns list of child PCs that have recently synced to this Mother.
 // Children are considered "connected" if they synced in the last 5 minutes.
 router.get('/lan-status', (_req, res) => {
@@ -1075,7 +1075,7 @@ router.get('/lan-status', (_req, res) => {
   }
 });
 
-// â”€â”€â”€ PUT /api/sync/lan-config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── PUT /api/sync/lan-config ────────────────────────────────────────────────
 // Save new LAN config and tell the sync service to reload its interval.
 router.put('/lan-config', (req, res) => {
   try {
@@ -1092,30 +1092,30 @@ router.put('/lan-config', (req, res) => {
 });
 
 
-// â•â•â• master.db sync bridge â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══ master.db sync bridge ═══════════════════════════════════════════════
 //
-// Ported from Kelete v1.10.248â€“254 (running in production there). Kelete's
+// Ported from Kelete v1.10.248–254 (running in production there). Kelete's
 // master.db schema matches on every column these rules depend on, so this
 // is a port, not a redesign.
 //
 // The problem it solves: master.db holds the data shared BETWEEN branches
-// and HQ â€” deposits, inter-branch transfers, HQ purchases and the GRNs
+// and HQ — deposits, inter-branch transfers, HQ purchases and the GRNs
 // raised against them. The per-tenant sync above cannot carry it: those
 // tables have no tenant_id, they are scoped by branch SLUG.
 //
 // How it works
 //   * masterDb.js triggers stamp synced=0 + updated_at on every local
 //     write, so no route has to remember. See the CONTRACT block there.
-//   * push  â€” branch sends its synced=0 rows; the server checks each row
+//   * push  — branch sends its synced=0 rows; the server checks each row
 //     is IN THAT BRANCH'S SCOPE and is NEWER than what it already holds.
-//   * pull  â€” branch asks for its own rows changed since a cursor, and
+//   * pull  — branch asks for its own rows changed since a cursor, and
 //     takes the server's copy as authoritative.
 //   * Order matters: the client pushes BEFORE it pulls, so local work
 //     reaches HQ before HQ's state overwrites it.
 //
 // Scope is per table because ownership differs: a deposit has one owner,
 // a transfer has two (both ends must see AND write it), and line items
-// inherit their parent's owner â€” validated by looking the parent up on
+// inherit their parent's owner — validated by looking the parent up on
 // the server so a branch cannot push an item claiming a foreign parent.
 const MASTER_SYNC_TABLES = [
   'cash_deposits',
@@ -1271,16 +1271,16 @@ router.get('/master/pull', lanGate, async (req, res) => {
 
 // GET /api/sync/master/registry
 //
-// 2026-08-28 â€” tenants + branches are the branch REGISTRY: which slugs exist
+// 2026-08-28 — tenants + branches are the branch REGISTRY: which slugs exist
 // and what they are called. They are not in MASTER_SYNC_TABLES because they
-// have no sync_id and a branch must never write them â€” but a till cannot
+// have no sync_id and a branch must never write them — but a till cannot
 // work without them. isRegistered() checks tenants, so with an empty copy
 // every transfer failed with "Unknown source branch" on send and
 // "Destination branch no longer registered" on receive, and the destination
 // dropdown had nothing in it.
 //
 // Small, HQ-owned and read-only, so it ships whole rather than through the
-// change-tracking bridge. `id` is deliberately omitted â€” the receiving
+// change-tracking bridge. `id` is deliberately omitted — the receiving
 // database assigns its own.
 router.get('/master/registry', lanGate, (req, res) => {
   try {
@@ -1315,11 +1315,11 @@ router.post('/master/push', lanGate, async (req, res) => {
         for (const row of batch) {
           if (!row.sync_id) continue;
 
-          // Guard 1 â€” is this row yours? Stops a branch writing into another
+          // Guard 1 — is this row yours? Stops a branch writing into another
           // branch's records even if a client bug tries.
           if (!filter.scopeCheck(row, slug)) {
             rejected.push({ table, sync_id: row.sync_id, reason: 'scope-mismatch' });
-            slog(`master/push: REJECT [${table}] sync_id=${row.sync_id} â€” scope-mismatch for slug=${slug}`);
+            slog(`master/push: REJECT [${table}] sync_id=${row.sync_id} — scope-mismatch for slug=${slug}`);
             continue;
           }
 
@@ -1340,11 +1340,11 @@ router.post('/master/push', lanGate, async (req, res) => {
             continue;
           }
 
-          // Guard 2 â€” is yours newer than mine? An offline or clock-behind
+          // Guard 2 — is yours newer than mine? An offline or clock-behind
           // device must not silently clobber a more recent edit made here.
           // Equal timestamps are rejected too: same data, nothing to gain,
           // and it closes the sibling-clobber hole. A NULL on the server
-          // means a legacy row never touched by the trigger â€” incoming wins.
+          // means a legacy row never touched by the trigger — incoming wins.
           if (existing.updated_at && row.updated_at) {
             const parse = (s) => new Date(
               typeof s === 'string' && !s.includes('T') ? s.replace(' ', 'T') + 'Z' : s
@@ -1353,7 +1353,7 @@ router.post('/master/push', lanGate, async (req, res) => {
             const existingMs = parse(existing.updated_at);
             if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs <= existingMs) {
               rejected.push({ table, sync_id: row.sync_id, reason: 'stale-timestamp' });
-              slog(`master/push: REJECT [${table}] sync_id=${row.sync_id} â€” incoming ${row.updated_at} <= server ${existing.updated_at}`);
+              slog(`master/push: REJECT [${table}] sync_id=${row.sync_id} — incoming ${row.updated_at} <= server ${existing.updated_at}`);
               continue;
             }
           }

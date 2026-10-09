@@ -17,7 +17,7 @@ const SYNC_TABLES = [
   'production', 'production_inputs', 'production_outputs',
   'sales_returns', 'sales_return_items',
   'stock_movements', 'cash_receipts', 'payment_vouchers', 'cash_book',
-  // 2026-08-27 â€” business_settings REMOVED from sync.
+  // 2026-08-27 — business_settings REMOVED from sync.
   //
   // These rows describe a MACHINE, not shared business data: VSDC URL,
   // device serial, SDC ID, proxy secret, receipt-printer type/IP. Syncing
@@ -25,7 +25,7 @@ const SYNC_TABLES = [
   //
   // It bit us live: an Electron till pushed its settings row to the VPS,
   // and because the VPS's original row predates sync (no sync_id) there
-  // was nothing to match on â€” so it INSERTED a second row. garden.db
+  // was nothing to match on — so it INSERTED a second row. garden.db
   // ended up with two, the ZRA page began reading the till's empty one,
   // and Garden showed NOT INITIALISED with its real config still sitting
   // untouched in row 1. Had the till's row matched instead, its
@@ -39,28 +39,28 @@ const SYNC_TABLES = [
   // Kelete-specific tables added during the credit-sales / reconciliation rework
   'customer_payments', 'stock_reconciliations', 'stock_reconciliation_items',
   'daily_cost_snapshot', 'pv_types',
-  // Supplier Credit Notes (Discount / Crate Return / Goods Return / Other) â€”
+  // Supplier Credit Notes (Discount / Crate Return / Goods Return / Other) —
   // KEEP IN SYNC with sync.js SYNC_TABLES. Missing them here meant CNs
   // created on Electron never pushed to VPS, and CNs created on web never
   // pulled to Electron (the exact Sidan Hub failure mode).
   'supplier_credit_notes', 'supplier_credit_note_items',
-  // Owner equity ledgers â€” same Sidan Hub gotcha applies, keep both lists in sync.
+  // Owner equity ledgers — same Sidan Hub gotcha applies, keep both lists in sync.
   'capital_account', 'dividend_account',
-  // Shareholders + Loans liability ledger â€” sync these too or per-shareholder
+  // Shareholders + Loans liability ledger — sync these too or per-shareholder
   // reporting and Loan outstanding balances drift cross-device.
   'shareholders', 'loans', 'loan_transactions',
-  // Cash Book transfers between methods â€” KEEP IN SYNC with sync.js list.
+  // Cash Book transfers between methods — KEEP IN SYNC with sync.js list.
   'cash_transfers',
-  // Stock count audit trail â€” KEEP IN SYNC with sync.js list.
+  // Stock count audit trail — KEEP IN SYNC with sync.js list.
   'stock_count_sessions', 'stock_count_items',
-  // Discount approval requests â€” admin verdict needs to reach the cashier's
+  // Discount approval requests — admin verdict needs to reach the cashier's
   // PC even if approver is on another device. KEEP IN SYNC with sync.js.
   'discount_requests',
   // Phase 1 multi-currency (Kelete's whole reason for forking from Liquor).
-  // KEEP IN SYNC with sync.js list â€” adding to only one will cause one-way
+  // KEEP IN SYNC with sync.js list — adding to only one will cause one-way
   // sync gaps that are hard to spot later.
   'branches', 'product_branch_prices',
-  // v1.8.33 â€” KEEP IN SYNC with sync.js list. currency_exchanges = drawer
+  // v1.8.33 — KEEP IN SYNC with sync.js list. currency_exchanges = drawer
   // FX swaps that feed Cash Report Expected; fx_rates = the rate table
   // every receipt + cashier pay modal reads from. Both MUST sync.
   'currency_exchanges', 'fx_rates',
@@ -74,7 +74,7 @@ function getVpsUrl() {
 // Returns the URL this PC should sync TO.
 // - Mother / unconfigured: VPS URL (legacy direct-to-VPS behavior)
 // - Child:                 Mother PC URL on the LAN
-// If lan_role is 'child' but mother_ip is empty, falls back to VPS (safe default â€” never breaks).
+// If lan_role is 'child' but mother_ip is empty, falls back to VPS (safe default — never breaks).
 function getSyncTargetUrl() {
   if (!_syncConfig) return DEFAULT_VPS_URL;
   const lan = _syncConfig.getLanConfig();
@@ -97,7 +97,7 @@ let _syncConfig = null;
 let _timer      = null;
 let _status     = { state: 'idle', lastSynced: null, error: null };
 
-// â”€â”€â”€ HTTP helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── HTTP helper ──────────────────────────────────────────────────────────────
 function request(url, method = 'GET', body = null, timeoutMs = REQUEST_TIMEOUT) {
   return new Promise((resolve, reject) => {
     const parsed  = new URL(url);
@@ -137,7 +137,7 @@ function request(url, method = 'GET', body = null, timeoutMs = REQUEST_TIMEOUT) 
   });
 }
 
-// â”€â”€â”€ Internet / VPS check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Internet / VPS check ─────────────────────────────────────────────────────
 async function isOnline() {
   try {
     const r = await request(`${getSyncTargetUrl()}/api/health`, 'GET', null, HEALTH_TIMEOUT);
@@ -147,7 +147,7 @@ async function isOnline() {
   }
 }
 
-// â”€â”€â”€ Push local unsynced records â†’ VPS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Push local unsynced records → VPS ───────────────────────────────────────
 async function push() {
   const { tenantId, branchId, deviceId } = _syncConfig.getConfig();
   if (!tenantId || tenantId === 'local-only') return;
@@ -186,10 +186,10 @@ async function push() {
   }
 }
 
-// â”€â”€â”€ Pull VPS records â†’ local DB (merge by sync_id) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.8.90 â€” added `opts.force`. When true:
-//   â€¢ since=0 (full history pull, not just incremental)
-//   â€¢ PROTECT rule is BYPASSED â€” incoming rows overwrite local even if local
+// ─── Pull VPS records → local DB (merge by sync_id) ──────────────────────────
+// v1.8.90 — added `opts.force`. When true:
+//   • since=0 (full history pull, not just incremental)
+//   • PROTECT rule is BYPASSED — incoming rows overwrite local even if local
 //     synced=0. Used by Force Resync to unstick a diverged client.
 async function pull(opts = {}) {
   const { tenantId, lastPullTime, deviceId } = _syncConfig.getConfig();
@@ -226,12 +226,12 @@ async function pull(opts = {}) {
       for (const row of batch) {
         if (!row.sync_id) continue;
         try {
-          // v1.9.1 â€” read updated_at too so we can timestamp-resolve conflicts.
+          // v1.9.1 — read updated_at too so we can timestamp-resolve conflicts.
           const selectCols = tableHasUpdatedAt ? 'id, synced, updated_at' : 'id, synced';
           const existing = _db.prepare(`SELECT ${selectCols} FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
 
           if (!existing) {
-            // New record â€” insert it (mark synced=1 so we don't push it back)
+            // New record — insert it (mark synced=1 so we don't push it back)
             const insertCols = cols.filter(c => c !== 'id' && row[c] !== undefined && row[c] !== null);
             if (insertCols.length === 0) { slog(`pull: SKIP [${table}] no cols for sync_id=${row.sync_id}`); continue; }
             const placeholders = insertCols.map(() => '?').join(', ');
@@ -241,7 +241,7 @@ async function pull(opts = {}) {
             if (ins.changes === 0) slog(`pull: IGNORED [${table}] sync_id=${row.sync_id} cols=${insertCols.join(',')}`);
             _db.prepare(`UPDATE ${table} SET synced = 1 WHERE sync_id = ?`).run(row.sync_id);
           } else if (existing.synced === 0 && !opts.force) {
-            // v1.9.1 â€” TIMESTAMP-AWARE PROTECT.
+            // v1.9.1 — TIMESTAMP-AWARE PROTECT.
             // The old rule blocked every pull whenever local.synced=0. That
             // was too aggressive: a trivial local write (e.g. last_login
             // bump on user row) would lock the row forever, so legitimate
@@ -250,12 +250,12 @@ async function pull(opts = {}) {
             // user is mid-editing offline." Now we only block when LOCAL
             // is genuinely newer than the incoming version. If incoming is
             // newer (or equal), the server has the fresher state and we
-            // accept it â€” including a refresh of synced=0 â†’ 1 because the
+            // accept it — including a refresh of synced=0 → 1 because the
             // local change was already superseded.
             const localTs    = tableHasUpdatedAt ? (existing.updated_at || '') : '';
             const incomingTs = tableHasUpdatedAt ? (row.updated_at || '')      : '';
             if (tableHasUpdatedAt && incomingTs && localTs && localTs > incomingTs) {
-              slog(`pull: PROTECT [${table}] sync_id=${row.sync_id} â€” local(${localTs}) newer than incoming(${incomingTs}), skipping`);
+              slog(`pull: PROTECT [${table}] sync_id=${row.sync_id} — local(${localTs}) newer than incoming(${incomingTs}), skipping`);
               continue;
             }
             // Incoming wins (newer or equal, or no timestamp column to compare).
@@ -265,9 +265,9 @@ async function pull(opts = {}) {
             _db.prepare(`UPDATE ${table} SET ${setClause} WHERE sync_id = ?`).run(
               ...updateCols.map(c => row[c]), row.sync_id
             );
-            slog(`pull: TIMESTAMP-WIN [${table}] sync_id=${row.sync_id} â€” incoming(${incomingTs}) overrode local(${localTs}, synced=0)`);
+            slog(`pull: TIMESTAMP-WIN [${table}] sync_id=${row.sync_id} — incoming(${incomingTs}) overrode local(${localTs}, synced=0)`);
           } else {
-            // Existing record is clean (or force=true) â€” overwrite with incoming version
+            // Existing record is clean (or force=true) — overwrite with incoming version
             const updateCols = cols.filter(c => c !== 'id' && c !== 'sync_id' && row[c] !== undefined);
             if (updateCols.length === 0) continue;
             const setClause = [...updateCols.map(c => `${c} = ?`), 'synced = 1'].join(', ');
@@ -275,7 +275,7 @@ async function pull(opts = {}) {
               ...updateCols.map(c => row[c]), row.sync_id
             );
             if (opts.force && existing.synced === 0) {
-              slog(`pull: FORCE OVERWRITE [${table}] sync_id=${row.sync_id} â€” local synced=0 was discarded`);
+              slog(`pull: FORCE OVERWRITE [${table}] sync_id=${row.sync_id} — local synced=0 was discarded`);
             }
           }
         } catch (rowErr) { slog(`pull: row error [${table}] ${rowErr.message}`); }
@@ -305,17 +305,17 @@ async function pull(opts = {}) {
   if (result.body.serverTime) {
     _syncConfig.updateLastPullTime(result.body.serverTime);
   }
-  // v1.8.90 â€” return a summary so the Force Resync endpoint can show counts.
+  // v1.8.90 — return a summary so the Force Resync endpoint can show counts.
   const totalRows = Object.values(result.body.records).reduce((s, r) => s + r.length, 0);
   return { ok: true, tables: pulled, total: totalRows };
 }
 
-// â”€â”€â”€ One full sync cycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── One full sync cycle ──────────────────────────────────────────────────────
 
-// â•â•â• master.db sync â€” client side â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// ═══ master.db sync — client side ════════════════════════════════════════
 //
 // Companion to /api/sync/master/{slug,pull,push} in routes/sync.js.
-// KEEP THIS LIST IN STEP with MASTER_SYNC_TABLES there â€” adding a table to
+// KEEP THIS LIST IN STEP with MASTER_SYNC_TABLES there — adding a table to
 // only one side produces a one-way gap that is very hard to spot later.
 // Kelete shipped exactly that (v1.10.249): hq_purchase_receipt_extras was
 // missing here, so extras a branch recorded on receipt never left the till
@@ -333,7 +333,7 @@ const MASTER_SYNC_TABLES = [
   'hq_supplier_credit_note_items',
 ];
 
-// A till stores tenantId + branchId, never its own slug â€” but every master
+// A till stores tenantId + branchId, never its own slug — but every master
 // call is scoped by slug. Ask the server once, then cache it in sync_config.
 async function ensureBranchSlug() {
   if (!_syncConfig) return null;
@@ -352,19 +352,19 @@ async function ensureBranchSlug() {
     }
     slog(`master: slug lookup returned ${result.status}`);
   } catch (e) {
-    slog(`master: slug lookup failed â€” ${e.message}`);
+    slog(`master: slug lookup failed — ${e.message}`);
   }
   return null;
 }
 
 // Pull the branch registry (tenants + branches) and replace the local copy.
 //
-// 2026-08-28 â€” a till with an empty registry cannot transfer at all:
+// 2026-08-28 — a till with an empty registry cannot transfer at all:
 // isRegistered() reads tenants, so sending failed with "Unknown source
 // branch" and receiving with "Destination branch no longer registered",
 // and the destination dropdown was empty. These two tables are HQ-owned
 // reference data with no sync_id, so they are replaced wholesale rather
-// than tracked row by row â€” a branch never writes them.
+// than tracked row by row — a branch never writes them.
 async function pullMasterRegistry() {
   if (!masterDb) return;
   const result = await request(`${getSyncTargetUrl()}/api/sync/master/registry`);
@@ -372,7 +372,7 @@ async function pullMasterRegistry() {
     const snip = typeof result.body === 'string'
       ? result.body.substring(0, 200)
       : JSON.stringify(result.body).substring(0, 200);
-    throw new Error(`master registry: HTTP ${result.status} â€” ${snip}`);
+    throw new Error(`master registry: HTTP ${result.status} — ${snip}`);
   }
   const tenants  = result.body && result.body.tenants;
   const branches = result.body && result.body.branches;
@@ -381,7 +381,7 @@ async function pullMasterRegistry() {
   }
   // Never wipe a working registry because of an empty or half-built answer.
   // Replacing it with nothing would break every transfer on this till.
-  if (tenants.length === 0) { slog('master registry: empty response â€” keeping local copy'); return; }
+  if (tenants.length === 0) { slog('master registry: empty response — keeping local copy'); return; }
 
   masterDb.pragma('foreign_keys = OFF');
   try {
@@ -431,10 +431,10 @@ async function pushMaster() {
     const snip = typeof result.body === 'string'
       ? result.body.substring(0, 200)
       : JSON.stringify(result.body).substring(0, 200);
-    throw new Error(`master push: HTTP ${result.status} â€” ${snip}`);
+    throw new Error(`master push: HTTP ${result.status} — ${snip}`);
   }
 
-  // 2026-08-28 â€” improvement on Kelete: it ignored `rejected` entirely, so a
+  // 2026-08-28 — improvement on Kelete: it ignored `rejected` entirely, so a
   // row the server refused (wrong branch, or an edit older than HQ's) was
   // dropped in silence and the operator's change simply never appeared.
   // Surface it. Scope mismatches are a bug and must be loud; stale
@@ -442,11 +442,11 @@ async function pushMaster() {
   // logged but do not fail the cycle.
   const rejected = Array.isArray(result.body && result.body.rejected) ? result.body.rejected : [];
   if (rejected.length) {
-    for (const r of rejected) slog(`master push: REJECTED [${r.table}] ${r.sync_id} â€” ${r.reason}`);
+    for (const r of rejected) slog(`master push: REJECTED [${r.table}] ${r.sync_id} — ${r.reason}`);
     const serious = rejected.filter(r => r.reason !== 'stale-timestamp');
     if (serious.length) {
       throw new Error(
-        `master push: server refused ${serious.length} row(s) â€” ` +
+        `master push: server refused ${serious.length} row(s) — ` +
         serious.slice(0, 3).map(r => `${r.table}/${r.reason}`).join(', ')
       );
     }
@@ -455,7 +455,7 @@ async function pushMaster() {
   // Mark them acked. Changing `synced` trips the touch trigger's WHEN guard
   // so the row is NOT re-flagged by its own acknowledgement.
   //
-  // 2026-08-28 â€” only rows the server ACCEPTED. Kelete acks everything it
+  // 2026-08-28 — only rows the server ACCEPTED. Kelete acks everything it
   // sent, so a refused row is marked done and never retried: the operator's
   // change is gone with nothing left pointing at it. Leaving a refused row
   // at synced=0 means the next cycle tries again, and if it is genuinely
@@ -474,7 +474,7 @@ async function pushMaster() {
 }
 
 // Bring this branch's master.db rows down. The server's copy is
-// authoritative here â€” anything of ours that mattered went up in pushMaster
+// authoritative here — anything of ours that mattered went up in pushMaster
 // a moment ago and was accepted or explicitly rejected above.
 async function pullMaster(opts = {}) {
   if (!masterDb) return;
@@ -490,7 +490,7 @@ async function pullMaster(opts = {}) {
     const snip = typeof result.body === 'string'
       ? result.body.substring(0, 200)
       : JSON.stringify(result.body).substring(0, 200);
-    throw new Error(`master pull: HTTP ${result.status} â€” ${snip}`);
+    throw new Error(`master pull: HTTP ${result.status} — ${snip}`);
   }
   if (!result.body || !result.body.records) throw new Error('master pull: empty response body');
 
@@ -511,7 +511,7 @@ async function pullMaster(opts = {}) {
             if (!existing) {
               // Carry updated_at + synced=1 in the payload so the INSERT
               // trigger's `WHEN NEW.updated_at IS NULL` guard skips this row
-              // â€” a pulled row is already in sync, it must not be re-flagged.
+              // — a pulled row is already in sync, it must not be re-flagged.
               const insertCols = cols.filter(c => c !== 'id' && row[c] !== undefined);
               if (!insertCols.includes('synced')) insertCols.push('synced');
               row.synced = 1;
@@ -566,7 +566,7 @@ async function runCycle() {
     _status = { ..._status, state: 'syncing', error: null };
     await push();
     await pull();
-    // master.db bridge â€” deposits, inter-branch transfers, HQ purchases and
+    // master.db bridge — deposits, inter-branch transfers, HQ purchases and
     // their GRNs. Push first: local work must reach HQ before HQ's copy is
     // applied over the top of it.
     // Registry first: pushMaster/pullMaster are scoped by slug, and the
@@ -587,11 +587,11 @@ async function runCycle() {
   }
 }
 
-// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Public API ───────────────────────────────────────────────────────────────
 let _currentIntervalMs = 0;
 let _running = false;
 
-// Self-rescheduling loop â€” never starts a new cycle until the previous one
+// Self-rescheduling loop — never starts a new cycle until the previous one
 // finishes. Prevents pile-up of overlapping runCycle() calls when sync gets
 // slow, which was causing accumulating freezes on long-running Mother PCs.
 async function loopOnce() {
@@ -619,15 +619,15 @@ function start(db, syncConfig) {
   _timer = setTimeout(loopOnce, 8_000);
 
   const cfg = syncConfig.getConfig();
-  slog(`started â€” tenantId=${cfg.tenantId} branchId=${cfg.branchId} interval=${_currentIntervalMs/1000}s target=${getSyncTargetUrl()}`);
-  console.log(`[SyncService] Started â€” interval: ${_currentIntervalMs / 1000}s, target: ${getSyncTargetUrl()}`);
+  slog(`started — tenantId=${cfg.tenantId} branchId=${cfg.branchId} interval=${_currentIntervalMs/1000}s target=${getSyncTargetUrl()}`);
+  console.log(`[SyncService] Started — interval: ${_currentIntervalMs / 1000}s, target: ${getSyncTargetUrl()}`);
 }
 
-// Called when LAN config changes â€” next cycle will pick up the new interval
+// Called when LAN config changes — next cycle will pick up the new interval
 function reload() {
   // loopOnce reads getSyncIntervalMs() at the end of every cycle, so the
   // new interval is automatically picked up on the next tick. Nothing to do.
-  slog('reload called â€” new interval will apply on next cycle');
+  slog('reload called — new interval will apply on next cycle');
 }
 
 function stop() {
@@ -639,7 +639,7 @@ function getStatus() {
   return { ..._status, target: getSyncTargetUrl(), intervalMs: _currentIntervalMs };
 }
 
-// v1.9.4 â€” kick a sync cycle on demand. Used by /api/sync/run-now so the
+// v1.9.4 — kick a sync cycle on demand. Used by /api/sync/run-now so the
 // POS Change Price flow doesn't have to wait up to 30s for the next scheduled
 // tick to push the request (or to pull the admin's verdict back). Returns
 // immediately; the actual cycle is fire-and-forget. Rate-limited internally

@@ -1,16 +1,16 @@
 /**
- * backfillCostAtSale.js â€” v1.13.49
+ * backfillCostAtSale.js — v1.13.49
  * One-shot: fill stock_movements.cost_at_sale for historical rows that
  * predate the trg_stamp_cost_at_sale trigger. Only touches the movement
  * types profitHelper actually reads (sale, sale_reverse, sales_return,
  * transit_writeoff) and only rows where cost_at_sale IS NULL.
  *
  * Priority order (highest confidence first):
- *   1. daily_cost_snapshot row for that (product, date)  â† truth-locked
- *   2. GRN + production aggregate DATED to that day       â† historical avg
- *   3. products.cost_price                                â† static hint
+ *   1. daily_cost_snapshot row for that (product, date)  ← truth-locked
+ *   2. GRN + production aggregate DATED to that day       ← historical avg
+ *   3. products.cost_price                                ← static hint
  *
- * Idempotent â€” running it twice does nothing new (only NULL rows update).
+ * Idempotent — running it twice does nothing new (only NULL rows update).
  *
  * Usage on VPS:
  *   node /var/www/kelete-pos-tenant/backend/scripts/backfillCostAtSale.js buseko
@@ -27,7 +27,7 @@ const TARGET_TYPES = ['sale', 'sale_reverse', 'sales_return', 'transit_writeoff'
 function backfillForSlug(slug) {
   const db = getTenantDb(slug);
   if (!db) {
-    console.error(`[backfill] tenant "${slug}" not registered â€” skipping`);
+    console.error(`[backfill] tenant "${slug}" not registered — skipping`);
     return;
   }
 

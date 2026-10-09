@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-# vps/backup.sh â€” daily SQLite backup for Kelete VPS (ZRA Ref 11)
+# ─────────────────────────────────────────────────────────────────────────────
+# vps/backup.sh — daily SQLite backup for Kelete VPS (ZRA Ref 11)
 #
 # What it backs up:
 #   - backend/kelete.db      (HQ mirror)
@@ -9,18 +9,18 @@
 #
 # Where it lands:
 #   /var/backups/kelete/YYYY-MM-DD/
-#     â”œâ”€â”€ master.db
-#     â”œâ”€â”€ kelete.db
-#     â”œâ”€â”€ tenants/
-#     â”‚   â”œâ”€â”€ buseko.db
-#     â”‚   â”œâ”€â”€ garden.db
-#     â”‚   â””â”€â”€ ...
-#     â””â”€â”€ backup.log      (per-file status + sizes)
+#     ├── master.db
+#     ├── kelete.db
+#     ├── tenants/
+#     │   ├── buseko.db
+#     │   ├── garden.db
+#     │   └── ...
+#     └── backup.log      (per-file status + sizes)
 #
 # Rotation: prunes backup dirs older than KEEP_DAYS (default 14).
 #
 # Uses `sqlite3 .backup` (not raw cp) so the copy is consistent even while
-# the app is writing â€” SQLite handles WAL correctly through this command.
+# the app is writing — SQLite handles WAL correctly through this command.
 #
 # Install (one-time):
 #   sudo mkdir -p /var/backups/kelete
@@ -31,7 +31,7 @@
 #
 # Manual run (test):
 #   /var/www/kelete-pos-tenant/vps/backup.sh
-# â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ─────────────────────────────────────────────────────────────────────────────
 set -u  # error on unset vars; not -e because we want to continue past
         # a single failing branch DB and still back up the others.
 
@@ -47,10 +47,10 @@ mkdir -p "$DAY_DIR/tenants"
 
 log() { echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG"; }
 
-log "â–¶ Kelete backup starting (APP_DIR=$APP_DIR, BACKUP_ROOT=$BACKUP_ROOT, KEEP_DAYS=$KEEP_DAYS)"
+log "▶ Kelete backup starting (APP_DIR=$APP_DIR, BACKUP_ROOT=$BACKUP_ROOT, KEEP_DAYS=$KEEP_DAYS)"
 
 if ! command -v sqlite3 >/dev/null 2>&1; then
-  log "âœ– sqlite3 command not found. Install with: apt-get install -y sqlite3"
+  log "✖ sqlite3 command not found. Install with: apt-get install -y sqlite3"
   exit 1
 fi
 
@@ -61,7 +61,7 @@ backup_one() {
   NAME="$(basename "$SRC")"
 
   if [ ! -f "$SRC" ]; then
-    log "  Â· $NAME  SKIP (source not found: $SRC)"
+    log "  · $NAME  SKIP (source not found: $SRC)"
     return 0
   fi
 
@@ -69,9 +69,9 @@ backup_one() {
   if sqlite3 "$SRC" ".backup '$DST'" 2>>"$LOG"; then
     local SIZE
     SIZE="$(du -h "$DST" 2>/dev/null | awk '{print $1}')"
-    log "  âœ“ $NAME  â†’ $DST  ($SIZE)"
+    log "  ✓ $NAME  → $DST  ($SIZE)"
   else
-    log "  âœ– $NAME  FAILED (source $SRC)"
+    log "  ✖ $NAME  FAILED (source $SRC)"
     return 1
   fi
 }
@@ -87,13 +87,13 @@ if [ -d "$APP_DIR/tenants" ]; then
     backup_one "$TDB" "$DAY_DIR/tenants/$(basename "$TDB")"
   done
 else
-  log "  Â· tenants/ directory not found, skipping branch DBs"
+  log "  · tenants/ directory not found, skipping branch DBs"
 fi
 
-# â”€â”€ Rotation: drop day-dirs older than KEEP_DAYS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-log "â–¶ Rotation (keeping last $KEEP_DAYS days)"
+# ── Rotation: drop day-dirs older than KEEP_DAYS ─────────────────────────────
+log "▶ Rotation (keeping last $KEEP_DAYS days)"
 find "$BACKUP_ROOT" -maxdepth 1 -type d -mtime "+$KEEP_DAYS" -print -exec rm -rf {} \; 2>>"$LOG" \
-  | while IFS= read -r D; do log "  âˆ’ pruned $D"; done
+  | while IFS= read -r D; do log "  − pruned $D"; done
 
 TOTAL_SIZE="$(du -sh "$DAY_DIR" 2>/dev/null | awk '{print $1}')"
-log "âœ“ Backup complete: $DAY_DIR ($TOTAL_SIZE)"
+log "✓ Backup complete: $DAY_DIR ($TOTAL_SIZE)"

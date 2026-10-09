@@ -1,4 +1,4 @@
-# Kelete POS â€” VPS setup guide
+# Kelete POS — VPS setup guide
 
 Run these once on the Hostinger VPS (Ubuntu) to get `keletezm.com` live.
 
@@ -13,7 +13,7 @@ If any are missing, install them with the same commands you used for Liquor.
 
 ---
 
-## 1 â€” Clone the repo
+## 1 — Clone the repo
 
 ```bash
 sudo mkdir -p /var/www
@@ -23,7 +23,7 @@ sudo chown -R $USER:$USER kelete-pos-tenant
 cd kelete-pos-tenant
 ```
 
-## 2 â€” Backend deps + .env
+## 2 — Backend deps + .env
 
 ```bash
 cd backend
@@ -38,7 +38,7 @@ In the .env file, **change at least**:
 
 Save and exit.
 
-## 3 â€” Frontend build
+## 3 — Frontend build
 
 ```bash
 cd ../frontend
@@ -47,7 +47,7 @@ npm run build:web
 cd ..
 ```
 
-## 4 â€” Start with PM2
+## 4 — Start with PM2
 
 ```bash
 cd backend
@@ -62,9 +62,9 @@ pm2 status kelete-tenant
 curl -I http://127.0.0.1:5301
 ```
 
-You should see `HTTP/1.1 200 OK` (or 301/redirect â€” either means the app responded).
+You should see `HTTP/1.1 200 OK` (or 301/redirect — either means the app responded).
 
-## 5 â€” nginx server block
+## 5 — nginx server block
 
 ```bash
 sudo cp vps/nginx-keletezm.com.conf /etc/nginx/sites-available/keletezm.com
@@ -73,9 +73,9 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-At this point `http://keletezm.com` should resolve (assuming Cloudflare is Active) and proxy to the Node app â€” but no HTTPS yet.
+At this point `http://keletezm.com` should resolve (assuming Cloudflare is Active) and proxy to the Node app — but no HTTPS yet.
 
-## 6 â€” SSL certificate via Certbot
+## 6 — SSL certificate via Certbot
 
 ```bash
 sudo mkdir -p /var/www/certbot
@@ -89,7 +89,7 @@ Test renewal:
 sudo certbot renew --dry-run
 ```
 
-## 7 â€” Pull-deploy cron
+## 7 — Pull-deploy cron
 
 Install the deploy script:
 
@@ -112,7 +112,7 @@ Append:
 
 Save. From now on, every `git push` to main on this repo deploys automatically within ~1 minute.
 
-## 8 â€” Smoke test
+## 8 — Smoke test
 
 Open `https://keletezm.com` in a browser. You should see the Kelete login screen.
 

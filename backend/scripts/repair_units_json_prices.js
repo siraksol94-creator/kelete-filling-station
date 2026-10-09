@@ -10,16 +10,16 @@
 //
 // Worse, bulk-push-prices ships units_json to the branches verbatim. Pushing
 // before this repair would have sent new selling_price + old units_json to
-// every till â€” looking like it worked while charging the old price.
+// every till — looking like it worked while charging the old price.
 //
 // This mirrors what routes/products.js bulk-update-prices does: every
 // packaging's price = base price x conv. Written in Node, not SQL, so keys
-// other than price survive â€” a json_object() rebuild would silently drop any
+// other than price survive — a json_object() rebuild would silently drop any
 // field this script doesn't know about.
 //
 // OVERRIDES ARE PRESERVED. A non-base unit whose stored price differs from
-// (old base x conv) by more than a cent was priced deliberately â€” a shop
-// selling a Six Pack at an unequal price â€” and is left exactly as it is.
+// (old base x conv) by more than a cent was priced deliberately — a shop
+// selling a Six Pack at an unequal price — and is left exactly as it is.
 // Only re-derived cells move. This is the same override test QuickPrice.js
 // uses to decide what is intentional.
 //
@@ -103,7 +103,7 @@ if (kept.length) {
 
 if (!APPLY) {
   console.log(drift.length
-    ? '\nDRY RUN â€” nothing written. Re-run with --apply to fix.\n'
+    ? '\nDRY RUN — nothing written. Re-run with --apply to fix.\n'
     : '\nNothing to do.\n');
   process.exit(0);
 }

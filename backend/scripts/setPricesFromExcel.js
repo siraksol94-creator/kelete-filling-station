@@ -1,5 +1,5 @@
 /**
- * setPricesFromExcel.js â€” v1.13.105 (2026-07-29)
+ * setPricesFromExcel.js — v1.13.105 (2026-07-29)
  *
  * One-shot: apply the Red Sea Selling PRICE schedule (77 SKUs) from the
  * ZRA 2 spreadsheet to products.selling_price. Prices embedded below so
@@ -7,14 +7,14 @@
  *
  * Matching:
  *   - Case-insensitive on products.name (whitespace normalised).
- *   - Multiple rows with the same name â†’ all updated to the same price.
+ *   - Multiple rows with the same name → all updated to the same price.
  *   - Rows in the DB not on the list are left untouched.
  *   - Only the top-level products.selling_price column is written. Per-
  *     packaging prices inside units_json are branch-owned and NOT touched
- *     â€” configure Box/Piece prices via Item Details UI once the top-level
+ *     — configure Box/Piece prices via Item Details UI once the top-level
  *     is set, since the xlsx has one price per SKU without conversion.
  *
- * Idempotent â€” running twice does nothing (WHERE clause skips rows already
+ * Idempotent — running twice does nothing (WHERE clause skips rows already
  * at the target values).
  *
  * Usage on VPS:
@@ -156,7 +156,7 @@ function patchDb(label, db) {
 
   console.log(`[prices] ${label}:`);
   console.log(`      matched     : ${matched} product row(s) hit by name`);
-  console.log(`      updated     : ${updated} row(s) ${dryRun ? '(dry-run â€” no writes)' : 'written'}`);
+  console.log(`      updated     : ${updated} row(s) ${dryRun ? '(dry-run — no writes)' : 'written'}`);
   console.log(`      already ok  : ${alreadyOk} row(s) already at target values`);
   console.log(`      unmatched   : ${unmatched.length} spreadsheet row(s) not found in DB`);
   if (unmatched.length) {
@@ -170,7 +170,7 @@ if (!target) {
   process.exit(1);
 }
 
-if (dryRun) console.log('[prices] DRY-RUN mode â€” no database writes will be made.');
+if (dryRun) console.log('[prices] DRY-RUN mode — no database writes will be made.');
 
 if (target === 'all') {
   patchDb('hq (kelete.db)', defaultDb);

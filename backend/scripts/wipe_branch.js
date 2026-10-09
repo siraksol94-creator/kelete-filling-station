@@ -16,25 +16,25 @@
 // run without one.
 //
 // WHAT IT KEEPS, and why each matters:
-//   business_settings  â€” holds zra_last_invc_no. ZRA's invoice numbers are
+//   business_settings  — holds zra_last_invc_no. ZRA's invoice numbers are
 //                        allocated as MAX(that column, highest number in
 //                        orders) + 1 (vsdcClient.js allocInvcNo). Clearing
 //                        orders drops the second half of that MAX to zero, so
 //                        the column is the ONLY thing standing between the
 //                        next sale and a number ZRA has already issued.
 //                        Garden sits at 131; after this it must still say 131.
-//   products           â€” the catalogue, prices and units_json
-//   users              â€” ONLY the ones named by --keep-users (default: sirak).
+//   products           — the catalogue, prices and units_json
+//   users              — ONLY the ones named by --keep-users (default: sirak).
 //                        Every other login is deleted. Buseko carried 17 and
 //                        Garden 6, all created during testing.
-//   sync_config        â€” the tenant mapping login depends on
+//   sync_config        — the tenant mapping login depends on
 //   categories, main_categories, units, branches, pv_types, quick_items
-//   zra_audit_log      â€” the record of what was transmitted. Kept deliberately:
+//   zra_audit_log      — the record of what was transmitted. Kept deliberately:
 //                        it is evidence, and it drives nothing operationally.
 //
 // WHAT IT CLEARS: sales, purchases, stock movements, cash, accounting, the
 // capital/dividend/shareholder/loan ledgers, inter-branch transfers, and
-// CUSTOMERS AND SUPPLIERS â€” because the receivable and the payable live on
+// CUSTOMERS AND SUPPLIERS — because the receivable and the payable live on
 // their balance columns, so keeping the party keeps the debt. Also resets
 // products.current_stock to 0.
 //
@@ -49,7 +49,7 @@
 // SYNC WARNING: orders and stock_movements sync between the VPS and any
 // Electron till. If this branch has a till, deleting here can either be undone
 // by the till pushing its copy back, or propagate the deletion to the till.
-// The report lists every device_id that has written to this branch â€” if more
+// The report lists every device_id that has written to this branch — if more
 // than one appears, stop and deal with the till first.
 
 const path = require('path');
@@ -75,7 +75,7 @@ if (!fs.existsSync(dbPath)) {
   // sqlite3 would happily CREATE this file. Refuse instead: a typo must not
   // silently produce an empty database and a "successful" wipe of nothing.
   console.error(`\nRefusing to run: ${dbPath} does not exist.\n` +
-                `Check the slug â€” sqlite would create an empty file rather than complain.\n`);
+                `Check the slug — sqlite would create an empty file rather than complain.\n`);
   process.exit(1);
 }
 
@@ -86,7 +86,7 @@ const KEEP_USERS = (keepArg ? keepArg.split('=')[1] : 'sirak')
 const db = new Database(dbPath);
 
 // Which logins survive. Matched on email, because that is the column
-// routes/auth.js authenticates against â€” the form calls it "username".
+// routes/auth.js authenticates against — the form calls it "username".
 function userSplit() {
   try {
     const all = db.prepare(
@@ -106,7 +106,7 @@ function userSplit() {
 // shareholders, loans and inter-branch transfers. None of those are
 // transactions in the obvious sense, and all of them outlive a naive wipe.
 //
-// Tables absent from a given database are skipped silently â€” Kelete has never
+// Tables absent from a given database are skipped silently — Kelete has never
 // had cash_deposits or stock_transfer_variances, and the hq_* tables belong to
 // the HQ database, so they simply will not be found here.
 const CLEAR = [
@@ -138,14 +138,14 @@ const CLEAR = [
   'stock_adjustments',
   'transfer_variances', 'stock_transfers',
   'production_inputs', 'production_outputs', 'production',
-  // ledgers â€” the ones easy to forget
+  // ledgers — the ones easy to forget
   'loan_transactions', 'loans',
   'shareholders', 'dividend_account', 'capital_account',
   // parties. Their BALANCE is the receivable/payable, so leaving the rows
   // behind leaves the debt behind with them.
   'customers',
   'suppliers',
-  // ZRA working data. Found by compare_branches.js against a clean branch â€”
+  // ZRA working data. Found by compare_branches.js against a clean branch —
   // none of it was on the original list.
   //   zra_pending_purchases  the T06A purchase queue; test pulls sitting in it
   //   zra_supplier_item_map  supplier->item mappings, orphaned once suppliers go
@@ -171,9 +171,9 @@ const count = (t) => {
 };
 
 console.log(`\n${dbPath}`);
-console.log(APPLY ? 'MODE: APPLY â€” rows will be deleted\n' : 'MODE: dry run â€” nothing will be written\n');
+console.log(APPLY ? 'MODE: APPLY — rows will be deleted\n' : 'MODE: dry run — nothing will be written\n');
 
-// â”€â”€ what is here â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── what is here ─────────────────────────────────────────────────────────
 console.log('--- transactional rows ---');
 let total = 0;
 for (const t of CLEAR) {
@@ -183,7 +183,7 @@ for (const t of CLEAR) {
 }
 console.log(`  ${'TOTAL'.padEnd(28)} ${String(total).padStart(6)}`);
 
-// â”€â”€ logins â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── logins ───────────────────────────────────────────────────────────────
 const U = userSplit();
 console.log('\n--- logins ---');
 if (U.all.length === 0) {
@@ -194,7 +194,7 @@ if (U.all.length === 0) {
   console.log(`  keeping ${U.keep.length} of ${U.all.length} (--keep-users=${KEEP_USERS.join(',')})`);
 }
 
-// â”€â”€ the ZRA position â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── the ZRA position ─────────────────────────────────────────────────────
 console.log('\n--- ZRA ---');
 let zra = null;
 try {
@@ -203,7 +203,7 @@ try {
   ).get();
 } catch (_) {}
 if (zra) {
-  console.log(`  env ${zra.zra_env || '(none)'} Â· tpin ${zra.zra_tpin || 'â€”'} Â· bhf ${zra.zra_bhf_id || 'â€”'}`);
+  console.log(`  env ${zra.zra_env || '(none)'} · tpin ${zra.zra_tpin || '—'} · bhf ${zra.zra_bhf_id || '—'}`);
   console.log(`  zra_last_invc_no = ${zra.zra_last_invc_no ?? '(blank)'}   <- MUST be unchanged afterwards`);
   let sent = 0;
   try { sent = db.prepare('SELECT COUNT(*) n FROM orders WHERE zra_cis_invc_no IS NOT NULL').get().n; } catch (_) {}
@@ -216,7 +216,7 @@ if (zra) {
   console.log('  no business_settings row found');
 }
 
-// â”€â”€ who has been writing here â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── who has been writing here ────────────────────────────────────────────
 console.log('\n--- devices that have written to this branch ---');
 let devices = [];
 try {
@@ -229,7 +229,7 @@ for (const d of devices) console.log(`  ${d.device_id.padEnd(40)} ${d.n}`);
 if (devices.length > 1) {
   console.log('  *** MORE THAN ONE DEVICE. If one is an Electron till it holds its own');
   console.log('  *** copy of these orders. Deal with the till before wiping, or the');
-  console.log('  *** rows come back on the next sync â€” or the deletion reaches the till.');
+  console.log('  *** rows come back on the next sync — or the deletion reaches the till.');
 }
 
 if (!APPLY) {
@@ -248,7 +248,7 @@ if (U.all.length > 0 && U.keep.length === 0) {
   process.exit(1);
 }
 
-// â”€â”€ the wipe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── the wipe ─────────────────────────────────────────────────────────────
 const before = zra ? zra.zra_last_invc_no : null;
 
 db.pragma('foreign_keys = OFF');
@@ -263,7 +263,7 @@ const tx = db.transaction(() => {
   db.prepare(`UPDATE products SET current_stock = 0, synced = 0, updated_at = datetime('now')
                WHERE deleted_at IS NULL`).run();
 
-  // Logins. Hard delete, matching the rest of the wipe â€” the rows that
+  // Logins. Hard delete, matching the rest of the wipe — the rows that
   // referenced them (orders.created_by and friends) have just gone too.
   if (U.drop.length) {
     const del = db.prepare('DELETE FROM users WHERE id = ?');
@@ -276,15 +276,15 @@ db.pragma('foreign_keys = ON');
 console.log('\n--- after ---');
 let left = 0;
 for (const t of CLEAR) { const n = count(t); if (n) { console.log(`  ${t}: ${n} REMAIN`); left += n; } }
-console.log(left === 0 ? '  all transactional tables empty' : `  ${left} row(s) survived â€” investigate`);
+console.log(left === 0 ? '  all transactional tables empty' : `  ${left} row(s) survived — investigate`);
 
 let after = null;
 try { after = db.prepare('SELECT zra_last_invc_no FROM business_settings LIMIT 1').get()?.zra_last_invc_no; } catch (_) {}
 console.log(`\n  zra_last_invc_no before ${before ?? '(blank)'} -> after ${after ?? '(blank)'}` +
-            (String(before) === String(after) ? '   OK, preserved' : '   *** CHANGED â€” STOP ***'));
+            (String(before) === String(after) ? '   OK, preserved' : '   *** CHANGED — STOP ***'));
 
 const prods = db.prepare('SELECT COUNT(*) n FROM products WHERE deleted_at IS NULL').get().n;
 const remaining = userSplit();
 console.log(`  catalogue kept: ${prods} products`);
-console.log(`  logins left: ${remaining.all.length ? remaining.all.map(u => u.email).join(', ') : 'NONE â€” THIS BRANCH CANNOT BE OPENED'}`);
+console.log(`  logins left: ${remaining.all.length ? remaining.all.map(u => u.email).join(', ') : 'NONE — THIS BRANCH CANNOT BE OPENED'}`);
 console.log('\nBranch is now catalogue-only with zero stock. Load its opening balance next.\n');

@@ -14,7 +14,7 @@ const vsdc = require('../services/vsdcClient');
 
 // ZRA-registration-relevant fields on products. Change any of these on
 // PUT and we re-register the item with VSDC.
-// v1.13.72 â€” zra_rrp added: needed at sale-time for MTV boost, not at
+// v1.13.72 — zra_rrp added: needed at sale-time for MTV boost, not at
 // saveItem, but listed here so PUT reserialises it as part of the ZRA
 // patch section instead of the generic field loop.
 const ZRA_ITEM_FIELDS = [
@@ -23,7 +23,7 @@ const ZRA_ITEM_FIELDS = [
   'zra_rrp',
 ];
 
-// v1.13.138 â€” Server-side saveItem/updateItem code validation. The
+// v1.13.138 — Server-side saveItem/updateItem code validation. The
 // frontend now uses dropdowns fed from zra_codes for these fields, but
 // a stale offline UI or a raw API call could still submit a bogus value
 // (e.g. 'BOX' for packaging when the real code is 'BX'). We reject the
@@ -31,7 +31,7 @@ const ZRA_ITEM_FIELDS = [
 // leaves the operator without a fiscal receipt.
 //
 // SOFT MODE: if the codes cache is empty for a class (never synced), we
-// skip validation for that field only â€” otherwise we'd break every
+// skip validation for that field only — otherwise we'd break every
 // product setup on a freshly-installed tenant before the first sync.
 // Empty/null field values are always allowed (nullable per schema).
 const ZRA_CODE_CHECKS = [
@@ -44,16 +44,16 @@ const ZRA_CODE_CHECKS = [
 function validateZraCodes(fields) {
   for (const chk of ZRA_CODE_CHECKS) {
     const val = fields[chk.field];
-    if (val == null || val === '') continue;                     // nullable â€” allowed
+    if (val == null || val === '') continue;                     // nullable — allowed
     const cached = db.prepare(
       `SELECT COUNT(*) AS n FROM zra_codes WHERE cd_cls = ?`
     ).get(chk.cls).n;
-    if (cached === 0) continue;                                  // soft: never synced â†’ skip
+    if (cached === 0) continue;                                  // soft: never synced → skip
     const hit = db.prepare(
       `SELECT 1 FROM zra_codes WHERE cd_cls = ? AND cd = ? AND use_yn = 'Y' LIMIT 1`
     ).get(chk.cls, val);
     if (!hit) {
-      return { ok: false, error: `Invalid ${chk.label} code "${val}" â€” not in ZRA's cached list. Pick from the dropdown.` };
+      return { ok: false, error: `Invalid ${chk.label} code "${val}" — not in ZRA's cached list. Pick from the dropdown.` };
     }
   }
   return { ok: true };
@@ -96,15 +96,15 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
                        ), 0)
                      ELSE COALESCE(sales_agg.sales_balance, 0)
                    END as sales_balance,
-                   -- v1.13.51 â€” prefer the stored products.avg_cost_price
+                   -- v1.13.51 — prefer the stored products.avg_cost_price
                    -- (written atomically by hqGrns.js /generate, transfers.js
-                   -- /receive, hqPurchases.js /confirm â€” the v1.10.55 WAC
+                   -- /receive, hqPurchases.js /confirm — the v1.10.55 WAC
                    -- redesign). Fall back to the live grn_items aggregation
                    -- for older products where p.avg_cost_price was never set,
                    -- and finally to p.cost_price for products with no GRN
                    -- history at all. Same read-priority pattern profitHelper.js
                    -- and the cost_at_sale trigger use. Ported from Kelete
-                   -- v1.10.176 â€” Kelete forked before the port existed, which
+                   -- v1.10.176 — Kelete forked before the port existed, which
                    -- is why Item Details was showing the static hint even for
                    -- products that had a real WAC.
                    CASE
@@ -117,7 +117,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
                  FROM products p
                  LEFT JOIN categories c ON p.category_sync_id = c.sync_id
                  LEFT JOIN (
-                   -- v1.13.1 (from Kelete v1.10.124) â€” expose active opening-balance
+                   -- v1.13.1 (from Kelete v1.10.124) — expose active opening-balance
                    -- stock movement quantity so ItemDetails modal seeds "Opening
                    -- Stock" with the actual OB (not current_stock, which was
                    -- silently rewriting the OB on every re-save).
@@ -146,7 +146,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
                  LEFT JOIN (
                    -- Convert each GRN line's quantity to BASE units before summing so avg_cost
                    -- is always per base unit (regardless of whether the GRN was entered in pcs or box).
-                   -- Uses baseQtyExpr â†’ looks up conversion in units_json, so it works for N packagings.
+                   -- Uses baseQtyExpr → looks up conversion in units_json, so it works for N packagings.
                    SELECT gi.product_sync_id,
                           SUM(${baseQtyExpr('gip', 'gi')}) AS total_qty,
                           SUM(gi.total_price) AS total_cost
@@ -175,9 +175,9 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// â”€â”€ Quick Items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Quick Items ──────────────────────────────────────────────────────────────
 
-// GET /api/products/quick-items â€” list quick items with product details
+// GET /api/products/quick-items — list quick items with product details
 router.get('/quick-items', auth, readOnlyGuard, (req, res) => {
   try {
     const rows = db.prepare(`
@@ -196,7 +196,7 @@ router.get('/quick-items', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// POST /api/products/quick-items â€” add a product to quick items
+// POST /api/products/quick-items — add a product to quick items
 router.post('/quick-items', auth, (req, res) => {
   try {
     const { product_sync_id } = req.body;
@@ -210,7 +210,7 @@ router.post('/quick-items', auth, (req, res) => {
   }
 });
 
-// DELETE /api/products/quick-items/:productSyncId â€” remove from quick items
+// DELETE /api/products/quick-items/:productSyncId — remove from quick items
 router.delete('/quick-items/:productSyncId', auth, (req, res) => {
   try {
     db.prepare('DELETE FROM quick_items WHERE tenant_id = ? AND product_sync_id = ?').run(req.user.tenantId, req.params.productSyncId);
@@ -265,15 +265,15 @@ router.get('/opening-balances', auth, (req, res) => {
   }
 });
 
-// GET /api/products/cost-prices â€” the C.P. list.
+// GET /api/products/cost-prices — the C.P. list.
 //
-// 2026-09-21 â€” a depot may READ this. It asked to see what its own costs are,
+// 2026-09-21 — a depot may READ this. It asked to see what its own costs are,
 // which is a fair question for the people selling the stock, and answering it
 // needs nothing a depot cannot already see elsewhere.
 //
 // Writing stays HQ-only: both POSTs below still refuse a depot outright, so a
 // depot that reaches this list has no route that would let it change one. The
-// flag is for the screen, not the guard â€” the server does not trust it.
+// flag is for the screen, not the guard — the server does not trust it.
 router.get('/cost-prices', auth, (req, res) => {
   const hq = isHqRequest(req);
   try {
@@ -285,7 +285,7 @@ router.get('/cost-prices', auth, (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-// ^ 2026-09-21 â€” and this one with it. /:id accepts "cost-prices" as an id
+// ^ 2026-09-21 — and this one with it. /:id accepts "cost-prices" as an id
 // just as happily as it accepts "opening-balances", so defined at the bottom
 // of the file this returned a product lookup and the C.P. tab showed
 // "No items" against a route that was plainly deployed.
@@ -308,7 +308,7 @@ router.get('/:id', auth, readOnlyGuard, (req, res) => {
 
 // Create product
 // Normalise multi-unit input into a clean array. Accepts either:
-//  - `units`: [{ name, conv, price, is_base }]   (new shape â€” multi-unit)
+//  - `units`: [{ name, conv, price, is_base }]   (new shape — multi-unit)
 //  - legacy `unit` + `alt_unit` + `conversion_factor` + `alt_price`
 // Returns { units, legacy } where legacy mirrors the first base + first non-base for the
 // existing alt_unit columns so older code paths keep working.
@@ -367,7 +367,7 @@ function normaliseUnits(body) {
 // Branches no longer create products via this endpoint in the new HQ-owned
 // workflow, but the route stays for the legacy/local-only path so older
 // installs (Electron, single-tenant) continue to work.
-// v1.13.174 â€” every item code is RS + a four-digit number.
+// v1.13.174 — every item code is RS + a four-digit number.
 //
 // The number continues from the highest NUMBER in any existing code, never the
 // highest string: sorted as text "RS091" sorts AFTER "RS0099", because at the
@@ -396,16 +396,16 @@ router.post('/', auth, async (req, res) => {
             container_product_sync_id, units_per_container, default_unit,
             image_url, ub_number_start, ub_number_length, ub_quantity_start,
             ub_quantity_length, ub_decimal_start,
-            // ZRA VSDC fields (all optional â€” only used when ZRA is enabled).
+            // ZRA VSDC fields (all optional — only used when ZRA is enabled).
             hs_code, tax_label,
             zra_item_cls_cd, zra_item_ty_cd, zra_orgn_nat_cd,
             zra_pkg_unit_cd, zra_qty_unit_cd, zra_vat_cat_cd, zra_excise_ty_cd,
             zra_rrp } = req.body;
     const { units, legacy } = normaliseUnits(req.body);
-    // v1.13.138 â€” reject typos in ZRA codes before they can reach VSDC.
+    // v1.13.138 — reject typos in ZRA codes before they can reach VSDC.
     const zraCheck = validateZraCodes({ zra_vat_cat_cd, zra_orgn_nat_cd, zra_qty_unit_cd, zra_pkg_unit_cd, zra_item_ty_cd });
     if (!zraCheck.ok) return res.status(400).json({ error: zraCheck.error });
-    // v1.13.174 â€” codes are assigned now, not typed, so this route has to be
+    // v1.13.174 — codes are assigned now, not typed, so this route has to be
     // the thing that stops two of them colliding. There is no UNIQUE index on
     // products.code and this route never checked; the only guard was in the
     // browser, against whatever that tab had loaded. Two HQ tabs opening New
@@ -426,9 +426,9 @@ router.post('/', auth, async (req, res) => {
     const categorySyncId = cat?.sync_id || null;
     const productSyncId = randomUUID();
     const fromHq = isHqRequest(req);
-    // v1.13.72 â€” parse zra_rrp for MTV items. Blank/undefined â†’ NULL so
+    // v1.13.72 — parse zra_rrp for MTV items. Blank/undefined → NULL so
     // the boost never fires accidentally. Kept out of the SQL INSERT
-    // string above so column order stays 1:1 with the existing schema â€”
+    // string above so column order stays 1:1 with the existing schema —
     // set separately with an UPDATE after the row lands.
     const rrpVal = (zra_rrp === '' || zra_rrp == null) ? null : (parseFloat(zra_rrp) || null);
     const info = db.prepare(
@@ -472,17 +472,17 @@ router.post('/', auth, async (req, res) => {
     if (fromHq) {
       try { pushProductToBranches(newProduct, { listTenants, getTenantDb }); } catch (_) { /* best-effort */ }
     }
-    // Register with ZRA if enabled â€” non-blocking (errors land on
+    // Register with ZRA if enabled — non-blocking (errors land on
     // products.zra_last_error so admin can retry from the product form).
     const zra = await vsdc.saveItem(tenantId, newProduct, { isUpdate: false, actor: String(req.user?.id || 'system') });
 
-    // 2026-08-26 â€” Declare the opening balance to ZRA as a MOVEMENT.
+    // 2026-08-26 — Declare the opening balance to ZRA as a MOVEMENT.
     //
     // saveItem registers the item (name, code, price, VAT category) but
     // carries no quantity field at all, and nothing else fired on create.
     // So a new product's opening stock existed only locally: ZRA's
     // computed stock ledger started it at zero, and the first sale drove
-    // that ledger negative â€” visible on ZRA's Opening/Closing report as
+    // that ledger negative — visible on ZRA's Opening/Closing report as
     // negative closing stock while Stock Inventory looked fine (the
     // residual is pushed separately by saveStockMaster).
     //
@@ -493,7 +493,7 @@ router.post('/', auth, async (req, res) => {
     //
     // Ordering matters: it runs AFTER saveItem, because ZRA must know the
     // item before a stock movement can reference its itemCd. Best-effort
-    // like the rest of the ZRA chain â€” a failure here never blocks
+    // like the rest of the ZRA chain — a failure here never blocks
     // product creation, and the one-shot script can always backfill.
     let zraOpening = { skipped: true, reason: 'no opening stock' };
     const openingQty = parseFloat(current_stock) || 0;
@@ -523,7 +523,7 @@ router.post('/', auth, async (req, res) => {
 
 // Update product
 // v1.5.0: when products.is_hq_owned=1, the request body's HQ-owned fields
-// are ignored â€” branch can only change cost_price, selling_price,
+// are ignored — branch can only change cost_price, selling_price,
 // alt_price (within units_json), min_stock, status, current_stock, notes.
 // HQ fields stay locked to whatever HQ pushed.
 router.put('/:id', auth, async (req, res) => {
@@ -531,7 +531,7 @@ router.put('/:id', auth, async (req, res) => {
     const { code, name, category_id, cost_price, current_stock, min_stock,
             ub_number_start, ub_number_length, ub_quantity_start, ub_quantity_length, ub_decimal_start, status,
             container_product_sync_id, units_per_container, default_unit,
-            // ZRA VSDC fields â€” persisted separately so we don't have to
+            // ZRA VSDC fields — persisted separately so we don't have to
             // touch the already-large main UPDATE. HQ-owned products
             // still get these edited (ZRA identity is per-branch anyway).
             hs_code, tax_label,
@@ -541,8 +541,8 @@ router.put('/:id', auth, async (req, res) => {
     const existingProduct = db.prepare('SELECT sync_id, unit, is_hq_owned, code, name, category_id, category_sync_id, units_json, default_unit, image_url, container_product_sync_id, units_per_container, ub_number_start, ub_number_length, ub_quantity_start, ub_quantity_length, ub_decimal_start FROM products WHERE id = ?').get(req.params.id);
     if (!existingProduct) return res.status(404).json({ error: 'Product not found' });
     const isHq = !!existingProduct.is_hq_owned;
-    // v1.13.138 â€” validate ZRA codes on PUT too (same rules as POST).
-    // Only when the branch is allowed to edit HQ-owned fields â€” otherwise
+    // v1.13.138 — validate ZRA codes on PUT too (same rules as POST).
+    // Only when the branch is allowed to edit HQ-owned fields — otherwise
     // HQ-owned rows on branches keep whatever HQ pushed.
     if (!isHq || isHqRequest(req)) {
       const zraCheck = validateZraCodes({ zra_vat_cat_cd, zra_orgn_nat_cd, zra_qty_unit_cd, zra_pkg_unit_cd, zra_item_ty_cd });
@@ -561,7 +561,7 @@ router.put('/:id', auth, async (req, res) => {
       ).get(existingProduct.sync_id);
       if (hasMovements) return res.status(400).json({ error: 'Base unit cannot change once stock movements exist. Edit prices/conversions only.' });
     }
-    // 2026-08-26 â€” snapshot stock BEFORE the edit so the opening-balance
+    // 2026-08-26 — snapshot stock BEFORE the edit so the opening-balance
     // change can be reported to ZRA as a delta further down. See the
     // zraOpening block after the transaction for why this is needed.
     const stockBeforeEdit = Number(
@@ -573,7 +573,7 @@ router.put('/:id', auth, async (req, res) => {
       // For HQ-owned products edited FROM A BRANCH, the HQ-owned columns are
       // forced back to whatever HQ pushed. Branch-owned columns (price/min/
       // status/stock) come from the request.
-      // v1.7.3 â€” when the request comes from HQ itself, HQ must be able to
+      // v1.7.3 — when the request comes from HQ itself, HQ must be able to
       // edit those columns (packagings, default unit, category, etc.) or
       // changes silently disappear on save. So lock only for non-HQ requests.
       const useHqFields = isHq && !isHqRequest(req);
@@ -630,7 +630,7 @@ router.put('/:id', auth, async (req, res) => {
             ...defaultUnitArgs,
             (status === 'Inactive' ? 'Inactive' : 'Active'),
             req.params.id);
-      // v1.10.7 â€” Kelete is no-store: opening balance writes to 'sales' as an
+      // v1.10.7 — Kelete is no-store: opening balance writes to 'sales' as an
       // adjustment (reference_type='opening_balance' so re-saves can find and
       // void it). Voids ALL prior opening rows for this product regardless of
       // location/movement_type so legacy 'store'/'opening' rows get cleaned up
@@ -651,7 +651,7 @@ router.put('/:id', auth, async (req, res) => {
       if (parseFloat(current_stock) > 0) {
         const tenantId = syncConfig.getTenantId(req);
         const { branchId, deviceId } = syncConfig.getConfig();
-        // v1.13.2 (from Kelete v1.10.125) â€” backdate opening_balance rows to
+        // v1.13.2 (from Kelete v1.10.125) — backdate opening_balance rows to
         // 2026-06-29 so they land in the blue "Opening Balance" pill on Bin
         // Card instead of a mid-timeline "Adjustment" row.
         db.prepare(
@@ -660,7 +660,7 @@ router.put('/:id', auth, async (req, res) => {
         ).run(req.params.id, product?.sync_id, 'sales', 'adjustment', parseFloat(current_stock), 'opening_balance', 'Opening balance',
               randomUUID(), tenantId, branchId, deviceId);
       }
-      // v1.13.21 â€” the main UPDATE above set current_stock to the raw
+      // v1.13.21 — the main UPDATE above set current_stock to the raw
       // request value (i.e. just the new opening balance). Non-opening
       // movements (sales/GRNs/adjustments) still live in the ledger, so
       // cache and SUM(stock_movements) would disagree by exactly the
@@ -676,18 +676,18 @@ router.put('/:id', auth, async (req, res) => {
         `).run(product.sync_id, req.params.id);
       }
     })();
-    // Second, dedicated UPDATE for the ZRA fields â€” only patches columns
+    // Second, dedicated UPDATE for the ZRA fields — only patches columns
     // the caller actually sent.
     //
-    // v1.13.86 â€” HQ-write-only. Every ZRA classification field (VAT cat,
+    // v1.13.86 — HQ-write-only. Every ZRA classification field (VAT cat,
     // RRP, UNSPSC, packaging, item type, excise, HS code) must be
-    // consistent across all branches for the same SKU â€” otherwise Buseko
+    // consistent across all branches for the same SKU — otherwise Buseko
     // and Garden could declare different MTV bases or VAT categories to
     // ZRA for the identical bottle. Branches never gate this from the
     // main product UI (see ItemDetails.js:hqLocked disables the inputs),
     // but we still enforce here in case a branch client is out of date
     // or an operator crafts a request manually. HQ requests come through
-    // isHqRequest() â€” same helper that already gates the code/name/units
+    // isHqRequest() — same helper that already gates the code/name/units
     // fields at the top of this handler.
     const zraSets = [];
     const zraVals = [];
@@ -705,8 +705,8 @@ router.put('/:id', auth, async (req, res) => {
     patchZra('zra_qty_unit_cd',   zra_qty_unit_cd);
     patchZra('zra_vat_cat_cd',    zra_vat_cat_cd);
     patchZra('zra_excise_ty_cd',  zra_excise_ty_cd);
-    // v1.13.72 â€” MTV RRP. Blank string = "clear it" so operator can
-    // remove an RRP by wiping the input. Numeric string â†’ parseFloat.
+    // v1.13.72 — MTV RRP. Blank string = "clear it" so operator can
+    // remove an RRP by wiping the input. Numeric string → parseFloat.
     patchZra('zra_rrp',
       zra_rrp === undefined ? undefined
       : zra_rrp === '' || zra_rrp === null ? null
@@ -717,7 +717,7 @@ router.put('/:id', auth, async (req, res) => {
     }
     const row = db.prepare('SELECT * FROM products WHERE id = ?').get(req.params.id);
     if (isHqRequest(req)) {
-      // Fix A â€” when the HQ operator ticks "Also apply this price to all
+      // Fix A — when the HQ operator ticks "Also apply this price to all
       // branches" on the edit modal, forward the flag so pushProductToBranches
       // overwrites each branch's cost/selling/alt + units_json prices instead
       // of preserving the branch overrides. Default remains false (routine
@@ -726,24 +726,24 @@ router.put('/:id', auth, async (req, res) => {
       try { pushProductToBranches(row, { listTenants, getTenantDb, pushPrices }); } catch (_) {}
     }
     // Re-register with VSDC when name/price or any ZRA field changed.
-    // We always call updateItem â€” cheaper than diffing every field, and
+    // We always call updateItem — cheaper than diffing every field, and
     // if nothing changed VSDC still responds 000. If the item was never
     // registered before, VSDC treats updateItem as an insert.
     const zra = await vsdc.saveItem(req.user.tenantId, row, { isUpdate: true, actor: String(req.user?.id || 'system') });
 
-    // 2026-08-26 â€” Report an opening-balance change to ZRA as a movement.
+    // 2026-08-26 — Report an opening-balance change to ZRA as a movement.
     //
-    // This is the path that actually matters for Red Sea's HQâ†’branch
+    // This is the path that actually matters for Red Sea's HQ→branch
     // flow. HQ owns code/name/units and pushes each item to branches with
     // current_stock = 0 (see hqProducts.js header); the BRANCH then sets
-    // its own opening balance by EDITING the pushed item â€” i.e. here, in
+    // its own opening balance by EDITING the pushed item — i.e. here, in
     // PUT, not in POST. The POST-side declaration only covers the rarer
     // branch-direct create.
     //
     // The edit is a REPLACE: the block above voids every prior
     // opening_balance movement, inserts the new one, then recomputes
     // current_stock from the whole ledger. So the figure ZRA needs is the
-    // DELTA, not the new opening â€” anything else would double-count the
+    // DELTA, not the new opening — anything else would double-count the
     // sales/GRNs already reported. Positive delta -> Adjustment In,
     // negative -> Adjustment Out.
     //
@@ -836,7 +836,7 @@ router.delete('/:id/image', auth, (req, res) => {
   }
 });
 
-// Delete all products â€” only deletes those NOT referenced by GRN/SIV/orders
+// Delete all products — only deletes those NOT referenced by GRN/SIV/orders
 router.delete('/all', auth, (req, res) => {
   try {
     const info = db.prepare(`
@@ -893,7 +893,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
     // v1.6.8: also track auto-created reference data so we can push it
     // alongside products. Without these pushes, branches receive products
     // whose category_sync_id / main_category_sync_id point to rows that
-    // don't exist on the branch â€” yields "no category" display + units
+    // don't exist on the branch — yields "no category" display + units
     // dropdown gaps.
     const pushCatIds       = new Set();
     const pushMainCatIds   = new Set();
@@ -902,7 +902,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
     const existingCodes = new Set(
       db.prepare("SELECT code FROM products WHERE deleted_at IS NULL").all().map(r => r.code)
     );
-    // v1.13.174 â€” import follows the same RS numbering as the New Item form.
+    // v1.13.174 — import follows the same RS numbering as the New Item form.
     // It used to mint IT001-style codes, which would have reintroduced exactly
     // the drift the form now prevents. existingCodes grows as rows are taken,
     // so a single file cannot issue the same code twice.
@@ -912,7 +912,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
       return code;
     };
 
-    // v1.6.2 â€” INSERT now stores HQ-owned + branch-owned columns in one
+    // v1.6.2 — INSERT now stores HQ-owned + branch-owned columns in one
     // shot. On HQ import we force branch-owned to 0 / null (set
     // is_hq_owned=1) so branches receive a clean record they can price
     // themselves. On branch import (legacy) branch fields come from the
@@ -952,7 +952,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
           skippedRows.push({ row: rowNum, code: code || '', name: '', reason: 'Missing name' });
           continue;
         }
-        // v1.13.174 â€” category is mandatory here too. Leaving import loose
+        // v1.13.174 — category is mandatory here too. Leaving import loose
         // while the form is strict would just move the gap: a CSV was how
         // uncategorised items got in before.
         if (!row.category?.trim()) {
@@ -961,7 +961,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
         }
         if (!code) code = nextAutoCode();
         if (checkCodeStmt.get(code)) {
-          skippedRows.push({ row: rowNum, code, name, reason: `Duplicate code "${code}" â€” already exists` });
+          skippedRows.push({ row: rowNum, code, name, reason: `Duplicate code "${code}" — already exists` });
           continue;
         }
 
@@ -1000,7 +1000,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
         const altUnit      = row.alt_unit?.trim() || null;
         const convFactor   = altUnit && row.conversion_factor ? parseFloat(row.conversion_factor) : null;
         const upc          = row.units_per_container ? parseFloat(row.units_per_container) : null;
-        // Branch-owned fields â€” IGNORED when importing on HQ.
+        // Branch-owned fields — IGNORED when importing on HQ.
         const cost_price    = fromHq ? 0 : (parseFloat(row.cost_price) || 0);
         const selling_price = fromHq ? 0 : (parseFloat(row.selling_price) || 0);
         const altPrice      = fromHq ? null : (altUnit && row.alt_price ? parseFloat(row.alt_price) : null);
@@ -1074,7 +1074,7 @@ router.post('/import', auth, csvUploadMem.single('file'), withTenantDb, (req, re
   }
 });
 
-// Delete product â€” blocked if referenced by GRN or SIV. v1.6.1: branches
+// Delete product — blocked if referenced by GRN or SIV. v1.6.1: branches
 // can't delete HQ-owned items; HQ deletes propagate the soft-delete to
 // every branch.
 router.delete('/:id', auth, (req, res) => {
@@ -1095,7 +1095,7 @@ router.delete('/:id', auth, (req, res) => {
       if (grnCount.c   > 0) parts.push(`${grnCount.c} GRN line(s)`);
       if (sivCount.c   > 0) parts.push(`${sivCount.c} SIV line(s)`);
       if (orderCount.c > 0) parts.push(`${orderCount.c} sales order line(s)`);
-      return res.status(400).json({ error: `Cannot delete "${prod.name}" â€” it is used in ${parts.join(', ')}. Remove those records first or mark the product inactive.` });
+      return res.status(400).json({ error: `Cannot delete "${prod.name}" — it is used in ${parts.join(', ')}. Remove those records first or mark the product inactive.` });
     }
 
     db.prepare("UPDATE products SET deleted_at=datetime('now'), updated_at=datetime('now'), synced=0 WHERE id=?").run(req.params.id);
@@ -1109,12 +1109,12 @@ router.delete('/:id', auth, (req, res) => {
   }
 });
 
-// Fix A â€” HQ-only bulk "Push Prices to All Branches". Force-pushes
+// Fix A — HQ-only bulk "Push Prices to All Branches". Force-pushes
 // cost_price + selling_price + alt_price + units_json (prices included)
 // from HQ to every registered branch, wiping any branch-set overrides.
 // Delegates to mirrorAllHqToBranches with pushPrices=true so the same
 // per-column rules used elsewhere apply. Confirmation lives on the
-// frontend (see ItemDetails.js) â€” the endpoint itself doesn't prompt.
+// frontend (see ItemDetails.js) — the endpoint itself doesn't prompt.
 router.post('/bulk-push-prices', auth, async (req, res) => {
   if (!isHqRequest(req)) return res.status(403).json({ error: 'HQ only' });
   try {
@@ -1125,7 +1125,7 @@ router.post('/bulk-push-prices', auth, async (req, res) => {
   }
 });
 
-// v1.8.1 â€” Transfer all store stock to sales floor as one SIV.
+// v1.8.1 — Transfer all store stock to sales floor as one SIV.
 // Password-gated (passed in body). Returns siv number + line count.
 router.post('/bulk-siv-store-to-sales', auth, (req, res) => {
   const PASSWORD = '108120';
@@ -1207,15 +1207,15 @@ router.post('/bulk-siv-store-to-sales', auth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ POST /api/products/bulk-update-prices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.8.34 â€” Quick Price Update page. Accepts a list of products with a single
+// ─── POST /api/products/bulk-update-prices ──────────────────────────────────
+// v1.8.34 — Quick Price Update page. Accepts a list of products with a single
 // "base price" (price for the base unit, e.g. price per Bottle). For each
-// product, updates units_json so every packaging's price = base_price Ã— conv,
+// product, updates units_json so every packaging's price = base_price × conv,
 // and updates the legacy selling_price column = base_price. Single transaction.
 //
-// v1.10.26 â€” Optional per-unit overrides. Non-default units may carry a
+// v1.10.26 — Optional per-unit overrides. Non-default units may carry a
 // distinct price without disturbing base or siblings, mirroring Item
-// Details behaviour. After deriving base Ã— conv for every unit, any
+// Details behaviour. After deriving base × conv for every unit, any
 // packaging listed in unit_prices is overwritten with that value.
 //
 // Body: { updates: [
@@ -1395,13 +1395,13 @@ router.post('/opening-balances', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// â”€â”€ Branch Prices â€” HQ sets one branch's selling price â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Branch Prices — HQ sets one branch's selling price ──────────────────────
 // v1.13.154
 //
 // Until now HQ had two levers and both were all-or-nothing: ticking "push
 // price to all" on Item Details sent one product's price to EVERY branch, and
 // bulk-push-prices sent every product to every branch. Neither could say
-// "Chipata sells Flying Fish at 350, leave the others alone" â€” which is
+// "Chipata sells Flying Fish at 350, leave the others alone" — which is
 // exactly what the depots needed, since Chipata was the only one to send a
 // price list and its figures differ from HQ's on thirteen items.
 //
@@ -1411,7 +1411,7 @@ router.post('/opening-balances', auth, readOnlyGuard, (req, res) => {
 // the branch's own products row, which is the same place Quick Price writes.
 //
 // NOT product_branch_prices. That table exists with exactly the right shape
-// and is dead code â€” nothing reads it, and the POS prices from units_json.
+// and is dead code — nothing reads it, and the POS prices from units_json.
 // Reviving it would mean changing every price reader in the system.
 //
 // KEYED ON sync_id, NOT id. Product ids are per-database autoincrements and a
@@ -1428,7 +1428,7 @@ function branchPriceRows(branchDb, hqDb) {
   };
   // The price a till actually charges is the base unit's entry in units_json;
   // selling_price is the fallback for rows that predate it. Reading only
-  // selling_price would show a figure the customer never pays â€” the exact gap
+  // selling_price would show a figure the customer never pays — the exact gap
   // that let a direct SQL price update look applied while the POS charged the
   // old amount.
   const effective = (p) => {
@@ -1457,14 +1457,14 @@ function branchPriceRows(branchDb, hqDb) {
       category_id: p.category_id,
       hq_price,
       branch_price,
-      // Null when HQ has no such product â€” a branch-only row. Shown as "â€”"
+      // Null when HQ has no such product — a branch-only row. Shown as "—"
       // rather than 0, because 0 would read as "HQ sells it free".
       diff: hq_price === null ? null : Number((branch_price - hq_price).toFixed(2)),
     };
   }).sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')));
 }
 
-// 2026-09-04 â€” 'hq' is a valid target here now. The screen used to show HQ's
+// 2026-09-04 — 'hq' is a valid target here now. The screen used to show HQ's
 // price as a read-only column beside a branch, so changing HQ meant leaving
 // for Item Details. Treating it as one more entry in the dropdown makes this
 // the single place every price is set.
@@ -1475,7 +1475,7 @@ const validTarget = (slug) =>
   slug === HQ_SLUG || listTenants().some(t => t.slug === slug);
 
 // Write a base price into one database, cascading through units_json exactly
-// as the single-branch save does â€” writing selling_price alone looks applied
+// as the single-branch save does — writing selling_price alone looks applied
 // while the till keeps charging the old amount, because POS reads the unit's
 // price out of units_json first. Extracted so the save and the multi-push
 // cannot drift apart.
@@ -1526,7 +1526,7 @@ router.get('/branch-prices/:slug', auth, (req, res) => {
     if (!validTarget(slug)) {
       return res.status(404).json({ error: `No such branch: ${slug}` });
     }
-    // With HQ on both sides the Diff column is always zero, which is right â€”
+    // With HQ on both sides the Diff column is always zero, which is right —
     // HQ cannot differ from itself, and the column keeps its meaning.
     res.json({ branch: slug, rows: branchPriceRows(dbForSlug(slug), db.defaultDb || db) });
   } catch (e) {
@@ -1539,7 +1539,7 @@ router.get('/branch-prices/:slug', auth, (req, res) => {
 //
 // Writes the SAME units_json cascade as bulk-update-prices: every packaging's
 // price becomes base x conv, and selling_price / alt_price follow. Writing
-// selling_price alone is not enough and looks like it worked â€” POS.js reads
+// selling_price alone is not enough and looks like it worked — POS.js reads
 // the unit's price out of units_json first and only falls back to
 // selling_price when the unit is missing, so a raw write leaves the till
 // charging the old price.
@@ -1568,13 +1568,13 @@ router.post('/branch-prices/:slug', auth, readOnlyGuard, (req, res) => {
 // POST /api/products/branch-prices/multi-push
 // Body: { updates: [ { sync_id, base_price } ], slugs: ['buseko','katete'] }
 //
-// 2026-09-04 â€” the deliberate replacement for "Push Prices to All Branches",
+// 2026-09-04 — the deliberate replacement for "Push Prices to All Branches",
 // which was hidden because it sent EVERY price to EVERY branch on one click
 // with no undo. This sends only the items the operator just changed, only to
 // the depots they ticked. Same cascade, a fraction of the blast radius.
 //
 // The prices come from the request rather than being re-read from HQ, so what
-// is pushed is exactly what the operator saw on screen and confirmed â€” no
+// is pushed is exactly what the operator saw on screen and confirmed — no
 // window in which a concurrent edit changes what travels.
 router.post('/branch-prices-multi-push', auth, readOnlyGuard, (req, res) => {
   if (!isHqRequest(req)) return res.status(403).json({ error: 'HQ only' });
@@ -1606,15 +1606,15 @@ router.post('/branch-prices-multi-push', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// â”€â”€ Cost price (C.P.) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Cost price (C.P.) ────────────────────────────────────────────────────────
 //
-// 2026-09-21. This is the OPENING cost â€” what an item was worth when the
-// system started â€” not the weighted average. The two are different things and
+// 2026-09-21. This is the OPENING cost — what an item was worth when the
+// system started — not the weighted average. The two are different things and
 // this deliberately never touches the WAC.
 //
 // Why it is needed: cost_price is set on 2 items out of 119 at every depot,
 // because it was skipped when opening balances were loaded. The cost chain is
-// avg_cost_price â†’ the average of this item's GRNs â†’ cost_price (see the
+// avg_cost_price → the average of this item's GRNs → cost_price (see the
 // SELECT at the top of this file), so an item that has never been delivered to
 // a depot has no cost at all and its sales read as 100% profit. Filling
 // cost_price in gives those items a floor until a real delivery sets a WAC,
@@ -1622,7 +1622,7 @@ router.post('/branch-prices-multi-push', auth, readOnlyGuard, (req, res) => {
 //
 // Entered once at HQ and pushed to the depots chosen, the same shape as
 // branch-prices-multi-push: only the items just edited, only to the depots
-// ticked. Nothing here writes avg_cost_price â€” that belongs to deliveries, and
+// ticked. Nothing here writes avg_cost_price — that belongs to deliveries, and
 // typing over it would rewrite COGS and every profit figure built on it.
 function costPriceRows(book) {
   try {
@@ -1657,7 +1657,7 @@ function applyCostPrices(book, updates) {
   return { updated: tx(), skipped };
 }
 
-// POST /api/products/cost-prices â€” save HQ's own C.P.
+// POST /api/products/cost-prices — save HQ's own C.P.
 // Body: { updates: [ { sync_id, cost_price } ] }
 router.post('/cost-prices', auth, readOnlyGuard, (req, res) => {
   if (!isHqRequest(req)) return res.status(403).json({ error: 'HQ only' });
@@ -1671,8 +1671,8 @@ router.post('/cost-prices', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// POST /api/products/cost-prices-push â€” send those costs to the depots ticked.
-// Body: { updates: [ { sync_id, cost_price } ], slugs: ['katete', â€¦] }
+// POST /api/products/cost-prices-push — send those costs to the depots ticked.
+// Body: { updates: [ { sync_id, cost_price } ], slugs: ['katete', …] }
 //
 // The costs come from the request, not re-read from HQ, so what lands is
 // exactly what was confirmed on screen. One unreachable depot does not lose

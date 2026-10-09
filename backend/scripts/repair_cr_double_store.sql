@@ -1,6 +1,6 @@
 -- ============================================================================
 -- One-off repair for cash_receipts rows written with the v1.10.68 double-store
--- bug (HQ tenant DB â€” hq.db, or whichever slug your HQ runs under).
+-- bug (HQ tenant DB — hq.db, or whichever slug your HQ runs under).
 -- ============================================================================
 -- Bug (fixed in v1.10.69): when the client sent per-currency columns
 -- (usd_amount / fra_amount / k_amount) but not the legacy method columns,

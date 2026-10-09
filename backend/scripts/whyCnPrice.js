@@ -1,5 +1,5 @@
 /**
- * whyCnPrice.js â€” where did a credit note line's price come from?
+ * whyCnPrice.js — where did a credit note line's price come from?
  *
  * 2026-09-18. SCN-2026-09D536EE is linked to invoice A70642, which bills
  * BLACK LABEL 750mls at K286.90, but the note carries K252.28. This prints
@@ -7,10 +7,10 @@
  * answer is read rather than guessed:
  *
  *   1. what the note actually stores (the figure on the screen)
- *   2. the linked GRN's own line     â€” what the form fills when an invoice
+ *   2. the linked GRN's own line     — what the form fills when an invoice
  *                                      is picked (total_price / quantity)
- *   3. the last-invoice fallback     â€” what it fills when none is picked
- *   4. every other GRN of that item  â€” so a matching price names its source
+ *   3. the last-invoice fallback     — what it fills when none is picked
+ *   4. every other GRN of that item  — so a matching price names its source
  *
  * READ ONLY. It opens the databases readonly and writes nothing.
  *
@@ -39,12 +39,12 @@ if (!cnNumber) {
 const master = open(process.env.MASTER_DB_PATH || path.join(ROOT, 'master.db'));
 const hqBook = open(process.env.DB_PATH || path.join(ROOT, 'backend', 'kelete.db'));
 
-const money = (n) => (n === null || n === undefined || n === '' ? 'â€”' : `K${Number(n).toFixed(2)}`);
-const head = (s) => console.log(`\n${s}\n${'â”€'.repeat(s.length)}`);
+const money = (n) => (n === null || n === undefined || n === '' ? '—' : `K${Number(n).toFixed(2)}`);
+const head = (s) => console.log(`\n${s}\n${'─'.repeat(s.length)}`);
 
-// â”€â”€ 1. The note itself. It lives in HQ's book when a depot raised it, or in
-//      master.db when it was minted from a GRN â€” look in both and say which.
-head(`1. The credit note â€” ${cnNumber}`);
+// ── 1. The note itself. It lives in HQ's book when a depot raised it, or in
+//      master.db when it was minted from a GRN — look in both and say which.
+head(`1. The credit note — ${cnNumber}`);
 let note = null, noteItems = [], noteWhere = '';
 if (hqBook) {
   try {
@@ -79,19 +79,19 @@ if (!note) { console.log('  Not found in either database.'); process.exit(0); }
 const grnSyncId = note.grn_sync_id || note.proposed_grn_sync_id || null;
 console.log(`  found in     : ${noteWhere}`);
 console.log(`  date         : ${note.date}`);
-console.log(`  created_at   : ${note.created_at || 'â€”'}   by: ${note.created_by_name || note.created_by || 'â€”'}`);
-console.log(`  reference    : ${note.reference || 'â€”'}`);
+console.log(`  created_at   : ${note.created_at || '—'}   by: ${note.created_by_name || note.created_by || '—'}`);
+console.log(`  reference    : ${note.reference || '—'}`);
 console.log(`  amount       : ${money(note.amount)}`);
-console.log(`  grn_sync_id  : ${note.grn_sync_id || 'â€”'}`);
-console.log(`  proposed     : ${note.proposed_grn_sync_id || 'â€”'}`);
-console.log(`  raised_by    : ${note.raised_by_branch || note.branch_slug || 'â€”'}`);
+console.log(`  grn_sync_id  : ${note.grn_sync_id || '—'}`);
+console.log(`  proposed     : ${note.proposed_grn_sync_id || '—'}`);
+console.log(`  raised_by    : ${note.raised_by_branch || note.branch_slug || '—'}`);
 console.log('  lines stored on the note:');
 for (const i of noteItems) {
   console.log(`    ${String(i.product_name || '?').padEnd(28)} qty ${String(i.quantity).padStart(6)}  @ ${money(i.unit_value)}  = ${money(i.total_price)}`);
 }
 
-// â”€â”€ 2. The GRN it is linked to.
-head('2. The invoice it is linked to â€” what the form fills when an invoice IS picked');
+// ── 2. The GRN it is linked to.
+head('2. The invoice it is linked to — what the form fills when an invoice IS picked');
 let grn = null;
 if (grnSyncId && master) {
   try {
@@ -103,7 +103,7 @@ if (grnSyncId && master) {
 if (!grn) {
   console.log(grnSyncId ? '  The linked GRN was not found in master.db.' : '  The note has no GRN link at all.');
 } else {
-  console.log(`  ${grn.grn_number} Â· invoice ${grn.supplier_invoice_number || 'â€”'} Â· ${grn.branch_slug} Â· ${grn.date}`);
+  console.log(`  ${grn.grn_number} · invoice ${grn.supplier_invoice_number || '—'} · ${grn.branch_slug} · ${grn.date}`);
   const lines = master.prepare(
     `SELECT product_name, unit, SUM(quantity) AS qty, SUM(total_price) AS total
        FROM hq_grn_items WHERE grn_sync_id = ? AND quantity > 0
@@ -115,12 +115,12 @@ if (!grn) {
   }
 }
 
-// â”€â”€ 3. The fallback the form uses when no invoice is picked: the most recent
+// ── 3. The fallback the form uses when no invoice is picked: the most recent
 //      GRN of that item at that branch. Same query the app runs.
 const branch = grn?.branch_slug || note.raised_by_branch || note.branch_slug || null;
-head(`3. The fallback â€” the LAST invoice for this item at ${branch || '(branch unknown)'}`);
+head(`3. The fallback — the LAST invoice for this item at ${branch || '(branch unknown)'}`);
 if (!master || !branch) {
-  console.log('  (skipped â€” no master.db or no branch)');
+  console.log('  (skipped — no master.db or no branch)');
 } else {
   const rows = master.prepare(`
     SELECT product_name, unit, unit_price, date, grn_number, invoice_number FROM (
@@ -135,12 +135,12 @@ if (!master || !branch) {
   for (const r of rows) {
     if (nameLike && !String(r.product_name || '').toLowerCase().includes(nameLike.toLowerCase())) continue;
     console.log(`    ${String(r.product_name).padEnd(28)} ${money(r.unit_price)} per ${r.unit || 'unit'}` +
-                `  (from ${r.grn_number} Â· inv ${r.invoice_number || 'â€”'} Â· ${r.date})`);
+                `  (from ${r.grn_number} · inv ${r.invoice_number || '—'} · ${r.date})`);
   }
 }
 
-// â”€â”€ 4. Every delivery of that item, so whichever one holds 252.28 is named.
-head(`4. Every delivery of ${nameLike || 'the note\'s items'} at ${branch || '(branch unknown)'} â€” which one holds the price on the note?`);
+// ── 4. Every delivery of that item, so whichever one holds 252.28 is named.
+head(`4. Every delivery of ${nameLike || 'the note\'s items'} at ${branch || '(branch unknown)'} — which one holds the price on the note?`);
 if (!master || !branch) {
   console.log('  (skipped)');
 } else {
@@ -162,7 +162,7 @@ if (!master || !branch) {
       // Flag the delivery whose price matches what the note stored.
       const want = [...onNote.entries()].find(([k]) => String(n).trim().toLowerCase().includes(k) || k.includes(String(n).trim().toLowerCase()));
       const hit = want && Math.abs(per - want[1]) < 0.01 ? '   <<< this is the price on the note' : '';
-      console.log(`    ${r.date}  ${String(r.grn_number).padEnd(22)} inv ${String(r.inv || 'â€”').padEnd(10)}` +
+      console.log(`    ${r.date}  ${String(r.grn_number).padEnd(22)} inv ${String(r.inv || '—').padEnd(10)}` +
                   ` qty ${String(r.qty).padStart(6)} ${String(r.unit || '').padEnd(5)} per ${r.unit || 'unit'} ${money(per)}${hit}`);
     }
   }

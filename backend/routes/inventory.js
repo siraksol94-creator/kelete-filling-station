@@ -8,7 +8,7 @@ const { baseQtyExpr, conversionToBase } = require('../config/unitsHelper');
 const { masterDb } = require('../config/masterDb');
 const { getHostSlug } = require('../middleware/hqPush');
 
-// Shared balance query â€” accepts tenantId for filtering
+// Shared balance query — accepts tenantId for filtering
 const balanceSQL = (tenantId) => ({
   text: `
   SELECT
@@ -67,7 +67,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     const q = balanceSQL(req.user.tenantId);
     const rows = db.prepare(q.text).all(...q.params);
 
-    // 2026-09-18 â€” stock already on a truck to another depot is NOT for sale
+    // 2026-09-18 — stock already on a truck to another depot is NOT for sale
     // here. A transfer only leaves this depot's stock when the receiver
     // confirms it (v1.9.22), so sales_balance still counted it and POS offered
     // goods that had physically gone. Take the pending outgoing transfers off
@@ -114,7 +114,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 });
 
 // GET /api/inventory/store
-// Optional ?location=store|sales â€” defaults to 'store'. The 'sales' variant
+// Optional ?location=store|sales — defaults to 'store'. The 'sales' variant
 // powers the Sales Stock Card (same shape, same fields, same units rules,
 // just filtered on the sales-counter side of the stock_movements ledger).
 router.get('/store', auth, readOnlyGuard, (req, res) => {
@@ -123,7 +123,7 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
     const tenantId = req.user.tenantId;
     const loc = req.query.location === 'sales' ? 'sales' : 'store';
 
-    // 2026-09-26 â€” what counts as a declared opening balance. TWO conventions
+    // 2026-09-26 — what counts as a declared opening balance. TWO conventions
     // exist and this route knew only the older one:
     //
     //   current  movement_type='adjustment', reference_type='opening_balance'
@@ -178,7 +178,7 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
         COALESCE(opening_agg.opening_balance, 0) AS opening_balance,
         COALESCE(mvt_agg.total_in, 0) AS total_in,
         COALESCE(mvt_agg.total_out, 0) AS total_out,
-        -- v1.13.83 â€” prefer the stored WAC (products.avg_cost_price)
+        -- v1.13.83 — prefer the stored WAC (products.avg_cost_price)
         -- so Sales Stock Card / Item Details BALANCE VALUE agrees with
         -- Sales Report COGS. GRN aggregate is the fallback for pre-WAC
         -- rows, then the static cost_price hint as last resort. Matches
@@ -210,7 +210,7 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
         FROM stock_movements WHERE ${rangeWhere} GROUP BY product_sync_id
       ) mvt_agg ON mvt_agg.product_sync_id = p.sync_id
       LEFT JOIN (
-        -- Avg cost per BASE unit. Uses units_json so it works for N packagings (PCS + Pack + Box + â€¦).
+        -- Avg cost per BASE unit. Uses units_json so it works for N packagings (PCS + Pack + Box + …).
         SELECT gi.product_sync_id,
                SUM(${baseQtyExpr('gip', 'gi')}) AS total_qty,
                SUM(gi.total_price) AS total_cost
@@ -230,7 +230,7 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
       ORDER BY p.name
     `).all(tenantId);
 
-    // v1.13.26 â€” attach transit_qty (base units) from PENDING outgoing
+    // v1.13.26 — attach transit_qty (base units) from PENDING outgoing
     // inter-branch transfers on the Sales Stock Card. Since v1.9.22
     // transfers don't deduct source stock until the receiver confirms, so
     // items on a truck to another branch still show as in-stock here.
@@ -323,7 +323,7 @@ router.get('/sales', auth, readOnlyGuard, (req, res) => {
       ) opening_agg ON opening_agg.product_sync_id = p.sync_id
 
       LEFT JOIN (
-        -- v1.9.24 â€” Kelete posts GRN directly at location='sales' (no store
+        -- v1.9.24 — Kelete posts GRN directly at location='sales' (no store
         -- layer, no SIV), so the Input column has to include 'grn' (and
         -- 'transfer_in') alongside 'siv'. Date filter is on the stock_movement
         -- created_at (which carries the GRN/SIV business date, set explicitly
@@ -420,7 +420,7 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
         AND (status IS NULL OR status != 'Reversed')
     `).get(selectedDate, tenantId);
 
-    // COGS: sale movements Ã— snapshot cost (fallback to GRN+production avg, then p.cost_price)
+    // COGS: sale movements × snapshot cost (fallback to GRN+production avg, then p.cost_price)
     const cogsRow = db.prepare(`
       SELECT COALESCE(SUM(ABS(sm.quantity) *
         COALESCE(dcs.avg_cost_price,
@@ -439,7 +439,7 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
         AND p.tenant_id = ?
     `).get(selectedDate, selectedDate, tenantId);
 
-    // Difference value: reconciliation movements Ã— snapshot cost
+    // Difference value: reconciliation movements × snapshot cost
     const diffRow = db.prepare(`
       SELECT COALESCE(SUM(sm.quantity *
         COALESCE(dcs.avg_cost_price,
@@ -470,7 +470,7 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
       FROM payment_vouchers WHERE date = ? AND deleted_at IS NULL AND tenant_id = ?
     `).get(selectedDate, tenantId);
 
-    // Stock adjustment value Ã— snapshot cost
+    // Stock adjustment value × snapshot cost
     const adjRow = db.prepare(`
       SELECT COALESCE(SUM(sa.quantity *
         COALESCE(dcs.avg_cost_price,
@@ -538,7 +538,7 @@ router.get('/sales/range-summary', auth, readOnlyGuard, (req, res) => {
         COALESCE(SUM(stock_adj),       0) AS stock_adj,
         COALESCE(SUM(gross_profit),    0) AS gross_profit,
         COALESCE(SUM(net_profit),      0) AS net_profit,
-        -- Legacy aliases (used by Dashboard widget â€” keep so we don't break anything)
+        -- Legacy aliases (used by Dashboard widget — keep so we don't break anything)
         COALESCE(SUM(revenue),      0) AS total_revenue
       FROM daily_profit_summary
       WHERE tenant_id = ?
@@ -603,7 +603,7 @@ router.get('/sales/siv-breakdown', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// POST /api/inventory/sales/actual â€” save actual balances for a date
+// POST /api/inventory/sales/actual — save actual balances for a date
 router.post('/sales/actual', auth, readOnlyGuard, (req, res) => {
   try {
     const { date, entries, created_by, diff_value } = req.body;
@@ -632,7 +632,7 @@ router.post('/sales/actual', auth, readOnlyGuard, (req, res) => {
 
         // Create reconciliation movement so POS "In Stock" reflects the actual balance
         // Step 1: delete ALL old reconciliations first (avoids stacking)
-        // v1.10.23 â€” roll the old reconciliations' net effect off current_stock
+        // v1.10.23 — roll the old reconciliations' net effect off current_stock
         // before soft-deleting them. Otherwise a re-reconciliation double-counts.
         const oldRec = db.prepare(
           `SELECT COALESCE(SUM(quantity), 0) AS net FROM stock_movements
@@ -658,7 +658,7 @@ router.post('/sales/actual', auth, readOnlyGuard, (req, res) => {
             VALUES (?, ?, 'sales', 'reconciliation', ?, ?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))
           `).run(entry.product_id, entryProductSyncId, diff, `Reconciliation: actual balance set to ${entry.actual_balance}`, created_by,
                  randomUUID(), tenantId, branchId, deviceId, date);
-          // v1.10.23 â€” apply the new reconciliation delta to current_stock.
+          // v1.10.23 — apply the new reconciliation delta to current_stock.
           db.prepare(
             `UPDATE products SET current_stock = current_stock + ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
           ).run(diff, entryProductSyncId);
@@ -828,23 +828,23 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
         (${effectiveDate}) AS date,
         sm.movement_type,
         sm.reference_type,
-        -- 2026-08-30 â€” the frontend needs this to open the HQ GRN modal: an
+        -- 2026-08-30 — the frontend needs this to open the HQ GRN modal: an
         -- HQ-generated GRN has no row in the branch grn table, so it is
         -- looked up in master.db by sync_id instead.
         sm.reference_sync_id,
-        -- v1.9.24 â€” include grn.grn_number so a GRN posted directly to
-        -- sales (Kelete's drop-ship flow) shows "GRN-â€¦" in the reference
+        -- v1.9.24 — include grn.grn_number so a GRN posted directly to
+        -- sales (Kelete's drop-ship flow) shows "GRN-…" in the reference
         -- column instead of the raw movement_type "grn".
         --
         -- Partial / full sale reversals: reference_type='order_reverse'
         -- points at the ORIGINAL order.sync_id. Instead of falling
         -- through to the bare movement_type ("sale_reverse"), surface the
-        -- Credit Note identifier from the parent order â€” local_cn_number
+        -- Credit Note identifier from the parent order — local_cn_number
         -- when set, otherwise a CN- derivative of the order number so the
         -- Bin Card matches Sales Report's CN-row labelling. If ZRA is on
         -- and signed the CN, the composite CRN{sdcSuffix}/{zra_cn_rcpt_no}
         -- lives on the receipt template; Bin Card sticks with the shorter
-        -- CN-â€¦ form to stay narrow.
+        -- CN-… form to stay narrow.
         COALESCE(
           o.order_number,
           sv.siv_number,
@@ -857,7 +857,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
           sm.movement_type
         ) AS reference,
         -- When the SIV was auto-generated from a GRN (single-location mode), surface the GRN
-        -- number so the bin card row reads "SIV-â€¦0010 (from GRN-â€¦0009)".
+        -- number so the bin card row reads "SIV-…0010 (from GRN-…0009)".
         sv_grn.grn_number AS source_grn_number,
         sm.quantity,
         SUM(sm.quantity) OVER (
@@ -880,7 +880,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
 
     const rawRows = db.prepare(sql).all(namedParams);
 
-    // 2026-08-30 â€” resolve the references that are NOT in this database.
+    // 2026-08-30 — resolve the references that are NOT in this database.
     //
     // Inter-branch transfers live in master.stock_transfers and HQ-generated
     // GRNs in master.hq_grns, so no LEFT JOIN above can reach them: this query
@@ -889,7 +889,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
     // the operator expected TRF-2026-... or GRN-2026-...
     //
     // reference_type is 'hq_grn' for a GRN raised by HQ's Generate GRN
-    // (hqGrns.js) and 'grn' for a branch-confirmed one â€” which is why the
+    // (hqGrns.js) and 'grn' for a branch-confirmed one — which is why the
     // existing join, scoped to 'grn', never matched the HQ ones.
     const rows = rawRows.map(row => {
       let reference = row.reference;
@@ -905,7 +905,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
               'SELECT grn_number FROM hq_grns WHERE sync_id = ?'
             ).get(row.reference_sync_id)?.grn_number || reference;
           } else if (row.reference_type === 'credit_note') {
-            // 2026-08-31 â€” supplier credit notes live in master too, so this
+            // 2026-08-31 — supplier credit notes live in master too, so this
             // row read the bare word "credit_note" with no way to tell which
             // one took the stock. Falls back to the branch's own table for a
             // CN raised locally rather than through an HQ GRN.
@@ -913,7 +913,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
               'SELECT credit_note_number FROM hq_supplier_credit_notes WHERE sync_id = ?'
             ).get(row.reference_sync_id)?.credit_note_number || reference;
           }
-        } catch (_) { /* master.db absent on this device â€” keep the raw label */ }
+        } catch (_) { /* master.db absent on this device — keep the raw label */ }
       }
       // A credit note raised at the branch lives in the tenant DB.
       if ((!reference || reference === row.movement_type)
@@ -922,7 +922,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
           reference = db.prepare(
             'SELECT credit_note_number FROM supplier_credit_notes WHERE sync_id = ?'
           ).get(row.reference_sync_id)?.credit_note_number || reference;
-        } catch (_) { /* older schema â€” keep the raw label */ }
+        } catch (_) { /* older schema — keep the raw label */ }
       }
       return { ...row, reference, balance: openingBalance + row.running_total };
     });
@@ -933,11 +933,11 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
 });
 
 
-// 2026-08-30 â€” GET /api/inventory/hq-grn/:syncId  (ported from Kelete v1.10.323)
+// 2026-08-30 — GET /api/inventory/hq-grn/:syncId  (ported from Kelete v1.10.323)
 //
 // Read-only HQ GRN lookup for branch users. Red Sea procurement is HQ-owned,
 // so a GRN reference on a branch bin card (GRN-2026-...) does NOT exist in
-// that branch's own `grn` table â€” it lives in master.hq_grns. Clicking it
+// that branch's own `grn` table — it lives in master.hq_grns. Clicking it
 // used to navigate to an empty branch GRN page. The frontend now opens a
 // read-only modal fed by this endpoint instead.
 //
@@ -966,7 +966,7 @@ router.get('/hq-grn/:syncId', auth, readOnlyGuard, (req, res) => {
           `SELECT purchase_number, date, created_by_name, created_at, notes
              FROM hq_purchases WHERE sync_id = ?`
         ).get(grn.po_sync_id) || null;
-      } catch (_) { /* legacy PO â€” non-fatal, the modal just omits it */ }
+      } catch (_) { /* legacy PO — non-fatal, the modal just omits it */ }
     }
 
     let supplier_name = grn.supplier_name || null;
@@ -974,10 +974,10 @@ router.get('/hq-grn/:syncId', auth, readOnlyGuard, (req, res) => {
       try {
         const s = db.prepare(`SELECT name FROM suppliers WHERE sync_id = ?`).get(grn.supplier_sync_id);
         supplier_name = s?.name || null;
-      } catch (_) { /* pre-migration branch â€” non-fatal */ }
+      } catch (_) { /* pre-migration branch — non-fatal */ }
     }
 
-    // 2026-08-31 â€” the credit notes, with their lines.
+    // 2026-08-31 — the credit notes, with their lines.
     //
     // The modal showed a single "CREDIT NOTES -66,621.54" and nothing else, so
     // a bin card row that moved 3 boxes out could not be tied to the note that
@@ -998,7 +998,7 @@ router.get('/hq-grn/:syncId', auth, readOnlyGuard, (req, res) => {
       for (const cn of credit_notes) {
         try { cn.items = cnItems.all(cn.sync_id) || []; } catch (_) { cn.items = []; }
       }
-    } catch (_) { /* pre-migration mirror â€” the modal just omits them */ }
+    } catch (_) { /* pre-migration mirror — the modal just omits them */ }
 
     res.json({
       grn: {

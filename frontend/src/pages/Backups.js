@@ -1,4 +1,4 @@
-// System Backups page â€” Ref 11 of the ZRA Self-Declaration.
+// System Backups page — Ref 11 of the ZRA Self-Declaration.
 //
 // Lists snapshots produced by the nightly cron under /var/backups/kelete,
 // lets an admin trigger a manual backup, and provides a per-snapshot
@@ -51,7 +51,7 @@ const Backups = () => {
         type: 'ok',
         text: data.method === 'script'
           ? 'Backup script completed.'
-          : `Inline backup completed â€” ${data.files_copied} database file(s) copied to ${data.dest}.`,
+          : `Inline backup completed — ${data.files_copied} database file(s) copied to ${data.dest}.`,
       });
       load();
     } catch (e) {
@@ -83,7 +83,7 @@ const Backups = () => {
           </button>
           <button onClick={runBackup} disabled={creating}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 8, border: 'none', background: creating ? '#9ca3af' : '#16a34a', color: '#fff', cursor: creating ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
-            <FiPlay size={14} /> {creating ? 'Creatingâ€¦' : 'Create Backup Now'}
+            <FiPlay size={14} /> {creating ? 'Creating…' : 'Create Backup Now'}
           </button>
         </div>
       </div>
@@ -105,7 +105,7 @@ const Backups = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Backup Folder</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all' }}>{root || 'â€”'}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all' }}>{root || '—'}</div>
         </div>
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Snapshots</div>
@@ -126,7 +126,7 @@ const Backups = () => {
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
         <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: '#111827' }}>Snapshots</h3>
         {loading ? (
-          <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af' }}>Loadingâ€¦</div>
+          <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
         ) : rows.length === 0 ? (
           <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
             {note ? note : 'No backups on disk yet. Click "Create Backup Now" to make the first one.'}
@@ -158,7 +158,7 @@ const Backups = () => {
                         onClick={() => runDownload(r.name)}
                         disabled={downloading === r.name}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, border: '1.5px solid #2563eb', background: downloading === r.name ? '#f3f4f6' : '#fff', color: downloading === r.name ? '#9ca3af' : '#2563eb', cursor: downloading === r.name ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                        <FiDownload size={12} /> {downloading === r.name ? 'Downloadingâ€¦' : 'Download'}
+                        <FiDownload size={12} /> {downloading === r.name ? 'Downloading…' : 'Download'}
                       </button>
                     </td>
                   </tr>

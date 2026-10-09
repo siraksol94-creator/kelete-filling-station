@@ -10,7 +10,7 @@
 --   sqlite3 tenants/mandevu.db < backend/scripts/create_branch_user.sql
 --
 -- Change the two literals in _u below for a different person or password. The
--- password CANNOT be typed in plain text â€” routes/auth.js line 29 does
+-- password CANNOT be typed in plain text — routes/auth.js line 29 does
 -- bcrypt.compare(password, user.password), so the column must hold a bcrypt
 -- hash. The one below is a real cost-10 hash of "sirak123", generated with the
 -- same bcrypt module the server uses and verified to compare true. Putting the
@@ -26,7 +26,7 @@
 --   2. The query is WHERE email = ? AND tenant_id = ?, where tenant_id comes
 --      from sync_config key 'tenant:<slug>'. A user row with tenant_id NULL
 --      is invisible to login on the branch subdomain even though the password
---      is right â€” the exact failure noted in routes/auth.js v1.13.3. So the
+--      is right — the exact failure noted in routes/auth.js v1.13.3. So the
 --      tenant_id is READ FROM THIS DATABASE rather than typed in.
 --
 -- role='Administrator' grants every page: middleware/auth.js line 52 returns
@@ -57,7 +57,7 @@ INSERT INTO _t
    WHERE tenant_id IS NOT NULL AND tenant_id != '' AND deleted_at IS NULL LIMIT 1;
 
 SELECT '--- tenant this database belongs to (must NOT be blank) ---';
-SELECT COALESCE((SELECT tenant_id FROM _t LIMIT 1), '*** NONE FOUND â€” STOP ***') AS tenant_id;
+SELECT COALESCE((SELECT tenant_id FROM _t LIMIT 1), '*** NONE FOUND — STOP ***') AS tenant_id;
 
 SELECT '--- users already here ---';
 SELECT id, email, first_name, last_name, role, tenant_id,

@@ -1,5 +1,5 @@
 /**
- * hqDamages.js â€” HQ-side view + confirm flow for branch-declared damages.
+ * hqDamages.js — HQ-side view + confirm flow for branch-declared damages.
  *
  * Each branch's sales_returns rows live in that branch's tenant DB. To
  * give HQ a single "Confirm Damages" queue we iterate every registered
@@ -8,9 +8,9 @@
  *
  * Stock decrement + profit recalc only happen on CONFIRM, mirroring the
  * v1.3.0 HQ purchase flow. Branches can't take damages off their own
- * stock without HQ approval â€” that's the whole point of the v1.3.1 spec.
+ * stock without HQ approval — that's the whole point of the v1.3.1 spec.
  *
- * Auth: hqAuth (JWT) â€” same model as the rest of /api/hq/*.
+ * Auth: hqAuth (JWT) — same model as the rest of /api/hq/*.
  */
 const express = require('express');
 const router  = express.Router();
@@ -36,8 +36,8 @@ function hqAuth(req, res, next) {
 
 function safeAll(fn) { try { return fn() || []; } catch { return []; } }
 
-// GET /api/hq/damages/awaiting â€” every PENDING declaration across branches.
-// Returns header + item list + estimated value (qty Ã— cost_price snapshot)
+// GET /api/hq/damages/awaiting — every PENDING declaration across branches.
+// Returns header + item list + estimated value (qty × cost_price snapshot)
 // so the operator can size up the variance before clicking Confirm.
 router.get('/awaiting', hqAuth, (req, res) => {
   try {
@@ -66,9 +66,9 @@ router.get('/awaiting', hqAuth, (req, res) => {
               LEFT JOIN products p ON p.sync_id = sri.product_sync_id
               WHERE sri.return_sync_id = ? AND sri.deleted_at IS NULL
           `).all(h.sync_id));
-          // v1.8.35 â€” enrich each item with line_cost (cost in the declared
-          // unit, e.g. $/Box) and line_value (qty Ã— line_cost). The old
-          // calculation multiplied qty Ã— cost_price directly, but cost_price
+          // v1.8.35 — enrich each item with line_cost (cost in the declared
+          // unit, e.g. $/Box) and line_value (qty × line_cost). The old
+          // calculation multiplied qty × cost_price directly, but cost_price
           // is per BASE unit (e.g. $0.98/Bottle), so a 1 Box damage showed
           // $0.98 instead of the correct ~$23.55.
           const enriched = items.map(it => {
@@ -88,7 +88,7 @@ router.get('/awaiting', hqAuth, (req, res) => {
           });
         }
       } catch (e) {
-        // Skip broken branches silently â€” they just won't appear in the list.
+        // Skip broken branches silently — they just won't appear in the list.
         console.error(`[hq.damages] ${t.slug}:`, e.message);
       }
     }
@@ -99,7 +99,7 @@ router.get('/awaiting', hqAuth, (req, res) => {
   }
 });
 
-// PUT /api/hq/damages/:slug/:id/confirm â€” HQ approves a branch declaration.
+// PUT /api/hq/damages/:slug/:id/confirm — HQ approves a branch declaration.
 // Opens the named branch DB, mirrors the per-branch /confirm logic
 // (stock decrement + profit recalc), and stamps the master line as
 // CONFIRMED with the HQ user's audit trail.
@@ -113,10 +113,10 @@ router.put('/:slug/:id/confirm', hqAuth, async (req, res) => {
     if (!ret) return res.status(404).json({ error: 'Damage not found' });
     if (ret.status !== 'PENDING') return res.status(400).json({ error: `Damage is ${ret.status}, not PENDING` });
 
-    // v1.8.96 â€” also fetch the BRANCH's local product.id (p.id) via sync_id.
+    // v1.8.96 — also fetch the BRANCH's local product.id (p.id) via sync_id.
     // Previously the INSERT below used sri.product_id, which is whatever local
-    // id the originating device stored â€” may not match this branch DB's local
-    // ids â†’ FOREIGN KEY constraint failed on stock_movements(product_id).
+    // id the originating device stored — may not match this branch DB's local
+    // ids → FOREIGN KEY constraint failed on stock_movements(product_id).
     const items = db.prepare(`
       SELECT sri.*, p.id AS local_product_id,
              p.unit AS product_base_unit, p.alt_unit, p.conversion_factor, p.units_json
@@ -126,7 +126,7 @@ router.put('/:slug/:id/confirm', hqAuth, async (req, res) => {
     `).all(ret.sync_id);
 
     const confirmedByName = req.user.firstName || req.user.email || 'HQ';
-    // v1.8.96 â€” created_by for branch-side stock_movements: prefer the branch
+    // v1.8.96 — created_by for branch-side stock_movements: prefer the branch
     // user who originally declared the damage (their id exists on this DB),
     // fall back to NULL. HQ user's id (req.user.id) was failing FK because
     // HQ users don't exist in branch user tables.
@@ -154,7 +154,7 @@ router.put('/:slug/:id/confirm', hqAuth, async (req, res) => {
           movementCreatedBy, randomUUID(), ret.tenant_id, ret.branch_id, ret.device_id,
           ret.date, ret.sync_id
         );
-        // v1.10.24 â€” decrement products.current_stock alongside the damage movement.
+        // v1.10.24 — decrement products.current_stock alongside the damage movement.
         if (it.product_sync_id) {
           db.prepare(
             `UPDATE products SET current_stock = current_stock - ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
@@ -172,10 +172,10 @@ router.put('/:slug/:id/confirm', hqAuth, async (req, res) => {
 
     recalculateDailyProfit(db, ret.date, ret.tenant_id);
 
-    // v1.13.78 â€” ZRA stock chain (sarTyCd=16 Disposal). Runs in the branch
+    // v1.13.78 — ZRA stock chain (sarTyCd=16 Disposal). Runs in the branch
     // DB context so vsdcClient's ALS-scoped product lookups + snapshots
     // hit that branch's kelete.db, not master. Fired outside the DB
-    // transaction above â€” a VSDC error must not unwind the confirm.
+    // transaction above — a VSDC error must not unwind the confirm.
     let zra = { skipped: true, reason: 'not-attempted' };
     try {
       const lines = items.map(it => ({
@@ -200,7 +200,7 @@ router.put('/:slug/:id/confirm', hqAuth, async (req, res) => {
   }
 });
 
-// PUT /api/hq/damages/:slug/:id/reject â€” HQ rejects; status REJECTED,
+// PUT /api/hq/damages/:slug/:id/reject — HQ rejects; status REJECTED,
 // confirm_notes captures the reason so the branch knows why. Stock is
 // never touched. Branch can recreate a fresh declaration if needed.
 router.put('/:slug/:id/reject', hqAuth, (req, res) => {

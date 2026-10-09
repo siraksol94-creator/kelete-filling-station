@@ -15,7 +15,7 @@
 --   cd /var/www/kelete-pos-tenant          # confirm the path first
 --   sqlite3 backend/kelete.db < backend/scripts/backfill_zra_orphan_suppliers.sql
 --
---   suppliers live in backend/kelete.db (HQ's list â€” the one hqGrns.js reads
+--   suppliers live in backend/kelete.db (HQ's list — the one hqGrns.js reads
 --   via defaultDb), while hq_* live in master.db, so the script ATTACHes the
 --   second database. Adjust the ATTACH path if MASTER_DB_PATH is set.
 --
@@ -29,7 +29,7 @@
 
 ATTACH DATABASE 'master.db' AS m;
 
--- â”€â”€ STEP 1 â€” see what is actually orphaned â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 1 — see what is actually orphaned ───────────────────────────────
 -- Run the script once with the UPDATEs commented out if you want to look
 -- before touching anything. This SELECT prints regardless.
 SELECT '--- orphaned AP rows, by supplier ---';
@@ -41,7 +41,7 @@ SELECT supplier_name         AS supplier,
  GROUP BY supplier_name
  ORDER BY total_payable DESC;
 
--- â”€â”€ STEP 2 â€” make sure the two suppliers exist locally â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 2 — make sure the two suppliers exist locally ───────────────────
 -- Inserted only if absent, matched case-insensitively so a differently-cased
 -- existing row is reused rather than duplicated. sync_id is a proper UUID v4;
 -- synced = 0 so the row travels to the branches on the next sync.
@@ -67,7 +67,7 @@ SELECT 'CHAMBISHI METALS PLC', 'Supplier', 'Active',
     WHERE LOWER(name) = LOWER('CHAMBISHI METALS PLC')
       AND (deleted_at IS NULL OR deleted_at = ''));
 
--- â”€â”€ STEP 3 â€” link the AP snapshot rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 3 — link the AP snapshot rows ───────────────────────────────────
 -- This is the table AP Approvals and the supplier ledger read, so it is the
 -- one that clears the orphan.
 UPDATE m.hq_confirmed_grn_totals
@@ -83,7 +83,7 @@ UPDATE m.hq_confirmed_grn_totals
                 WHERE LOWER(s.name) = LOWER(m.hq_confirmed_grn_totals.supplier_name)
                   AND (s.deleted_at IS NULL OR s.deleted_at = ''));
 
--- â”€â”€ STEP 3b â€” link the GRN rows themselves â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 3b — link the GRN rows themselves ───────────────────────────────
 -- 2026-08-30, added after the first live run.
 --
 -- Step 3 cleared AP Approvals, but Account Payables still showed these
@@ -108,11 +108,11 @@ UPDATE grn
                 WHERE LOWER(s.name) = LOWER(grn.supplier_name)
                   AND (s.deleted_at IS NULL OR s.deleted_at = ''));
 
--- â”€â”€ STEP 3c â€” link the PAYMENTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 3c — link the PAYMENTS ──────────────────────────────────────────
 -- 2026-08-30, added after the second live run.
 --
 -- HQ Suppliers showed CHAMBISHI as fully paid while Account Payables showed
--- K0 paid against the same supplier. Neither is buggy â€” they match
+-- K0 paid against the same supplier. Neither is buggy — they match
 -- differently. HQ Suppliers falls back to the name:
 --     WHERE supplier_id = ? OR LOWER(supplier_name) = LOWER(?)
 -- while Account Payables joins strictly on supplier_sync_id. The payments
@@ -144,7 +144,7 @@ UPDATE supplier_credit_notes
    AND supplier_id IS NOT NULL
    AND EXISTS (SELECT 1 FROM suppliers s WHERE s.id = supplier_credit_notes.supplier_id);
 
--- â”€â”€ STEP 4 â€” link the GRN archive rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 4 — link the GRN archive rows ───────────────────────────────────
 -- hq_grns has supplier_id but no supplier_sync_id (see hqGrns.js:1099).
 UPDATE m.hq_grns
    SET supplier_id = (SELECT s.id FROM main.suppliers s
@@ -156,7 +156,7 @@ UPDATE m.hq_grns
                 WHERE LOWER(s.name) = LOWER(m.hq_grns.supplier_name)
                   AND (s.deleted_at IS NULL OR s.deleted_at = ''));
 
--- â”€â”€ STEP 5 â€” link the purchases themselves â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 5 — link the purchases themselves ───────────────────────────────
 -- So a re-generated GRN inherits the supplier instead of orphaning again.
 UPDATE m.hq_purchases
    SET supplier_id = (SELECT s.id FROM main.suppliers s
@@ -168,7 +168,7 @@ UPDATE m.hq_purchases
                 WHERE LOWER(s.name) = LOWER(m.hq_purchases.supplier_name)
                   AND (s.deleted_at IS NULL OR s.deleted_at = ''));
 
--- â”€â”€ STEP 6 â€” remember the mapping, so future pulls skip all of this â”€â”€â”€â”€â”€â”€
+-- ── STEP 6 — remember the mapping, so future pulls skip all of this ──────
 -- Keyed on the TPIN carried by the pulled purchase. Only fills TPINs that are
 -- actually present on a pulled row, and never overwrites an existing mapping.
 INSERT OR IGNORE INTO zra_supplier_map (spplr_tpin, spplr_nm, action, supplier_id, supplier_sync_id, supplier_name)
@@ -191,7 +191,7 @@ UPDATE suppliers
                 WHERE LOWER(p.supplier_name) = LOWER(suppliers.name)
                   AND p.zra_spplr_tpin IS NOT NULL AND p.zra_spplr_tpin <> '');
 
--- â”€â”€ STEP 7 â€” confirm â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+-- ── STEP 7 — confirm ─────────────────────────────────────────────────────
 SELECT '--- remaining orphans (should be empty, or only names with no supplier) ---';
 SELECT supplier_name, COUNT(*) AS still_orphaned
   FROM m.hq_confirmed_grn_totals

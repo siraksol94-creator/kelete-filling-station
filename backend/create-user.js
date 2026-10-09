@@ -14,7 +14,7 @@ const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(username
 if (existing) {
   db.prepare('UPDATE users SET password = ?, role = ?, permissions = ?, deleted_at = NULL WHERE email = ?')
     .run(hash, 'Administrator', JSON.stringify(['All Access']), username);
-  console.log(`User '${username}' already existed â€” password reset, full access granted.`);
+  console.log(`User '${username}' already existed — password reset, full access granted.`);
 } else {
   db.prepare(
     'INSERT INTO users (first_name, last_name, email, password, phone, role, permissions, sync_id, device_id, synced) VALUES (?,?,?,?,?,?,?,?,?,0)'

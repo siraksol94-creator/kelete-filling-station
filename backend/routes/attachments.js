@@ -1,4 +1,4 @@
-// Generic invoice attachment upload â€” used by GRN and Payment Vouchers.
+// Generic invoice attachment upload — used by GRN and Payment Vouchers.
 // Stores PDFs / images (incl. camera captures, which arrive as image/jpeg or image/png) under
 // uploads/invoices/. Returns the relative path; the form then submits that path in invoice_attachment.
 //
@@ -14,7 +14,7 @@ const { randomUUID } = require('crypto');
 // Resolve where to drop uploaded files for the incoming request. Tenant server sets
 // X-Tenant on every request; default server has no such header.
 function resolveInvoiceDir(req) {
-  // v1.10.3 â€” fall back to req.hostname when Nginx didn't pass X-Tenant. Without
+  // v1.10.3 — fall back to req.hostname when Nginx didn't pass X-Tenant. Without
   // this, files silently landed in backend/uploads/ instead of TENANTS_DIR/<slug>/,
   // and the tenant static handler served 404 for the recorded URL.
   const host = (req.headers['x-tenant'] || req.hostname || '').toLowerCase();

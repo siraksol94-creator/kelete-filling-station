@@ -5,11 +5,11 @@ const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 const { recalculateDailyProfit } = require('../config/profitHelper');
 const { getHostSlug } = require('../middleware/hqPush');
-// 2026-09-11 â€” Cash Report â†’ PENDING deposits to HQ (per-depot switch).
+// 2026-09-11 — Cash Report → PENDING deposits to HQ (per-depot switch).
 const autoDeposit = require('../services/autoDeposit');
-// v1.8.67 â€” HQ Deposit math removed from Cash Report (per user: in real
+// v1.8.67 — HQ Deposit math removed from Cash Report (per user: in real
 // operations the cashier hands cash to the manager, who later sends to
-// HQ â€” so the deposit never affects the till count). The deposit still
+// HQ — so the deposit never affects the till count). The deposit still
 // flows through Cash Book (where it belongs at the accounting level).
 
 // Get all cash reports
@@ -55,9 +55,9 @@ router.get('/users', auth, readOnlyGuard, (req, res) => {
 // Get distinct users who made sales (optionally filtered by date)
 router.get('/sales-cashiers', auth, readOnlyGuard, (req, res) => {
   try {
-    // v1.10.43 â€” accept from_utc / to_utc same as /daily. orders.created_at
+    // v1.10.43 — accept from_utc / to_utc same as /daily. orders.created_at
     // is stored in UTC; a naive DATE() match drops any sale rung up between
-    // local midnight and UTC midnight (e.g. Lusaka +2 â†’ a 12:47 AM local
+    // local midnight and UTC midnight (e.g. Lusaka +2 → a 12:47 AM local
     // sale on Jul 2 is 22:47 UTC Jul 1, so a caller asking "who sold on
     // Jul 2?" with date=2026-07-02 saw an empty list). The frontend already
     // has the UTC bounds for the /daily call; just plumb them through.
@@ -107,7 +107,7 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
     const userFilter = cashierId > 0 ? ' AND created_by = ?' : '';
     const baseParams = cashierId > 0 ? [...orderDateParams, tenantId, cashierId] : [...orderDateParams, tenantId];
 
-    // v1.8.1 â€” Kelete is cash-only across 3 currencies (USD / FRA / K).
+    // v1.8.1 — Kelete is cash-only across 3 currencies (USD / FRA / K).
     // Each bucket is NET of change given out in that same currency.
     //   USD = cash_received - usd_change_given (v1.8.68: was change_amount,
     //         which mixed currencies and made FRA-overpaid orders show a
@@ -115,39 +115,39 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
     //         the cashier handed back.)
     //   FRA = fra_received  - fra_change_given
     //   K   = k_received    - k_change_given
-    // No more cash/momo/bank split â€” those columns are legacy and kept at 0.
+    // No more cash/momo/bank split — those columns are legacy and kept at 0.
     const sumOrders = (col) => db.prepare(
       `SELECT COALESCE(SUM(${col}), 0) AS total
        FROM orders WHERE ${orderDateClause} AND deleted_at IS NULL AND tenant_id = ?
        AND (status IS NULL OR status != 'Reversed')${userFilter}`
     ).get(...baseParams).total;
-    // v1.8.67 â€” Pure POS net. Deposits don't touch the till in Kelete's
-    // operational model (cashier â†’ manager â†’ HQ).
+    // v1.8.67 — Pure POS net. Deposits don't touch the till in Kelete's
+    // operational model (cashier → manager → HQ).
     const usdNet = parseFloat(sumOrders('cash_received')) - parseFloat(sumOrders('usd_change_given'));
     const fraNet = parseFloat(sumOrders('fra_received'))  - parseFloat(sumOrders('fra_change_given'));
     const kNet   = parseFloat(sumOrders('k_received'))    - parseFloat(sumOrders('k_change_given'));
 
-    // v1.9.30 â€” Liquor-style branches (Mansa / Lusaka) collect K via three
+    // v1.9.30 — Liquor-style branches (Mansa / Lusaka) collect K via three
     // methods (Cash / MoMo / Bank). The single-screen Pay modal writes the
     // amounts into cash_received / momo_received / bank_received. Cash
     // Report needs these summed per method so each counter card has the
     // right Expected value. On Kelete branches these columns are 0 (the
-    // walk-in modal isn't used), so the sums are 0 â€” harmless.
+    // walk-in modal isn't used), so the sums are 0 — harmless.
     //
-    // v1.10.101 â€” subtract change_amount from Cash bucket (mirrors the
+    // v1.10.101 — subtract change_amount from Cash bucket (mirrors the
     // reference Liquor project's cashReport.js:105). When a Liquor customer
     // overpays via MoMo/Bank, the cashier hands back Cash change from the
-    // drawer â€” so the till's Cash bucket must be NET of the change dispensed.
+    // drawer — so the till's Cash bucket must be NET of the change dispensed.
     // Without this, Expected Cash inflates by the over-collection amount
     // (K2,330 gap on 2026-07-04 Lusaka1). MoMo/Bank don't need subtraction
     // because change never comes back through those methods on Liquor.
-    // Kassumbalesa (tri-currency) is unaffected â€” its UI reads usdNet/fraNet/
+    // Kassumbalesa (tri-currency) is unaffected — its UI reads usdNet/fraNet/
     // kNet (lines 123-125) which already subtract per-currency change_given.
     const cashNet = parseFloat(sumOrders('cash_received')) - parseFloat(sumOrders('change_amount'));
     const momoNet = parseFloat(sumOrders('momo_received'));
     const bankNet = parseFloat(sumOrders('bank_received'));
 
-    // v1.8.68 â€” over-collections breakdown. When customer overpays and cashier
+    // v1.8.68 — over-collections breakdown. When customer overpays and cashier
     // keeps the surplus, the over-payment lives in the drawer of the currency
     // it was paid in. Reported here so it's visible without polluting any
     // drawer's Diff line.
@@ -160,11 +160,11 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
        AND (status IS NULL OR status != 'Reversed')${userFilter}`
     ).get(...baseParams);
 
-    // v1.8.76 â€” under-payments (silently absorbed). Walk-in shortages within
+    // v1.8.76 — under-payments (silently absorbed). Walk-in shortages within
     // the $0.10 tolerance keep payment_method='Cash' but have total > received.
     // These represent silent shop LOSS.
-    // v1.8.77 â€” attribute the shortfall to its SOURCE currency (same priority
-    // chain as over-payments: USD pays first, FRA next, K last â†’ shortage lives
+    // v1.8.77 — attribute the shortfall to its SOURCE currency (same priority
+    // chain as over-payments: USD pays first, FRA next, K last → shortage lives
     // in the LAST currency the customer used). So if customer paid USD + FRA
     // and was short, the shortage is in FRA, not USD-equivalent.
     const underRowsRaw = db.prepare(
@@ -184,7 +184,7 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
       const sellR   = parseFloat(r.selling_rate_used   || 0) || 0;
       const sellRK  = parseFloat(r.selling_rate_k_used || 0) || 0;
       // Source-currency attribution: shortage in the LAST currency used
-      // (highest in priority chain USD â†’ FRA â†’ K).
+      // (highest in priority chain USD → FRA → K).
       if (paidK > 0 && sellRK > 0) {
         underpaidK += shortUSD * sellRK;
       } else if (paidFRA > 0 && sellR > 0) {
@@ -194,7 +194,7 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
       }
     }
 
-    // v1.8.81 â€” Category 3: cashier OVER-CHANGED (gave back more than owed).
+    // v1.8.81 — Category 3: cashier OVER-CHANGED (gave back more than owed).
     // Real shop loss. Detected by: total USD-equivalent of change actually
     // returned > change_amount (USD-equivalent of change owed).
     // FRA / K change conversion uses BUY rate (matches the front-end formula
@@ -223,7 +223,7 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
       if (overUSD < 0.005) continue;
       // Source currency of the overshoot: whichever foreign currency was
       // returned in MORE than its share. Compute the "owed" portion per
-      // currency by walking USD-first â†’ FRA â†’ K consumption of changeOwedUSD.
+      // currency by walking USD-first → FRA → K consumption of changeOwedUSD.
       let rem = changeOwedUSD;
       const usdConsumed = Math.min(usdGiven, rem); rem -= usdConsumed;
       let fraOver = 0;
@@ -258,11 +258,11 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
     }
 
     // CREDIT SALES ISSUED bucket = today's new receivables (unpaid portion of today's sales).
-    // This is informational â€” represents money owed, NOT cash received.
-    // v1.8.76 â€” only count rows whose payment_method is actually Credit or
+    // This is informational — represents money owed, NOT cash received.
+    // v1.8.76 — only count rows whose payment_method is actually Credit or
     // Partial-Credit. Walk-in shortages within the $0.10 tolerance still have
     // total_amount > amount_received but payment_method='Cash' (no customer to
-    // bill) â€” those should NOT bleed into the Credit Sales bucket.
+    // bill) — those should NOT bleed into the Credit Sales bucket.
     const creditSales = db.prepare(
       `SELECT COALESCE(SUM(total_amount - amount_received), 0) AS total
        FROM orders WHERE ${orderDateClause} AND deleted_at IS NULL AND tenant_id = ?
@@ -279,18 +279,18 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
        AND payment_method NOT IN ('Cash', 'Transfer', 'Mobile Money', 'Credit', 'Partial-Credit')${userFilter}`
     ).get(...baseParams);
 
-    // v1.8.85 â€” match the orders pattern: cashier_id=0 means "all cashiers"
+    // v1.8.85 — match the orders pattern: cashier_id=0 means "all cashiers"
     // (no filter), not "PVs tagged to cashier 0 only". Without this, the top
     // KPI bar's Total cash in undercounts by the PV total (e.g. shows 500K
     // instead of 550K when 50K in expenses exist).
-    // 2026-09-21 â€” the spelling is ignored. A voucher raised on the Payment
+    // 2026-09-21 — the spelling is ignored. A voucher raised on the Payment
     // Voucher page saves "Cash drawer"; one raised from this screen saves
     // "Cash Drawer". A case-sensitive `=` silently dropped every one of the
     // former, which is how a K5,000 expense showed as K0.00.
     //
     // The cashier filter is deliberately NOT relaxed. An untagged voucher
     // briefly counted for whoever was selected, to rescue an expense that had
-    // lost its cashier on the way back from HQ approval â€” but that loss is
+    // lost its cashier on the way back from HQ approval — but that loss is
     // fixed at its source now (the voucher keeps the cashier it was raised
     // with), and the rule pulled PV-page expenses into a cashier's
     // reconciliation where they do not belong.
@@ -301,9 +301,9 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
       `SELECT COALESCE(SUM(amount), 0) AS total FROM payment_vouchers
        WHERE deleted_at IS NULL AND tenant_id = ? AND date = ? AND ${DRAWER}${expensesCashierClause}`
     ).get(...expensesParams);
-    // v1.8.14 + v1.8.17 â€” per-currency expenses. A PV recorded in FRA
+    // v1.8.14 + v1.8.17 — per-currency expenses. A PV recorded in FRA
     // reduces FRA drawer (not USD). Prefer the new usd_amount column when
-    // set, else fall back to the legacy cash_amount (per row â€” adding the
+    // set, else fall back to the legacy cash_amount (per row — adding the
     // two columns together double-counts the rows where both got populated
     // during the v1.8.5 transition).
     const expensesByCcy = db.prepare(
@@ -323,25 +323,25 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
 
     res.json({
       date,
-      // v1.8.1 â€” triple-currency. Each is NET (received minus change) in
+      // v1.8.1 — triple-currency. Each is NET (received minus change) in
       // that currency's own units. UI shows them as three separate rows.
       usd_received: usdNet,
       fra_received: fraNet,
       k_received:   kNet,
-      // v1.9.30 â€” method-axis rollups for Liquor-style branches.
+      // v1.9.30 — method-axis rollups for Liquor-style branches.
       cash_net: cashNet,
       momo_net: momoNet,
       bank_net: bankNet,
-      // v1.8.14 â€” per-currency expenses paid from cash drawer.
+      // v1.8.14 — per-currency expenses paid from cash drawer.
       usd_expenses: parseFloat(expensesByCcy.usd) || 0,
       fra_expenses: parseFloat(expensesByCcy.fra) || 0,
       k_expenses:   parseFloat(expensesByCcy.k)   || 0,
-      // v1.8.68 â€” over-collections kept by cashier (per source currency).
+      // v1.8.68 — over-collections kept by cashier (per source currency).
       usd_overpaid_kept: parseFloat(overpaidByCcy.usd) || 0,
       fra_overpaid_kept: parseFloat(overpaidByCcy.fra) || 0,
       k_overpaid_kept:   parseFloat(overpaidByCcy.k)   || 0,
-      // v1.8.76 â€” under-payments silently absorbed (walk-in tolerance shortages).
-      // v1.8.77 â€” per-currency attribution (source-currency, same as over-payments).
+      // v1.8.76 — under-payments silently absorbed (walk-in tolerance shortages).
+      // v1.8.77 — per-currency attribution (source-currency, same as over-payments).
       usd_underpaid:     parseFloat(underpaidUSD) || 0,
       fra_underpaid:     parseFloat(underpaidFRA) || 0,
       k_underpaid:       parseFloat(underpaidK)   || 0,
@@ -355,9 +355,9 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// v1.8.68 â€” per-order over-collections for the day. Returns one row per
+// v1.8.68 — per-order over-collections for the day. Returns one row per
 // order where the cashier kept an over-payment in the drawer (overpaid_kept_amt > 0).
-// v1.8.76 â€” also returns under-payment rows (walk-in shortages within tolerance).
+// v1.8.76 — also returns under-payment rows (walk-in shortages within tolerance).
 // Each row tagged with `direction`: 'OVER' (kept by cashier) or 'UNDER' (absorbed by shop).
 router.get('/overpaid', auth, readOnlyGuard, (req, res) => {
   try {
@@ -392,7 +392,7 @@ router.get('/overpaid', auth, readOnlyGuard, (req, res) => {
     ).all(...params);
 
     // Under-payments silently absorbed (walk-in tolerance shortages)
-    // v1.8.77 â€” attribute shortage to source currency (last currency used).
+    // v1.8.77 — attribute shortage to source currency (last currency used).
     const underRowsRawDetail = db.prepare(
       `SELECT o.id, o.order_number, o.customer_name, o.total_amount, o.amount_received,
               o.cash_received, o.fra_received, o.k_received,
@@ -424,10 +424,10 @@ router.get('/overpaid', auth, readOnlyGuard, (req, res) => {
       };
     });
 
-    // v1.8.81 â€” Category 3: cashier over-changed rows. Same shop-loss bucket
+    // v1.8.81 — Category 3: cashier over-changed rows. Same shop-loss bucket
     // as under-payments but caught by a different formula: USD-equivalent of
     // change RETURNED > change OWED. Tag direction='UNDER' so frontend shows
-    // them with the â†“ arrow alongside customer under-payments.
+    // them with the ↓ arrow alongside customer under-payments.
     const overChangeRowsDetail = db.prepare(
       `SELECT o.id, o.order_number, o.customer_name, o.total_amount,
               o.change_amount, o.usd_change_given,
@@ -455,7 +455,7 @@ router.get('/overpaid', auth, readOnlyGuard, (req, res) => {
                        + (buyRK > 0 ? kGiven   / buyRK : 0);
       const overUSD = usdEqGiven - changeOwedUSD;
       if (overUSD < 0.005) return null;
-      // Source-currency attribution (USD-first â†’ FRA â†’ K consumption).
+      // Source-currency attribution (USD-first → FRA → K consumption).
       let rem = changeOwedUSD;
       const usdConsumed = Math.min(usdGiven, rem); rem -= usdConsumed;
       let fraOver = 0;
@@ -499,9 +499,9 @@ router.get('/overpaid', auth, readOnlyGuard, (req, res) => {
 // Create / save cash report
 router.post('/', auth, (req, res) => {
   try {
-    // v1.8.1 â€” accept triple-currency fields. Legacy cash/mobile_money/bank
+    // v1.8.1 — accept triple-currency fields. Legacy cash/mobile_money/bank
     // still accepted for backwards compatibility (ignored if usd/fra/k sent).
-    // v1.8.13 â€” also accept per-currency Expected snapshots.
+    // v1.8.13 — also accept per-currency Expected snapshots.
     const { date, initial_change, expenses, pending, total,
             after_change, expected, difference, status, comment, cashier_id,
             usd_received, fra_received, k_received,
@@ -511,9 +511,9 @@ router.post('/', auth, (req, res) => {
     const usdAmt = parseFloat(usd_received ?? cash ?? 0);
     const fraAmt = parseFloat(fra_received ?? mobile_money ?? 0);
     const kAmt   = parseFloat(k_received   ?? bank ?? 0);
-    // v1.10.32 â€” persist per-method counted amounts (Cash / MoMo / Bank) on
+    // v1.10.32 — persist per-method counted amounts (Cash / MoMo / Bank) on
     // Liquor-style branches. Was always zeroed, which made CashReport's
-    // "ALL CASHIERS" top bar show Short Kâˆ’<expected> even after a cashier
+    // "ALL CASHIERS" top bar show Short K−<expected> even after a cashier
     // saved. Frontend sends these explicitly on Liquor. Kelete branches keep
     // them at 0 (no method concept there).
     const cashAmt = parseFloat(cash         ?? 0) || 0;
@@ -522,7 +522,7 @@ router.post('/', auth, (req, res) => {
     const usdExp = parseFloat(usd_expected ?? 0) || 0;
     const fraExp = parseFloat(fra_expected ?? 0) || 0;
     const kExp   = parseFloat(k_expected   ?? 0) || 0;
-    // v1.8.26 â€” snapshot per-currency expenses paid out of each drawer.
+    // v1.8.26 — snapshot per-currency expenses paid out of each drawer.
     const usdExpense = parseFloat(usd_expenses ?? 0) || 0;
     const fraExpense = parseFloat(fra_expenses ?? 0) || 0;
     const kExpense   = parseFloat(k_expenses   ?? 0) || 0;
@@ -531,7 +531,7 @@ router.post('/', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
 
-    // v1.10.16 â€” include soft-deleted rows in the existence check. The
+    // v1.10.16 — include soft-deleted rows in the existence check. The
     // UNIQUE index on (date, cashier_id) doesn't know about deleted_at, so
     // if v1.10.9's admin delete has marked an earlier row deleted_at=<ts>,
     // an INSERT for the same (date, cashier_id) still fails. Reuse the row:
@@ -539,7 +539,7 @@ router.post('/', auth, (req, res) => {
     const existing = db.prepare(
       'SELECT id, deleted_at, sync_id FROM cash_reports WHERE date = ? AND cashier_id = ?'
     ).get(date, cashierId);
-    // 2026-09-11 â€” once HQ has confirmed this report's auto deposit, the
+    // 2026-09-11 — once HQ has confirmed this report's auto deposit, the
     // report is locked: HQ has balanced against those figures.
     if (existing && !existing.deleted_at) {
       const blocked = autoDeposit.blockIfConfirmed(existing.sync_id);
@@ -591,7 +591,7 @@ router.post('/', auth, (req, res) => {
 
     recalculateDailyProfit(db, date, req.user.tenantId);
 
-    // 2026-09-11 â€” auto deposit (System Settings â†’ Auto deposit). The report
+    // 2026-09-11 — auto deposit (System Settings → Auto deposit). The report
     // is already saved; a failure here is reported back, not thrown.
     let autoDeposits = null;
     try {
@@ -614,7 +614,7 @@ router.post('/', auth, (req, res) => {
   }
 });
 
-// v1.10.9 â€” Admin-only delete a saved cash report so the UI falls back to
+// v1.10.9 — Admin-only delete a saved cash report so the UI falls back to
 // the live daily figure. The frontend already gates this behind
 // AdminPasswordPrompt (which re-verifies the admin credential server-side
 // via /auth/verify-admin); this handler just enforces role at the API too.
@@ -627,7 +627,7 @@ router.delete('/:id', auth, (req, res) => {
     if (!id) return res.status(400).json({ error: 'Invalid id' });
     const row = db.prepare('SELECT * FROM cash_reports WHERE id = ? AND deleted_at IS NULL').get(id);
     if (!row) return res.status(404).json({ error: 'Cash report not found (or already deleted).' });
-    // 2026-09-11 â€” refused once HQ has confirmed this report's auto deposit.
+    // 2026-09-11 — refused once HQ has confirmed this report's auto deposit.
     const blocked = autoDeposit.blockIfConfirmed(row.sync_id);
     if (blocked) return res.status(409).json({ error: blocked });
     db.prepare(`
@@ -637,11 +637,11 @@ router.delete('/:id', auth, (req, res) => {
              synced = 0
        WHERE id = ?
     `).run(id);
-    // v1.10.46 â€” cascade soft-delete the auto-created Cash Receipt for this
+    // v1.10.46 — cascade soft-delete the auto-created Cash Receipt for this
     // cashier's day so `Delete saved` is a real reset. Without this the CR
     // hangs behind with stale figures and the next save prompts an
     // update-or-keep modal for a row the user thought was already gone.
-    // Match by (date, tenant, received_from) â€” same tuple the frontend uses
+    // Match by (date, tenant, received_from) — same tuple the frontend uses
     // to auto-create it, so manual CRs typed on the same day with a
     // different `received_from` (e.g. "Rent income") are untouched.
     try {
@@ -665,7 +665,7 @@ router.delete('/:id', auth, (req, res) => {
     } catch (e) {
       console.error('[cash-report DELETE] cascade CR delete failed:', e.message);
     }
-    // 2026-09-11 â€” and its PENDING auto deposits, soft-deleted with a reason.
+    // 2026-09-11 — and its PENDING auto deposits, soft-deleted with a reason.
     try {
       const n = autoDeposit.removeForReport({ reportSyncId: row.sync_id, user: req.user });
       if (n > 0) console.log(`[cash-report DELETE] cascaded soft-delete to ${n} auto deposit(s) for ${row.date}`);

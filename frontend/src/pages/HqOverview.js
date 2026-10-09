@@ -1,9 +1,9 @@
-// HqOverview â€” head-office single-page summary across every registered
+// HqOverview — head-office single-page summary across every registered
 // branch. Only useful when served from the bare HQ host (keletezm.com);
 // on a per-branch subdomain the sidebar hides this entry. The page reads
 // from /api/hq/overview, which loops over each tenant DB and aggregates.
 //
-// Each card jumps the user into the matching branch â€” clicking "Open"
+// Each card jumps the user into the matching branch — clicking "Open"
 // sets the HQ branch + reloads so the rest of the app operates on that
 // branch's DB. No re-auth here (that's only enforced when the user
 // actively switches via the sidebar's Active Branch dropdown).
@@ -23,7 +23,7 @@ export default function HqOverview() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  // 2026-09-12 â€” branches whose full figures are open on a phone. Desks
+  // 2026-09-12 — branches whose full figures are open on a phone. Desks
   // always see every figure; the toggle is hidden above 768 px.
   const [openSlugs, setOpenSlugs] = useState(() => new Set());
   const toggleBranch = (slug) => setOpenSlugs(prev => {
@@ -32,7 +32,7 @@ export default function HqOverview() {
     return next;
   });
 
-  // 2026-09-13 â€” Sync Products to All moved to Item Details, where products
+  // 2026-09-13 — Sync Products to All moved to Item Details, where products
   // are managed (components/MirrorResultModal.js carries its summary).
 
   const load = async () => {
@@ -80,7 +80,7 @@ export default function HqOverview() {
       )}
 
       {loading && !data ? (
-        <p style={{ color: '#64748b' }}>Loading overviewâ€¦</p>
+        <p style={{ color: '#64748b' }}>Loading overview…</p>
       ) : data && (() => {
         // Defensive: backend may return without rollup (transient API
         // error, mid-render race, or older endpoint version). Use a
@@ -93,17 +93,17 @@ export default function HqOverview() {
             <RollupCard icon={<FiTrendingUp />} label="Today's Revenue" value={fmtMoney(rollup.today_revenue)} sub={`${fmtInt(rollup.today_orders)} orders`} color="#0ea5e9" />
             <RollupCard icon={<FiTrendingUp />} label="Month-to-Date"     value={fmtMoney(rollup.mtd_revenue)}   sub={`${fmtInt(rollup.mtd_orders)} orders`}   color="#6366f1" />
             <RollupCard icon={<FiPackage />}    label="Stock Value"       value={fmtMoney(rollup.stock_value)}   sub="At cost, all branches"  color="#0f766e" />
-            {/* 2026-09-13 â€” Awaiting Payment / Awaiting Dispatch removed from the
+            {/* 2026-09-13 — Awaiting Payment / Awaiting Dispatch removed from the
                 roll-up at HQ's request. Four tiles now: Today, MTD, Stock Value
                 and AR, which make a full two-by-two on a phone too. */}
             <RollupCard icon={<FiDollarSign />} label="AR Outstanding"    value={fmtMoney(rollup.ar_outstanding)} sub="Unpaid by customers"   color="#dc2626" />
           </div>
 
-          {/* 2026-09-12 â€” phone, as designed: one row per branch with today's
+          {/* 2026-09-12 — phone, as designed: one row per branch with today's
               takings and a low-stock badge. Tapping a row opens its figures
               and the Open button. */}
           <div className="phone-only">
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#5b6478', margin: '0 0 8px' }}>Branches Â· today</div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#5b6478', margin: '0 0 8px' }}>Branches · today</div>
             {(data.branches || []).map(b => {
               const open = openSlugs.has(b.slug);
               const low = b.error ? 0 : (parseFloat(b.stock_low_count) || 0);
@@ -114,14 +114,14 @@ export default function HqOverview() {
                     style={{ cursor: 'pointer' }}>
                     <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
                       <span style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortBranch(b.name, b.slug)}</span>
-                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{b.error ? 'â€”' : fmtMoney(b.today.revenue)}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{b.error ? '—' : fmtMoney(b.today.revenue)}</span>
                     </div>
                     <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 3 }}>
                       <span style={{ fontSize: 11.5, color: b.error ? '#b91c1c' : '#5b6478', minWidth: 0 }}>
                         {b.error ? b.error : `${fmtInt(b.today.orders)} orders`}
                         {low > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 999, background: '#fdecec', color: '#9b0008' }}>{fmtInt(low)} low</span>}
                       </span>
-                      <span style={{ color: '#94a3b8', fontSize: 14 }}>{open ? 'â–¾' : 'â€º'}</span>
+                      <span style={{ color: '#94a3b8', fontSize: 14 }}>{open ? '▾' : '›'}</span>
                     </div>
                   </div>
                   {open && !b.error && (
@@ -194,7 +194,7 @@ export default function HqOverview() {
 
           {data.as_of && (
             <p style={{ marginTop: 18, fontSize: 11, color: '#94a3b8' }}>
-              Snapshot taken {new Date(data.as_of).toLocaleString()} Â· auto-refresh every 30s
+              Snapshot taken {new Date(data.as_of).toLocaleString()} · auto-refresh every 30s
             </p>
           )}
         </>
@@ -204,7 +204,7 @@ export default function HqOverview() {
   );
 }
 
-// "Kelete Distribution - BANKERS (KABWE)" â†’ "Bankers (Kabwe)", for the phone rows.
+// "Kelete Distribution - BANKERS (KABWE)" → "Bankers (Kabwe)", for the phone rows.
 function shortBranch(name, slug) {
   const tail = String(name || slug || '').split(/\s+-\s+/).pop();
   return tail.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());

@@ -1,9 +1,9 @@
-// Cashier â€” 3-station workflow station (kassumbalesa1, workflow_mode='three_station').
+// Cashier — 3-station workflow station (kassumbalesa1, workflow_mode='three_station').
 //
 // Left pane:   Pending Payments queue (orders status='PENDING_PAYMENT').
 // Right pane:  Selected order details + Sirak-POS-style payment panel.
 //
-// Payment math mirrors Sirak-POS Cashier.js exactly â€” the reference build the
+// Payment math mirrors Sirak-POS Cashier.js exactly — the reference build the
 // user explicitly told us to copy:
 //   paidFRAasUSD     = paidFRA / sellRate
 //   totalAmountPaid  = paidUSD + paidFRAasUSD
@@ -13,7 +13,7 @@
 //   totalChangeGiven = givenUSD + givenFRA / buyRate
 //   netRemaining     = changeUSD - totalChangeGiven
 //
-// FX rates: read from Accounting â†’ Currency Rates (table fx_rates). Falls
+// FX rates: read from Accounting → Currency Rates (table fx_rates). Falls
 // back to SELL=2900, BUY=2600 when no rate has been saved yet so existing
 // terminals don't break the moment they upgrade. Snapshot stored on the
 // order at collect-payment time so old receipts always replay correctly.
@@ -46,7 +46,7 @@ export default function Cashier() {
   // v1.7.0: currency_mode='USD+FRA+K' enables a third K (Kwacha) input row.
   // 'USD+FRA' = FRA only (legacy). 'K' = USD-only at Cashier.
   const { currencyMode, symbol: curSym, isLiquorStyle } = useCurrency();
-  // v1.13.5 â€” fmtUSD used to be a global that hardcoded '$'. On K-only
+  // v1.13.5 — fmtUSD used to be a global that hardcoded '$'. On K-only
   // (Liquor-style) branches curSym is 'K', so every money render on this
   // page (Subtotal / Total / Change / Unit / History rows) now uses the
   // branch's own primary symbol. Name stays fmtUSD for a low-risk drop-in.
@@ -55,13 +55,13 @@ export default function Cashier() {
   const hasK   = currencyMode === 'USD+FRA+K';
   const [inbox, setInbox] = useState([]);
   const [loadingInbox, setLoadingInbox] = useState(false);
-  // v1.8.86 â€” Pending / History tabs. 'pending' shows the live queue + payment
+  // v1.8.86 — Pending / History tabs. 'pending' shows the live queue + payment
   // form. 'history' shows past paid orders in the same 3-column layout but
   // with all inputs disabled and a Reconciliation box added.
   const [mode, setMode] = useState('pending'); // 'pending' | 'history'
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
-  // v1.8.87 â€” admin post-payment edit. editForm shadows the order's mutable
+  // v1.8.87 — admin post-payment edit. editForm shadows the order's mutable
   // payment fields while editing; cleared on Save/Cancel/order change.
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(null);
@@ -76,17 +76,17 @@ export default function Cashier() {
   const [changeGivenUSD, setChangeGivenUSD] = useState('');
   const [changeGivenFRA, setChangeGivenFRA] = useState('');
   const [changeGivenK,   setChangeGivenK]   = useState('');
-  // v1.8.68 â€” which drawer holds the over-payment the cashier KEPT (no change
+  // v1.8.68 — which drawer holds the over-payment the cashier KEPT (no change
   // physically returned). Defaulted from the currency the customer paid most in.
   const [keptCcy, setKeptCcy] = useState('');
   const [confirm, setConfirm] = useState(null);   // { ...calc }
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
   const [biz, setBiz] = useState({ name: 'Kelete', phone: '', address: '' });
-  // Live FX rates â€” refreshed on mount + when opening a new order so a
+  // Live FX rates — refreshed on mount + when opening a new order so a
   // mid-shift rate change is picked up without a hard reload. K rates
   // default to the FALLBACK_*_K constants until the admin sets them in
-  // Accounting â†’ Currency Rates.
+  // Accounting → Currency Rates.
   const [fxRate, setFxRate] = useState({ sell: FALLBACK_SELL, buy: FALLBACK_BUY, sellK: FALLBACK_SELL_K, buyK: FALLBACK_BUY_K });
   const SELL_RATE   = fxRate.sell;
   const BUY_RATE    = fxRate.buy;
@@ -136,8 +136,8 @@ export default function Cashier() {
     return () => clearInterval(id);
   }, []);
 
-  // v1.8.86 â€” fetch payment history when user switches to the History tab.
-  // No polling here â€” past orders don't change, so one fetch per open is enough.
+  // v1.8.86 — fetch payment history when user switches to the History tab.
+  // No polling here — past orders don't change, so one fetch per open is enough.
   const refreshHistory = async () => {
     setLoadingHistory(true);
     try {
@@ -153,7 +153,7 @@ export default function Cashier() {
     } else {
       setSelected(null);
     }
-    // v1.8.87 â€” leaving History (or switching orders) drops any in-flight edit.
+    // v1.8.87 — leaving History (or switching orders) drops any in-flight edit.
     setEditing(false);
     setEditForm(null);
     setEditReason('');
@@ -163,7 +163,7 @@ export default function Cashier() {
     setLoadingDetail(true);
     setAmountPaidUSD(''); setAmountPaidFRA(''); setAmountPaidK('');
     setChangeGivenUSD(''); setChangeGivenFRA(''); setChangeGivenK(''); setKeptCcy('');
-    // v1.8.87 â€” selecting a new order discards any in-flight edit on the previous one.
+    // v1.8.87 — selecting a new order discards any in-flight edit on the previous one.
     setEditing(false); setEditForm(null); setEditReason('');
     refreshFxRate();
     try {
@@ -173,7 +173,7 @@ export default function Cashier() {
     setLoadingDetail(false);
   };
 
-  // v1.8.87 â€” Edit Payment handlers (admin-only, 7-day window enforced server-side).
+  // v1.8.87 — Edit Payment handlers (admin-only, 7-day window enforced server-side).
   const isAdmin = user?.role === 'Administrator';
   const withinEditWindow = (() => {
     if (!selected?.paid_at) return false;
@@ -182,10 +182,10 @@ export default function Cashier() {
   })();
   const canEdit = mode === 'history' && !!selected && isAdmin && withinEditWindow;
 
-  // v1.8.97 â€” Edit mode now populates the SAME live state the Pending Payment
+  // v1.8.97 — Edit mode now populates the SAME live state the Pending Payment
   // form uses (amountPaidUSD/FRA/K, changeGivenUSD/FRA/K, fxRate, keptCcy).
   // The Pending right-panel JSX re-renders with live computePayment() driving
-  // change owed / unpaid balance / kept ccy picker â€” admin sees the math react
+  // change owed / unpaid balance / kept ccy picker — admin sees the math react
   // as they type, identical to the live cashier flow. On Save, we read those
   // same live values + the order's stored FX rates back out and PUT them.
   const startEdit = () => {
@@ -225,7 +225,7 @@ export default function Cashier() {
       setTimeout(() => setToast(null), 3000);
       return;
     }
-    // Read the same live state Pending uses â†’ build the payload.
+    // Read the same live state Pending uses → build the payload.
     const payload = {
       cash_received:        parseFloat(amountPaidUSD)   || 0,
       fra_received:         parseFloat(amountPaidFRA)   || 0,
@@ -278,7 +278,7 @@ export default function Cashier() {
     const unpaidBalance   = Math.max(0, totalDue - totalAmountPaid);
     const unpaidBalanceFRA= SELL_RATE   > 0 ? unpaidBalance * SELL_RATE   : 0;
     const unpaidBalanceK  = SELL_RATE_K > 0 ? unpaidBalance * SELL_RATE_K : 0;
-    // v1.8.72 â€” attribute over-payment to the SOURCE currency. Priority order:
+    // v1.8.72 — attribute over-payment to the SOURCE currency. Priority order:
     // USD pays first, then FRA fills the gap, then K. Whatever's left over in
     // each currency is the over-payment in THAT currency (no FX round-trip,
     // so the 1:1 "give me back what I gave you" rule holds).
@@ -321,7 +321,7 @@ export default function Cashier() {
       totalDue, paidUSD, paidFRA, paidK, paidFRAasUSD, paidKasUSD, totalAmountPaid,
       unpaidBalance, unpaidBalanceFRA, unpaidBalanceK,
       changeUSD, changeFRA, changeK, isOverpaid,
-      // v1.8.72 â€” per-source-currency over-payment (no FX round-trip).
+      // v1.8.72 — per-source-currency over-payment (no FX round-trip).
       overUSD, overFRA, overK,
       givenUSD, givenFRA, givenK, totalChangeGiven,
       netRemaining, netRemainingFRA, netRemainingK,
@@ -349,13 +349,13 @@ export default function Cashier() {
         sell_rate:    SELL_RATE,
         buy_rate_k:   BUY_RATE_K,
         sell_rate_k:  SELL_RATE_K,
-        // v1.8.68 â€” which drawer the over-payment was kept in (when cashier
+        // v1.8.68 — which drawer the over-payment was kept in (when cashier
         // didn't physically return the change). Backend defaults to the
         // currency the customer paid in if this is blank.
-        // v1.8.72 â€” send the NATIVE amount so backend doesn't round-trip
+        // v1.8.72 — send the NATIVE amount so backend doesn't round-trip
         // through USD (which loses 4 FRA per $0.11 to the sell/buy spread).
-        // v1.8.74 â€” use EFFECTIVE ccy (clicked OR default-highlighted).
-        // v1.8.78 â€” default always FRA (most common at Kelete) unless cashier
+        // v1.8.74 — use EFFECTIVE ccy (clicked OR default-highlighted).
+        // v1.8.78 — default always FRA (most common at Kelete) unless cashier
         // explicitly clicked USD or K. Native amount comes from per-currency
         // attribution so FRA over/under always lands native (no FX loss).
         overpaid_kept_ccy: confirm.netRemaining > 0.005
@@ -364,10 +364,10 @@ export default function Cashier() {
         overpaid_kept_amt: (() => {
           if (confirm.netRemaining <= 0.005) return 0;
           const ccy = keptCcy || (hasFra ? 'FRA' : hasK ? 'K' : 'USD');
-          // v1.8.79 â€” when converting the USD-leftover to FRA/K storage, use
+          // v1.8.79 — when converting the USD-leftover to FRA/K storage, use
           // the BUY rate. Buy rate is what the frontend already used to display
-          // "Change â‰ˆ FRA 148,200" so this keeps the math consistent: 148,200
-          // owed âˆ’ 148,000 given = 200 stored (was 203 at sell rate).
+          // "Change ≈ FRA 148,200" so this keeps the math consistent: 148,200
+          // owed − 148,000 given = 200 stored (was 203 at sell rate).
           if (ccy === 'FRA') {
             return confirm.overFRA > 0.5 ? confirm.overFRA
                  : (BUY_RATE > 0 ? confirm.netRemaining * BUY_RATE : 0);
@@ -399,13 +399,13 @@ export default function Cashier() {
           isLiquorStyle,
           curSym,
         }));
-      } catch (_) { /* non-fatal â€” payment is already recorded */ }
+      } catch (_) { /* non-fatal — payment is already recorded */ }
 
       setSelected(null);
       setConfirm(null);
       setAmountPaidUSD(''); setAmountPaidFRA('');
       setChangeGivenUSD(''); setChangeGivenFRA('');
-      setToast({ text: 'Payment recorded â€” order moved to Dispatch.', type: 'success' });
+      setToast({ text: 'Payment recorded — order moved to Dispatch.', type: 'success' });
       setTimeout(() => setToast(null), 3000);
       refreshInbox();
     } catch (err) {
@@ -417,10 +417,10 @@ export default function Cashier() {
   };
 
   const calc = computePayment();
-  // v1.8.49 â€” credit-at-Cashier. If the order has a registered customer
+  // v1.8.49 — credit-at-Cashier. If the order has a registered customer
   // (set on the Sales/Reception screen), the cashier can take partial /
-  // zero payment â€” the unpaid portion lives on the customer's outstanding.
-  // Walk-ins still need to pay in full (10Â¢ rounding tolerance).
+  // zero payment — the unpaid portion lives on the customer's outstanding.
+  // Walk-ins still need to pay in full (10¢ rounding tolerance).
   const hasRegisteredCustomer = !!(selected && selected.customer_id);
   const creditAvailable = hasRegisteredCustomer
     ? Math.max(0, parseFloat(selected.customer_credit_limit || 0) - parseFloat(selected.customer_outstanding || 0))
@@ -429,7 +429,7 @@ export default function Cashier() {
     && parseFloat(selected.customer_credit_limit || 0) > 0
     && (parseFloat(selected.customer_outstanding || 0) + calc.unpaidBalance) > parseFloat(selected.customer_credit_limit || 0) + 0.001;
   const onHold = hasRegisteredCustomer && selected.customer_credit_status === 'OnHold';
-  // v1.8.97 â€” OVER-CHANGE GUARD. Block save when cashier types change-given
+  // v1.8.97 — OVER-CHANGE GUARD. Block save when cashier types change-given
   // amounts whose USD-eq sum exceeds the actual change owed by more than
   // the $0.10 rounding tolerance. Catches the "cashier gave back too much
   // FRA on top of the correct USD" mistake (real incident: ORD-0039 lost
@@ -438,7 +438,7 @@ export default function Cashier() {
   const overChangeUSD = calc ? (calc.totalChangeGiven - calc.changeUSD) : 0;
   const isOverChange  = overChangeUSD > 0.10;
 
-  // Walk-in: require any payment + must cover the full total (within 10Â¢).
+  // Walk-in: require any payment + must cover the full total (within 10¢).
   // Registered customer: any payment OR full credit (0) is allowed,
   // provided the customer isn't on hold and isn't over-limit.
   const canConfirm = !!selected && !!calc && !onHold && !wouldExceedLimit && !isOverChange && (
@@ -468,7 +468,7 @@ export default function Cashier() {
         }}>{toast.text}</div>
       )}
 
-      {/* v1.8.86 â€” Mode tabs (Pending / History). History is read-only. */}
+      {/* v1.8.86 — Mode tabs (Pending / History). History is read-only. */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 12, borderBottom: '1px solid #e5e7eb' }}>
         {[
           { key: 'pending', label: 'Pending Payments', count: inbox.length, color: '#0ea5e9' },
@@ -501,7 +501,7 @@ export default function Cashier() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 16, height: 'calc(100vh - 240px)' }}>
-        {/* â”€â”€ LEFT: Inbox queue OR History list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── LEFT: Inbox queue OR History list ──────────────────────── */}
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, overflowY: 'auto' }}>
           {mode === 'pending' ? (
             <>
@@ -512,7 +512,7 @@ export default function Cashier() {
                 </span>
               </div>
               {loadingInbox && inbox.length === 0 ? (
-                <p style={{ color: '#64748b', fontSize: 13 }}>Loadingâ€¦</p>
+                <p style={{ color: '#64748b', fontSize: 13 }}>Loading…</p>
               ) : inbox.length === 0 ? (
                 <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No pending payments</p>
               ) : (
@@ -537,7 +537,7 @@ export default function Cashier() {
                       {o.sales_at && (
                         <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>
                           <FiClock size={10} style={{ verticalAlign: 'middle' }} /> {new Date(o.sales_at).toLocaleString()}
-                          {o.sales_by_name ? ` Â· by ${o.sales_by_name}` : ''}
+                          {o.sales_by_name ? ` · by ${o.sales_by_name}` : ''}
                         </div>
                       )}
                     </div>
@@ -554,7 +554,7 @@ export default function Cashier() {
                 </span>
               </div>
               {loadingHistory && history.length === 0 ? (
-                <p style={{ color: '#64748b', fontSize: 13 }}>Loadingâ€¦</p>
+                <p style={{ color: '#64748b', fontSize: 13 }}>Loading…</p>
               ) : history.length === 0 ? (
                 <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No past payments</p>
               ) : (
@@ -579,7 +579,7 @@ export default function Cashier() {
                       {o.paid_at && (
                         <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>
                           <FiClock size={10} style={{ verticalAlign: 'middle' }} /> {new Date(o.paid_at).toLocaleString()}
-                          {o.cashier_name ? ` Â· by ${o.cashier_name}` : ''}
+                          {o.cashier_name ? ` · by ${o.cashier_name}` : ''}
                         </div>
                       )}
                     </div>
@@ -590,7 +590,7 @@ export default function Cashier() {
           )}
         </div>
 
-        {/* â”€â”€ RIGHT: Order detail + payment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── RIGHT: Order detail + payment ──────────────────────────── */}
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
           {!selected ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', flexDirection: 'column' }}>
@@ -598,7 +598,7 @@ export default function Cashier() {
               <p style={{ fontStyle: 'italic' }}>Select an order from the queue to collect payment</p>
             </div>
           ) : loadingDetail ? (
-            <p style={{ color: '#64748b' }}>Loading orderâ€¦</p>
+            <p style={{ color: '#64748b' }}>Loading order…</p>
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
               {/* Left half: order + items */}
@@ -619,13 +619,13 @@ export default function Cashier() {
                 <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>
                   Customer: <strong>{selected.customer_name || 'Walk-in'}</strong>
                   {hasRegisteredCustomer && parseFloat(selected.customer_credit_limit || 0) > 0 && (
-                    <> Â· Limit {fmtUSD(selected.customer_credit_limit)} Â· Outstanding {fmtUSD(selected.customer_outstanding || 0)} Â· Available {fmtUSD(creditAvailable)}</>
+                    <> · Limit {fmtUSD(selected.customer_credit_limit)} · Outstanding {fmtUSD(selected.customer_outstanding || 0)} · Available {fmtUSD(creditAvailable)}</>
                   )}
                 </p>
                 {hasRegisteredCustomer && calc && calc.unpaidBalance > 0.10 && (
                   <div style={{ marginTop: 8, padding: '8px 10px', background: wouldExceedLimit ? '#fee2e2' : '#fef3c7', border: `1px solid ${wouldExceedLimit ? '#fecaca' : '#fde68a'}`, borderRadius: 6, fontSize: 12, color: wouldExceedLimit ? '#991b1b' : '#92400e', fontWeight: 600 }}>
                     {wouldExceedLimit
-                      ? `âš  Would exceed credit limit. Available is only ${fmtUSD(creditAvailable)}.`
+                      ? `⚠ Would exceed credit limit. Available is only ${fmtUSD(creditAvailable)}.`
                       : `Will create credit of ${fmtUSD(calc.unpaidBalance)} on this customer's account.`}
                   </div>
                 )}
@@ -641,9 +641,9 @@ export default function Cashier() {
                     </thead>
                     <tbody>
                       {(selected.items || []).map((it, i) => {
-                        // v1.10.14 â€” mirror Sales Report treatment of reversed
-                        // items: full reversal â†’ strike-through + VOID badge;
-                        // partial reversal â†’ net qty + amber "reversed X" chip.
+                        // v1.10.14 — mirror Sales Report treatment of reversed
+                        // items: full reversal → strike-through + VOID badge;
+                        // partial reversal → net qty + amber "reversed X" chip.
                         const origQty = parseFloat(it.quantity || 0);
                         const rq      = parseFloat(it.reversed_quantity || 0);
                         const partial = !it.reversed && rq > 0;
@@ -662,7 +662,7 @@ export default function Cashier() {
                               )}
                               {partial && (
                                 <span style={{ marginLeft: 6, fontSize: 9, fontWeight: 700, color: '#b45309', background: '#fef3c7', borderRadius: 4, padding: '1px 6px', verticalAlign: 'middle' }}>
-                                  was {origQty} â€” reversed {rq}
+                                  was {origQty} — reversed {rq}
                                 </span>
                               )}
                             </td>
@@ -680,7 +680,7 @@ export default function Cashier() {
                 <div style={{ marginTop: 12, fontSize: 13 }}>
                   <div style={totalsRow}><span>Subtotal</span><span>{fmtUSD(selected.subtotal)}</span></div>
                   {parseFloat(selected.discount || 0) > 0 && (
-                    <div style={totalsRow}><span>Discount</span><span>âˆ’{fmtUSD(selected.discount)}</span></div>
+                    <div style={totalsRow}><span>Discount</span><span>−{fmtUSD(selected.discount)}</span></div>
                   )}
                   <div style={{ ...totalsRow, fontWeight: 700, color: '#0f172a', borderTop: '1px solid #e5e7eb', marginTop: 6, paddingTop: 6 }}>
                     <span>Total Due</span><span>{fmtUSD(selected.total_amount)}</span>
@@ -688,12 +688,12 @@ export default function Cashier() {
                 </div>
               </div>
 
-              {/* v1.8.97 â€” Right half:
-                  â€¢ Pending mode â†’ live payment form
-                  â€¢ History + editing=true â†’ SAME live payment form (admin edit)
-                  â€¢ History + editing=false â†’ read-only summary panel
+              {/* v1.8.97 — Right half:
+                  • Pending mode → live payment form
+                  • History + editing=true → SAME live payment form (admin edit)
+                  • History + editing=false → read-only summary panel
                   Reusing the Pending JSX for edit means computePayment runs
-                  live as the admin types â€” same UX as the cashier flow. */}
+                  live as the admin types — same UX as the cashier flow. */}
               {(mode === 'pending' || (mode === 'history' && editing)) ? (
               <div>
                 <h3 style={{ margin: '0 0 10px 0', fontSize: 16, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -708,7 +708,7 @@ export default function Cashier() {
                   {hasFra && (
                     <div style={{ fontSize: 11, color: '#0369a1', marginTop: 2 }}>
                       or {fmtFRA(parseFloat(selected.total_amount) * SELL_RATE)} FRA (sell {SELL_RATE.toLocaleString()})
-                      {hasK && <> Â· or {fmtK(parseFloat(selected.total_amount) * SELL_RATE_K)} K (sell {SELL_RATE_K.toLocaleString()})</>}
+                      {hasK && <> · or {fmtK(parseFloat(selected.total_amount) * SELL_RATE_K)} K (sell {SELL_RATE_K.toLocaleString()})</>}
                     </div>
                   )}
                 </div>
@@ -782,9 +782,9 @@ export default function Cashier() {
                 {calc && (calc.paidUSD > 0 || calc.paidFRA > 0 || calc.paidK > 0) && (
                   <div style={{ marginTop: 12 }}>
                     {calc.isOverpaid ? (() => {
-                      // v1.8.74 â€” practical-handback rule (Option B):
-                      //   Source currency of the over-payment â†’ NATIVE (1:1, no FX)
-                      //   All OTHER currencies â†’ BUY rate (real currency exchange)
+                      // v1.8.74 — practical-handback rule (Option B):
+                      //   Source currency of the over-payment → NATIVE (1:1, no FX)
+                      //   All OTHER currencies → BUY rate (real currency exchange)
                       // So when overpaid in FRA, the FRA row shows the exact FRA the
                       // customer overpaid (no spread loss), and the USD/K rows show
                       // what the cashier would actually count out if converting.
@@ -796,11 +796,11 @@ export default function Cashier() {
                       const headlineUSD = usdNative
                                         + (BUY_RATE   > 0 ? fraNative / BUY_RATE   : 0)
                                         + (BUY_RATE_K > 0 ? kNative   / BUY_RATE_K : 0);
-                      // Sub-line FRA: native if FRA overpaid, else headline Ã— BUY_RATE.
+                      // Sub-line FRA: native if FRA overpaid, else headline × BUY_RATE.
                       const fraEquiv = fraNative > 0.5
                         ? fraNative
                         : (BUY_RATE > 0 ? headlineUSD * BUY_RATE : 0);
-                      // Sub-line K: native if K overpaid, else headline Ã— BUY_RATE_K.
+                      // Sub-line K: native if K overpaid, else headline × BUY_RATE_K.
                       const kEquiv = kNative > 0.5
                         ? kNative
                         : (BUY_RATE_K > 0 ? headlineUSD * BUY_RATE_K : 0);
@@ -814,8 +814,8 @@ export default function Cashier() {
                           <div style={{ fontSize: 20, fontWeight: 800, color: '#065f46' }}>{fmtUSD(headlineUSD)}</div>
                           {hasFra && (
                             <div style={{ fontSize: 12, color: '#047857', fontWeight: 600, marginTop: 4 }}>
-                              â‰ˆ FRA {fmtFRA(fraEquiv)} ({fraLabel})
-                              {hasK && <> Â· â‰ˆ K {fmtK(kEquiv)} ({kLabel})</>}
+                              ≈ FRA {fmtFRA(fraEquiv)} ({fraLabel})
+                              {hasK && <> · ≈ K {fmtK(kEquiv)} ({kLabel})</>}
                             </div>
                           )}
                         </div>
@@ -826,8 +826,8 @@ export default function Cashier() {
                         <div style={{ fontSize: 20, fontWeight: 800, color: '#991b1b' }}>{fmtUSD(calc.unpaidBalance)}</div>
                         {hasFra && (
                           <div style={{ fontSize: 12, color: '#b91c1c', fontWeight: 600, marginTop: 4 }}>
-                            â‰ˆ FRA {fmtFRA(calc.unpaidBalanceFRA)} (sell {SELL_RATE.toLocaleString()})
-                            {hasK && <> Â· â‰ˆ K {fmtK(calc.unpaidBalanceK)} (sell {SELL_RATE_K.toLocaleString()})</>}
+                            ≈ FRA {fmtFRA(calc.unpaidBalanceFRA)} (sell {SELL_RATE.toLocaleString()})
+                            {hasK && <> · ≈ K {fmtK(calc.unpaidBalanceK)} (sell {SELL_RATE_K.toLocaleString()})</>}
                           </div>
                         )}
                       </div>
@@ -862,26 +862,26 @@ export default function Cashier() {
                       </div>
                       )}
                     </div>
-                    {/* v1.8.68 â€” when cashier overpaid and is keeping some change, ask which drawer.
-                        v1.8.78 â€” always default to FRA (most common at Kelete). User can
+                    {/* v1.8.68 — when cashier overpaid and is keeping some change, ask which drawer.
+                        v1.8.78 — always default to FRA (most common at Kelete). User can
                         still click USD or K to override. Falls back if branch has no FRA. */}
                     {calc.netRemaining > 0.005 && (() => {
                       const defaultCcy = keptCcy
                         || (hasFra ? 'FRA' : hasK ? 'K' : 'USD');
-                      // v1.8.80 â€” headline amount follows the picker selection
+                      // v1.8.80 — headline amount follows the picker selection
                       // so cashier sees the exact amount in the drawer's currency.
-                      // USD stays as a secondary "â‰ˆ" reference.
+                      // USD stays as a secondary "≈" reference.
                       let headlineText;
                       if (defaultCcy === 'FRA') {
                         const fraAmt = calc.overFRA > 0.5
                           ? calc.overFRA
                           : (BUY_RATE > 0 ? calc.netRemaining * BUY_RATE : 0);
-                        headlineText = `FRA ${fmtFRA(fraAmt)} (â‰ˆ ${fmtUSD(calc.netRemaining)})`;
+                        headlineText = `FRA ${fmtFRA(fraAmt)} (≈ ${fmtUSD(calc.netRemaining)})`;
                       } else if (defaultCcy === 'K') {
                         const kAmt = calc.overK > 0.5
                           ? calc.overK
                           : (BUY_RATE_K > 0 ? calc.netRemaining * BUY_RATE_K : 0);
-                        headlineText = `K ${fmtK(kAmt)} (â‰ˆ ${fmtUSD(calc.netRemaining)})`;
+                        headlineText = `K ${fmtK(kAmt)} (≈ ${fmtUSD(calc.netRemaining)})`;
                       } else {
                         const usdAmt = calc.overUSD > 0.001 ? calc.overUSD : calc.netRemaining;
                         headlineText = fmtUSD(usdAmt);
@@ -889,7 +889,7 @@ export default function Cashier() {
                       return (
                         <div style={{ marginTop: 10, padding: '10px 12px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8 }}>
                           <div style={{ fontSize: 11, color: '#92400e', fontWeight: 600, marginBottom: 6 }}>
-                            Customer over-paid by {headlineText} â€” kept in drawer:
+                            Customer over-paid by {headlineText} — kept in drawer:
                           </div>
                           <div style={{ display: 'flex', gap: 8 }}>
                             {['USD', 'FRA', 'K'].map(c => {
@@ -913,9 +913,9 @@ export default function Cashier() {
                     {(calc.givenUSD > 0 || calc.givenFRA > 0 || calc.givenK > 0) && (() => {
                       const exact     = Math.abs(calc.netRemaining) < 0.01;
                       const overpaid  = calc.netRemaining < -0.01;
-                      // v1.8.78 â€” the picker (above) already conveys "kept in [ccy] drawer"
+                      // v1.8.78 — the picker (above) already conveys "kept in [ccy] drawer"
                       // when netRemaining > 0. So skip this redundant "Still owed" red box
-                      // for that case â€” only show for exact / overpaid-back outcomes.
+                      // for that case — only show for exact / overpaid-back outcomes.
                       if (!exact && !overpaid) return null;
                       const bg        = exact ? '#ecfdf5' : '#fef2f2';
                       const border    = exact ? '#a7f3d0' : '#fecaca';
@@ -931,7 +931,7 @@ export default function Cashier() {
                           {!exact && (
                             <div style={{ fontSize: 16, fontWeight: 800, color: amtClr }}>
                               {fmtUSD(absAmt)}{' '}
-                              {hasFra && <span style={{ fontSize: 11, fontWeight: 600 }}>(FRA {fmtFRA(absAmtFra)}{hasK && <> Â· K {fmtK(absAmtK)}</>})</span>}
+                              {hasFra && <span style={{ fontSize: 11, fontWeight: 600 }}>(FRA {fmtFRA(absAmtFra)}{hasK && <> · K {fmtK(absAmtK)}</>})</span>}
                             </div>
                           )}
                         </div>
@@ -940,16 +940,16 @@ export default function Cashier() {
                   </div>
                 )}
 
-                {/* v1.8.97 â€” over-change warning banner. Fires before the
+                {/* v1.8.97 — over-change warning banner. Fires before the
                     button is disabled so cashier sees WHY they can't save. */}
                 {isOverChange && (
                   <div style={{ marginTop: 12, padding: '10px 12px', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: 8, color: '#991b1b', fontSize: 12, fontWeight: 600 }}>
-                    âš  Change returned ({fmtUSD(calc.totalChangeGiven)}) exceeds change owed ({fmtUSD(calc.changeUSD)}) by {fmtUSD(overChangeUSD)} â€”
+                    ⚠ Change returned ({fmtUSD(calc.totalChangeGiven)}) exceeds change owed ({fmtUSD(calc.changeUSD)}) by {fmtUSD(overChangeUSD)} —
                     that's shop loss. Adjust the change-given amounts before saving.
                   </div>
                 )}
 
-                {/* v1.8.97 â€” in Edit mode, add Reason field + Save/Cancel. */}
+                {/* v1.8.97 — in Edit mode, add Reason field + Save/Cancel. */}
                 {editing && (
                   <div style={{ marginTop: 14 }}>
                     <label style={{ ...lblStyle, color: '#374151' }}>
@@ -977,7 +977,7 @@ export default function Cashier() {
                         border: 'none', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 700,
                         cursor: editSaving ? 'wait' : 'pointer',
                       }}>
-                      {editSaving ? 'Savingâ€¦' : 'Save Edit'}
+                      {editSaving ? 'Saving…' : 'Save Edit'}
                     </button>
                   </div>
                 ) : (
@@ -989,15 +989,15 @@ export default function Cashier() {
                       color: '#fff', border: 'none', borderRadius: 8,
                       fontSize: 15, fontWeight: 700, cursor: canConfirm ? 'pointer' : 'not-allowed',
                     }}>
-                    Confirm Payment â†’
+                    Confirm Payment →
                   </button>
                 )}
               </div>
               ) : (
-              // â”€â”€â”€â”€â”€â”€â”€ HISTORY MODE: read-only payment panel â”€â”€â”€â”€â”€â”€â”€
+              // ─────── HISTORY MODE: read-only payment panel ───────
               // Pulls stored values straight off the order row (no recompute);
               // adds a Reconciliation box that shows the change owed / returned
-              // / Â± kept in drawer math behind the Sales Report Â± column.
+              // / ± kept in drawer math behind the Sales Report ± column.
               <div>
                 <h3 style={{ margin: '0 0 10px 0', fontSize: 16, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -1006,23 +1006,23 @@ export default function Cashier() {
                       {editing ? 'EDITING' : 'READ-ONLY'}
                     </span>
                   </span>
-                  {/* v1.8.87 â€” Edit Payment button (admin only, within 7-day window) */}
+                  {/* v1.8.87 — Edit Payment button (admin only, within 7-day window) */}
                   {canEdit && !editing && (
                     <button onClick={startEdit}
                       style={{ padding: '4px 12px', background: '#fff', border: '1px solid #f59e0b', color: '#b45309', borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
-                      âœŽ Edit Payment
+                      ✎ Edit Payment
                     </button>
                   )}
                 </h3>
 
-                {/* Total Due â€” never editable (would require recomputing items) */}
+                {/* Total Due — never editable (would require recomputing items) */}
                 <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '12px 14px', marginBottom: 14 }}>
                   <div style={{ fontSize: 11, color: '#0369a1', fontWeight: 600 }}>Total Due</div>
                   <div style={{ fontSize: 26, fontWeight: 800, color: '#0c4a6e', lineHeight: 1.1 }}>{fmtUSD(selected.total_amount)}</div>
                 </div>
 
-                {/* FX Rate â€” editable when editing.
-                    v1.10.108 â€” box now ALWAYS renders in Payment History so
+                {/* FX Rate — editable when editing.
+                    v1.10.108 — box now ALWAYS renders in Payment History so
                     cashier/audit can see exactly what rate was stamped on the
                     order at save time (including zeros). Previously it was
                     hidden when both FRA rates were 0, which made zero-rate
@@ -1030,7 +1030,7 @@ export default function Cashier() {
                 {(
                   <div style={{ background: '#fef3c7', border: '1px solid #fde68a', borderRadius: 8, padding: 10, marginBottom: 10 }}>
                     <div style={{ fontSize: 11, color: '#92400e', fontWeight: 700, marginBottom: 6 }}>
-                      FX Rate {editing ? '(editing)' : '(locked â€” stored on this order)'}
+                      FX Rate {editing ? '(editing)' : '(locked — stored on this order)'}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, fontSize: 12, color: '#78350f' }}>
                       {editing ? (
@@ -1068,7 +1068,7 @@ export default function Cashier() {
                   </div>
                 )}
 
-                {/* Amount Paid â€” editable when editing */}
+                {/* Amount Paid — editable when editing */}
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Amount Paid</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -1097,7 +1097,7 @@ export default function Cashier() {
                   </div>
                 </div>
 
-                {/* Change Returned â€” editable when editing */}
+                {/* Change Returned — editable when editing */}
                 <div style={{ marginBottom: 10 }}>
                   <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Change Returned</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
@@ -1126,7 +1126,7 @@ export default function Cashier() {
                   </div>
                 </div>
 
-                {/* Reconciliation box â€” uses editForm when editing so user sees the math live */}
+                {/* Reconciliation box — uses editForm when editing so user sees the math live */}
                 {(() => {
                   const src = editing ? editForm : selected;
                   const totalDue = parseFloat(selected.total_amount) || 0;
@@ -1148,15 +1148,15 @@ export default function Cashier() {
                   const keptDisplay = keptCcy === 'USD' ? fmtUSD(keptAmt)
                                     : keptCcy === 'FRA' ? `${fmtFRA(keptAmt)} FRA`
                                     : keptCcy === 'K'   ? `${fmtK(keptAmt)} K`
-                                    : 'â€”';
-                  // v1.8.88 â€” absorbed shortage: when totalPaidUSDeq < totalDue
+                                    : '—';
+                  // v1.8.88 — absorbed shortage: when totalPaidUSDeq < totalDue
                   // (walk-in handed over slightly less than owed, shop ate the gap).
-                  // Mutually exclusive with "Kept in drawer" â€” a payment is either
+                  // Mutually exclusive with "Kept in drawer" — a payment is either
                   // over OR under, never both. Threshold 0.005 ignores FP dust.
-                  // v1.8.89 â€” source-currency attribution (K â†’ FRA â†’ USD priority)
+                  // v1.8.89 — source-currency attribution (K → FRA → USD priority)
                   // so the displayed loss lives in the same drawer the cashier
                   // can physically count. Matches the Cash Report aggregate +
-                  // Sales Report Â± column. Mirror image of the "+keptDisplay"
+                  // Sales Report ± column. Mirror image of the "+keptDisplay"
                   // logic above (kept uses overpaid_kept_ccy stored on order).
                   const shortageUSD = Math.max(0, totalDue - totalPaidUSDeq);
                   let absorbedDisplay = '';
@@ -1178,14 +1178,14 @@ export default function Cashier() {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Change returned (USD-eq)</span><strong>{fmtUSD(totalGivenUSDeq)}</strong></div>
                         {keptAmt > 0 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e5e7eb', paddingTop: 4, marginTop: 2 }}>
-                            <span style={{ fontWeight: 700, color: '#16a34a' }}>Â± Kept in drawer</span>
+                            <span style={{ fontWeight: 700, color: '#16a34a' }}>± Kept in drawer</span>
                             <strong style={{ color: '#16a34a' }}>+{keptDisplay}</strong>
                           </div>
                         )}
                         {keptAmt < 0.005 && shortageUSD > 0.005 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e5e7eb', paddingTop: 4, marginTop: 2 }}>
-                            <span style={{ fontWeight: 700, color: '#dc2626' }}>Â± Absorbed (shortage)</span>
-                            <strong style={{ color: '#dc2626' }}>âˆ’{absorbedDisplay}</strong>
+                            <span style={{ fontWeight: 700, color: '#dc2626' }}>± Absorbed (shortage)</span>
+                            <strong style={{ color: '#dc2626' }}>−{absorbedDisplay}</strong>
                           </div>
                         )}
                       </div>
@@ -1193,7 +1193,7 @@ export default function Cashier() {
                   );
                 })()}
 
-                {/* Editing: Reason field + Save / Cancel â€” replaces the Paid badge */}
+                {/* Editing: Reason field + Save / Cancel — replaces the Paid badge */}
                 {editing ? (
                   <div style={{ marginTop: 18 }}>
                     <label style={{ ...lblStyle, color: '#374151' }}>Reason <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: 400, color: '#9ca3af' }}>(min 3 chars)</span></label>
@@ -1206,18 +1206,18 @@ export default function Cashier() {
                         style={{ flex: 1, padding: '12px', background: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                         Cancel
                       </button>
-                      {/* v1.10.94 â€” was missing isOverChange guard, so the
+                      {/* v1.10.94 — was missing isOverChange guard, so the
                           Payment History "Edit Payment" flow let cashiers save
                           change-given amounts whose USD-eq exceeded change owed
                           by more than $0.10 (real incident on ORD-BDF6A1-0107:
-                          $40 paid on $36 due â†’ $4 change owed â†’ cashier saved
+                          $40 paid on $36 due → $4 change owed → cashier saved
                           $4 USD + FRA 9,000 = $8 total, an unrecoverable $4
                           overpayment). Same guard the Pending-payment Save Edit
                           button uses at line 968. */}
                       <button onClick={saveEdit} disabled={editSaving || editReason.trim().length < 3 || isOverChange}
                         style={{ flex: 2, padding: '12px', background: (editSaving || editReason.trim().length < 3 || isOverChange) ? '#cbd5e1' : 'linear-gradient(135deg,#f59e0b,#d97706)', border: 'none', color: '#fff', borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: editSaving ? 'wait' : 'pointer' }}
-                        title={isOverChange ? 'Change returned exceeds change owed â€” reduce the given amounts first.' : ''}>
-                        {editSaving ? 'Savingâ€¦' : 'Save Changes'}
+                        title={isOverChange ? 'Change returned exceeds change owed — reduce the given amounts first.' : ''}>
+                        {editSaving ? 'Saving…' : 'Save Changes'}
                       </button>
                     </div>
                   </div>
@@ -1228,11 +1228,11 @@ export default function Cashier() {
                     color: '#15803d', borderRadius: 8,
                     fontSize: 14, fontWeight: 700, textAlign: 'center',
                   }}>
-                    âœ“ Paid Â· Confirmed
+                    ✓ Paid · Confirmed
                     {selected.paid_at && (
                       <div style={{ fontSize: 11, fontWeight: 500, marginTop: 4 }}>
                         {new Date(selected.paid_at).toLocaleString()}
-                        {selected.cashier_name ? ` Â· by ${selected.cashier_name}` : ''}
+                        {selected.cashier_name ? ` · by ${selected.cashier_name}` : ''}
                       </div>
                     )}
                     {!canEdit && isAdmin && !!selected.paid_at && (
@@ -1249,16 +1249,16 @@ export default function Cashier() {
         </div>
       </div>
 
-      {/* v1.8.87 â€” CR refresh warning after a payment edit on a day whose
-          Sales CR was already saved. We don't auto-fix the CR â€” instead we
+      {/* v1.8.87 — CR refresh warning after a payment edit on a day whose
+          Sales CR was already saved. We don't auto-fix the CR — instead we
           nudge the user to re-open Cash Report and Save again so the CR
           picks up the corrected amounts. */}
       {crWarning && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 250, padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: 'min(480px, 95vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
             <div style={{ background: 'linear-gradient(135deg, #b45309, #92400e)', padding: '16px 22px', color: '#fff' }}>
-              <div style={{ fontSize: 15, fontWeight: 700 }}>âš  Cash Report needs re-saving</div>
-              <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>Payment edited successfully â€” but the day's CR holds the OLD amounts.</div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>⚠ Cash Report needs re-saving</div>
+              <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>Payment edited successfully — but the day's CR holds the OLD amounts.</div>
             </div>
             <div style={{ padding: '20px 22px' }}>
               <p style={{ margin: '0 0 12px 0', fontSize: 13.5, color: '#374151', lineHeight: 1.55 }}>
@@ -1303,7 +1303,7 @@ export default function Cashier() {
             <hr style={hrStyle} />
             {confirm.isOverpaid ? (
               <>
-                {/* v1.8.74 â€” Option B: source currency native, others at BUY rate.
+                {/* v1.8.74 — Option B: source currency native, others at BUY rate.
                     Matches the Change card on the Pay panel. */}
                 {(() => {
                   const usdNative = confirm.overUSD || 0;
@@ -1329,13 +1329,13 @@ export default function Cashier() {
                 {(() => {
                   const exact    = Math.abs(confirm.netRemaining) < 0.01;
                   const overpaid = confirm.netRemaining < -0.01;
-                  // v1.8.72 â€” when picker is set, netRemaining > 0 means the over-payment
+                  // v1.8.72 — when picker is set, netRemaining > 0 means the over-payment
                   // is being KEPT in the chosen drawer, not "still owed". Show the chosen
                   // currency + the amount in that currency.
-                  // v1.8.74 â€” use the EFFECTIVE picker selection (clicked OR default-
+                  // v1.8.74 — use the EFFECTIVE picker selection (clicked OR default-
                   // highlighted) so the label is correct even when cashier accepts the
                   // default without clicking the button.
-                  // v1.8.78 â€” default to FRA (most common at Kelete) when no explicit pick.
+                  // v1.8.78 — default to FRA (most common at Kelete) when no explicit pick.
                   const effectiveCcy = keptCcy
                     || (hasFra ? 'FRA' : hasK ? 'K' : 'USD');
                   const kept     = !exact && !overpaid && !!effectiveCcy;
@@ -1348,10 +1348,10 @@ export default function Cashier() {
                   let amountText;
                   if (exact) amountText = fmtUSD(0);
                   else if (kept) {
-                    // v1.8.79 â€” display matches the payload: native source-currency
+                    // v1.8.79 — display matches the payload: native source-currency
                     // over-payment when present; otherwise convert USD-leftover at
-                    // BUY rate (matches the "Change â‰ˆ FRA X" headline rate so the
-                    // subtraction is clean: 148,200 owed âˆ’ 148,000 given = 200).
+                    // BUY rate (matches the "Change ≈ FRA X" headline rate so the
+                    // subtraction is clean: 148,200 owed − 148,000 given = 200).
                     if (effectiveCcy === 'USD') {
                       amountText = fmtUSD(confirm.overUSD || confirm.netRemaining);
                     } else if (effectiveCcy === 'FRA') {
@@ -1366,9 +1366,9 @@ export default function Cashier() {
                       amountText = `K ${fmtK(kAmt)}`;
                     } else amountText = fmtUSD(confirm.netRemaining);
                   } else if (overpaid) {
-                    // v1.8.81 â€” cashier over-changed (shop loss). Show the overshoot in
+                    // v1.8.81 — cashier over-changed (shop loss). Show the overshoot in
                     // its SOURCE currency: detect which currency was returned in excess
-                    // (USD-first â†’ FRA â†’ K consumption). Native amount as headline,
+                    // (USD-first → FRA → K consumption). Native amount as headline,
                     // USD-equivalent as reference (matches the picker-header pattern).
                     const changeOwedUSD = parseFloat(confirm.changeUSD || 0);
                     const usdGiven = parseFloat(confirm.givenUSD || 0);
@@ -1392,9 +1392,9 @@ export default function Cashier() {
                     const fraOverAsUSD = BUY_RATE   > 0 ? fraOver / BUY_RATE   : 0;
                     const kOverAsUSD   = BUY_RATE_K > 0 ? kOver   / BUY_RATE_K : 0;
                     if (fraOverAsUSD >= kOverAsUSD && fraOverAsUSD >= usdOver && fraOver > 0.5) {
-                      amountText = `FRA ${fmtFRA(fraOver)} (â‰ˆ ${fmtUSD(usdOverAbs)})`;
+                      amountText = `FRA ${fmtFRA(fraOver)} (≈ ${fmtUSD(usdOverAbs)})`;
                     } else if (kOverAsUSD >= usdOver && kOver > 0.5) {
-                      amountText = `K ${fmtK(kOver)} (â‰ˆ ${fmtUSD(usdOverAbs)})`;
+                      amountText = `K ${fmtK(kOver)} (≈ ${fmtUSD(usdOverAbs)})`;
                     } else {
                       amountText = fmtUSD(usdOverAbs);
                     }
@@ -1407,7 +1407,7 @@ export default function Cashier() {
                       </div>
                       {overpaid && (
                         <div style={{ fontSize: 10, color: '#991b1b', marginTop: 4, opacity: 0.8 }}>
-                          Shop loss â€” recorded in Under-Payments
+                          Shop loss — recorded in Under-Payments
                         </div>
                       )}
                     </div>
@@ -1415,10 +1415,10 @@ export default function Cashier() {
                 })()}
               </>
             ) : (() => {
-              // v1.8.82 â€” distinguish three under-paid scenarios:
-              //   â€¢ Within $0.10 tolerance walk-in â†’ silently absorbed (shop loss)
-              //   â€¢ Registered customer with shortfall > tolerance â†’ becomes credit
-              //   â€¢ Walk-in with shortfall > tolerance â†’ blocked by backend anyway
+              // v1.8.82 — distinguish three under-paid scenarios:
+              //   • Within $0.10 tolerance walk-in → silently absorbed (shop loss)
+              //   • Registered customer with shortfall > tolerance → becomes credit
+              //   • Walk-in with shortfall > tolerance → blocked by backend anyway
               // For absorbed-tolerance case, label as a shop loss (matches the
               // Under-Payments line in Cash Report) instead of the confusing
               // "Unpaid Balance" red box that implied the customer still owes.
@@ -1428,10 +1428,10 @@ export default function Cashier() {
                   <div style={{ ...confirmRow, padding: '10px 12px', background: '#fef2f2', borderRadius: 8, flexDirection: 'column', alignItems: 'stretch' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontWeight: 700, color: '#b91c1c' }}>Shortage (within tolerance)</span>
-                      <strong style={{ color: '#991b1b' }}>âˆ’{fmtUSD(confirm.unpaidBalance)}</strong>
+                      <strong style={{ color: '#991b1b' }}>−{fmtUSD(confirm.unpaidBalance)}</strong>
                     </div>
                     <div style={{ fontSize: 10, color: '#991b1b', marginTop: 4, opacity: 0.8 }}>
-                      Shop loss â€” recorded in Under-Payments
+                      Shop loss — recorded in Under-Payments
                     </div>
                   </div>
                 );
@@ -1439,7 +1439,7 @@ export default function Cashier() {
               return (
                 <div style={{ ...confirmRow, padding: '10px 12px', background: '#fef2f2', borderRadius: 8 }}>
                   <span style={{ fontWeight: 700, color: '#b91c1c' }}>Unpaid Balance</span>
-                  <strong style={{ color: '#991b1b' }}>âˆ’{fmtUSD(confirm.unpaidBalance)}</strong>
+                  <strong style={{ color: '#991b1b' }}>−{fmtUSD(confirm.unpaidBalance)}</strong>
                 </div>
               );
             })()}
@@ -1453,7 +1453,7 @@ export default function Cashier() {
                 style={{ flex: 1, padding: '12px',
                          background: submitting ? '#94a3b8' : 'linear-gradient(135deg,#16a34a,#15803d)',
                          color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>
-                {submitting ? 'Processingâ€¦' : 'Yes, Process Payment'}
+                {submitting ? 'Processing…' : 'Yes, Process Payment'}
               </button>
             </div>
           </div>
@@ -1463,17 +1463,17 @@ export default function Cashier() {
   );
 }
 
-// Dual-currency 80mm thermal receipt â€” built once on confirm + sent via
+// Dual-currency 80mm thermal receipt — built once on confirm + sent via
 // printHtml (iframe + print dialog on Electron / desktop, PDF download on
 // mobile, share-sheet on Capacitor APK). FRA rows only appear when the
-// payment actually involved FRA cash or FRA change â€” keeps USD-only sales
+// payment actually involved FRA cash or FRA change — keeps USD-only sales
 // from showing useless "FRA: 0" lines.
 function renderCashierReceipt({ biz, order, calc, cashierName, when, sellRate: _sell, buyRate: _buy, sellRateK: _sellK, buyRateK: _buyK, isLiquorStyle = false, curSym = '$' }) {
   const fmt = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtFra = (n) => Math.round(parseFloat(n || 0)).toLocaleString('en-US');
   const div = '='.repeat(42);
   const da  = '-'.repeat(42);
-  // v1.10.59 â€” Liquor style shows per-item PRICE + TOTAL in the 2-line
+  // v1.10.59 — Liquor style shows per-item PRICE + TOTAL in the 2-line
   // format ESC/POS already prints; Kelete stays Name + Qty only per the
   // dual-currency redesign.
   const itemsRows = (order.items || []).map(it => {
@@ -1510,22 +1510,22 @@ function renderCashierReceipt({ biz, order, calc, cashierName, when, sellRate: _
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <style>
-  /* 2026-08-30 â€” 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
+  /* 2026-08-30 — 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
      head only covers 72mm. The driver says so itself: its paper setting
-     reads "ZPrinter Paper(80(72) x 3276mm)" â€” 80mm roll, 72mm printable.
+     reads "ZPrinter Paper(80(72) x 3276mm)" — 80mm roll, 72mm printable.
      Declaring 80mm made Chrome lay the receipt out 8mm wider than the
      printer can reach, and the driver simply dropped the overhang. Every
      line lost the same three or four characters off the right: Walk-i(n),
      ZM(W), INV0060001067/9(0), 77.3(7). It read as a table problem, but the
-     header and totals were clipped too â€” the canvas was just too wide.
+     header and totals were clipped too — the canvas was just too wide.
      Matching the canvas to the print head means nothing can fall off. */
   @page { size: 72mm auto; margin: 0; }
   html, body { height: auto; margin: 0; padding: 0; overflow-x: hidden; }
   * { box-sizing: border-box; }
-  /* 2026-09-01 â€” was padding: 2mm all round. The left edge printed off
+  /* 2026-09-01 — was padding: 2mm all round. The left edge printed off
      the paper: RED SEA came out as ED SEA, Cashier as ashier. The page
      is exactly 72mm (box-sizing is border-box above), so nothing is
-     overflowing â€” the print head simply starts a couple of millimetres
+     overflowing — the print head simply starts a couple of millimetres
      right of where the browser puts x=0. Moving the padding from the
      right side to the left shifts the content across without making
      the content area any narrower: 4 + 0 is the same 4mm as 2 + 2.
@@ -1533,22 +1533,22 @@ function renderCashierReceipt({ biz, order, calc, cashierName, when, sellRate: _
      clips instead, lower it. */
   body { width: 72mm; max-width: 72mm; padding: 2mm 0 2mm 4mm; font-family: 'Courier New', Courier, monospace; font-size: 11px; color: #000; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
-  /* 2026-08-30 â€” see the note in the tax-invoice templates: width:100% on a
+  /* 2026-08-30 — see the note in the tax-invoice templates: width:100% on a
      table is only a suggestion under table-layout:auto, so an unbreakable
      value (an invoice number, a TPIN) stretches the table past the paper and
      carries every right-aligned figure off the edge with it. */
-  /* 2026-08-30 â€” tables stop at 86% of the body. The remaining 14% is
+  /* 2026-08-30 — tables stop at 86% of the body. The remaining 14% is
      deliberately never printed on.
-     Four earlier attempts tried to make the content FIT inside 100% â€”
+     Four earlier attempts tried to make the content FIT inside 100% —
      narrower page, narrower columns, smaller font, wrapping cells. But 100%
      is where the loss happens: a right-aligned value sits on the print
      head's last dot, and that dot is unreliable. It is why even 77.37 came
      out as 77.3 while the centred lines beside it printed in full.
-     The reference receipt this was compared against does the same thing â€”
+     The reference receipt this was compared against does the same thing —
      its item table visibly stops well short of the edge. Leaving slack means
      an overflow eats into the margin instead of falling off the paper, and
-     the Total column â€” the number that matters most and was always last in
-     the row â€” is no longer the one closest to the cut. */
+     the Total column — the number that matters most and was always last in
+     the row — is no longer the one closest to the cut. */
   table { width: 86%; max-width: 86%; }
   table tr > td:last-child { overflow-wrap: anywhere; word-break: break-word; }
   td { padding: 1px 0; vertical-align: top; }
@@ -1595,11 +1595,11 @@ function renderCashierReceipt({ biz, order, calc, cashierName, when, sellRate: _
     <tr class="amt"><td>Cash Paid ($)</td><td></td><td></td><td style="text-align:right;">$${fmt(calc.paidUSD)}</td></tr>
     ${calc.paidFRA > 0.0001 ? `
       <tr><td>Cash Paid (FRA)</td><td></td><td></td><td style="text-align:right;">FRA ${fmtFra(calc.paidFRA)}</td></tr>
-      <tr><td class="sub">  at sell rate ${sellRate.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">â‰ˆ $${fmt(calc.paidFRAasUSD)}</td></tr>
+      <tr><td class="sub">  at sell rate ${sellRate.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">≈ $${fmt(calc.paidFRAasUSD)}</td></tr>
     ` : ''}
     ${calc.paidK > 0.0001 ? `
       <tr><td>Cash Paid (K)</td><td></td><td></td><td style="text-align:right;">K ${fmtFra(calc.paidK)}</td></tr>
-      <tr><td class="sub">  at sell rate ${sellRateK.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">â‰ˆ $${fmt(calc.paidKasUSD)}</td></tr>
+      <tr><td class="sub">  at sell rate ${sellRateK.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">≈ $${fmt(calc.paidKasUSD)}</td></tr>
     ` : ''}
     <tr class="amt"><td>Total Paid ($)</td><td></td><td></td><td style="text-align:right;">$${fmt(calc.totalAmountPaid)}</td></tr>
   </table>
@@ -1607,16 +1607,16 @@ function renderCashierReceipt({ biz, order, calc, cashierName, when, sellRate: _
     <div class="divider">${da}</div>
     <table>
       <tr class="grand" style="color:#000;"><td>BALANCE ON CREDIT</td><td></td><td></td><td style="text-align:right;">$${fmt(calc.unpaidBalance)}</td></tr>
-      ${usedFra ? `<tr><td class="sub">  â‰ˆ at sell rate ${sellRate.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">FRA ${fmtFra(calc.unpaidBalanceFRA)}</td></tr>` : ''}
-      ${usedK   ? `<tr><td class="sub">  â‰ˆ at K sell rate ${sellRateK.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">K ${fmtFra(calc.unpaidBalanceK)}</td></tr>` : ''}
+      ${usedFra ? `<tr><td class="sub">  ≈ at sell rate ${sellRate.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">FRA ${fmtFra(calc.unpaidBalanceFRA)}</td></tr>` : ''}
+      ${usedK   ? `<tr><td class="sub">  ≈ at K sell rate ${sellRateK.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">K ${fmtFra(calc.unpaidBalanceK)}</td></tr>` : ''}
     </table>
   ` : ''}
   <div class="divider">${da}</div>
   ${calc.isOverpaid ? `
     <table>
       <tr class="amt"><td>*** CHANGE ***</td><td></td><td></td><td style="text-align:right;">$${fmt(calc.changeUSD)}</td></tr>
-      ${usedFra ? `<tr><td class="sub">  â‰ˆ at buy rate ${buyRate.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">FRA ${fmtFra(calc.changeFRA)}</td></tr>` : ''}
-      ${usedK   ? `<tr><td class="sub">  â‰ˆ at K buy rate ${sellRateK ? buyRateK.toLocaleString() : 'â€”'}</td><td></td><td></td><td style="text-align:right;" class="sub">K ${fmtFra(calc.changeK)}</td></tr>` : ''}
+      ${usedFra ? `<tr><td class="sub">  ≈ at buy rate ${buyRate.toLocaleString()}</td><td></td><td></td><td style="text-align:right;" class="sub">FRA ${fmtFra(calc.changeFRA)}</td></tr>` : ''}
+      ${usedK   ? `<tr><td class="sub">  ≈ at K buy rate ${sellRateK ? buyRateK.toLocaleString() : '—'}</td><td></td><td></td><td style="text-align:right;" class="sub">K ${fmtFra(calc.changeK)}</td></tr>` : ''}
     </table>
     ${(calc.givenUSD > 0.0001 || calc.givenFRA > 0.0001 || calc.givenK > 0.0001) ? `
       <div class="divider">${da}</div>
@@ -1640,6 +1640,6 @@ const lblStyle = { display: 'block', fontSize: 11, color: '#64748b', fontWeight:
 const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
 const confirmRow = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', color: '#0f172a', fontSize: 13 };
 const hrStyle = { border: 'none', borderTop: '1px solid #e2e8f0', margin: '10px 0' };
-// v1.8.86 â€” read-only payment cells in the History tab.
+// v1.8.86 — read-only payment cells in the History tab.
 const roBox = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px', fontSize: 13, color: '#0f172a', display: 'flex', flexDirection: 'column', gap: 2 };
 const roLbl = { fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 };

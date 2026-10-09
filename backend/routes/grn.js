@@ -7,7 +7,7 @@ const { conversionToBase } = require('../config/unitsHelper');
 const { isSingleLocationMode, createAutoSiv, deleteAutoSivForGrn } = require('../config/autoSivHelper');
 const vsdc = require('../services/vsdcClient');
 
-// FIFO payment-status SQL (SQLite version â€” uses CASE instead of GREATEST/LEAST)
+// FIFO payment-status SQL (SQLite version — uses CASE instead of GREATEST/LEAST)
 // Soft-deleted GRNs and suppliers are excluded in the CTEs
 const FIFO_SQL = (extraWhere = '', params = [], tenantId = null) => ({
   text: `
@@ -123,26 +123,26 @@ router.post('/', auth, async (req, res) => {
   try {
     const {
       supplier_id, items, notes, date, invoice_attachment,
-      // v1.9.7 â€” HQ-PO-linked GRN flow. When the branch user clicks
+      // v1.9.7 — HQ-PO-linked GRN flow. When the branch user clicks
       // "Accept & Generate GRN" on an incoming PO line, the frontend
       // passes the parent PO's sync_id + number so this GRN can be
       // tied back to it. The presence of linked_purchase_sync_id
       // switches the GRN into the "pending HQ confirm" mode: NO stock
-      // movement happens here â€” that's deferred to /api/hq/grns/:syncId
+      // movement happens here — that's deferred to /api/hq/grns/:syncId
       // /confirm. AP also stays uncommitted until HQ confirms.
       linked_purchase_sync_id,
       linked_purchase_number,
-      // v1.9.12 â€” supplier's invoice number (mandatory at the branch
+      // v1.9.12 — supplier's invoice number (mandatory at the branch
       // GRN form when linked to a HQ PO). Stored on the grn row so HQ
-      // can cross-reference paper invoice â†’ GRN â†’ AP.
+      // can cross-reference paper invoice → GRN → AP.
       supplier_invoice_number,
-      // v1.9.20 â€” supplier name carried in from the HQ PO. Branches no
+      // v1.9.20 — supplier name carried in from the HQ PO. Branches no
       // longer maintain a supplier list (no AP at branch), so we just
       // copy the name as text. supplier_id is allowed to be null.
       supplier_name,
-      // v1.9.13 â€” inline credit notes for this GRN. Each entry shape:
+      // v1.9.13 — inline credit notes for this GRN. Each entry shape:
       //   { reason, amount, notes }
-      //   reason âˆˆ Discount|Damaged|Short|Crate Return|Bottle Return|Other
+      //   reason ∈ Discount|Damaged|Short|Crate Return|Bottle Return|Other
       // amount is always a positive number; it is SUBTRACTED from the
       // GRN total to give the final payable to HQ. Persisted to
       // supplier_credit_notes with grn_sync_id linking back to this GRN.
@@ -154,7 +154,7 @@ router.post('/', auth, async (req, res) => {
     }
     const grn = db.transaction(() => {
       const grnNum = syncConfig.generateNumber('GRN', 'grn');
-      // Total = beverage subtotal + net container settlement (received âˆ’ returned) Ã— deposit.
+      // Total = beverage subtotal + net container settlement (received − returned) × deposit.
       // Container net is positive (we owe) when we bought more crates than we returned, and
       // negative (supplier refund / credit) when we returned more than we received.
       const beverageTotal = items.reduce((sum, i) => sum + parseFloat(i.quantity || 0) * parseFloat(i.unit_price || 0), 0);
@@ -177,7 +177,7 @@ router.post('/', auth, async (req, res) => {
       const supplierSyncId = req.body.supplier_sync_id
         || db.prepare('SELECT sync_id FROM suppliers WHERE id = ?').get(supplier_id)?.sync_id
         || null;
-      // v1.9.7 â€” for HQ-linked GRNs, leave hq_status='PENDING_HQ_CONFIRM'
+      // v1.9.7 — for HQ-linked GRNs, leave hq_status='PENDING_HQ_CONFIRM'
       // so the row is visible at HQ's "Confirm GRN" queue but no stock
       // moves yet. Legacy / manual GRNs keep hq_status NULL.
       const hqStatus = isHqLinked ? 'PENDING_HQ_CONFIRM' : null;
@@ -213,11 +213,11 @@ router.post('/', auth, async (req, res) => {
               recv, ret, dep, containerSyncId,
               randomUUID(), tenantId, branchId, deviceId);
 
-        // v1.9.7 â€” only post stock movements when the GRN is NOT awaiting
+        // v1.9.7 — only post stock movements when the GRN is NOT awaiting
         // HQ confirmation. Linked GRNs (Kelete procurement flow) defer the
         // posting to /api/hq/grns/:syncId/confirm so stock and supplier AP
         // both crystallise at the same moment, under HQ control.
-        // location='sales' (no store layer â€” confirmed by user: Kelete has
+        // location='sales' (no store layer — confirmed by user: Kelete has
         // no warehouse, every GRN goes straight to the branch sales floor).
         if (!isHqLinked) {
           // Beverage stock movement.
@@ -226,7 +226,7 @@ router.post('/', auth, async (req, res) => {
              VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,?,datetime('now'),?)`
           ).run(item.product_id, productSyncId, 'sales', 'grn', baseQty, grnId, 'grn', req.user.id,
                 randomUUID(), tenantId, branchId, deviceId, movementCreatedAt, grnSyncId);
-          // v1.13.21 â€” pair the movement with a cache bump so
+          // v1.13.21 — pair the movement with a cache bump so
           // products.current_stock doesn't drift from SUM(stock_movements)
           // between boot-time rebuilds. Fixes Category-B drift path #1.
           if (productSyncId) {
@@ -235,7 +235,7 @@ router.post('/', auth, async (req, res) => {
             ).run(baseQty, productSyncId);
           }
 
-          // Container stock movement â€” net (received âˆ’ returned). Skipped when no net change.
+          // Container stock movement — net (received − returned). Skipped when no net change.
           const containerDelta = recv - ret;
           if (containerSyncId && Math.abs(containerDelta) > 0.001) {
             const containerProd = db.prepare('SELECT id FROM products WHERE sync_id = ?').get(containerSyncId);
@@ -246,7 +246,7 @@ router.post('/', auth, async (req, res) => {
             ).run(containerProd?.id || null, containerSyncId, 'sales', 'grn', containerDelta, grnId, 'grn',
                   `Container settlement via ${grnNum}`, req.user.id,
                   randomUUID(), tenantId, branchId, deviceId, movementCreatedAt, grnSyncId);
-            // v1.13.21 â€” pair container movement with cache bump too.
+            // v1.13.21 — pair container movement with cache bump too.
             db.prepare(
               `UPDATE products SET current_stock = COALESCE(current_stock, 0) + ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
             ).run(containerDelta, containerSyncId);
@@ -254,18 +254,18 @@ router.post('/', auth, async (req, res) => {
         }
       }
 
-      // v1.9.7 â€” auto-SIV removed. Kelete has no store layer, so GRN stock
+      // v1.9.7 — auto-SIV removed. Kelete has no store layer, so GRN stock
       // movements now post directly at location='sales'. The legacy
       // single_location_mode setting becomes a no-op (UI-hidden in Phase 3
       // cleanup). HQ-linked GRNs likewise defer posting to HQ confirm,
       // which also writes at location='sales'.
       const grnRow = db.prepare('SELECT * FROM grn WHERE id = ?').get(grnId);
 
-      // v1.9.13 â€” inline credit notes attached to the GRN. Each entry
+      // v1.9.13 — inline credit notes attached to the GRN. Each entry
       // becomes a supplier_credit_notes row with grn_sync_id linking
       // back. CN reduces what HQ owes the supplier; HQ will see them on
       // Confirm GRN and the running AP totals.
-      // v1.9.17 â€” Crate Return / Goods Return CNs now carry an items[]
+      // v1.9.17 — Crate Return / Goods Return CNs now carry an items[]
       // array; persist into supplier_credit_note_items and (for the
       // returned products) post negative stock_movements at location='sales'
       // so the floor count drops. Mirrors supplierCreditNotes POST exactly.
@@ -335,8 +335,8 @@ router.post('/', auth, async (req, res) => {
       return grnRow;
     })();
 
-    // v1.9.7 â€” for HQ-linked GRNs, flip the parent PO line(s) at HQ from
-    // AWAITING_GRN â†’ GRN_SUBMITTED so HQ's Confirm GRN queue picks it up.
+    // v1.9.7 — for HQ-linked GRNs, flip the parent PO line(s) at HQ from
+    // AWAITING_GRN → GRN_SUBMITTED so HQ's Confirm GRN queue picks it up.
     // The actual stock + AP commit happens later via /api/hq/grns/:syncId
     // /confirm. We call out to master.db here because the PO lives there;
     // failure is non-fatal (logged) so a flaky master link doesn't lose
@@ -361,7 +361,7 @@ router.post('/', auth, async (req, res) => {
         console.error('[grn] failed to flag parent PO lines as GRN_SUBMITTED:', err.message);
       }
     }
-    // ZRA savePurchase â€” for non-HQ-linked GRNs (direct branch receipts).
+    // ZRA savePurchase — for non-HQ-linked GRNs (direct branch receipts).
     // HQ-linked GRNs upload once HQ confirms them (a follow-up hook in
     // the HQ Confirm route). Skips cleanly when ZRA is off or the GRN
     // is still awaiting HQ confirmation.
@@ -382,13 +382,13 @@ router.post('/', auth, async (req, res) => {
         supplier_name: supplier?.name || null,
         supplier_tpin: supplier?.tpin || null,
       };
-      // v1.13.142 â€” BUG A GUARD. Skip savePurchase when this GRN's parent
+      // v1.13.142 — BUG A GUARD. Skip savePurchase when this GRN's parent
       // purchase was already registered with ZRA earlier in the flow
       // (grn.zra_pchs_invc_no is stamped by the Phase 2 approve endpoint
       // in routes/zra.js when a ZRA-pulled invoice is converted into an
       // hq_purchase). Without this guard, the legacy /api/grn path fires
       // savePurchase again for the same physical delivery, and ZRA sees
-      // the beer counted twice â€” the seller's books over-report inventory
+      // the beer counted twice — the seller's books over-report inventory
       // and the VAT return is wrong. When the guard skips, we STILL fire
       // the stock chain below (ZRA needs the sarTyCd=02 movement record)
       // and mark zra.status=SKIPPED_ALREADY_REGISTERED for audit clarity.
@@ -400,7 +400,7 @@ router.post('/', auth, async (req, res) => {
         });
       }
       // Stock chain (SAR 02 = Purchase). Not fatal on failure. Fires
-      // whether savePurchase ran or was skipped-because-already-registered â€”
+      // whether savePurchase ran or was skipped-because-already-registered —
       // ZRA needs the stock movement either way.
       if (zra.ok || zra.skipped) {
         const snapshots = zraItems.map(it => ({
@@ -408,14 +408,14 @@ router.post('/', auth, async (req, res) => {
           rsdQty: parseFloat(db.prepare('SELECT current_stock FROM products WHERE id = ?').get(it.product_id)?.current_stock || 0) || 0,
         }));
         try {
-          // v1.13.142 â€” BUG B FIX. Compute per-line tax properly so ZRA sees
+          // v1.13.142 — BUG B FIX. Compute per-line tax properly so ZRA sees
           // the real taxable base and VAT for stock arriving, not zeros.
           // Same math as saveNonSaleStockChain / savePurchase itemList:
-          //   - splyAmt = qty Ã— cost (VAT-inclusive per Kelete convention)
+          //   - splyAmt = qty × cost (VAT-inclusive per Kelete convention)
           //   - taxblAmt = splyAmt / (1 + rate/100)  (exclusive base)
-          //   - vatAmt  = splyAmt âˆ’ taxblAmt
+          //   - vatAmt  = splyAmt − taxblAmt
           //   - totAmt  = splyAmt
-          //   - Zero-rated cats (D, C1, C2, C3, E) â†’ rate 0, vatAmt 0, base = totAmt
+          //   - Zero-rated cats (D, C1, C2, C3, E) → rate 0, vatAmt 0, base = totAmt
           const VAT_RATES = { A: 16, B: 16, C1: 0, C2: 0, C3: 0, D: 0, E: 0, F: 10, RVAT: 16 };
           const items = zraItems.map((it, idx) => {
             const qty     = parseFloat(it.quantity)   || 0;
@@ -441,7 +441,7 @@ router.post('/', auth, async (req, res) => {
               vatCatCd:     cat,
               exciseTxCatCd: it.zra_excise_ty_cd || null,
               vatAmt:       Number(vat.toFixed(4)),
-              taxAmt:       Number(vat.toFixed(4)), // per Â§5.11 taxAmt=vat+ipl+tl+excise; Kelete = vat only
+              taxAmt:       Number(vat.toFixed(4)), // per §5.11 taxAmt=vat+ipl+tl+excise; Kelete = vat only
               totAmt:       Number(grossInc.toFixed(4)),
             };
           });
@@ -585,7 +585,7 @@ router.put('/:id', auth, (req, res) => {
       const grnRecord = db.prepare('SELECT sync_id FROM grn WHERE id=?').get(id);
       const grnSyncId = grnRecord?.sync_id;
 
-      // v1.13.21 â€” before soft-deleting the old movements, roll their net
+      // v1.13.21 — before soft-deleting the old movements, roll their net
       // qty off products.current_stock so the cache stays in sync. Otherwise
       // the edit would leave the cache holding the OLD movement totals PLUS
       // the fresh ones about to be inserted (double count).
@@ -629,7 +629,7 @@ router.put('/:id', auth, (req, res) => {
         db.prepare(`INSERT INTO stock_movements (product_id, product_sync_id, location, movement_type, quantity, reference_id, reference_type, created_by, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at, reference_sync_id) VALUES (?,?,'store','grn',?,?,?,?,?,?,?,?,0,?,datetime('now'),?)`).run(
           item.product_id, productSyncId, baseQty, id, 'grn', req.user.id, randomUUID(), tenantId, branchId, deviceId, movementCreatedAt, grnSyncId
         );
-        // v1.13.21 â€” pair with cache bump (fresh movement on the re-inserted row).
+        // v1.13.21 — pair with cache bump (fresh movement on the re-inserted row).
         if (productSyncId) stockDeltaStmt.run(baseQty, productSyncId);
 
         const containerDelta = recv - ret;
@@ -645,7 +645,7 @@ router.put('/:id', auth, (req, res) => {
         }
       }
 
-      // Single-location mode â†’ rebuild the matching auto-SIV from the updated GRN.
+      // Single-location mode → rebuild the matching auto-SIV from the updated GRN.
       // Soft-delete the previous auto-SIV (and its movements) first so quantities stay consistent.
       deleteAutoSivForGrn(db, grnSyncId);
       if (isSingleLocationMode(db, tenantId)) {
@@ -662,7 +662,7 @@ router.put('/:id', auth, (req, res) => {
   }
 });
 
-// GET /recent-products â€” return last used products in GRN for quick-add chips
+// GET /recent-products — return last used products in GRN for quick-add chips
 router.get('/recent-products', auth, readOnlyGuard, (req, res) => {
   try {
     const rows = db.prepare(`
@@ -682,7 +682,7 @@ router.get('/recent-products', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// GET /notes â€” return distinct past notes for autocomplete
+// GET /notes — return distinct past notes for autocomplete
 router.get('/notes', auth, readOnlyGuard, (req, res) => {
   try {
     const rows = db.prepare(
@@ -701,7 +701,7 @@ router.get('/:id', auth, readOnlyGuard, (req, res) => {
     const grn = db.prepare(q.text).get(...q.values);
     if (grn) {
       const creator = db.prepare(`SELECT first_name || ' ' || last_name AS name FROM users WHERE id = ?`).get(grn.created_by);
-      grn.created_by_name = creator?.name || 'â€”';
+      grn.created_by_name = creator?.name || '—';
     }
     const items = db.prepare(
       `SELECT gi.*, p.name AS product_name, p.unit AS product_unit, p.alt_unit, p.conversion_factor, p.units_json
@@ -726,7 +726,7 @@ router.delete('/:id', auth, (req, res) => {
 
       // If this GRN spawned an auto-SIV (single-location mode), the stock now lives at
       // location='sales'. Deleting the GRN cascades the auto-SIV first, which would
-      // remove the sales stock â€” so the constraint is "enough stock at SALES to absorb the reversal".
+      // remove the sales stock — so the constraint is "enough stock at SALES to absorb the reversal".
       // Otherwise the dual-location flow puts the stock in `store`, and the constraint stays there.
       const autoSiv = db.prepare("SELECT 1 FROM siv WHERE source_grn_sync_id = ? AND deleted_at IS NULL").get(grn.sync_id);
       const checkLocation = autoSiv ? 'sales' : 'store';
@@ -769,7 +769,7 @@ router.delete('/:id', auth, (req, res) => {
       const violations = enriched.filter(r => r.current_stock - r.grn_qty < 0);
       if (violations.length > 0) {
         const where = autoSiv ? 'sales counter' : 'store';
-        throw Object.assign(new Error(`Cannot delete: ${where} stock would go negative â€” some of this GRN's stock has already been ${autoSiv ? 'sold' : 'issued'}.`), {
+        throw Object.assign(new Error(`Cannot delete: ${where} stock would go negative — some of this GRN's stock has already been ${autoSiv ? 'sold' : 'issued'}.`), {
           status: 400,
           violations: violations.map(v => ({
             product_name: v.product_name, unit: v.unit,
@@ -780,12 +780,12 @@ router.delete('/:id', auth, (req, res) => {
         });
       }
 
-      // Soft-delete the auto-SIV first (if any) â€” it'll cascade its own stock movements too.
+      // Soft-delete the auto-SIV first (if any) — it'll cascade its own stock movements too.
       deleteAutoSivForGrn(db, grn.sync_id);
-      // v1.13.21 â€” roll the GRN's net stock movement off products.current_stock
+      // v1.13.21 — roll the GRN's net stock movement off products.current_stock
       // BEFORE soft-deleting the rows, so the cache stays in sync. Without
       // this, the cache would still hold the "+baseQty" from the original
-      // GRN even after the movement is soft-deleted â†’ drift.
+      // GRN even after the movement is soft-deleted → drift.
       const soonRemoved = db.prepare(
         `SELECT product_sync_id, SUM(quantity) AS net
            FROM stock_movements

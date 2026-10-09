@@ -1,5 +1,5 @@
 /**
- * delete_test_suppliers.js â€” remove test suppliers and everything hanging off
+ * delete_test_suppliers.js — remove test suppliers and everything hanging off
  * them, keeping only the real ones.
  *
  * 2026-09-05. Red Sea buys from three suppliers. The rest of the HQ Suppliers
@@ -44,7 +44,7 @@ const norm  = (s) => String(s || '').trim().toUpperCase();
 const hq     = new Database(HQ, { readonly: !APPLY });
 const master = new Database(MASTER, { readonly: !APPLY });
 
-// â”€â”€ who goes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── who goes ────────────────────────────────────────────────────────────────
 const all = hq.prepare(
   `SELECT id, sync_id, name, tpin FROM suppliers
     WHERE deleted_at IS NULL AND COALESCE(status,'Active') != 'Deleted'
@@ -71,7 +71,7 @@ const ids   = doomed.map(s => s.id);
 const syncs = doomed.map(s => s.sync_id).filter(Boolean);
 const names = doomed.map(s => norm(s.name));
 
-// â”€â”€ what hangs off them â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── what hangs off them ─────────────────────────────────────────────────────
 // Found by scanning for supplier columns rather than a hand-written list, so a
 // table nobody remembered cannot be quietly left behind.
 function scan(db, label) {
@@ -124,7 +124,7 @@ if (!APPLY) {
   process.exit(0);
 }
 
-// â”€â”€ delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── delete ──────────────────────────────────────────────────────────────────
 const stamp = (db, label) => {
   let n = 0;
   for (const h of hits.filter(x => x.db === label && x.soft)) {
@@ -138,7 +138,7 @@ const stamp = (db, label) => {
   return n;
 };
 
-console.log('\nDeletingâ€¦');
+console.log('\nDeleting…');
 let total = 0;
 total += hq.transaction(() => stamp(hq, 'kelete.db'))();
 total += master.transaction(() => stamp(master, 'master.db'))();

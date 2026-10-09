@@ -34,7 +34,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
   const [showPassword, setShowPassword]   = useState(false);
   const [showConfirm, setShowConfirm]     = useState(false);
   const [adminPermissions, setAdminPermissions] = useState([]);
-  // v1.8.42 â€” state for the "Refresh from VPS" recovery action.
+  // v1.8.42 — state for the "Refresh from VPS" recovery action.
   const [refreshState, setRefreshState] = useState('idle'); // 'idle' | 'running' | 'done' | 'error'
   const [refreshMsg, setRefreshMsg] = useState('');
 
@@ -80,7 +80,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
       .catch(() => {});
   }, [startAtCreateAdmin]);
 
-  // â”€â”€ New Branch Step 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── New Branch Step 1 ─────────────────────────────────────────────────────
   const handleNewBranch = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -107,7 +107,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     }
   };
 
-  // â”€â”€ Create Admin Account (Step 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Create Admin Account (Step 2) ─────────────────────────────────────────
   const handleCreateAdmin = async (e) => {
     e.preventDefault();
     if (adminPassword !== confirmPassword) {
@@ -138,7 +138,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     }
   };
 
-  // â”€â”€ Join Branch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Join Branch ───────────────────────────────────────────────────────────
   const handleJoinBranch = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -180,7 +180,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     }
   };
 
-  // â”€â”€ Styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Styles ────────────────────────────────────────────────────────────────
   const pageStyle = {
     minHeight: '100vh', display: 'flex', alignItems: 'center',
     justifyContent: 'center',
@@ -211,13 +211,13 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
 
   const logo = (
     <div style={{ textAlign: 'center', marginBottom: 32 }}>
-      <div style={{ fontSize: 48, marginBottom: 12 }}>ðŸ·</div>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>⛽</div>
       <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#111827' }}>Kelete</h1>
       <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: 14 }}>Cloud Sync Setup</p>
     </div>
   );
 
-  // â”€â”€ Already configured â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Already configured ────────────────────────────────────────────────────
   if (alreadyConfigured) {
     const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f3f4f6' };
     const keyStyle = { fontSize: 13, color: '#6b7280', fontWeight: 500 };
@@ -226,42 +226,42 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
       <div style={pageStyle}>
         <div style={{ ...cardStyle, maxWidth: 480 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>âœ…</div>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
             <h2 style={{ margin: '0 0 4px', color: '#111827' }}>Cloud Sync Active</h2>
             <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>This device is registered and syncing with the cloud.</p>
           </div>
           <div style={{ background: '#f9fafb', borderRadius: 10, padding: '4px 16px', marginBottom: 20 }}>
-            <div style={rowStyle}><span style={keyStyle}>Business Email</span><span style={valStyle}>{identity?.email ?? 'â€”'}</span></div>
-            <div style={rowStyle}><span style={keyStyle}>Subdomain</span><span style={valStyle}>{subdomain || 'â€”'}</span></div>
-            <div style={rowStyle}><span style={keyStyle}>Branch</span><span style={valStyle}>{identity?.branchName ?? 'â€”'}</span></div>
+            <div style={rowStyle}><span style={keyStyle}>Business Email</span><span style={valStyle}>{identity?.email ?? '—'}</span></div>
+            <div style={rowStyle}><span style={keyStyle}>Subdomain</span><span style={valStyle}>{subdomain || '—'}</span></div>
+            <div style={rowStyle}><span style={keyStyle}>Branch</span><span style={valStyle}>{identity?.branchName ?? '—'}</span></div>
             <div style={rowStyle}>
               <span style={keyStyle}>License Expires</span>
               <span style={{ ...valStyle, color: identity?.isExpired ? '#dc2626' : identity?.daysRemaining <= 14 ? '#d97706' : '#111827' }}>
-                {identity?.expiresAt ? `${identity.expiresAt.substring(0, 10)} (${identity.daysRemaining}d remaining)` : 'â€”'}
+                {identity?.expiresAt ? `${identity.expiresAt.substring(0, 10)} (${identity.daysRemaining}d remaining)` : '—'}
               </span>
             </div>
-            <div style={{ ...rowStyle, borderBottom: 'none' }}><span style={keyStyle}>Max Branches</span><span style={valStyle}>{identity?.maxBranches ?? 'â€”'}</span></div>
+            <div style={{ ...rowStyle, borderBottom: 'none' }}><span style={keyStyle}>Max Branches</span><span style={valStyle}>{identity?.maxBranches ?? '—'}</span></div>
           </div>
           {existingBranchCode && (
             <div style={{ background: '#fff1f1', border: '1px solid #fecaca', borderRadius: 10, padding: '14px 20px', marginBottom: 24, textAlign: 'center' }}>
-              <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600, marginBottom: 4 }}>BRANCH CODE â€” share when adding a new PC to this branch</div>
+              <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600, marginBottom: 4 }}>BRANCH CODE — share when adding a new PC to this branch</div>
               <div style={{ fontSize: 32, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '6px', color: '#991b1b' }}>{existingBranchCode}</div>
             </div>
           )}
-          {/* v1.8.42 â€” recovery action. Clears the "synced=0" flag on
+          {/* v1.8.42 — recovery action. Clears the "synced=0" flag on
               every local row, which unblocks the PROTECT-on-pull rule
               so the next sync cycle overwrites local with VPS state.
               Use when local data drifted (e.g. orders show wrong status
               that's correct on web). Discards any unpushed local edits. */}
           <div style={{ marginBottom: 12, padding: '12px 14px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>âš  Recovery: Refresh from VPS</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: '#92400e', marginBottom: 4 }}>⚠ Recovery: Refresh from VPS</div>
             <div style={{ fontSize: 11, color: '#78350f', marginBottom: 8, lineHeight: 1.4 }}>
               Use only if this PC's data is out of sync with the website. Clears pending sync flags so the next pull overwrites local data with VPS as truth. <strong>Any unpushed local edits will be lost.</strong>
             </div>
             <button
               onClick={async () => {
                 if (refreshState === 'running') return;
-                if (!window.confirm('This will discard any local changes not yet pushed to the cloud, and overwrite this PCâ€™s data with what the cloud has.\n\nProceed?')) return;
+                if (!window.confirm('This will discard any local changes not yet pushed to the cloud, and overwrite this PC’s data with what the cloud has.\n\nProceed?')) return;
                 setRefreshState('running'); setRefreshMsg('');
                 try {
                   const { clearPendingSyncFlags } = await import('../services/api');
@@ -275,7 +275,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               }}
               disabled={refreshState === 'running'}
               style={{ width: '100%', padding: '10px', background: refreshState === 'running' ? '#fcd34d' : '#d97706', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: refreshState === 'running' ? 'not-allowed' : 'pointer' }}>
-              {refreshState === 'running' ? 'Refreshingâ€¦' : 'Refresh from VPS (Clear Pending)'}
+              {refreshState === 'running' ? 'Refreshing…' : 'Refresh from VPS (Clear Pending)'}
             </button>
             {refreshMsg && (
               <div style={{ marginTop: 8, fontSize: 11, color: refreshState === 'error' ? '#b91c1c' : '#15803d', fontWeight: 600 }}>{refreshMsg}</div>
@@ -297,14 +297,14 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             disabled={updateStatus === 'checking'}
             style={{ width: '100%', padding: '10px', background: 'transparent', color: updateStatus === 'latest' ? '#16a34a' : '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, cursor: updateStatus === 'checking' ? 'not-allowed' : 'pointer' }}
           >
-            {updateStatus === 'checking' ? 'Checking for updates...' : updateStatus === 'latest' ? 'âœ“ You are on the latest version' : 'Check for Updates'}
+            {updateStatus === 'checking' ? 'Checking for updates...' : updateStatus === 'latest' ? '✓ You are on the latest version' : 'Check for Updates'}
           </button>
         </div>
       </div>
     );
   }
 
-  // â”€â”€ Choose mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Choose mode ───────────────────────────────────────────────────────────
   if (mode === 'choose') {
     return (
       <div style={pageStyle}>
@@ -315,32 +315,32 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
           </p>
           <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
             <button onClick={() => setMode('newBranch')} style={{ flex: 1, padding: '20px 16px', border: '2px solid #fecaca', borderRadius: 12, background: '#fff1f1', cursor: 'pointer', textAlign: 'center' }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>ðŸª</div>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🏪</div>
               <div style={{ fontWeight: 700, color: '#dc2626', fontSize: 15 }}>New Branch</div>
               <div style={{ fontSize: 12, color: '#ef4444', marginTop: 4 }}>First PC for a new branch</div>
             </button>
             <button onClick={() => setMode('joinBranch')} style={{ flex: 1, padding: '20px 16px', border: '2px solid #bbf7d0', borderRadius: 12, background: '#f0fdf4', cursor: 'pointer', textAlign: 'center' }}>
-              <div style={{ fontSize: 28, marginBottom: 8 }}>ðŸ”—</div>
+              <div style={{ fontSize: 28, marginBottom: 8 }}>🔗</div>
               <div style={{ fontWeight: 700, color: '#15803d', fontSize: 15 }}>Join Branch</div>
               <div style={{ fontSize: 12, color: '#16a34a', marginTop: 4 }}>Add this PC to an existing branch</div>
             </button>
           </div>
           <p style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 16, marginBottom: 0 }}>
-            You can update sync settings later from Settings â†’ Cloud Sync
+            You can update sync settings later from Settings → Cloud Sync
           </p>
         </div>
       </div>
     );
   }
 
-  // â”€â”€ New Branch Step 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── New Branch Step 1 ─────────────────────────────────────────────────────
   if (mode === 'newBranch') {
     return (
       <div style={pageStyle}>
         <div style={cardStyle}>
           {logo}
           <div style={{ background: '#fff1f1', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 16px', marginBottom: 24, fontSize: 13, color: '#dc2626' }}>
-            Step 1 of 2 â€” Register this device as a new branch
+            Step 1 of 2 — Register this device as a new branch
           </div>
           <form onSubmit={handleNewBranch}>
             <div style={{ marginBottom: 16 }}>
@@ -367,7 +367,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     );
   }
 
-  // â”€â”€ Create Admin (Step 2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Create Admin (Step 2) ─────────────────────────────────────────────────
   if (mode === 'createAdmin') {
     const pwInputStyle = { ...inputStyle, paddingRight: 44 };
     const eyeBtn = { position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#6b7280', padding: 0 };
@@ -382,7 +382,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
         <div style={{ ...cardStyle, maxWidth: 500 }}>
           {logo}
           <div style={{ background: '#fff1f1', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 16px', marginBottom: 24, fontSize: 13, color: '#dc2626' }}>
-            {startAtCreateAdmin ? 'Create your Administrator account to continue' : 'Step 2 of 2 â€” Create your Administrator account'}
+            {startAtCreateAdmin ? 'Create your Administrator account to continue' : 'Step 2 of 2 — Create your Administrator account'}
           </div>
           <form onSubmit={handleCreateAdmin}>
             {/* Name row */}
@@ -411,7 +411,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               <label style={labelStyle}>Password *</label>
               <div style={{ position: 'relative' }}>
                 <input type={showPassword ? 'text' : 'password'} required value={adminPassword} onChange={e => setAdminPassword(e.target.value)} placeholder="Min. 6 characters" style={pwInputStyle} />
-                <button type="button" style={eyeBtn} onClick={() => setShowPassword(v => !v)}>{showPassword ? 'ðŸ™ˆ' : 'ðŸ‘ï¸'}</button>
+                <button type="button" style={eyeBtn} onClick={() => setShowPassword(v => !v)}>{showPassword ? '🙈' : '👁️'}</button>
               </div>
             </div>
             {/* Confirm Password */}
@@ -419,10 +419,10 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               <label style={labelStyle}>Confirm Password *</label>
               <div style={{ position: 'relative' }}>
                 <input type={showConfirm ? 'text' : 'password'} required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Repeat password" style={pwInputStyle} />
-                <button type="button" style={eyeBtn} onClick={() => setShowConfirm(v => !v)}>{showConfirm ? 'ðŸ™ˆ' : 'ðŸ‘ï¸'}</button>
+                <button type="button" style={eyeBtn} onClick={() => setShowConfirm(v => !v)}>{showConfirm ? '🙈' : '👁️'}</button>
               </div>
             </div>
-            {/* Role â€” read-only */}
+            {/* Role — read-only */}
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Role</label>
               <input type="text" value="Administrator" readOnly style={readonlyStyle} />
@@ -437,7 +437,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               </div>
               <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Click to toggle. Leave empty for no module restrictions.</div>
             </div>
-            {/* Status â€” read-only */}
+            {/* Status — read-only */}
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Status</label>
               <input type="text" value="Active" readOnly style={{ ...readonlyStyle, color: '#16a34a' }} />
@@ -452,7 +452,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     );
   }
 
-  // â”€â”€ Join Branch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Join Branch ───────────────────────────────────────────────────────────
   if (mode === 'joinBranch') {
     return (
       <div style={pageStyle}>
@@ -472,7 +472,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Branch Code</label>
               <input type="text" required value={branchCode} onChange={e => setBranchCode(e.target.value.toUpperCase())} placeholder="e.g. A1B2C3D4" maxLength={8} style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '4px', fontSize: 18, textAlign: 'center' }} />
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>8-character code â€” find it on the other PC under Settings â†’ Cloud Sync</div>
+              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>8-character code — find it on the other PC under Settings → Cloud Sync</div>
             </div>
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>License Key</label>
@@ -489,13 +489,13 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     );
   }
 
-  // â”€â”€ Join Syncing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Join Syncing ──────────────────────────────────────────────────────────
   if (mode === 'joinSyncing') {
     return (
       <div style={pageStyle}>
         <div style={{ ...cardStyle, textAlign: 'center' }}>
           {logo}
-          <div style={{ fontSize: 40, marginBottom: 20 }}>â³</div>
+          <div style={{ fontSize: 40, marginBottom: 20 }}>⏳</div>
           <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1f2937', marginBottom: 10 }}>Syncing Branch Data</h2>
           <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
             Please wait while your branch data is being downloaded from the cloud.<br />

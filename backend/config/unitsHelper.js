@@ -1,6 +1,6 @@
 // Multi-unit conversion helper. Reads units_json off a product row (falls back to legacy
 // alt_unit / conversion_factor) and returns the multiplier for converting a quantity entered
-// in `lineUnit` into base units (i.e. into the smallest packaging â€” typically PCS for kelete).
+// in `lineUnit` into base units (i.e. into the smallest packaging — typically PCS for kelete).
 //
 // Usage:
 //   const product = db.prepare('SELECT unit, alt_unit, conversion_factor, units_json FROM products WHERE id = ?').get(id);
@@ -38,10 +38,10 @@ function conversionToBase(product, lineUnit) {
 // the legacy alt_unit). Falls back to alt_unit/conversion_factor for products that
 // haven't been migrated yet, then to 1 if no match is found.
 //
-//   prodAlias â€” the SQL alias for the products row (e.g. 'p', 'gp', 'gip')
-//   lineAlias â€” the SQL alias for the line item row (e.g. 'gi', 'oi')
+//   prodAlias — the SQL alias for the products row (e.g. 'p', 'gp', 'gip')
+//   lineAlias — the SQL alias for the line item row (e.g. 'gi', 'oi')
 //
-// Use this anywhere a SUM(qty Ã— conversion) is computed in SQL.
+// Use this anywhere a SUM(qty × conversion) is computed in SQL.
 function baseQtyExpr(prodAlias, lineAlias) {
   return `
     CASE

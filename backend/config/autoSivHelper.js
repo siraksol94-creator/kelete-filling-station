@@ -1,13 +1,13 @@
-// Auto-SIV helper â€” when single-location mode is on, every GRN immediately spawns
-// a matching SIV that issues the full receipt from store â†’ sales. This keeps the
+// Auto-SIV helper — when single-location mode is on, every GRN immediately spawns
+// a matching SIV that issues the full receipt from store → sales. This keeps the
 // stock_movements ledger consistent with the existing dual-location flow, so
 // reports/POS/reconciliation don't need any conditional logic.
 //
 // The auto-SIV gets a normal sequential SIV number AND a source_grn_sync_id link
-// pointing back to the GRN. The Bin Card uses that link to render "from GRN-â€¦0009"
+// pointing back to the GRN. The Bin Card uses that link to render "from GRN-…0009"
 // next to the SIV reference, so users always know where the stock came from.
 //
-// Toggle: business_settings.single_location_mode (0/1). Default 0 â€” no auto-SIV.
+// Toggle: business_settings.single_location_mode (0/1). Default 0 — no auto-SIV.
 const { randomUUID } = require('crypto');
 
 // Is single-location mode enabled for this tenant?
@@ -24,7 +24,7 @@ function isSingleLocationMode(db, tenantId) {
 // (with sync_id), the items as received, and the request context.
 //
 // `grnItems` is an array of { product_id, quantity, unit }. Quantity is in the
-// unit the line was entered in â€” we convert to base for stock movements using the
+// unit the line was entered in — we convert to base for stock movements using the
 // product's units_json / alt_unit (same helper GRN uses).
 function createAutoSiv(db, grn, grnItems, req, syncConfig, { conversionToBase }) {
   const tenantId = syncConfig.getTenantId(req);
@@ -34,11 +34,11 @@ function createAutoSiv(db, grn, grnItems, req, syncConfig, { conversionToBase })
   const sivSyncId = randomUUID();
 
   // Stamp stock_movements with the GRN's business date (matches the SIV header),
-  // not today â€” otherwise the Bin Card reorders rows to today and reports break.
+  // not today — otherwise the Bin Card reorders rows to today and reports break.
   const movementCreatedAt = grn.date + ' ' + new Date().toTimeString().slice(0, 8);
 
   // Pre-compute selling price per line unit, so totals + per-line values match
-  // the manual SIV behaviour (which uses selling_price Ã— conversion). Stock value
+  // the manual SIV behaviour (which uses selling_price × conversion). Stock value
   // on an SIV represents retail value of what hit the sales counter, not cost.
   const pricedLines = grnItems.map(item => {
     const prod = db.prepare(
@@ -68,7 +68,7 @@ function createAutoSiv(db, grn, grnItems, req, syncConfig, { conversionToBase })
     totalValue,
     `Auto-issued from ${grn.grn_number}`,
     req.user.id,
-    grn.sync_id,                       // source_grn_sync_id â€” links SIV back to GRN
+    grn.sync_id,                       // source_grn_sync_id — links SIV back to GRN
     sivSyncId, tenantId, branchId, deviceId
   );
   const sivId = db.prepare('SELECT id FROM siv WHERE sync_id = ?').get(sivSyncId).id;
@@ -81,7 +81,7 @@ function createAutoSiv(db, grn, grnItems, req, syncConfig, { conversionToBase })
     ).run(sivId, sivSyncId, item.product_id, productSyncId, qty, lineUnit, unitPrice, qty * unitPrice,
           randomUUID(), tenantId, branchId, deviceId);
 
-    // store âˆ’qty (issued out)  and  sales +qty (received at counter)
+    // store −qty (issued out)  and  sales +qty (received at counter)
     db.prepare(
       `INSERT INTO stock_movements (product_id, product_sync_id, location, movement_type, quantity, reference_id, reference_type, created_by,
                                     sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at, reference_sync_id)
@@ -95,10 +95,10 @@ function createAutoSiv(db, grn, grnItems, req, syncConfig, { conversionToBase })
     ).run(item.product_id, productSyncId, baseQty, sivId, req.user.id,
           randomUUID(), tenantId, branchId, deviceId, movementCreatedAt, sivSyncId);
 
-    // â”€â”€ Container side-issue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Container side-issue ────────────────────────────────────────────────
     // The GRN may also have brought in empty crates (recv > ret). In single-location
     // mode those should also be moved to the sales counter so reconciliation/POS see
-    // the same stock state the user sees. Skip when delta â‰¤ 0 (no new crates landed).
+    // the same stock state the user sees. Skip when delta ≤ 0 (no new crates landed).
     const containerSyncId = item.container_product_sync_id || null;
     const containerDelta  = parseFloat(item.containers_received || 0) - parseFloat(item.containers_returned || 0);
     if (containerSyncId && containerDelta > 0.001) {
@@ -146,10 +146,10 @@ function deleteAutoSivForGrn(db, grnSyncId) {
   return true;
 }
 
-// 2026-09-07 â€” take the goods off the shelf they are actually on.
+// 2026-09-07 — take the goods off the shelf they are actually on.
 //
 // stockLocation() above answers from a setting. HQ-generated GRNs ignore that
-// setting and always post to 'sales' (hardcoded in routes/hqGrns.js â€” the
+// setting and always post to 'sales' (hardcoded in routes/hqGrns.js — the
 // no-store model), so at a Kelete depot the stock arrives in 'sales' while a
 // return was being deducted from 'store'. Nothing stopped it: Kabwe ended up
 // with store = -1 on LAYS 105 X 20 and its sales counter overstated by the
@@ -175,7 +175,7 @@ function returnLocation(db, tenantId, productSyncId, neededQty) {
     // 'store' still wins when the goods are sitting there.
     if (at('store') >= need && at('store') > 0) return 'store';
     if (at('sales') >= need && at('sales') > 0) return 'sales';
-    // Neither can cover it â€” go where most of it is rather than inventing a
+    // Neither can cover it — go where most of it is rather than inventing a
     // negative somewhere empty.
     const best = rows.slice().sort((a, b) => b.qty - a.qty)[0];
     return best && best.qty > 0 ? best.location : fallback;

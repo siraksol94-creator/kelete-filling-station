@@ -21,7 +21,7 @@ body {
 }
 
 :root {
-  /* Kelete theme â€” Red Sea (coral red + sea teal).
+  /* Kelete theme — Red Sea (coral red + sea teal).
      Coral red primary + sea teal accent + neutral grey surfaces.
      Status colors (green / red / yellow) stay as-is. */
   --primary: #B91C1C;        /* coral red */
@@ -68,7 +68,7 @@ body {
   overflow: hidden;
 }
 
-/* Sidebar â€” slate navy gradient. Industrial / dispatch feel. */
+/* Sidebar — slate navy gradient. Industrial / dispatch feel. */
 .sidebar {
   width: 220px;
   background: linear-gradient(180deg, #1E293B 0%, #0F172A 50%, #020617 100%);
@@ -81,9 +81,9 @@ body {
   box-shadow: 4px 0 24px rgba(2, 6, 23, 0.4);
 }
 
-/* 2026-09-11 â€” the POS small terminal (Device Type) gets a solid dark navy
+/* 2026-09-11 — the POS small terminal (Device Type) gets a solid dark navy
    blue, the deep navy of the Red Sea logo, instead of slate. PCs keep the
-   slate above. (First pushed as a #0F192C â†’ #13306b fade; Red Sea asked for
+   slate above. (First pushed as a #0F192C → #13306b fade; Red Sea asked for
    dark navy blue.) */
 .sidebar.terminal-navy {
   background: #0b1f4a;
@@ -728,7 +728,7 @@ body {
   color: var(--primary);
 }
 
-/* 2026-09-11 â€” POS small terminal: one row you swipe sideways instead of
+/* 2026-09-11 — POS small terminal: one row you swipe sideways instead of
    three stacked rows. The fade on the right says there is more. */
 .category-filters.one-line {
   flex-wrap: nowrap;
@@ -1526,7 +1526,7 @@ body {
 .text-orange { color: var(--orange); }
 .font-bold { font-weight: 700; }
 
-/* Login page â€” Industrial Logistics: slate navy with amber accent blob.
+/* Login page — Industrial Logistics: slate navy with amber accent blob.
    Same overlay shape as Option A so the .login-card glass still reads. */
 .login-page {
   min-height: 100vh;
@@ -1694,18 +1694,18 @@ body {
   font-weight: 500;
 }
 
-/* 2026-09-11 â€” compact login for phone-sized screens and the POS small
+/* 2026-09-11 — compact login for phone-sized screens and the POS small
    terminal (Login.js). The desktop card above spends 48px of padding, an 84px
    logo and a 26px title before the first field, which on a 6-inch screen
    pushed the fields down to where the keyboard lands. This puts the brand in
    a band at the top, in the Red Sea logo's navy and red, and the fields
    straight under it. PCs keep the card. */
 .login-compact {
-  /* 2026-09-12 â€” the Android keyboard resizes the WebView, and `body` carries
+  /* 2026-09-12 — the Android keyboard resizes the WebView, and `body` carries
      overflow:hidden for the app shell, so this column had nowhere to go but
      smaller. With the default flex-shrink every child was compressed, and
-     .lc-brand's two curve pseudo-elements â€” anchored to its BOTTOM edge at
-     -21px / -26px â€” rode up over the logo and the title as the box lost
+     .lc-brand's two curve pseudo-elements — anchored to its BOTTOM edge at
+     -21px / -26px — rode up over the logo and the title as the box lost
      height. That is the red line that moves on the POS terminal, and the
      footer was dragged up by its `margin-top:auto` at the same time.
      It is now its own scroller with unshrinkable children: the keyboard
@@ -1720,7 +1720,7 @@ body {
   flex-direction: column;
   background: #fff;
 }
-/* Nothing in the column may be squeezed â€” see the note above. */
+/* Nothing in the column may be squeezed — see the note above. */
 .login-compact > * { flex: 0 0 auto; }
 .lc-brand {
   position: relative;
@@ -1978,7 +1978,7 @@ body {
 .stock-medium { color: var(--yellow); font-weight: 500; }
 .stock-low { color: var(--primary); font-weight: 500; }
 
-/* â”€â”€â”€ Mobile responsive (phones / Capacitor APK) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ─── Mobile responsive (phones / Capacitor APK) ──────────────────────────
    Sidebar becomes an overlay that slides in from the left when the toggle
    is tapped. Main content takes the full width. Tables / cards / filters
    stack so they fit on narrow screens. Ported from butchery-pos-tenant. */
@@ -2022,7 +2022,7 @@ body {
   .search-bar { flex: 1; min-width: 0; }
   .search-bar input { width: 100%; min-width: 0; }
 
-  /* Language selector compact â€” flag only. */
+  /* Language selector compact — flag only. */
   .top-header-right button:has(span) span:not(:first-of-type) { display: none; }
   .top-header-right button:has(span) > svg:last-child { display: none; }
   .top-header-right > div > button,
@@ -2040,7 +2040,7 @@ body {
     flex-wrap: wrap;
     max-width: 100%;
   }
-  /* 2026-09-13 â€” never wrap a COLUMN. A column with a capped height (the
+  /* 2026-09-13 — never wrap a COLUMN. A column with a capped height (the
      Sales Report receipt pop-up) wraps its overflow into a second column
      beside it: the receipt stayed left and Close/Print went off the right
      edge of the POS terminal. */
@@ -2091,7 +2091,7 @@ body {
     min-width: 0;
   }
 
-  /* Card layout â€” applied automatically to every .data-table on mobile.
+  /* Card layout — applied automatically to every .data-table on mobile.
      Labels come from data-label attribute on each <td>. A useEffect in
      Layout.js auto-fills data-label from the matching <th> column header
      for tables that don't set it explicitly. */
@@ -2138,7 +2138,7 @@ body {
     text-transform: none;
     font-size: 12px;
   }
-  /* First cell acts as the card title â€” bigger text, no label, divider below. */
+  /* First cell acts as the card title — bigger text, no label, divider below. */
   .data-table tbody td:first-child {
     font-size: 15px;
     font-weight: 600;
@@ -2222,7 +2222,7 @@ body {
   .nav-item, .nav-group-header { font-size: 16px; padding: 12px 18px; }
   .nav-children .nav-item { font-size: 15px; padding: 10px 16px; }
 
-  /* Slide-in route transition â€” native-feel page change on mobile.
+  /* Slide-in route transition — native-feel page change on mobile.
      Re-fires every time the routed page mounts (refresh button + every nav). */
   .page-content,
   .nav-children + main > * {
@@ -2235,7 +2235,7 @@ body {
 
   /* The page-slide-in animation leaves .page-content with transform:translateX(0)
      permanently (animation-fill-mode: both). A non-none transform makes the
-     element a containing block for position:fixed descendants â€” which traps
+     element a containing block for position:fixed descendants — which traps
      modals inside .page-content's overflow:hidden + bounded height, so long
      modal bodies can't scroll. Cancel the transform whenever an overlay is on
      screen so fixed modals re-anchor to the viewport. */
@@ -2340,7 +2340,7 @@ body {
     grid-template-columns: 1fr !important;
   }
 
-  /* â”€â”€â”€ POS phone layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /* ─── POS phone layout ────────────────────────────────────────────────
      Desktop = catalog left / cart right (side-by-side).
      Phone = catalog full-width; cart slides up as a bottom sheet on demand.
      Triggered by the AdminPasswordPrompt-style mobile-open class set in
@@ -2357,7 +2357,7 @@ body {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px;
   }
-  /* Compact header â€” Point of Sale title shrinks, subtitle hides. */
+  /* Compact header — Point of Sale title shrinks, subtitle hides. */
   .pos-products .page-header h1 { font-size: 18px; }
   .pos-products .page-header p { display: none; }
   .pos-products .page-time { display: none; }
@@ -2415,7 +2415,7 @@ body {
   .pos-mobile-cart-bar:active { transform: translateY(1px); }
 }
 
-/* â”€â”€ System Settings (2026-09-11 redesign â€” pages/SystemSettings.js) â”€â”€â”€â”€â”€â”€
+/* ── System Settings (2026-09-11 redesign — pages/SystemSettings.js) ──────
    Grouped by what a setting affects: this depot (saved from the bar at the
    bottom), this device (saved as clicked), sync (own buttons). One line per
    setting; the Red Sea navy for selected controls, the logo red for Save. */
@@ -2551,11 +2551,11 @@ body {
   .ss-tiles, .ss-fields, .ss-fields.ip { grid-template-columns: 1fr; }
 }
 
-/* â”€â”€ 2026-09-12 â€” Phone / APK redesign, phase 1 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ── 2026-09-12 — Phone / APK redesign, phase 1 ────────────────────────────
    The phone block above was written as blanket overrides. These rules undo
    what that broke and add what was missing; they sit last so they win.
    Nothing here applies above 768 px. */
-/* Phone-only blocks â€” the designed phone versions of a page's header and
+/* Phone-only blocks — the designed phone versions of a page's header and
    list. Hidden on desks; .desk-only is the matching desk part. */
 .phone-only { display: none; }
 
@@ -2588,7 +2588,7 @@ body {
   }
   /* The collapse needs :has() to open again. A WebView without it would drop
      every :has rule and leave a 36px box with an invisible input that never
-     opens â€” so the whole collapse only applies where :has() is supported, and
+     opens — so the whole collapse only applies where :has() is supported, and
      an older terminal keeps the full-width search it has today. */
   @supports selector(:has(*)) {
     .top-header-right { flex: 0 0 auto; }
@@ -2637,8 +2637,8 @@ body {
   }
   .tiles-2up .tile-value { font-size: 15px !important; }
 
-  /* 3. Hand-styled pop-ups â€” a fixed overlay with inset:0 around a box capped
-        by max-width or min() â€” open full screen, as .modal already does. A
+  /* 3. Hand-styled pop-ups — a fixed overlay with inset:0 around a box capped
+        by max-width or min() — open full screen, as .modal already does. A
         right-aligned button row at the bottom of the box stays pinned. */
   div[style*="position: fixed"][style*="inset: 0"] {
     padding: 0 !important;
@@ -2683,7 +2683,7 @@ body {
   .cat-filter-row::-webkit-scrollbar { display: none; }
   .cat-filter-row > * { flex-shrink: 0; }
 
-  /* 7. table.phone-cards â€” one card per row on phones, like .data-table, but
+  /* 7. table.phone-cards — one card per row on phones, like .data-table, but
         opt-in and phone-only, so a page's desk look is not touched. Layout
         labels every cell from its column header; the first cell is the card
         title; empty action cells drop out. */
@@ -2761,10 +2761,10 @@ body {
   table.phone-cards tfoot td:empty { display: none !important; }
 
   /* 8. New HQ Purchase item lines (table.purchase-lines): one labelled card
-        per line, laid out from the same 13 cells as the desk table â€”
-          1 Product Â· 2 Unit Â· 3 Qty Â· 4 RRP Â· 5 S.P Â· 6 Base Price Â·
-          7 Total Base Â· 8 VAT Â· 9 Base Discount Â· 10 Total Discount Â·
-          11 Total VAT Exclusive Â· 12 VAT Inclusive Â· 13 Edit / delete
+        per line, laid out from the same 13 cells as the desk table —
+          1 Product · 2 Unit · 3 Qty · 4 RRP · 5 S.P · 6 Base Price ·
+          7 Total Base · 8 VAT · 9 Base Discount · 10 Total Discount ·
+          11 Total VAT Exclusive · 12 VAT Inclusive · 13 Edit / delete
         What is typed comes first, what is worked out after, VAT inclusive
         last under a dashed line. A folded line keeps product, total and its
         Edit button. Each selector carries the overlay prefix so it outranks

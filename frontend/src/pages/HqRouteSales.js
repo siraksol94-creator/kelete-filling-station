@@ -1,7 +1,7 @@
-// HqRouteSales â€” route selling across every depot.
+// HqRouteSales — route selling across every depot.
 //
 // 2026-09-15. A route seller is a depot user ticked "Route seller" in
-// Users â†’ Edit; every sale under their login is route selling. Stock and cash
+// Users → Edit; every sale under their login is route selling. Stock and cash
 // stay with the depot, so this page only splits each depot's sales into the
 // depot's own and its route sellers', with each seller's sales listed.
 //
@@ -19,7 +19,7 @@ const NAVY = '#13306b';
 const NAVY_DEEP = '#0b1f4a';
 const AMBER = '#b45309';
 
-// "Kelete Distribution - BANKERS (KABWE)" â†’ "Bankers (Kabwe)"
+// "Kelete Distribution - BANKERS (KABWE)" → "Bankers (Kabwe)"
 const shortName = (name, slug) => String(name || slug || '')
   .split(/\s+-\s+/).pop()
   .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
@@ -53,7 +53,7 @@ export default function HqRouteSales() {
 
   const t = data?.totals || { revenue: 0, route_revenue: 0, depot_revenue: 0, route_orders: 0, route_cash: 0, route_credit: 0, sellers: 0 };
   const depots = data?.depots || [];
-  // 2026-09-15 â€” route selling only: depots without route sellers are not shown,
+  // 2026-09-15 — route selling only: depots without route sellers are not shown,
   // and a depot's own sales are not shown anywhere on this page.
   const shown = depots.filter(d => d.sellers.length > 0);
 
@@ -67,11 +67,11 @@ export default function HqRouteSales() {
       <div className="page-header desk-only">
         <div>
           <h1>HQ Route Selling</h1>
-          <p>Sales made by route sellers, per depot â€” tick a user as Route seller in the depot's Users page</p>
+          <p>Sales made by route sellers, per depot — tick a user as Route seller in the depot's Users page</p>
         </div>
       </div>
 
-      {/* â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Filters ──────────────────────────────────────────────────── */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
         <Field label="From">
           <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp} />
@@ -87,7 +87,7 @@ export default function HqRouteSales() {
         </Field>
         <button onClick={load} disabled={loading}
           style={{ padding: '9px 18px', background: NAVY, color: '#fff', border: 'none', borderRadius: 8, cursor: loading ? 'wait' : 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <FiRefreshCw /> {loading ? 'Loadingâ€¦' : 'Run'}
+          <FiRefreshCw /> {loading ? 'Loading…' : 'Run'}
         </button>
         <div style={{ flex: 1 }} />
         <ExportButtons
@@ -103,7 +103,7 @@ export default function HqRouteSales() {
             { key: 'cash_sales',   label: 'Cash (K)',   format: v => Number(v || 0).toFixed(2) },
             { key: 'credit_sales', label: 'Credit (K)', format: v => Number(v || 0).toFixed(2) },
           ]}
-          pdfOptions={{ title: 'HQ Route Selling', subtitle: `${from} â†’ ${to} Â· ${branch === 'all' ? 'all depots' : branch}` }}
+          pdfOptions={{ title: 'HQ Route Selling', subtitle: `${from} → ${to} · ${branch === 'all' ? 'all depots' : branch}` }}
         />
       </div>
 
@@ -113,17 +113,17 @@ export default function HqRouteSales() {
         </div>
       )}
 
-      {loading && !data && <p style={{ color: '#64748b' }}>Loadingâ€¦</p>}
+      {loading && !data && <p style={{ color: '#64748b' }}>Loading…</p>}
 
       {data && (
         <>
-          {/* â”€â”€ Totals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ── Totals ───────────────────────────────────────────────── */}
           <div className="tiles-2up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, marginBottom: 18 }}>
             <div style={{ background: `linear-gradient(150deg, ${NAVY_DEEP}, ${NAVY})`, color: '#fff', borderRadius: 14, padding: '14px 16px' }}>
               <div style={kLbl('rgba(255,255,255,0.75)')}>Route sales</div>
               <div className="tile-value" style={{ fontSize: 24, fontWeight: 800, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(t.route_revenue)}</div>
               <div style={{ fontSize: 11.5, opacity: 0.8, marginTop: 2 }}>
-                {data.from === data.to ? data.from : `${data.from} â†’ ${data.to}`}
+                {data.from === data.to ? data.from : `${data.from} → ${data.to}`}
               </div>
             </div>
             <div style={card}>
@@ -136,7 +136,7 @@ export default function HqRouteSales() {
             <div style={card}>
               <div style={kLbl('#64748b')}>Route sellers</div>
               <div className="tile-value" style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{fmtInt(t.sellers)}</div>
-              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>{fmtInt(t.route_orders)} sales Â· {fmtInt(shown.length)} depot{shown.length === 1 ? '' : 's'}</div>
+              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>{fmtInt(t.route_orders)} sales · {fmtInt(shown.length)} depot{shown.length === 1 ? '' : 's'}</div>
             </div>
           </div>
 
@@ -159,7 +159,7 @@ export default function HqRouteSales() {
                         <span style={{ fontSize: 17, fontWeight: 800, color: NAVY, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(d.route_revenue)}</span>
                       </div>
                       <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
-                        route sales Â· {fmtInt(d.route_orders)} sales{d.route_credit > 0.004 ? ` Â· ${fmtMoney(d.route_credit)} credit` : ''}
+                        route sales · {fmtInt(d.route_orders)} sales{d.route_credit > 0.004 ? ` · ${fmtMoney(d.route_credit)} credit` : ''}
                       </div>
                     </div>
                     {d.sellers.length === 0 ? (

@@ -7,18 +7,18 @@ const { recalculateDailyProfit } = require('../config/profitHelper');
 const { conversionToBase, baseQtyExpr } = require('../config/unitsHelper');
 
 // GET /api/sales-returns
-// v1.8.35 â€” value now computed in JS so the unit-conversion logic (a
-// declared qty of "1 Box" must read cost_price Ã— conv, not cost_price
+// v1.8.35 — value now computed in JS so the unit-conversion logic (a
+// declared qty of "1 Box" must read cost_price × conv, not cost_price
 // directly) and the PENDING-vs-CONFIRMED distinction are explicit.
 //
 // Returned per row:
-//   total_value           â€” actual moved value if CONFIRMED (from
+//   total_value           — actual moved value if CONFIRMED (from
 //                           stock_movements), else estimated from items.
-//   estimated_total_value â€” always the items-based estimate, so the
+//   estimated_total_value — always the items-based estimate, so the
 //                           UI can show "claimed worth" even pre-confirm.
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
-    // v1.13.52 â€” attach confirmed_cost (actual booked cost from
+    // v1.13.52 — attach confirmed_cost (actual booked cost from
     // stock_movements.cost_at_sale, sum over all sales_return movements
     // linked to this return). If > 0, total_value shows THAT (truth after
     // HQ confirm). Else falls back to the items-based estimate.
@@ -59,7 +59,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 
     const enriched = rows.map(r => {
       const items = itemsBySync.get(r.sync_id) || [];
-      // v1.13.52 â€” estimate prefers avg_cost_price (real WAC) over cost_price
+      // v1.13.52 — estimate prefers avg_cost_price (real WAC) over cost_price
       // (static hint). Same read-priority as profitHelper / cost_at_sale trigger.
       const estimated = items.reduce((sum, it) => {
         const prod = { unit: it.product_unit, alt_unit: it.alt_unit, conversion_factor: it.conversion_factor, units_json: it.units_json };
@@ -75,7 +75,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       return { ...r, source: 'branch', total_value: totalValue, estimated_total_value: estimated };
     });
 
-    // v1.13.59 â€” include HQ GRN in-flight damages and Transit variance
+    // v1.13.59 — include HQ GRN in-flight damages and Transit variance
     // write-offs as synthetic rows so the Sales Damages page total matches
     // Profit Report's Damaged column exactly. Ported from Kelete v1.10.224.
     const include = String(req.query.include || 'all').toLowerCase();
@@ -150,7 +150,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// GET /api/sales-returns/notes â€” distinct notes history for autocomplete
+// GET /api/sales-returns/notes — distinct notes history for autocomplete
 router.get('/notes', auth, readOnlyGuard, (req, res) => {
   try {
     const rows = db.prepare(`
@@ -177,7 +177,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
 });
 
 // POST /api/sales-returns
-// v1.3.1: branch DECLARES the damage. No stock decrement yet â€” HQ must
+// v1.3.1: branch DECLARES the damage. No stock decrement yet — HQ must
 // confirm via /api/hq/damages/:slug/:id/confirm before stock_movements
 // + profit recalc happen. Until then status='PENDING' and the row sits
 // in the HQ Confirm Damages queue. Items are still recorded so HQ can
@@ -211,13 +211,13 @@ router.post('/', auth, (req, res) => {
           INSERT INTO sales_return_items (return_id, return_sync_id, product_id, product_sync_id, quantity, unit, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at)
           VALUES (?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
         `).run(returnId, returnSyncId, item.product_id, productSyncId, qty, lineUnit, randomUUID(), tenantId, branchId, deviceId);
-        // Note: no stock_movements row here â€” that's created at HQ confirm time.
+        // Note: no stock_movements row here — that's created at HQ confirm time.
       }
 
       return db.prepare('SELECT * FROM sales_returns WHERE id = ?').get(returnId);
     })();
 
-    // No profit recalc â€” damages don't hit the books until HQ confirms.
+    // No profit recalc — damages don't hit the books until HQ confirms.
     res.status(201).json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -225,9 +225,9 @@ router.post('/', auth, (req, res) => {
 });
 
 // PUT /api/sales-returns/:id/confirm
-// HQ-only â€” proxied through here for symmetry but the routes/hqDamages.js
+// HQ-only — proxied through here for symmetry but the routes/hqDamages.js
 // HQ-facing list endpoint is what HQ operators hit. Either path moves the
-// damage from PENDING â†’ CONFIRMED, creates the stock_movement rows, and
+// damage from PENDING → CONFIRMED, creates the stock_movement rows, and
 // triggers recalculateDailyProfit so the damages cost lands on the day's
 // Profit Report. Reject path clears the row to REJECTED (kept for audit).
 function confirmDamage(db, params, req, res, body) {
@@ -250,7 +250,7 @@ function confirmDamage(db, params, req, res, body) {
     const confirmedBy = req.user.id || null;
     const confirmedByName = req.user.firstName || req.user.email || 'HQ';
 
-    // v1.10.23 â€” keep products.current_stock in lockstep with the sales-return movements.
+    // v1.10.23 — keep products.current_stock in lockstep with the sales-return movements.
     const stockDecStmt = db.prepare(
       `UPDATE products SET current_stock = current_stock - ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
     );
@@ -265,7 +265,7 @@ function confirmDamage(db, params, req, res, body) {
                                        created_at, updated_at, reference_sync_id)
           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,datetime('now'),?)
         `).run(
-          // v1.8.39 â€” use THIS-DB's products.id (looked up via sync_id),
+          // v1.8.39 — use THIS-DB's products.id (looked up via sync_id),
           // not it.product_id which is the originating device's local id.
           // Cross-device sync sends the row verbatim, so a damage declared
           // on Electron carried Electron's product_id; running the FK
@@ -325,9 +325,9 @@ router.get('/:id', auth, readOnlyGuard, (req, res) => {
   try {
     const entry = db.prepare('SELECT * FROM sales_returns WHERE id = ? AND deleted_at IS NULL AND tenant_id = ?').get(req.params.id, req.user.tenantId);
     if (!entry) return res.status(404).json({ error: 'Not found' });
-    // Alias p.unit â†’ product_unit so it doesn't collide with sri.unit (the unit the
+    // Alias p.unit → product_unit so it doesn't collide with sri.unit (the unit the
     // return line was recorded in). Without the alias, the product's base unit
-    // overwrites the line unit in the JS object â€” same bug class as siv.js:171.
+    // overwrites the line unit in the JS object — same bug class as siv.js:171.
     const items = db.prepare(`
       SELECT sri.*, p.name AS product_name, p.unit AS product_unit
       FROM sales_return_items sri
@@ -356,7 +356,7 @@ router.put('/:id', auth, (req, res) => {
       const ret = db.prepare('SELECT * FROM sales_returns WHERE id = ? AND deleted_at IS NULL').get(id);
       if (!ret) throw Object.assign(new Error('Not found'), { status: 404 });
 
-      // v1.10.23 â€” roll the old movements' net effect off current_stock before
+      // v1.10.23 — roll the old movements' net effect off current_stock before
       // we soft-delete them, then apply the new movements as we insert. Keeps
       // the cache consistent across the update.
       const oldMoves = db.prepare(
@@ -389,7 +389,7 @@ router.put('/:id', auth, (req, res) => {
         const baseQty = qty * conversionToBase(prod, lineUnit);
         db.prepare(`INSERT INTO sales_return_items (return_id, return_sync_id, product_id, product_sync_id, quantity, unit, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))`)
           .run(id, ret.sync_id, item.product_id, productSyncId, qty, lineUnit, randomUUID(), tenantId, branchId, deviceId);
-        // Sales Damages â€” sales counter only, no +store add-back (items are gone).
+        // Sales Damages — sales counter only, no +store add-back (items are gone).
         db.prepare(`INSERT INTO stock_movements (product_id, product_sync_id, location, movement_type, quantity, reference_id, reference_type, notes, created_by, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at, reference_sync_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,datetime('now'),?)`)
           .run(item.product_id, productSyncId, 'sales', 'sales_return', -baseQty, id, 'sales_return', notes || null, req.user.id, randomUUID(), tenantId, branchId, deviceId, movementCreatedAt, ret.sync_id);
         if (productSyncId) stockDecStmt.run(baseQty, productSyncId);
@@ -409,7 +409,7 @@ router.delete('/:id', auth, (req, res) => {
     const ret = db.prepare('SELECT sync_id, date FROM sales_returns WHERE id = ? AND deleted_at IS NULL').get(req.params.id);
     if (!ret) return res.status(404).json({ error: 'Sales return not found' });
     db.transaction(() => {
-      // v1.10.23 â€” roll back the deleted movements' effect on current_stock.
+      // v1.10.23 — roll back the deleted movements' effect on current_stock.
       const oldMoves = db.prepare(
         `SELECT product_sync_id, SUM(quantity) AS net
            FROM stock_movements

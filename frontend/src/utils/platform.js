@@ -7,7 +7,7 @@
 // capacitor.config.json (android.appendUserAgent = "KeleteMobileApp") and
 // check for that token here.
 //
-// 2026-09-11 â€” was checking Kelete's token, "KeleteMobileApp", so it was never
+// 2026-09-11 — was checking Kelete's token, "KeleteMobileApp", so it was never
 // true in the Kelete APK (which has sent "KeleteMobileApp" since the fork).
 // Nothing called it until the Login page did.
 export function isMobileApp() {

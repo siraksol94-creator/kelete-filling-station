@@ -30,7 +30,7 @@ const tablesToClear = [
 const before = {};
 for (const t of tablesToClear) {
   try { before[t] = db.prepare(`SELECT COUNT(*) AS n FROM ${t}`).get().n; }
-  catch { before[t] = 'â€”'; }
+  catch { before[t] = '—'; }
 }
 
 const tx = db.transaction(() => {

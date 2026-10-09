@@ -15,7 +15,7 @@ const auth = (req, res, next) => {
     // the right DB; here we swap the tenantId on req.user so every WHERE
     // clause downstream (WHERE tenant_id = ?) filters by the operating
     // branch, not the original one. Roles/permissions still come from
-    // the JWT â€” caller is responsible for keeping the same admin user
+    // the JWT — caller is responsible for keeping the same admin user
     // configured across branches if cross-branch operation is desired.
     if (req.hqBranchTenantId) {
       req.user = { ...decoded, tenantId: req.hqBranchTenantId };
@@ -50,16 +50,16 @@ function requirePagePerm(page) {
     try {
       if (!req.user) return res.status(401).json({ error: 'Access denied' });
       if (req.user.role === 'Administrator') return next();
-      // Role name match â€” e.g. role='Cashier' satisfies the Cashier gate.
+      // Role name match — e.g. role='Cashier' satisfies the Cashier gate.
       if (req.user.role === page) return next();
-      // Permission keyword match â€” admins grant 'Cashier:Add' etc via Users.
+      // Permission keyword match — admins grant 'Cashier:Add' etc via Users.
       const u = db.prepare('SELECT permissions FROM users WHERE id = ?').get(req.user.id);
       let perms = [];
       try { perms = JSON.parse(u?.permissions || '[]'); } catch { /* ignore */ }
-      // 2026-08-30 â€” honour the blanket grants the FRONTEND already treats as
+      // 2026-08-30 — honour the blanket grants the FRONTEND already treats as
       // all-access (AuthContext.isAllAccess: Administrator | 'All' | 'Full
       // Access'). Without this the two disagree: such a user passes every UI
-      // gate, then gets 403 from the API â€” the page loads and the data does
+      // gate, then gets 403 from the API — the page loads and the data does
       // not. Latent on FxRates/Dispatch/Cashier before this; adding the
       // HQOverview gate would have made it visible.
       if (perms.includes('All') || perms.includes('Full Access')) return next();
@@ -77,7 +77,7 @@ function requirePagePerm(page) {
 // AFTER async middleware (multer file uploads, etc.). multer's stream-based
 // processing drops the ALS context that tenant middleware originally set
 // via runWithDb, so by the time the route handler runs `db.proxy` falls
-// back to defaultDb â€” every write silently lands in backend/kelete.db
+// back to defaultDb — every write silently lands in backend/kelete.db
 // instead of the tenant's DB. tenant.js stashes the tenantDb on req before
 // runWithDb; this middleware re-establishes the context just before the
 // handler. Mount it AFTER the multer middleware:

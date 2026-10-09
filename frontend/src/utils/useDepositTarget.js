@@ -1,7 +1,7 @@
-// useDepositTarget â€” who this depot's cash actually goes to.
+// useDepositTarget — who this depot's cash actually goes to.
 //
-// 2026-09-18. System Settings â†’ Deposit to lets a depot send its cash to
-// another depot instead of HQ (Bankers and Buwach â†’ Kabwe). The money already
+// 2026-09-18. System Settings → Deposit to lets a depot send its cash to
+// another depot instead of HQ (Bankers and Buwach → Kabwe). The money already
 // went to the right place, but every screen still said "HQ Deposits" and
 // "sent to HQ", which reads as wrong to the depot sending it.
 //
@@ -10,12 +10,12 @@
 // the full business name for sentences ("Kelete Distribution - KABWE").
 //
 // The answer is the same for every screen in a session, so it is fetched once
-// and shared â€” Layout, the Cash Book tab, the deposits page and the Cash
+// and shared — Layout, the Cash Book tab, the deposits page and the Cash
 // Report all ask, and only the first one calls the server.
 import { useEffect, useState } from 'react';
 import { getCashDepositTarget, isHqHost, getBranchSlug } from '../services/api';
 
-// "kabwe" â†’ "Kabwe", "new-site" â†’ "New Site". Built from the slug, not the
+// "kabwe" → "Kabwe", "new-site" → "New Site". Built from the slug, not the
 // business name, which reads "Kelete Distribution - KABWE" and is too long
 // for a tab.
 export function labelFromSlug(slug) {
@@ -35,7 +35,7 @@ function load() {
   if (!slug) { cached = null; return Promise.resolve(cached); }
   inflight = getCashDepositTarget(slug)
     .then(r => { cached = r.data?.to || null; return cached; })
-    .catch(() => { cached = null; return cached; })   // unreachable â†’ say HQ, as before
+    .catch(() => { cached = null; return cached; })   // unreachable → say HQ, as before
     .finally(() => { inflight = null; });
   return inflight;
 }

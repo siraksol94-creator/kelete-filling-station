@@ -20,7 +20,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// v1.13.4 â€” public read of the branch's business_name so the Login page
+// v1.13.4 — public read of the branch's business_name so the Login page
 // can display it before the user has a JWT. Only exposes business_name,
 // nothing sensitive. Tenant middleware has already routed us to the
 // correct DB by hostname.
@@ -51,7 +51,7 @@ router.put('/profile', auth, (req, res) => {
 function normaliseCurrencies(input) {
   let arr = Array.isArray(input) ? input : null;
   if (!arr || arr.length === 0) {
-    // 2026-09-13 â€” Red Sea is Kwacha only. The old USD/$ default is what gave
+    // 2026-09-13 — Red Sea is Kwacha only. The old USD/$ default is what gave
     // new branches (Bankers, Buwach) "$" on every receipt and report.
     arr = [{ code: 'ZMW', symbol: 'K', is_primary: true }];
   }
@@ -79,25 +79,25 @@ router.put('/business', auth, (req, res) => {
             receipt_printer_type, receipt_printer_name, receipt_printer_ip, receipt_printer_port,
             default_crate_deposit, currency_mode, workflow_mode,
             legacy_procurement_enabled,
-            // v1.9.26 â€” payment_methods is the third dial alongside
+            // v1.9.26 — payment_methods is the third dial alongside
             // currency_mode + workflow_mode. 'cash_only' (Kelete-style:
             // Cash only at the till) | 'cash_momo_bank' (Liquor-style:
             // Cash + MoMo + Bank). Independent of currency / workflow.
             payment_methods,
-            // 2026-09-11 â€” which methods this branch's screens show.
+            // 2026-09-11 — which methods this branch's screens show.
             shown_payment_methods,
-            // 2026-09-11 â€” Cash Report save â†’ PENDING deposits to HQ.
+            // 2026-09-11 — Cash Report save → PENDING deposits to HQ.
             auto_deposit_enabled,
-            // 2026-09-15 â€” System Settings â†’ Deposit to ('' = HQ).
+            // 2026-09-15 — System Settings → Deposit to ('' = HQ).
             deposit_to_slug,
-            // 2026-09-18 â€” System Settings â†’ Maximum expenses per day.
+            // 2026-09-18 — System Settings → Maximum expenses per day.
             daily_expense_limit } = req.body;
     // Only update currencies if the caller explicitly sent them; otherwise leave whatever's stored.
     const currenciesJson = currencies !== undefined ? JSON.stringify(normaliseCurrencies(currencies)) : null;
     const existing = db.prepare('SELECT * FROM business_settings LIMIT 1').get();
     let row;
     if (existing) {
-      // Fully partial update â€” only fields the caller actually sent get included in SET.
+      // Fully partial update — only fields the caller actually sent get included in SET.
       // Two pages share this endpoint (Profile saves company identity; System Settings
       // saves currencies/printer/etc). Without partial semantics, each page would clobber
       // the other's columns by sending undefined.
@@ -130,7 +130,7 @@ router.put('/business', auth, (req, res) => {
       // currency payment modal, USD+FRA receipt lines (kassumbalesa1).
       // Anything else is normalised to 'K' to avoid bad string slipping through.
       // v1.7.0: now accepts a third value 'USD+FRA+K' (triple-currency
-      // cash acceptance â€” items still priced in USD).
+      // cash acceptance — items still priced in USD).
       if (currency_mode !== undefined) {
         const raw = String(currency_mode || 'K').toUpperCase();
         const cm = ['USD+FRA+K', 'USD+FRA'].includes(raw) ? raw : 'K';
@@ -138,18 +138,18 @@ router.put('/business', auth, (req, res) => {
       }
       // workflow_mode is a per-branch UI gate.
       //   'single_pos'    = one cashier does everything (default)
-      //   'two_station'   = Sales â†’ Cashier (stock deducts on payment, no Dispatch) â€” v1.6.3
-      //   'three_station' = Sales â†’ Cashier â†’ Dispatch with the full state machine
+      //   'two_station'   = Sales → Cashier (stock deducts on payment, no Dispatch) — v1.6.3
+      //   'three_station' = Sales → Cashier → Dispatch with the full state machine
       //   'pos_dispatch'  = one operator writes+pays at POS, dispatcher hands
       //                     over goods separately. Order posts as PAID, stock
-      //                     deducts on Dispatch confirm. (v1.13.25 â€” Kelete)
+      //                     deducts on Dispatch confirm. (v1.13.25 — Kelete)
       // Anything else falls back to 'single_pos' so a bad value can't break the page.
       if (workflow_mode !== undefined) {
         const raw = String(workflow_mode || 'single_pos').toLowerCase();
         const wm = ['three_station', 'two_station', 'pos_dispatch'].includes(raw) ? raw : 'single_pos';
         sets.push('workflow_mode=?'); vals.push(wm);
       }
-      // v1.9.26 â€” payment_methods controls which method columns appear on
+      // v1.9.26 — payment_methods controls which method columns appear on
       // the POS Pay modal. 'cash_only' = Kelete 3-currency cash branches
       // (no MoMo, no Bank). 'cash_momo_bank' = Liquor-style branches that
       // accept all three. Anything else falls back to cash_momo_bank.
@@ -158,7 +158,7 @@ router.put('/business', auth, (req, res) => {
         const pm = ['cash_only', 'cash_momo_bank'].includes(raw) ? raw : 'cash_momo_bank';
         sets.push('payment_methods=?'); vals.push(pm);
       }
-      // 2026-09-11 â€” which payment methods the screens show. Cash is always
+      // 2026-09-11 — which payment methods the screens show. Cash is always
       // on; Mobile Money and Bank can be hidden. Hiding only: no record,
       // total or ledger changes.
       if (shown_payment_methods !== undefined) {
@@ -170,7 +170,7 @@ router.put('/business', auth, (req, res) => {
         const ad = (auto_deposit_enabled === true || auto_deposit_enabled === 1 || auto_deposit_enabled === '1') ? 1 : 0;
         sets.push('auto_deposit_enabled=?'); vals.push(ad);
       }
-      // 2026-09-15 â€” where this depot's deposits go. Administrators only; must
+      // 2026-09-15 — where this depot's deposits go. Administrators only; must
       // be HQ ('') or another registered depot.
       if (deposit_to_slug !== undefined && req.user?.role === 'Administrator') {
         const want = String(deposit_to_slug || '').toLowerCase().trim();
@@ -180,7 +180,7 @@ router.put('/business', auth, (req, res) => {
         if (!ok) return res.status(400).json({ error: 'Deposit to must be HQ or another depot.' });
         sets.push('deposit_to_slug=?'); vals.push(want || null);
       }
-      // 2026-09-18 â€” the most this depot may pay out in expenses in one day.
+      // 2026-09-18 — the most this depot may pay out in expenses in one day.
       // Administrators only; 0 (or blank) means no limit.
       if (daily_expense_limit !== undefined && req.user?.role === 'Administrator') {
         const lim = Math.max(0, parseFloat(daily_expense_limit) || 0);
@@ -223,13 +223,13 @@ router.put('/business', auth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ HQ phone-app passcode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// 2026-09-18 â€” every depot has a licence key the phone app now checks against
+// ─── HQ phone-app passcode ────────────────────────────────────────────────────
+// 2026-09-18 — every depot has a licence key the phone app now checks against
 // master.db, but HQ has none (tenant 'local-only'), so HQ used to be the one
 // site the app opened with no question asked. An Administrator sets a passcode
 // here and the app asks about it at POST /api/sync/verify-hq-passcode.
 //
-// The code itself is never returned â€” only whether one is set. Blank clears it.
+// The code itself is never returned — only whether one is set. Blank clears it.
 // HQ's host only: the passcode belongs to HQ's own book, so a depot must not
 // be able to set or clear it even with an Administrator logged in.
 function hqOnly(req, res) {
@@ -264,9 +264,9 @@ router.put('/app-passcode', auth, (req, res) => {
   }
 });
 
-// GET /api/settings/drawer-port â€” get configured cash drawer port
+// GET /api/settings/drawer-port — get configured cash drawer port
 //
-// 2026-08-30 â€” also returns `printer`, the RECEIPT printer name, because
+// 2026-08-30 — also returns `printer`, the RECEIPT printer name, because
 // Electron's silent print was reading `port` and getting it wrong.
 //
 // These are two different settings. System Settings > Receipt Printer saves
@@ -274,8 +274,8 @@ router.put('/app-passcode', auth, (req, res) => {
 // Garden till); the legacy drawer port is a separate value defaulting to the
 // bare string 'POS-80'. Electron asked for the drawer port and handed it to
 // webContents.print as deviceName. No installed printer is called exactly
-// 'POS-80' â€” the machine has 'POS-80 11.3.0.1' and 'POS-80 11.3.0.1 Dereje'
-// â€” so the silent print failed and the app fell back to the print dialog.
+// 'POS-80' — the machine has 'POS-80 11.3.0.1' and 'POS-80 11.3.0.1 Dereje'
+// — so the silent print failed and the app fell back to the print dialog.
 // The cashier had to pick a printer for every receipt.
 //
 // `port` keeps its old meaning and value so nothing that reads it changes.
@@ -287,14 +287,14 @@ router.get('/drawer-port', (req, res) => {
       printer = db.prepare(
         'SELECT receipt_printer_name FROM business_settings WHERE receipt_printer_name IS NOT NULL LIMIT 1'
       ).get()?.receipt_printer_name || null;
-    } catch (_) { /* column absent on an old DB â€” fall through to the port */ }
+    } catch (_) { /* column absent on an old DB — fall through to the port */ }
     res.json({ port: row?.value || 'POS-80', printer });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// PUT /api/settings/drawer-port â€” save cash drawer port
+// PUT /api/settings/drawer-port — save cash drawer port
 router.put('/drawer-port', auth, (req, res) => {
   try {
     const { port } = req.body;
@@ -311,8 +311,8 @@ router.put('/drawer-port', auth, (req, res) => {
   }
 });
 
-// POST /api/settings/open-drawer â€” fires the ESC/POS drawer kick via the configured transport.
-// Now routes through escpos.js: USB â†’ Windows Print Spooler, LAN â†’ TCP socket to printer:9100.
+// POST /api/settings/open-drawer — fires the ESC/POS drawer kick via the configured transport.
+// Now routes through escpos.js: USB → Windows Print Spooler, LAN → TCP socket to printer:9100.
 router.post('/open-drawer', async (req, res) => {
   try {
     const { CMD, sendToPrinter } = require('../utils/escpos');
@@ -324,7 +324,7 @@ router.post('/open-drawer', async (req, res) => {
   }
 });
 
-// POST /api/settings/print-receipt â€” build the receipt bytes and send via the configured transport.
+// POST /api/settings/print-receipt — build the receipt bytes and send via the configured transport.
 //
 // Canonical receipt design (must match the on-screen modal in POS.js so the two
 // surfaces never drift):
@@ -338,7 +338,7 @@ router.post('/open-drawer', async (req, res) => {
 //   - Payment split shown when cash/momo/bank are provided separately.
 //
 // Business name/phone/address and the currency symbol are read from
-// business_settings â€” the route is the source of truth, callers don't need
+// business_settings — the route is the source of truth, callers don't need
 // to pass them.
 router.post('/print-receipt', async (req, res) => {
   try {
@@ -347,7 +347,7 @@ router.post('/print-receipt', async (req, res) => {
             total, amountReceived, cashReceived, momoReceived, bankReceived, change,
             is_reprint } = req.body;
 
-    // â”€â”€ Authoritative business + currency info from settings â”€â”€
+    // ── Authoritative business + currency info from settings ──
     const biz = db.prepare(
       'SELECT business_name, business_phone, business_address, currencies_json FROM business_settings LIMIT 1'
     ).get() || {};
@@ -361,7 +361,7 @@ router.post('/print-receipt', async (req, res) => {
       if (primary?.symbol) cur = primary.symbol;
     } catch { /* default 'K' */ }
 
-    // v1.10.60 â€” Column width dropped from 42 â†’ 40 chars to leave a safer
+    // v1.10.60 — Column width dropped from 42 → 40 chars to leave a safer
     // horizontal margin on 80mm thermal printers whose mechanical printable
     // area is ~72mm (42 chars at 12-dot Font A = 71mm, which was clipping
     // the leftmost + rightmost characters on some units).
@@ -391,7 +391,7 @@ router.post('/print-receipt', async (req, res) => {
     }
     if (businessPhone) lines.push(center('Tel: ' + businessPhone));
     lines.push(eq);
-    // v1.13.37 â€” ZRA checklist #24: reprints are marked COPY / DUPLICATE.
+    // v1.13.37 — ZRA checklist #24: reprints are marked COPY / DUPLICATE.
     if (is_reprint) {
       lines.push(center('*** COPY / DUPLICATE ***'));
       lines.push(center('Not the original tax invoice'));
@@ -405,11 +405,11 @@ router.post('/print-receipt', async (req, res) => {
     lines.push(cols('Served by:',  servedBy     || 'Staff'));
     lines.push(eq);
 
-    // â”€â”€ Items: gross line totals + per-line discount sub-row â”€â”€
+    // ── Items: gross line totals + per-line discount sub-row ──
     // Lines sold in a non-default unit are flagged with ` **` after the
     // product name and a single explanatory legend is appended at the
     // very bottom of the receipt (only if at least one line carries the
-    // flag â€” receipts with all default-unit lines stay clean).
+    // flag — receipts with all default-unit lines stay clean).
     let grossSubtotal = 0;
     let lineDiscSum   = 0;
     let hasAltUnit    = false;
@@ -449,7 +449,7 @@ router.post('/print-receipt', async (req, res) => {
     lines.push(cols('TOTAL:', `${cur}${fmt(total)}`));
     lines.push(eq);
 
-    // â”€â”€ Payment / change â”€â”€
+    // ── Payment / change ──
     const cash   = parseFloat(cashReceived || 0);
     const momo   = parseFloat(momoReceived || 0);
     const bank   = parseFloat(bankReceived || 0);
@@ -478,7 +478,7 @@ router.post('/print-receipt', async (req, res) => {
     }
 
     const text = lines.join('\n') + '\n\n\n\n\n\n';
-    // v1.10.60 â€” BOLD_ON wraps the whole body. Without this the printer
+    // v1.10.60 — BOLD_ON wraps the whole body. Without this the printer
     // runs its head in single-strike mode, which prints thin/grey on
     // thermal paper. ESC E 1 (BOLD_ON) tells it to double-strike each
     // dot for solid black. BOLD_OFF closes it before the cut so it
@@ -492,14 +492,14 @@ router.post('/print-receipt', async (req, res) => {
   }
 });
 
-// POST /api/settings/print-report â€” build the report bytes and send via the configured transport.
+// POST /api/settings/print-report — build the report bytes and send via the configured transport.
 router.post('/print-report', async (req, res) => {
   try {
     const { CMD, sendToPrinter } = require('../utils/escpos');
     const { businessName, dateLabel, totalOrders, filteredCount, totalRevenue, totalDiscount, products } = req.body;
 
-    // v1.10.60 â€” W dropped 42 â†’ 40 for the same safer-margin reason as
-    // /print-receipt. The product name col shrinks 20 â†’ 18 to keep 18+6+7+9=40.
+    // v1.10.60 — W dropped 42 → 40 for the same safer-margin reason as
+    // /print-receipt. The product name col shrinks 20 → 18 to keep 18+6+7+9=40.
     const W = 40;
     const eq = '='.repeat(W);
     const da = '-'.repeat(W);
@@ -547,7 +547,7 @@ router.post('/print-report', async (req, res) => {
     lines.push(center('Printed: ' + now.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })));
 
     const text = lines.join('\n') + '\n\n\n\n\n\n';
-    // v1.10.60 â€” BOLD_ON around the body so the report prints solid black
+    // v1.10.60 — BOLD_ON around the body so the report prints solid black
     // instead of single-strike grey. Same fix as /print-receipt.
     const ticket = CMD.INIT + CMD.LEFT_MARGIN_24 + CMD.BOLD_ON + text + CMD.BOLD_OFF + CMD.CUT;
     const result = await sendToPrinter(db, ticket);
@@ -558,7 +558,7 @@ router.post('/print-report', async (req, res) => {
   }
 });
 
-// POST /api/settings/print-count-worksheet â€” thermal stock-count worksheet.
+// POST /api/settings/print-count-worksheet — thermal stock-count worksheet.
 // Silent print via the existing receipt printer (same transport as
 // /print-receipt and /open-drawer). Caller sends the products with their
 // system qty + breakdown text; this route lays them out at 42-char width
@@ -568,7 +568,7 @@ router.post('/print-count-worksheet', async (req, res) => {
     const { CMD, sendToPrinter } = require('../utils/escpos');
     const { location, countDate, cashier, products, notes } = req.body;
 
-    // Authoritative business header â€” same source as /print-receipt.
+    // Authoritative business header — same source as /print-receipt.
     const biz = db.prepare(
       'SELECT business_name, business_phone, business_address FROM business_settings LIMIT 1'
     ).get() || {};
@@ -576,7 +576,7 @@ router.post('/print-count-worksheet', async (req, res) => {
     const businessPhone   = biz.business_phone   || '';
     const businessAddress = biz.business_address || '';
 
-    // v1.10.60 â€” W dropped 42 â†’ 40 for the same safer-margin reason as
+    // v1.10.60 — W dropped 42 → 40 for the same safer-margin reason as
     // /print-receipt. Dynamic name/sku field math still works.
     const W = 40;
     const eq = '='.repeat(W);
@@ -614,7 +614,7 @@ router.post('/print-count-worksheet', async (req, res) => {
     lines.push(eq);
     lines.push('');
 
-    // Items â€” each gets the name + SKU on one line, system qty (and base
+    // Items — each gets the name + SKU on one line, system qty (and base
     // breakdown when the display qty isn't already in base units), then a
     // blank counted box.
     (products || []).forEach((p, idx) => {
@@ -627,7 +627,7 @@ router.post('/print-count-worksheet', async (req, res) => {
       const gap = ' '.repeat(Math.max(1, W - num.length - trimmedName.length - sku.length));
       lines.push(num + trimmedName + gap + sku);
 
-      // System qty â€” display line first
+      // System qty — display line first
       const sysDisplay = String(p.system_display || '').trim();
       const sysBase    = String(p.system_base    || '').trim();
       if (sysDisplay) {
@@ -638,7 +638,7 @@ router.post('/print-count-worksheet', async (req, res) => {
       } else if (sysBase) {
         lines.push('    System:  ' + sysBase);
       }
-      // Counted box â€” wide blank for hand-written entry
+      // Counted box — wide blank for hand-written entry
       lines.push('    Counted: _____________________ ______');
       lines.push('                  (physical qty)  (unit)');
       lines.push('');
@@ -648,7 +648,7 @@ router.post('/print-count-worksheet', async (req, res) => {
     lines.push(eq);
     lines.push('NOTES (anomalies, damages, expiries):');
     if (notes) {
-      // Existing notes from the on-screen field â€” wrap to width
+      // Existing notes from the on-screen field — wrap to width
       const wrapAt = W - 2;
       String(notes).split(/\r?\n/).forEach(ln => {
         const t = ln.trim();
@@ -678,7 +678,7 @@ router.post('/print-count-worksheet', async (req, res) => {
     })));
 
     const text = lines.join('\n') + '\n\n\n\n\n\n';
-    // v1.10.60 â€” same BOLD_ON / BOLD_OFF wrap as /print-receipt and
+    // v1.10.60 — same BOLD_ON / BOLD_OFF wrap as /print-receipt and
     // /print-report so the worksheet prints solid black instead of grey.
     const ticket = CMD.INIT + CMD.LEFT_MARGIN_24 + CMD.BOLD_ON + text + CMD.BOLD_OFF + CMD.CUT;
     const result = await sendToPrinter(db, ticket);

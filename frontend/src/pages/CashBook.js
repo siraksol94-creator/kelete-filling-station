@@ -13,19 +13,19 @@ import HQDeposits from './HQDeposits';
 import useDepositTarget from '../utils/useDepositTarget';
 const CashBook = () => {
   const { hasPermission, user: authUser } = useAuth();
-  // v1.8.6 â€” tab toggle between the ledger view and the Exchanges ledger.
+  // v1.8.6 — tab toggle between the ledger view and the Exchanges ledger.
   const [activeTab, setActiveTab] = useState('ledger');
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown } = useCurrency();
-  // 2026-09-18 â€” what to call the deposits tab: HQ, or the depot this one
-  // sends its cash to (System Settings â†’ Deposit to).
+  // 2026-09-18 — what to call the deposits tab: HQ, or the depot this one
+  // sends its cash to (System Settings → Deposit to).
   const depositTo = useDepositTarget();
-  // v1.13.46 â€” Kelete is single-K across HQ and every branch, so the
-  // Kelete-era `onHq â†’ force USD+FRA+K` override no longer applies.
+  // v1.13.46 — Kelete is single-K across HQ and every branch, so the
+  // Kelete-era `onHq → force USD+FRA+K` override no longer applies.
   // business_settings on HQ + branches all resolve to currency_mode=K,
   // payment_methods=cash_momo_bank (isLiquorStyle=true), giving the
   // correct single-K Cash / MoMo / Bank ledger everywhere.
   const onHq = isHqHost();
-  // v1.9.26 â€” Cash Book columns + opening-balance editors gate on the
+  // v1.9.26 — Cash Book columns + opening-balance editors gate on the
   // branch's currency_mode. K-only branches see one K column only.
   const showUSDccy = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
   const showFRAccy = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
@@ -37,19 +37,19 @@ const CashBook = () => {
     currentBalance: 0, currentByMethod: { cash: 0, bank: 0, momo: 0 },
   });
   const [entries, setEntries] = useState([]);
-  // v1.10.18 â€” live FX so Cash & Cash Equivalents can convert FRA + K to
+  // v1.10.18 — live FX so Cash & Cash Equivalents can convert FRA + K to
   // USD-equivalent instead of naively summing raw numbers.
   const [fx, setFx] = useState({ buyFRA: 0, sellFRA: 0, buyK: 0, sellK: 0 });
   const [businessInfo, setBusinessInfo] = useState({});
   const [showListPrint, setShowListPrint] = useState(false);
   const [openingBal, setOpeningBal] = useState(0);
-  // v1.8.62 â€” per-currency opening balance editor (USD / FRA / K).
+  // v1.8.62 — per-currency opening balance editor (USD / FRA / K).
   const [editingOB, setEditingOB] = useState(false);
-  // v1.9.27 â€” keys differ by branch profile: Kelete uses usd/fra/k,
+  // v1.9.27 — keys differ by branch profile: Kelete uses usd/fra/k,
   // Liquor (Mansa/Lusaka) uses cash/momo/bank. Single state object holds
   // both; the editor + save read the right pair based on isLiquorStyle.
   const [obInput, setObInput] = useState({ usd: '', fra: '', k: '', cash: '', momo: '', bank: '' });
-  // v1.8.62 â€” active currency filter for the ledger ('all' | 'usd' | 'fra' | 'k').
+  // v1.8.62 — active currency filter for the ledger ('all' | 'usd' | 'fra' | 'k').
   // Clicking a currency card sets this; ledger filters rows that touch that
   // currency and the Balance column switches to that currency's running total.
   const [activeCcy, setActiveCcy] = useState('all');
@@ -65,7 +65,7 @@ const CashBook = () => {
   const [savingTransfer, setSavingTransfer] = useState(false);
   const [transferError, setTransferError] = useState('');
 
-  // v1.8.59 â€” HQ Deposit moved to its own page (Accounting â†’ HQ Deposits)
+  // v1.8.59 — HQ Deposit moved to its own page (Accounting → HQ Deposits)
   // to keep Cash Book focused on ledger view and to avoid conflating
   // a transfer workflow with the per-method opening balance + range
   // summary that lives here.
@@ -78,7 +78,7 @@ const CashBook = () => {
       const params = {};
       if (f) params.from = f;
       if (t) params.to = t;
-      // v1.8.61 â€” slug so backend can include HQ Deposits from master.db
+      // v1.8.61 — slug so backend can include HQ Deposits from master.db
       // (out for branch, in for HQ).
       const slug = isHqHost() ? 'hq' : (getBranchSlug() || (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : ''));
       if (slug) params.slug = slug;
@@ -103,7 +103,7 @@ const CashBook = () => {
   useEffect(() => {
     fetchData(todayStr, todayStr);
     getSettings().then(r => setBusinessInfo(r.data?.business || {})).catch(() => {});
-    // v1.10.18 â€” fetch today's latest FX rate for USD-equivalent card.
+    // v1.10.18 — fetch today's latest FX rate for USD-equivalent card.
     getCurrentFxRate().then(r => {
       const d = r.data || {};
       setFx({
@@ -141,7 +141,7 @@ const CashBook = () => {
     }
   };
 
-  // 2026-09-07 â€” an Administrator password before the opening balance moves.
+  // 2026-09-07 — an Administrator password before the opening balance moves.
   // It used to be a confirm dialog and nothing else, at branch and at HQ, while
   // this one figure shifts every running balance on the page. Held here until
   // the save, because the route checks it too - proving it to the browser
@@ -154,7 +154,7 @@ const CashBook = () => {
     setObPrompt(false);
     setSavingOB(true);
     try {
-      // v1.9.27 â€” send the per-method opening balances on Liquor branches
+      // v1.9.27 — send the per-method opening balances on Liquor branches
       // and the per-currency opening balances on Kelete branches. Backend
       // accepts both shapes.
       const payload = isLiquorStyle
@@ -205,11 +205,11 @@ const CashBook = () => {
     const fmtK   = (v) => `K ${fmt0(v)}`;
 
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const dateLabel = from && to && from !== to ? `${formatDate(from)} â€” ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
+    const dateLabel = from && to && from !== to ? `${formatDate(from)} — ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
     const biz = businessInfo.business_name || 'Business Name';
     const addr = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join('  |  ');
 
-    // v1.10.85 â€” multi-currency print. HQ (and any USD+FRA / USD+FRA+K
+    // v1.10.85 — multi-currency print. HQ (and any USD+FRA / USD+FRA+K
     // tenant) shows per-currency stat cards + a Ccy-tagged ledger with
     // per-currency running balances. Single-currency tenants (K-only
     // Liquor, USD-only Sirak) fall through to the previous layout so
@@ -223,7 +223,7 @@ const CashBook = () => {
 
     let html;
     if (isMultiCcy) {
-      // Per-currency roll-ups â€” same reduce shape the on-screen chip strip
+      // Per-currency roll-ups — same reduce shape the on-screen chip strip
       // uses at line 651-667 so print totals match what the operator sees.
       const openingByCcy = stats.openingByCcy || { usd: 0, fra: 0, k: 0 };
       const perCcy = entries.reduce((acc, e) => {
@@ -276,7 +276,7 @@ const CashBook = () => {
       const totIn   = { usd: 0, fra: 0, k: 0 };
       const totOut  = { usd: 0, fra: 0, k: 0 };
       const obRows = ccyList.map(ccy => `<tr style="background:#eff6ff">
-        <td style="padding:6px 10px;color:#6b7280;border-top:1px solid #e5e7eb">â€”</td>
+        <td style="padding:6px 10px;color:#6b7280;border-top:1px solid #e5e7eb">—</td>
         <td style="padding:6px 10px;font-weight:700;border-top:1px solid #e5e7eb">Opening Balance</td>
         <td style="padding:6px 10px;color:#9ca3af;font-size:10px;border-top:1px solid #e5e7eb"></td>
         <td style="padding:6px 10px;font-weight:700;color:#1d4ed8;border-top:1px solid #e5e7eb">OB</td>
@@ -355,13 +355,13 @@ const CashBook = () => {
             </table>
           </div>
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between">
-            <span style="font-size:9.5px;color:#cbd5e1">${biz} â€” Confidential</span>
+            <span style="font-size:9.5px;color:#cbd5e1">${biz} — Confidential</span>
             <span style="font-size:9.5px;color:#cbd5e1">Printed: ${printedAt}</span>
           </div>
         </div>
       </div></body></html>`;
     } else {
-      // Single-currency layout â€” unchanged from prior (used by Liquor
+      // Single-currency layout — unchanged from prior (used by Liquor
       // K-only and USD-only tenants where per-currency splitting adds no
       // information).
       const fmt = fmt2;
@@ -380,7 +380,7 @@ const CashBook = () => {
         chip('Current Balance',    curSym+fmt(stats.currentBalance),'#f8fafc','#374151','#e2e8f0'),
       ].join('');
       const obRow = `<tr style="border-bottom:1px solid #f1f5f9;background:#eff6ff">
-        <td style="padding:8px 12px;color:#6b7280">â€”</td>
+        <td style="padding:8px 12px;color:#6b7280">—</td>
         <td style="padding:8px 12px;font-weight:700">Opening Balance</td>
         <td style="padding:8px 12px;color:#9ca3af;font-size:10px">OB</td>
         <td style="padding:8px 12px;font-weight:700;color:#1d4ed8">OB</td>
@@ -440,7 +440,7 @@ const CashBook = () => {
             </table>
           </div>
           <div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between">
-            <span style="font-size:9.5px;color:#cbd5e1">${biz} â€” Confidential</span>
+            <span style="font-size:9.5px;color:#cbd5e1">${biz} — Confidential</span>
             <span style="font-size:9.5px;color:#cbd5e1">Printed: ${printedAt}</span>
           </div>
         </div>
@@ -456,9 +456,9 @@ const CashBook = () => {
     const fmt = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const bizName = businessInfo.business_name || 'Business Name';
     const printedAt = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const dateLabel = from && to && from !== to ? `${formatDate(from)} â€” ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
+    const dateLabel = from && to && from !== to ? `${formatDate(from)} — ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
     const profit = (stats.totalReceipts || 0) - (stats.totalPV || 0) - (stats.totalAP || 0);
-    const obRow = `<tr><td>â€”</td><td><b>Opening Balance</b></td><td></td><td style="text-align:center">OB</td><td style="text-align:right;font-weight:600;color:#2563eb">${curSym}${fmt(openingBal)}</td><td></td><td style="text-align:right;font-weight:600">${curSym}${fmt(openingBal)}</td></tr>`;
+    const obRow = `<tr><td>—</td><td><b>Opening Balance</b></td><td></td><td style="text-align:center">OB</td><td style="text-align:right;font-weight:600;color:#2563eb">${curSym}${fmt(openingBal)}</td><td></td><td style="text-align:right;font-weight:600">${curSym}${fmt(openingBal)}</td></tr>`;
     const rows = entries.map(e => {
       const isAP = e.type === 'AP';
       const isPV = e.type === 'PV';
@@ -517,7 +517,7 @@ const CashBook = () => {
         <tbody>${obRow}${rows}</tbody>
         <tfoot><tr class="tot-row"><td colspan="4" style="text-align:right">TOTALS</td><td style="text-align:right;color:#16a34a">${curSym}${fmt(totals.receipts)}</td><td style="text-align:right;color:#dc2626">${curSym}${fmt(totals.payments)}</td><td style="text-align:right">${curSym}${fmt(stats.currentBalance)}</td></tr></tfoot>
       </table>
-      <div class="ft"><span>${bizName} â€” Confidential</span><span>Printed: ${printedAt}</span></div>
+      <div class="ft"><span>${bizName} — Confidential</span><span>Printed: ${printedAt}</span></div>
     </body></html>`;
     const w = window.open('', '_blank');
     w.document.write(html); w.document.close(); w.focus();
@@ -538,7 +538,7 @@ const CashBook = () => {
           >
             <FiRefreshCw size={15} /> {t('transfer')}
           </button>
-          {/* 2026-09-17 â€” the Exchange button is gone at HQ and at every depot.
+          {/* 2026-09-17 — the Exchange button is gone at HQ and at every depot.
               Red Sea trades in Kwacha only, so there is nothing to convert. */}
           <button
             onClick={handlePrint}
@@ -549,18 +549,18 @@ const CashBook = () => {
         </div>
       </div>
 
-      {/* v1.8.6 â€” Tab strip: Ledger (existing entries view) vs Exchanges.
-          v1.9.27 â€” Exchanges hidden on Liquor-style K-only branches â€”
-          they have no USDâ†”FRA conversions to track. */}
+      {/* v1.8.6 — Tab strip: Ledger (existing entries view) vs Exchanges.
+          v1.9.27 — Exchanges hidden on Liquor-style K-only branches —
+          they have no USD↔FRA conversions to track. */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '2px solid #e5e7eb' }}>
         {[
           { key: 'ledger',    label: 'Ledger',      show: true },
           { key: 'exchanges', label: 'Exchanges',   show: !isLiquorStyle },
-          // HQ Deposits mounted as a tab â€” same page reused so branch
+          // HQ Deposits mounted as a tab — same page reused so branch
           // and HQ see the appropriate view (Send / Inbox).
-          // v1.13.92 â€” reverted v1.13.91 hide.
-          // 2026-09-18 â€” named after where this depot's cash actually goes
-          // (System Settings â†’ Deposit to), not always HQ.
+          // v1.13.92 — reverted v1.13.91 hide.
+          // 2026-09-18 — named after where this depot's cash actually goes
+          // (System Settings → Deposit to), not always HQ.
           { key: 'deposits',  label: `${depositTo.label} Deposits`, show: true },
         ].filter(t => t.show).map(tab => (
           <button key={tab.key} onClick={() => setActiveTab(tab.key)}
@@ -586,13 +586,13 @@ const CashBook = () => {
         />
       )}
 
-      {/* HQ Deposits reused as a tab â€” Send + own history for branches,
+      {/* HQ Deposits reused as a tab — Send + own history for branches,
           Inbox with Confirm/Reject for HQ. */}
       {activeTab === 'deposits' && (
         <HQDeposits />
       )}
 
-      {/* 2026-09-17 â€” the hidden panel that opened the Exchange modal went with
+      {/* 2026-09-17 — the hidden panel that opened the Exchange modal went with
           the button above. The Exchanges tab still shows past exchanges. */}
 
       {activeTab === 'ledger' && (<>
@@ -617,15 +617,15 @@ const CashBook = () => {
         )}
       </div>
 
-      {/* v1.8.62 â€” Four cards. Cash & Cash Equivalents is the umbrella
+      {/* v1.8.62 — Four cards. Cash & Cash Equivalents is the umbrella
           (clears filter); USD / FRA / K cards are clickable to filter the
           ledger to that currency, with active-state highlight. */}
       <div className="stat-cards">
-        {/* v1.10.18 â€” was 'Cash & Cash Equivalents' summing raw numbers across
+        {/* v1.10.18 — was 'Cash & Cash Equivalents' summing raw numbers across
             currencies (nonsense). Now labelled 'USD & USD Equivalent' and
             actually converts FRA + K to USD using today's live buy rate.
             Falls back to raw USD only when no rate is available.
-            v1.10.39 â€” HQ (keletezm.com) books itself in Kwacha, so the
+            v1.10.39 — HQ (keletezm.com) books itself in Kwacha, so the
             "USD & USD Equivalent" anchor is the wrong question there.
             On HQ this tile now shows "K & K Equivalent": convert USD and
             FRA to K instead. Branches (Kassumbalesa etc.) are unchanged. */}
@@ -638,12 +638,12 @@ const CashBook = () => {
           const kOpen   = stats.openingByCcy?.k   || 0;
 
           if (isLiquorStyle) {
-            // v1.10.50 â€” Liquor branches (Mansa, Lusaka) render this as
+            // v1.10.50 — Liquor branches (Mansa, Lusaka) render this as
             // "Cash & Cash Equivalent" to match the old Liquor system.
-            // v1.10.51 â€” read currentByMethod (same source the three
+            // v1.10.51 — read currentByMethod (same source the three
             // method tiles below use) instead of currentByCcy. On Kelete
             // POS, every sale hits BOTH orders.cash_received and
-            // cash_receipts.usd_amount â€” currentByCcy counts both and
+            // cash_receipts.usd_amount — currentByCcy counts both and
             // double-counts POS sales, so a "no filter" view drifted
             // above the three-tile sum by whatever the POS orders total
             // was. currentByMethod reads only cash_receipts, matches the
@@ -681,9 +681,9 @@ const CashBook = () => {
           }
 
           if (onHq) {
-            // K-anchored: K + USDÃ—sellK + FRAÃ—(sellK / buyFRA)
-            // sellK  = 1 USD sells for X K   â†’ USD_native Ã— sellK  = K
-            // buyFRA = 1 USD buys  X FRA     â†’ FRA / buyFRA         = USD, then Ã— sellK â†’ K
+            // K-anchored: K + USD×sellK + FRA×(sellK / buyFRA)
+            // sellK  = 1 USD sells for X K   → USD_native × sellK  = K
+            // buyFRA = 1 USD buys  X FRA     → FRA / buyFRA         = USD, then × sellK → K
             const usdToK = fx.sellK > 0 ? fx.sellK : 0;
             const fraToK = (fx.sellK > 0 && fx.buyFRA > 0) ? (fx.sellK / fx.buyFRA) : 0;
             const kEqNow  = kNow  + usdNow  * usdToK + fraNow  * fraToK;
@@ -691,8 +691,8 @@ const CashBook = () => {
             const fmtK = (n) => `K${(parseFloat(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             const rateLabel = [
               fx.sellK  > 0 && `1 USD = ${fx.sellK.toLocaleString()} K`,
-              fraToK    > 0 && `1 FRA â‰ˆ ${fraToK.toFixed(4)} K`,
-            ].filter(Boolean).join(' Â· ');
+              fraToK    > 0 && `1 FRA ≈ ${fraToK.toFixed(4)} K`,
+            ].filter(Boolean).join(' · ');
             return (
               <div
                 className={`stat-card purple ${activeCcy === 'all' ? 'active-filter' : ''}`}
@@ -703,10 +703,10 @@ const CashBook = () => {
                 <div>
                   <div className="stat-label">K &amp; K Equivalent</div>
                   <div className="stat-value">
-                    {hasPermission('CashBook:View') ? `â‰ˆ ${fmtK(kEqNow)}` : 'N/A'}
+                    {hasPermission('CashBook:View') ? `≈ ${fmtK(kEqNow)}` : 'N/A'}
                   </div>
                   <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
-                    {t('opening')} â‰ˆ {fmtK(kEqOpen)}
+                    {t('opening')} ≈ {fmtK(kEqOpen)}
                   </div>
                   {rateLabel && (
                     <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2, fontStyle: 'italic' }}>
@@ -718,14 +718,14 @@ const CashBook = () => {
             );
           }
 
-          // Branch (USD-anchored) â€” unchanged.
+          // Branch (USD-anchored) — unchanged.
           const usdEqNow  = usdNow  + (fx.buyFRA > 0 ? fraNow  / fx.buyFRA : 0) + (fx.buyK > 0 ? kNow  / fx.buyK : 0);
           const usdEqOpen = usdOpen + (fx.buyFRA > 0 ? fraOpen / fx.buyFRA : 0) + (fx.buyK > 0 ? kOpen / fx.buyK : 0);
           const fmt = (n) => `$${(parseFloat(n) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           const rateLabel = [
             fx.buyFRA > 0 && `1 USD = ${fx.buyFRA.toLocaleString()} FRA`,
             fx.buyK   > 0 && `1 USD = ${fx.buyK.toLocaleString()} K`,
-          ].filter(Boolean).join(' Â· ');
+          ].filter(Boolean).join(' · ');
           return (
             <div
               className={`stat-card purple ${activeCcy === 'all' ? 'active-filter' : ''}`}
@@ -736,10 +736,10 @@ const CashBook = () => {
               <div>
                 <div className="stat-label">USD &amp; USD Equivalent</div>
                 <div className="stat-value">
-                  {hasPermission('CashBook:View') ? `â‰ˆ ${fmt(usdEqNow)}` : 'N/A'}
+                  {hasPermission('CashBook:View') ? `≈ ${fmt(usdEqNow)}` : 'N/A'}
                 </div>
                 <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>
-                  {t('opening')} â‰ˆ {fmt(usdEqOpen)}
+                  {t('opening')} ≈ {fmt(usdEqOpen)}
                 </div>
                 {rateLabel && (
                   <div style={{ fontSize: 10, opacity: 0.7, marginTop: 2, fontStyle: 'italic' }}>
@@ -751,7 +751,7 @@ const CashBook = () => {
           );
         })()}
 
-        {/* v1.9.27 â€” Liquor-style branches render Cash on Hand / Mobile
+        {/* v1.9.27 — Liquor-style branches render Cash on Hand / Mobile
             Money / Cash at Bank cards using stats.currentByMethod (already
             on the response). Kelete multi-currency branches keep per-
             currency cards (gated by v1.9.26 currency_mode). */}
@@ -760,7 +760,7 @@ const CashBook = () => {
             { key: 'cash', label: 'Cash on Hand', defaultClass: 'green'  },
             { key: 'momo', label: 'Mobile Money', defaultClass: 'orange' },
             { key: 'bank', label: 'Cash at Bank', defaultClass: 'purple' },
-          // 2026-09-11 â€” a hidden method is left out unless it holds money.
+          // 2026-09-11 — a hidden method is left out unless it holds money.
           ].filter(m => methodShown(m.key)
               || Math.abs(stats.currentByMethod?.[m.key] || 0) > 0.004
               || Math.abs(stats.openingByMethod?.[m.key] || 0) > 0.004).map(m => {
@@ -804,7 +804,7 @@ const CashBook = () => {
               >
                 <div className="stat-icon"><FiDollarSign /></div>
                 <div>
-                  <div className="stat-label">{m.label}{isActive && <span style={{ fontSize: 10, marginLeft: 6, opacity: 0.85 }}>Â· active</span>}</div>
+                  <div className="stat-label">{m.label}{isActive && <span style={{ fontSize: 10, marginLeft: 6, opacity: 0.85 }}>· active</span>}</div>
                   <div className="stat-value">{hasPermission('CashBook:View') ? fmtBal : 'N/A'}</div>
                   <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>{t('opening')} {fmtOpen}</div>
                 </div>
@@ -814,10 +814,10 @@ const CashBook = () => {
         )}
       </div>
 
-      {/* Activity strip â€” compact secondary cards. Opening Balance + period totals.
-          Opening Balance is editable only when no date filter is active (i.e. after Clear) â€” matches Butchery behavior
+      {/* Activity strip — compact secondary cards. Opening Balance + period totals.
+          Opening Balance is editable only when no date filter is active (i.e. after Clear) — matches Butchery behavior
           for adjusting the install-time opening. Day-to-day, opening keeps reflecting yesterday's running balance. */}
-      {/* v1.10.17 â€” on Kelete (per-currency) branches, aggregate CR / PV / AP
+      {/* v1.10.17 — on Kelete (per-currency) branches, aggregate CR / PV / AP
           per currency from the ledger rows so the tiles show USD / FRA / K
           separately instead of collapsing to a single USD-equivalent number
           that mixed currencies via FX. Liquor branches keep the combined
@@ -894,7 +894,7 @@ const CashBook = () => {
         );
       })()}
 
-      {/* Opening Balance editor modal â€” three inputs */}
+      {/* Opening Balance editor modal — three inputs */}
       <AdminPasswordPrompt
         open={obPrompt}
         subject="the Cash Book opening balance"
@@ -909,10 +909,10 @@ const CashBook = () => {
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 460, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
             <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb' }}>
               <h3 style={{ margin: 0 }}>Opening Balances</h3>
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Starting balance per currency (USD / FRA / K) â€” used as the base for the Cash Book.</div>
+              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Starting balance per currency (USD / FRA / K) — used as the base for the Cash Book.</div>
             </div>
             <div style={{ padding: 22, display: 'grid', gap: 12 }}>
-              {/* v1.9.27 â€” Liquor branches edit Cash / MoMo / Bank
+              {/* v1.9.27 — Liquor branches edit Cash / MoMo / Bank
                   openings; Kelete branches keep per-currency editors. */}
               {(isLiquorStyle ? [
                 { key: 'cash', label: 'Cash on Hand', color: '#16a34a', show: true },
@@ -937,7 +937,7 @@ const CashBook = () => {
               <button onClick={() => setEditingOB(false)} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleSaveOB} disabled={savingOB}
                 style={{ padding: '8px 18px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>
-                {savingOB ? 'Savingâ€¦' : 'Save'}
+                {savingOB ? 'Saving…' : 'Save'}
               </button>
             </div>
           </div>
@@ -945,7 +945,7 @@ const CashBook = () => {
         </Portal>
       )}
 
-      {/* v1.13.43 â€” universal export (ZRA checklist #30) */}
+      {/* v1.13.43 — universal export (ZRA checklist #30) */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
         <ExportButtons
           rows={entries}
@@ -969,12 +969,12 @@ const CashBook = () => {
           <thead>
             <tr>
               <th>{t('date')}</th><th>{t('description')}</th><th>{t('reference')}</th><th>{t('type')}</th>
-              {/* v1.9.27 â€” Liquor branches show single Receipts/Payments
+              {/* v1.9.27 — Liquor branches show single Receipts/Payments
                   columns; Kelete branches keep per-currency columns gated
                   by v1.9.26 currency_mode. */}
               {isLiquorStyle ? (
                 <>
-                  {/* v1.10.47 â€” headers renamed to IN / OUT (simpler, and
+                  {/* v1.10.47 — headers renamed to IN / OUT (simpler, and
                       accurate now that inflow/outflow sum every column). */}
                   <th style={{ textAlign: 'right' }}>IN</th>
                   <th style={{ textAlign: 'right' }}>OUT</th>
@@ -990,12 +990,12 @@ const CashBook = () => {
             </tr>
           </thead>
           <tbody>
-            {/* Opening Balance row â€” shows per-currency openings if any. */}
+            {/* Opening Balance row — shows per-currency openings if any. */}
             {(() => {
               const obUsd = stats.openingByCcy?.usd || 0;
               const obFra = stats.openingByCcy?.fra || 0;
               const obK   = stats.openingByCcy?.k   || 0;
-              // v1.10.25 â€” Balance cell now mirrors the transaction rows
+              // v1.10.25 — Balance cell now mirrors the transaction rows
               // below: single-line when a currency filter is active, 3-stacked
               // (USD / FRA / K) when 'all' is selected. Previously the 'all'
               // fallback used the legacy `openingBal` number, which lumped raw
@@ -1018,22 +1018,22 @@ const CashBook = () => {
               };
               return (
                 <tr style={{ background: '#f0f9ff' }}>
-                  <td style={{ fontWeight: 500 }}>â€”</td>
+                  <td style={{ fontWeight: 500 }}>—</td>
                   <td style={{ fontWeight: 600 }}>{t('openingBalance')}</td>
                   <td style={{ color: '#9ca3af', fontSize: 12 }}>OB</td>
                   <td></td>
                   {isLiquorStyle ? (
                     <>
                       <td style={{ color: openingBal > 0 ? '#16a34a' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>
-                        {openingBal > 0 ? `${curSym}${openingBal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : 'â€”'}
+                        {openingBal > 0 ? `${curSym}${openingBal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}
                       </td>
-                      <td style={{ color: '#cbd5e1', textAlign: 'right' }}>â€”</td>
+                      <td style={{ color: '#cbd5e1', textAlign: 'right' }}>—</td>
                     </>
                   ) : (
                     <>
-                      {showUSDccy && <td style={{ color: obUsd ? '#16a34a' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obUsd ? `${curSym}${obUsd.toLocaleString()}` : 'â€”'}</td>}
-                      {showFRAccy && <td style={{ color: obFra ? '#2563eb' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obFra ? `${Math.round(obFra).toLocaleString()} FRA` : 'â€”'}</td>}
-                      {showKccy && <td style={{ color: obK ? '#7c3aed' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obK ? `${Math.round(obK).toLocaleString()} K` : 'â€”'}</td>}
+                      {showUSDccy && <td style={{ color: obUsd ? '#16a34a' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obUsd ? `${curSym}${obUsd.toLocaleString()}` : '—'}</td>}
+                      {showFRAccy && <td style={{ color: obFra ? '#2563eb' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obFra ? `${Math.round(obFra).toLocaleString()} FRA` : '—'}</td>}
+                      {showKccy && <td style={{ color: obK ? '#7c3aed' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obK ? `${Math.round(obK).toLocaleString()} K` : '—'}</td>}
                     </>
                   )}
                   <td style={{ fontWeight: 600, textAlign: 'right' }}>{renderBalance()}</td>
@@ -1041,7 +1041,7 @@ const CashBook = () => {
               );
             })()}
             {entries.filter(e => {
-              // v1.8.62 â€” filter rows by active currency. 'all' = no filter.
+              // v1.8.62 — filter rows by active currency. 'all' = no filter.
               if (activeCcy === 'all') return true;
               const inAmt  = parseFloat(e[`${activeCcy}_in`]  || 0);
               const outAmt = parseFloat(e[`${activeCcy}_out`] || 0);
@@ -1072,14 +1072,14 @@ const CashBook = () => {
                     </span>
                   </td>
                   {isLiquorStyle ? (() => {
-                    // v1.9.27 â€” Liquor view: receipts (inflow) and
+                    // v1.9.27 — Liquor view: receipts (inflow) and
                     // payments (outflow) as two separate columns.
-                    // v1.10.47 â€” was reading receipt_amount/payment_amount
+                    // v1.10.47 — was reading receipt_amount/payment_amount
                     // which the backend leaves at 0 for non-USD deposits
                     // (cashBook.js:329). Result: K DEP-OUT / DEP-IN rows
-                    // showed "â€”" in the OUT / IN column even though the
+                    // showed "—" in the OUT / IN column even though the
                     // running balance did drop. Now read the per-currency
-                    // in/out fields directly and sum them â€” on K-only
+                    // in/out fields directly and sum them — on K-only
                     // Liquor all three columns are K anyway, so the sum
                     // is the receipt total in K.
                     const inflow  = (parseFloat(e.usd_in  || 0) || 0)
@@ -1092,10 +1092,10 @@ const CashBook = () => {
                     return (
                       <>
                         <td style={{ textAlign: 'right', color: inflow > 0 ? '#16a34a' : '#cbd5e1', fontWeight: inflow > 0 ? 600 : 400 }}>
-                          {inflow > 0 ? `+${fmtK(inflow)}` : 'â€”'}
+                          {inflow > 0 ? `+${fmtK(inflow)}` : '—'}
                         </td>
                         <td style={{ textAlign: 'right', color: outflow > 0 ? '#dc2626' : '#cbd5e1', fontWeight: outflow > 0 ? 600 : 400 }}>
-                          {outflow > 0 ? `-${fmtK(outflow)}` : 'â€”'}
+                          {outflow > 0 ? `-${fmtK(outflow)}` : '—'}
                         </td>
                       </>
                     );
@@ -1103,35 +1103,35 @@ const CashBook = () => {
                     <>
                       {showUSDccy && (
                         <td style={{ textAlign: 'right', color: usdNet > 0 ? '#16a34a' : usdNet < 0 ? '#dc2626' : '#cbd5e1', fontWeight: usdNet !== 0 ? 600 : 400 }}>
-                          {usdNet !== 0 ? `${usdNet > 0 ? '+' : '-'}${fmtUsd(Math.abs(usdNet))}` : 'â€”'}
+                          {usdNet !== 0 ? `${usdNet > 0 ? '+' : '-'}${fmtUsd(Math.abs(usdNet))}` : '—'}
                         </td>
                       )}
                       {showFRAccy && (
                         <td style={{ textAlign: 'right', color: fraNet > 0 ? '#2563eb' : fraNet < 0 ? '#dc2626' : '#cbd5e1', fontWeight: fraNet !== 0 ? 600 : 400 }}>
-                          {fraNet !== 0 ? `${fraNet > 0 ? '+' : '-'}${fmtRaw(Math.abs(fraNet))} FRA` : 'â€”'}
+                          {fraNet !== 0 ? `${fraNet > 0 ? '+' : '-'}${fmtRaw(Math.abs(fraNet))} FRA` : '—'}
                         </td>
                       )}
                       {showKccy && (
                         <td style={{ textAlign: 'right', color: kNet > 0 ? '#7c3aed' : kNet < 0 ? '#dc2626' : '#cbd5e1', fontWeight: kNet !== 0 ? 600 : 400 }}>
-                          {kNet !== 0 ? `${kNet > 0 ? '+' : '-'}${fmtRaw(Math.abs(kNet))} K` : 'â€”'}
+                          {kNet !== 0 ? `${kNet > 0 ? '+' : '-'}${fmtRaw(Math.abs(kNet))} K` : '—'}
                         </td>
                       )}
                     </>
                   )}
                   <td style={{ fontWeight: 600, textAlign: 'right' }}>
                     {(() => {
-                      // v1.10.20 â€” Balance column now shows a per-currency
+                      // v1.10.20 — Balance column now shows a per-currency
                       // stack (USD-only on 'usd', FRA-only on 'fra', etc.)
                       // instead of falling back to the naive USD+FRA_raw+K_raw
                       // e.balance sum. On the 'all' umbrella view, stack all
                       // three lines so every row communicates the true state
-                      // of each drawer after that entry â€” matches the layout
+                      // of each drawer after that entry — matches the layout
                       // of the USD/FRA/K movement columns to the left.
                       const fmtUsd = (n) => `${curSym}${(parseFloat(n)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
                       const fmtRaw = (n) => Math.round(parseFloat(n)||0).toLocaleString();
-                      // v1.10.47 â€” on Liquor branches all three balance
-                      // columns are K (Cash â†’ usd_amount, MoMo â†’ fra_amount,
-                      // Bank â†’ k_amount by the Liquor storage mapping).
+                      // v1.10.47 — on Liquor branches all three balance
+                      // columns are K (Cash → usd_amount, MoMo → fra_amount,
+                      // Bank → k_amount by the Liquor storage mapping).
                       // Sum them for a real running K total. Previously we
                       // showed only balance_k which never moved for CR rows
                       // (their amounts land in usd_amount/fra_amount), so
@@ -1146,7 +1146,7 @@ const CashBook = () => {
                       if (activeCcy === 'fra') return `${fmtRaw(e.balance_fra)} FRA`;
                       if (activeCcy === 'k')   return `${fmtRaw(e.balance_k)} K`;
                       if (activeCcy === 'usd') return fmtUsd(e.balance_usd);
-                      // 'all' â€” three lines, only the currencies this branch uses.
+                      // 'all' — three lines, only the currencies this branch uses.
                       return (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, lineHeight: 1.25 }}>
                           {showUSDccy && <span>{fmtUsd(e.balance_usd)}</span>}
@@ -1162,10 +1162,10 @@ const CashBook = () => {
             {entries.length === 0 && (
               <tr><td colSpan="8" style={{ textAlign: 'center', color: '#9ca3af', padding: 24 }}>No transactions yet. Create Cash Receipts, Payment Vouchers, or AP Payments.</td></tr>
             )}
-            {/* v1.8.61 â€” per-currency totals row. Sum in / out separately
+            {/* v1.8.61 — per-currency totals row. Sum in / out separately
                 across all entries, then display net per currency. */}
             {(() => {
-              // v1.8.62 â€” totals row. Closing balance per currency comes
+              // v1.8.62 — totals row. Closing balance per currency comes
               // from stats.currentByCcy (true per-currency, no FX cross-
               // conversion). Active-currency Balance cell uses the matching
               // currentByCcy value; 'all' falls back to currentBalance.
@@ -1177,7 +1177,7 @@ const CashBook = () => {
               }, { usd: 0, fra: 0, k: 0 });
               const fmtUsd = (n) => `$${parseFloat(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
               const fmtRaw = (n) => Math.round(parseFloat(n||0)).toLocaleString();
-              // v1.10.20 â€” 'all' view now stacks USD / FRA / K closing
+              // v1.10.20 — 'all' view now stacks USD / FRA / K closing
               // balances (matching the per-row Balance column). Filtered
               // views (activeCcy === 'usd' / 'fra' / 'k') stay single-line.
               // The old stats.currentBalance mixed FRA + K raw numbers with
@@ -1198,9 +1198,9 @@ const CashBook = () => {
                 <tr style={{ background: '#f9fafb', fontWeight: 700, borderTop: '2px solid #e5e7eb' }}>
                   <td colSpan="4" style={{ textAlign: 'right' }}>TOTALS:</td>
                   {isLiquorStyle ? (() => {
-                    // v1.9.27 â€” Liquor totals: sum receipts and payments.
-                    // v1.10.47 â€” sum per-currency in/out fields (same
-                    // reason as the row cells above â€” receipt_amount /
+                    // v1.9.27 — Liquor totals: sum receipts and payments.
+                    // v1.10.47 — sum per-currency in/out fields (same
+                    // reason as the row cells above — receipt_amount /
                     // payment_amount are 0 for non-USD deposits).
                     const totIn  = entries.reduce((a, e) => a
                       + (parseFloat(e.usd_in  || 0) || 0)
@@ -1226,7 +1226,7 @@ const CashBook = () => {
                   )}
                   <td style={{ textAlign: 'right', color: closeBal >= 0 ? '#16a34a' : '#dc2626' }}>
                     {isLiquorStyle ? (() => {
-                      // v1.10.47 â€” sum all three currentByCcy slots for
+                      // v1.10.47 — sum all three currentByCcy slots for
                       // the Liquor closing total (all K on Liquor).
                       const closeK = (closeAll.usd || 0) + (closeAll.fra || 0) + (closeAll.k || 0);
                       return (
@@ -1248,18 +1248,18 @@ const CashBook = () => {
           </tbody>
         </table>
       </div>
-      {/* â”€â”€ CashBook List Print Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── CashBook List Print Overlay ─────────────────────────────── */}
       {false && showListPrint && (() => {
         const fmt = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const profit = (stats.totalReceipts || 0) - (stats.totalPV || 0) - (stats.totalAP || 0);
         const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const dateLabel = from && to && from !== to ? `${formatDate(from)} â€” ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
+        const dateLabel = from && to && from !== to ? `${formatDate(from)} — ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
         return (
           <div className="pv-print-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.85)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', paddingTop: 60, paddingBottom: 40 }}>
             <div className="no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 52, background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 1001, borderBottom: '1px solid #1e293b' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <FiPrinter size={16} style={{ color: '#64748b' }} />
-                <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview â€” Cash Book ({entries.length} entries)</span>
+                <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview — Cash Book ({entries.length} entries)</span>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#1d4ed8', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}><FiPrinter size={14} /> Print</button>
@@ -1284,7 +1284,7 @@ const CashBook = () => {
               <div style={{ height: 4, background: 'linear-gradient(90deg, #f59e0b, #1d4ed8, #a855f7)' }} />
 
               <div style={{ padding: '26px 44px 36px' }}>
-                {/* Stat chips â€” 3 cols x 2 rows */}
+                {/* Stat chips — 3 cols x 2 rows */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
                   {[
                     { label: 'Opening Balance',   value: curSym + fmt(openingBal),          bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
@@ -1313,7 +1313,7 @@ const CashBook = () => {
                     </thead>
                     <tbody>
                       <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#eff6ff' }}>
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>â€”</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>—</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700 }}>Opening Balance</td>
                         <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10 }}>OB</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700, color: '#1d4ed8' }}>OB</td>
@@ -1349,7 +1349,7 @@ const CashBook = () => {
                 </div>
 
                 <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || 'Business'} â€” Confidential</span>
+                  <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || 'Business'} — Confidential</span>
                   <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>Printed: {printedAt}</span>
                 </div>
               </div>
@@ -1359,7 +1359,7 @@ const CashBook = () => {
       })()}
       </>)}{/* end activeTab === 'ledger' wrapper (v1.8.6) */}
 
-      {/* Cash Transfer Modal â€” moves money between Cash / Bank / Mobile Money buckets */}
+      {/* Cash Transfer Modal — moves money between Cash / Bank / Mobile Money buckets */}
       {showTransfer && (
         <Portal>
         <div className="modal-overlay" onClick={() => setShowTransfer(false)}>
@@ -1370,7 +1370,7 @@ const CashBook = () => {
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: '#6b7280', marginTop: 0, marginBottom: 14 }}>
-                Move money between cash buckets. Your total cash on hand stays the same â€” only the breakdown shifts.
+                Move money between cash buckets. Your total cash on hand stays the same — only the breakdown shifts.
               </p>
 
               {(() => {
@@ -1396,7 +1396,7 @@ const CashBook = () => {
                       </small>
                       {showAfter && (
                         <small style={{ color: fromAfter < 0 ? '#dc2626' : '#0f766e', fontSize: 11, fontWeight: 600, display: 'block', marginTop: 2 }}>
-                          After: {curSym}{fmt(fromAfter)} {fromAfter < 0 ? 'âš  overdraft' : ''}
+                          After: {curSym}{fmt(fromAfter)} {fromAfter < 0 ? '⚠ overdraft' : ''}
                         </small>
                       )}
                     </div>
@@ -1446,7 +1446,7 @@ const CashBook = () => {
               )}
 
               <div style={{ padding: '10px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 12, color: '#1e40af', lineHeight: 1.5, marginBottom: 14 }}>
-                <strong>Effect:</strong> {transferForm.from_method} {curSym}{(parseFloat(parseFloat(transferForm.amount || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} â†’ {transferForm.to_method}.
+                <strong>Effect:</strong> {transferForm.from_method} {curSym}{(parseFloat(parseFloat(transferForm.amount || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} → {transferForm.to_method}.
                 Cash Book total unchanged; per-method cards on top will reflect the move.
               </div>
 

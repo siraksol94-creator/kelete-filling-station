@@ -1,4 +1,4 @@
-// System admin routes â€” backup management.
+// System admin routes — backup management.
 //
 // Kelete's daily backup is a cron script that writes SQLite copies to
 // /var/backups/kelete/YYYY-MM-DD/ on the VPS. This file surfaces those
@@ -36,7 +36,7 @@ function dirSize(dirPath) {
   return total;
 }
 
-// GET /api/system/backups â€” list all backup snapshots on disk.
+// GET /api/system/backups — list all backup snapshots on disk.
 router.get('/backups', auth, (req, res) => {
   try {
     if (!fs.existsSync(BACKUP_ROOT)) {
@@ -65,7 +65,7 @@ router.get('/backups', auth, (req, res) => {
   }
 });
 
-// POST /api/system/backup â€” trigger an immediate backup by shelling out
+// POST /api/system/backup — trigger an immediate backup by shelling out
 // to the same script cron uses. Falls back to a JS-level SQLite copy if
 // the script isn't present, so this endpoint works even on a fresh
 // install where the cron hasn't been wired yet.
@@ -85,7 +85,7 @@ router.post('/backup', auth, (req, res) => {
     return;
   }
 
-  // Fallback â€” inline copy of every .db file we can find under the
+  // Fallback — inline copy of every .db file we can find under the
   // Kelete install root. Slower but reliable.
   try {
     const stamp = new Date().toISOString().slice(0, 10);
@@ -116,7 +116,7 @@ router.post('/backup', auth, (req, res) => {
   }
 });
 
-// GET /api/system/backups/:name/download â€” stream a .tar.gz of one snapshot
+// GET /api/system/backups/:name/download — stream a .tar.gz of one snapshot
 // to the browser. Uses `tar` under the hood (present on any Linux VPS).
 router.get('/backups/:name/download', auth, (req, res) => {
   const name = String(req.params.name || '').replace(/[^0-9A-Za-z_\-]/g, '');

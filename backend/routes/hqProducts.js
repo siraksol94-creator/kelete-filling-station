@@ -1,7 +1,7 @@
 /**
- * hqProducts.js â€” HQ-owned product master + auto-push to branches.
+ * hqProducts.js — HQ-owned product master + auto-push to branches.
  *
- * Design (v1.5.0 â€” per user spec on 2026-06-23):
+ * Design (v1.5.0 — per user spec on 2026-06-23):
  *   HQ owns: code, name, category, base unit, packagings (units_json),
  *            default_unit, photo (image_url), container link + units
  *            per container, UB barcode settings.
@@ -61,7 +61,7 @@ function pushToBranches(hqRow) {
   for (const t of listTenants()) {
     try {
       const db = getTenantDb(t.slug);
-      // CRITICAL â€” branch's GET /api/products filters
+      // CRITICAL — branch's GET /api/products filters
       //   WHERE p.tenant_id = req.user.tenantId
       // so a row inserted with tenant_id NULL is invisible to the branch's
       // Item Details page. Read the branch's own tenant_id from its
@@ -69,7 +69,7 @@ function pushToBranches(hqRow) {
       // similarly read so the device_filter on later reports doesn't drop
       // these rows. v1.3.4 hotfix for v1.3.3.
       // Discover the branch's tenant_id in order of reliability:
-      //   1. master.branches.tenant_id    (AUTHORITATIVE â€” joined into
+      //   1. master.branches.tenant_id    (AUTHORITATIVE — joined into
       //                                     listTenants as t.tenant_id;
       //                                     populated by registerBranch
       //                                     during initial activation)
@@ -118,7 +118,7 @@ function pushToBranches(hqRow) {
 
       // Backfill any orphan v1.3.3 row first (tenant_id NULL from the
       // bug) so it becomes visible to the branch's GET /api/products
-      // immediately on the next push â€” no DB surgery needed.
+      // immediately on the next push — no DB surgery needed.
       if (branchTenantId) {
         try {
           db.prepare(`UPDATE products SET tenant_id = ?, branch_id = COALESCE(branch_id, ?) WHERE sync_id = ? AND (tenant_id IS NULL OR tenant_id = '')`)
@@ -126,7 +126,7 @@ function pushToBranches(hqRow) {
         } catch (_) {}
       }
 
-      // HQ-side Deleted â†’ soft-delete the matching branch row so it
+      // HQ-side Deleted → soft-delete the matching branch row so it
       // disappears from Item Details / POS / pickers (their GETs all
       // filter `deleted_at IS NULL`). Historical orders + GRN lines
       // reference sync_id, not the row, so they keep rendering fine.
@@ -237,7 +237,7 @@ router.get('/', hqAuth, (req, res) => {
   }
 });
 
-// GET /api/hq/products/:id â€” header + per-branch override snapshot so HQ
+// GET /api/hq/products/:id — header + per-branch override snapshot so HQ
 // can see which branches deviated from the default cost/selling.
 router.get('/:id', hqAuth, (req, res) => {
   try {
@@ -263,7 +263,7 @@ router.get('/:id', hqAuth, (req, res) => {
 
 // POST /api/hq/products
 // v1.5.0: prices/min_stock/notes removed (branch-owned). Adds default_unit,
-// container, UB barcode. product_type field is gone â€” branch products
+// container, UB barcode. product_type field is gone — branch products
 // always default to 'finished'.
 router.post('/', hqAuth, (req, res) => {
   try {
@@ -363,16 +363,16 @@ router.put('/:id', hqAuth, (req, res) => {
   }
 });
 
-// DELETE /api/hq/products/:id â€” soft-delete with full history guard,
+// DELETE /api/hq/products/:id — soft-delete with full history guard,
 // matching the per-branch products DELETE behaviour (products.js:502).
 // Blocks if ANY of the following reference the product's sync_id:
 //   - GRN / SIV / order lines at any branch
 //   - sales_return (damages) lines at any branch
-//   - HQ purchase lines (master.db) â€” any non-cancelled status counts
+//   - HQ purchase lines (master.db) — any non-cancelled status counts
 // When clear: status='Deleted' on hq_products (frees the name for
 // re-use), pushToBranches sees Deleted and soft-deletes the matching
 // branch row (deleted_at = now). Historical rows that pre-dated all
-// of this are unaffected â€” they reference the snapshot, not the live
+// of this are unaffected — they reference the snapshot, not the live
 // row.
 router.delete('/:id', hqAuth, (req, res) => {
   try {
@@ -380,7 +380,7 @@ router.delete('/:id', hqAuth, (req, res) => {
     if (!row) return res.status(404).json({ error: 'Product not found' });
 
     // Walk every registered branch and count references. Errors per
-    // branch don't block the delete attempt â€” they get reported so HQ
+    // branch don't block the delete attempt — they get reported so HQ
     // sees which branch DB couldn't be checked and can re-try.
     const blockers = [];
     const branchErrors = [];
@@ -413,7 +413,7 @@ router.delete('/:id', hqAuth, (req, res) => {
 
     if (blockers.length > 0) {
       return res.status(400).json({
-        error: `Cannot delete "${row.name}" â€” it is used in ${blockers.join(', ')}. Remove or cancel those records first, or mark the product inactive instead.`,
+        error: `Cannot delete "${row.name}" — it is used in ${blockers.join(', ')}. Remove or cancel those records first, or mark the product inactive instead.`,
       });
     }
     if (branchErrors.length > 0) {
@@ -431,7 +431,7 @@ router.delete('/:id', hqAuth, (req, res) => {
   }
 });
 
-// POST /api/hq/products/:id/push â€” manual re-push (handy for newly-added
+// POST /api/hq/products/:id/push — manual re-push (handy for newly-added
 // branches that joined after the product was created, or to recover
 // after a transient branch DB failure).
 router.post('/:id/push', hqAuth, (req, res) => {

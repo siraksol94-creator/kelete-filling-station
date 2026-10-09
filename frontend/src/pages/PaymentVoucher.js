@@ -21,14 +21,14 @@ const todayStr = new Date().toISOString().split('T')[0];
 
 const PaymentVoucher = () => {
   const { hasPermission, hasPageAccess, user } = useAuth();
-  // 2026-09-03 â€” PvTypes has been on the permissions screen since the
+  // 2026-09-03 — PvTypes has been on the permissions screen since the
   // action-level rewrite but nothing ever read it, so ticking it did
   // nothing. It gates this page's PV Types tab, which is where types are
   // actually created, renamed and deleted.
   const canPvTypes = hasPageAccess('PvTypes');
   const { symbol: curSym, isLiquorStyle } = useCurrency();
   const { t } = useLanguage();
-  // v1.8.25 â€” stats now include per-currency totals (today / month / all).
+  // v1.8.25 — stats now include per-currency totals (today / month / all).
   const [stats, setStats]       = useState({
     todayPayments: 0, thisMonth: 0, totalVouchers: 0,
     today: { usd: 0, fra: 0, k: 0 },
@@ -54,7 +54,7 @@ const PaymentVoucher = () => {
   useModalScrollLock(!!viewVoucher || showForm);
   const [showListPrint, setShowListPrint] = useState(false);
 
-  // Date filter â€” default to today
+  // Date filter — default to today
   const [filterFrom, setFilterFrom] = useState(todayStr);
   const [filterTo,   setFilterTo]   = useState(todayStr);
   // PV-type filter (All by default)
@@ -66,8 +66,8 @@ const PaymentVoucher = () => {
   const [editingType, setEditingType] = useState(null); // { id, name, color } when editing
   const [newType, setNewType] = useState({ name: '', color: '#6B7280' });
 
-  // 2026-09-12 â€” HQ only: "All Depots", every depot's PVs. Today by default.
-  // 2026-09-17 â€” an HQ Administrator can delete one here (in the depot's own
+  // 2026-09-12 — HQ only: "All Depots", every depot's PVs. Today by default.
+  // 2026-09-17 — an HQ Administrator can delete one here (in the depot's own
   // book); deleted vouchers stay listed, struck through, and count nowhere.
   const onHq = isHqHost();
   const [allFrom, setAllFrom]       = useState(todayStr);
@@ -106,7 +106,7 @@ const PaymentVoucher = () => {
   const allLive = allShown.filter(r => !r.deleted);
   const allShownTotal = allLive.reduce((s, r) => s + (parseFloat(r.total) || 0), 0);
 
-  // â”€â”€ 2026-09-18 â€” expenses over a depot's daily limit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── 2026-09-18 — expenses over a depot's daily limit ────────────────────
   // HQ: the Approvals tab, one row per waiting request from any depot.
   // Depot: an approved request opens the voucher already filled in, from the
   // green card's link (?req=<sync_id>).
@@ -130,7 +130,7 @@ const PaymentVoucher = () => {
   // Every depot's daily expense limit, changed from HQ instead of visiting
   // each depot's own System Settings.
   const [limits, setLimits] = useState([]);
-  const [limitEdits, setLimitEdits] = useState({});   // slug â†’ typed value
+  const [limitEdits, setLimitEdits] = useState({});   // slug → typed value
   const [savingLimit, setSavingLimit] = useState('');
   useEffect(() => {
     if (!onHq || tab !== 'limits') return;
@@ -158,13 +158,13 @@ const PaymentVoucher = () => {
       if (verdict === 'approve') {
         if (!window.confirm(`Approve ${curSym}${fmt2(r.amount)} for ${r.depot_name}?\n\nThey can then save this one voucher, over their daily limit.`)) return;
         await approveHqExpenseRequest(r.depot_slug, r.sync_id);
-        showToast(`Approved â€” ${r.depot_name} can now save this voucher.`);
+        showToast(`Approved — ${r.depot_name} can now save this voucher.`);
       } else {
         const why = window.prompt(`Reject ${curSym}${fmt2(r.amount)} for ${r.depot_name}?\n\nReason (required, the depot sees it):`);
         if (why === null) return;
         if (why.trim().length < 3) { showToast('Please give a reason of at least 3 characters.', 'error'); return; }
         await rejectHqExpenseRequest(r.depot_slug, r.sync_id, why.trim());
-        showToast(`Rejected â€” ${r.depot_name} has been told why.`, 'error');
+        showToast(`Rejected — ${r.depot_name} has been told why.`, 'error');
       }
       setApprovalsReload(x => x + 1);
     } catch (err) {
@@ -172,7 +172,7 @@ const PaymentVoucher = () => {
     }
   };
 
-  // Depot: opened from the green "Approved â€” save the voucher" card.
+  // Depot: opened from the green "Approved — save the voucher" card.
   useEffect(() => {
     if (onHq) return;
     const syncId = new URLSearchParams(window.location.search).get('req');
@@ -220,7 +220,7 @@ const PaymentVoucher = () => {
     } catch (err) { /* use defaults */ }
   };
 
-  // â”€â”€ PV Types CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── PV Types CRUD ────────────────────────────────────────────────────────
   const handleAddType = async () => {
     if (!newType.name.trim()) { showToast('Name required', 'error'); return; }
     try {
@@ -304,7 +304,7 @@ const PaymentVoucher = () => {
     const biz = businessInfo.business_name || businessInfo.business?.business_name || 'Business Name';
     const addr = [businessInfo.address||businessInfo.business?.business_address, businessInfo.phone||businessInfo.business?.business_phone].filter(Boolean).join('  |  ');
     const dateRange = filterFrom||filterTo
-      ? `${filterFrom?formatDate(filterFrom):'All'} â€” ${filterTo?formatDate(filterTo):'All'}` : 'All Dates';
+      ? `${filterFrom?formatDate(filterFrom):'All'} — ${filterTo?formatDate(filterTo):'All'}` : 'All Dates';
     const chip = (label, value, bg, color, border) =>
       `<div style="padding:12px 16px;border-radius:10px;background:${bg};border:1.5px solid ${border};text-align:center">
         <div style="font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px">${label}</div>
@@ -323,7 +323,7 @@ const PaymentVoucher = () => {
         <td style="padding:8px 12px;color:#374151">${formatDate(v.date)}</td>
         <td style="padding:8px 12px;color:#374151">${v.paid_from||'Main cashier'}</td>
         <td style="padding:8px 12px;font-weight:500">${v.paid_to}</td>
-        <td style="padding:8px 12px;color:#6b7280">${v.description||'â€”'}</td>
+        <td style="padding:8px 12px;color:#6b7280">${v.description||'—'}</td>
         <td style="padding:8px 12px">${v.category}</td>
         <td style="padding:8px 12px;text-align:right;font-weight:700;font-family:monospace;color:#dc2626">${curSym}${fmt2(v.amount)}</td>
       </tr>`
@@ -360,14 +360,14 @@ const PaymentVoucher = () => {
             </tr></thead>
             <tbody>${rows}</tbody>
             <tfoot><tr style="background:#fef2f2;border-top:2px solid #fca5a5">
-              <td colspan="6" style="padding:10px 12px;font-weight:700;font-size:11.5px;color:#dc2626">TOTAL â€” ${filteredVouchers.length} Voucher${filteredVouchers.length!==1?'s':''}</td>
+              <td colspan="6" style="padding:10px 12px;font-weight:700;font-size:11.5px;color:#dc2626">TOTAL — ${filteredVouchers.length} Voucher${filteredVouchers.length!==1?'s':''}</td>
               <td></td>
               <td style="padding:10px 12px;text-align:right;font-weight:800;font-size:13px;font-family:monospace;color:#dc2626">${curSym}${fmt(filteredTotal)}</td>
             </tr></tfoot>
           </table>
         </div>
         <div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between">
-          <span style="font-size:9.5px;color:#cbd5e1">${biz} â€” Confidential</span>
+          <span style="font-size:9.5px;color:#cbd5e1">${biz} — Confidential</span>
           <span style="font-size:9.5px;color:#cbd5e1">Printed: ${printedAt}</span>
         </div>
       </div>
@@ -438,7 +438,7 @@ const PaymentVoucher = () => {
   return (
     <div className="page-content">
 
-      {/* â”€â”€ Page Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Page Header ─────────────────────────────────────────────── */}
       <div className="page-header">
         <div>
           <h1>{t('paymentVoucherTitle')} (PV)</h1>
@@ -454,11 +454,11 @@ const PaymentVoucher = () => {
         </div>
       </div>
 
-      {/* v1.8.25 â€” per-currency stat cards. Today / This Month / Total
+      {/* v1.8.25 — per-currency stat cards. Today / This Month / Total
           Amount each show 3 lines (USD/FRA/K) instead of a single $ figure.
           'Total Vouchers' stays as a count. */}
       {(() => {
-        // 2026-09-17 â€” on All Depots the top shows every depot's summary in
+        // 2026-09-17 — on All Depots the top shows every depot's summary in
         // place of these cards, which count HQ's own vouchers only.
         if (tab === 'all' && onHq) {
           const money = (n) => `${curSym}${fmt2(n)}`;
@@ -472,7 +472,7 @@ const PaymentVoucher = () => {
               <div style={{ flex: 1, minWidth: 260, padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>By depot</div>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12.5 }}>
-                  {allTotals.by_depot.length === 0 ? <span style={{ color: '#9ca3af' }}>â€”</span>
+                  {allTotals.by_depot.length === 0 ? <span style={{ color: '#9ca3af' }}>—</span>
                     : allTotals.by_depot.map(d => (
                       <span key={d.slug}>{d.name} <strong style={{ color: '#dc2626' }}>{money(d.total)}</strong></span>
                     ))}
@@ -481,7 +481,7 @@ const PaymentVoucher = () => {
               <div style={{ flex: 1, minWidth: 220, padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>By type</div>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12.5 }}>
-                  {allTotals.by_type.length === 0 ? <span style={{ color: '#9ca3af' }}>â€”</span>
+                  {allTotals.by_type.length === 0 ? <span style={{ color: '#9ca3af' }}>—</span>
                     : allTotals.by_type.map(t2 => (
                       <span key={t2.type}>{t2.type} <strong style={{ color: '#374151' }}>{money(t2.total)}</strong></span>
                     ))}
@@ -498,7 +498,7 @@ const PaymentVoucher = () => {
             <span style={{ opacity: 0.85 }}>{label}</span><strong style={{ color }}>{val}</strong>
           </div>
         );
-        // v1.9.27 â€” Liquor-style branches collapse 3 currency rows into
+        // v1.9.27 — Liquor-style branches collapse 3 currency rows into
         // one single-amount line in the primary currency.
         const Card = ({ label, ccyData, bg, icon }) => {
           const single = (parseFloat(ccyData?.usd || 0) || 0)
@@ -541,7 +541,7 @@ const PaymentVoucher = () => {
         );
       })()}
 
-      {/* â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Tabs ─────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e5e7eb' }}>
         {[
           { key: 'vouchers', label: 'Vouchers' },
@@ -562,7 +562,7 @@ const PaymentVoucher = () => {
         ))}
       </div>
 
-      {/* â”€â”€ PV Types tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── PV Types tab ─────────────────────────────────────────────── */}
       {tab === 'types' && canPvTypes && (
         <div style={{ background: '#fff', borderRadius: 10, padding: 18, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14, padding: 12, background: '#f9fafb', borderRadius: 8 }}>
@@ -626,7 +626,7 @@ const PaymentVoucher = () => {
         </div>
       )}
 
-      {/* â”€â”€ Expense Limits tab (HQ Administrator) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Expense Limits tab (HQ Administrator) ─────────────────────── */}
       {tab === 'limits' && onHq && isAdmin && (
         <div style={{ display: 'grid', gap: 12 }}>
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px' }}>
@@ -638,7 +638,7 @@ const PaymentVoucher = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
               {limits.length === 0 ? (
-                <span style={{ color: '#9ca3af', fontSize: 13 }}>Loading depotsâ€¦</span>
+                <span style={{ color: '#9ca3af', fontSize: 13 }}>Loading depots…</span>
               ) : limits.map(l => {
                 const typed = limitEdits[l.slug];
                 const shown = typed === undefined ? (l.limit == null ? '' : String(l.limit)) : typed;
@@ -648,7 +648,7 @@ const PaymentVoucher = () => {
                   <div key={l.slug} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px' }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{l.name}</div>
                     <div style={{ fontSize: 11.5, color: over ? '#b91c1c' : '#6b7280', marginBottom: 6 }}>
-                      Today: {curSym}{fmt2(l.spent_today)}{l.limit > 0 ? ` of ${curSym}${fmt2(l.limit)}` : ' Â· no limit'}
+                      Today: {curSym}{fmt2(l.spent_today)}{l.limit > 0 ? ` of ${curSym}${fmt2(l.limit)}` : ' · no limit'}
                     </div>
                     <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                       <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 700 }}>{curSym}</span>
@@ -660,7 +660,7 @@ const PaymentVoucher = () => {
                         style={{ padding: '6px 12px', borderRadius: 6, border: 'none', fontSize: 12, fontWeight: 700,
                                  background: changed ? '#1d4ed8' : '#e5e7eb', color: changed ? '#fff' : '#9ca3af',
                                  cursor: changed ? 'pointer' : 'not-allowed' }}>
-                        {savingLimit === l.slug ? 'Savingâ€¦' : 'Save'}
+                        {savingLimit === l.slug ? 'Saving…' : 'Save'}
                       </button>
                     </div>
                   </div>
@@ -671,7 +671,7 @@ const PaymentVoucher = () => {
         </div>
       )}
 
-      {/* â”€â”€ Approvals tab (HQ Administrator) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Approvals tab (HQ Administrator) ──────────────────────────── */}
       {tab === 'approvals' && onHq && isAdmin && (
         <div style={{ display: 'grid', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
@@ -693,7 +693,7 @@ const PaymentVoucher = () => {
 
           <div className="data-table-container">
             {approvalsLoading && approvals.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Loadingâ€¦</div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Loading…</div>
             ) : approvals.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
                 {approvalStatus === 'pending' ? 'No expense requests waiting.' : 'Nothing to show.'}
@@ -720,16 +720,16 @@ const PaymentVoucher = () => {
                       <tr key={`${r.depot_slug}-${r.sync_id}`}>
                         <td style={{ padding: '8px 10px' }}>{formatDate(r.date)}</td>
                         <td style={{ padding: '8px 10px', fontWeight: 600 }}>{r.depot_name}</td>
-                        <td style={{ padding: '8px 10px' }}>{r.paid_to || 'â€”'}</td>
+                        <td style={{ padding: '8px 10px' }}>{r.paid_to || '—'}</td>
                         <td style={{ padding: '8px 10px' }}><span className={`badge ${getCategoryColor(r.category)}`}>{r.category || 'Other'}</span></td>
-                        <td style={{ padding: '8px 10px', color: '#6b7280' }}>{r.description || 'â€”'}</td>
+                        <td style={{ padding: '8px 10px', color: '#6b7280' }}>{r.description || '—'}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700 }}>{curSym}{fmt2(r.amount)}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', color: '#6b7280' }}>{curSym}{fmt2(r.day_total_before)}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', color: '#6b7280' }}>{curSym}{fmt2(r.daily_limit)}</td>
-                        <td style={{ padding: '8px 10px', color: '#374151' }}>{r.reason || 'â€”'}</td>
-                        <td style={{ padding: '8px 10px', color: '#6b7280', fontSize: 12 }}>{r.requester_name || 'â€”'}</td>
+                        <td style={{ padding: '8px 10px', color: '#374151' }}>{r.reason || '—'}</td>
+                        <td style={{ padding: '8px 10px', color: '#6b7280', fontSize: 12 }}>{r.requester_name || '—'}</td>
                         {/* Which voucher this became. The date is shown only when
-                            it differs from the request's â€” a request approved one
+                            it differs from the request's — a request approved one
                             day and saved the next files the PV under the later
                             day, which is why one can look missing. */}
                         <td style={{ padding: '8px 10px', fontSize: 12 }}>
@@ -742,7 +742,7 @@ const PaymentVoucher = () => {
                                 </div>
                               )}
                             </>
-                          ) : <span style={{ color: '#cbd5e1' }}>â€”</span>}
+                          ) : <span style={{ color: '#cbd5e1' }}>—</span>}
                         </td>
                         <td style={{ padding: '8px 10px' }}>
                           <span style={{ padding: '3px 9px', borderRadius: 12, fontSize: 11, fontWeight: 700, background: meta.bg, color: meta.color }}>{meta.label}</span>
@@ -774,7 +774,7 @@ const PaymentVoucher = () => {
         </div>
       )}
 
-      {/* â”€â”€ All Depots tab (HQ only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── All Depots tab (HQ only) ──────────────────────────────────── */}
       {tab === 'all' && onHq && (() => {
         const rows = allShown;
         const money = (n) => `${curSym}${fmt2(n)}`;
@@ -824,7 +824,7 @@ const PaymentVoucher = () => {
                     { key: 'total',           label: 'Total',        format: v => fmt2(v) },
                     { key: 'created_by_name', label: 'By' },
                   ]}
-                  pdfOptions={{ title: 'Payment Vouchers â€” All Depots', subtitle: `${allFrom || 'â€¦'} to ${allTo || 'â€¦'}`, businessName: businessInfo.business_name }}
+                  pdfOptions={{ title: 'Payment Vouchers — All Depots', subtitle: `${allFrom || '…'} to ${allTo || '…'}`, businessName: businessInfo.business_name }}
                 />
               </div>
             </div>
@@ -832,7 +832,7 @@ const PaymentVoucher = () => {
             {/* List (the totals moved to the top of the page) */}
             <div className="data-table-container">
               {allLoading ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Loadingâ€¦</div>
+                <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Loading…</div>
               ) : rows.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No vouchers for this period.</div>
               ) : (
@@ -850,11 +850,11 @@ const PaymentVoucher = () => {
                   </thead>
                   <tbody>
                     {rows.map(r => {
-                      const dash = <span style={{ color: '#cbd5e1' }}>â€”</span>;
+                      const dash = <span style={{ color: '#cbd5e1' }}>—</span>;
                       return (
                         <tr key={`${r.depot_slug}-${r.id}`}
                           title={r.deleted
-                            ? `Deleted${r.deleted_by_name ? ` by ${r.deleted_by_name}` : ''}${r.deleted_at ? ` on ${formatDate(r.deleted_at)}` : ''}${r.delete_reason ? ` â€” ${r.delete_reason}` : ''}`
+                            ? `Deleted${r.deleted_by_name ? ` by ${r.deleted_by_name}` : ''}${r.deleted_at ? ` on ${formatDate(r.deleted_at)}` : ''}${r.delete_reason ? ` — ${r.delete_reason}` : ''}`
                             : undefined}
                           style={r.deleted ? { textDecoration: 'line-through', opacity: 0.5 } : undefined}>
                           <td style={cell}>{formatDate(r.date)}</td>
@@ -862,12 +862,12 @@ const PaymentVoucher = () => {
                           <td style={{ ...cell, fontFamily: 'monospace', fontSize: 11 }}>{r.voucher_number}</td>
                           <td style={cell}>{r.paid_to}</td>
                           <td style={cell}><span className={`badge ${getCategoryColor(r.category)}`}>{r.category}</span></td>
-                          <td style={{ ...cell, color: '#6b7280' }}>{r.description || 'â€”'}</td>
+                          <td style={{ ...cell, color: '#6b7280' }}>{r.description || '—'}</td>
                           <td style={{ ...cell, textAlign: 'right', color: r.cash > 0 ? '#16a34a' : '', fontWeight: r.cash > 0 ? 700 : 400 }}>{r.cash > 0 ? money(r.cash) : dash}</td>
                           <td style={{ ...cell, textAlign: 'right', color: r.momo > 0 ? '#7c3aed' : '', fontWeight: r.momo > 0 ? 700 : 400 }}>{r.momo > 0 ? money(r.momo) : dash}</td>
                           <td style={{ ...cell, textAlign: 'right', color: r.bank > 0 ? '#ea580c' : '', fontWeight: r.bank > 0 ? 700 : 400 }}>{r.bank > 0 ? money(r.bank) : dash}</td>
                           <td style={{ ...cell, textAlign: 'right', fontWeight: 700 }}>{money(r.total)}</td>
-                          <td style={{ ...cell, color: '#6b7280', fontSize: 12 }}>{r.created_by_name || 'â€”'}</td>
+                          <td style={{ ...cell, color: '#6b7280', fontSize: 12 }}>{r.created_by_name || '—'}</td>
                           {canDeleteAll && (
                             <td style={{ ...cell, textAlign: 'right' }}>
                               {r.deleted ? (
@@ -893,7 +893,7 @@ const PaymentVoucher = () => {
 
       {tab !== 'vouchers' ? null : (<>
 
-      {/* â”€â”€ Date + Type Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Date + Type Filter Bar ────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
@@ -939,12 +939,12 @@ const PaymentVoucher = () => {
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
           {filteredVouchers.length} voucher{filteredVouchers.length !== 1 ? 's' : ''}
           {hasFilter && (
-            <> &nbsp;Â·&nbsp; Total: <strong style={{ color: '#dc2626' }}>{curSym}{fmt2(filteredTotal)}</strong></>
+            <> &nbsp;·&nbsp; Total: <strong style={{ color: '#dc2626' }}>{curSym}{fmt2(filteredTotal)}</strong></>
           )}
         </span>
       </div>
 
-      {/* â”€â”€ Vouchers Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Vouchers Table ──────────────────────────────────────────── */}
       <div className="data-table-container">
         {filteredVouchers.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
@@ -956,12 +956,12 @@ const PaymentVoucher = () => {
               <tr>
                 <th>{t('voucherNumber')}</th><th>{t('date')}</th><th>{t('paidFrom')}</th><th>{t('paidTo')}</th>
                 <th>{t('description')}</th><th>{t('category')}</th>
-                {/* v1.8.25 â€” split Amount into 3 columns.
-                    v1.10.91 â€” headers depend on tenant profile:
+                {/* v1.8.25 — split Amount into 3 columns.
+                    v1.10.91 — headers depend on tenant profile:
                       - Kelete tri-currency: USD ($) / FRA / K
                       - Liquor K-only:      Cash / Mobile Money / Bank
                     Previously Liquor rows displayed cash as USD, bank as
-                    FRA, momo as K (nonsense â€” a K200 cash PV showed as
+                    FRA, momo as K (nonsense — a K200 cash PV showed as
                     "$200 USD"). */}
                 {isLiquorStyle ? (
                   <>
@@ -981,7 +981,7 @@ const PaymentVoucher = () => {
             </thead>
             <tbody>
               {filteredVouchers.map(v => {
-                // v1.10.93 â€” Liquor stores Cash in usd_amount, MoMo in
+                // v1.10.93 — Liquor stores Cash in usd_amount, MoMo in
                 // fra_amount, Bank in k_amount (see PaymentVoucherFormModal
                 // "storage columns stay the same to avoid a DB migration").
                 // v1.10.91 mistakenly read cash/momo/bank on Liquor, which
@@ -994,7 +994,7 @@ const PaymentVoucher = () => {
                                          : (parseFloat(v.fra_amount) > 0 ? parseFloat(v.fra_amount) : parseFloat(v.bank_amount || 0));
                 const vc = isLiquorStyle ? parseFloat(v.k_amount   || v.bank_amount || 0)
                                          : (parseFloat(v.k_amount)   > 0 ? parseFloat(v.k_amount)   : parseFloat(v.momo_amount || 0));
-                const dash = <span style={{ color: '#cbd5e1' }}>â€”</span>;
+                const dash = <span style={{ color: '#cbd5e1' }}>—</span>;
                 const fmtA = (n) => isLiquorStyle ? `K${fmt2(n)}` : `$${fmt2(n)}`;
                 const fmtB = (n) => isLiquorStyle ? `K${fmt2(n)}` : Math.round(n).toLocaleString('en-US');
                 const fmtC = (n) => isLiquorStyle ? `K${fmt2(n)}` : Math.round(n).toLocaleString('en-US');
@@ -1013,7 +1013,7 @@ const PaymentVoucher = () => {
                     </span>
                   </td>
                   <td>{v.paid_to}</td>
-                  <td style={{ color: '#6b7280' }}>{v.description || 'â€”'}</td>
+                  <td style={{ color: '#6b7280' }}>{v.description || '—'}</td>
                   <td><span className={`badge ${getCategoryColor(v.category)}`}>{v.category}</span></td>
                   <td style={{ textAlign: 'right', color: va > 0 ? '#16a34a' : '', fontWeight: va > 0 ? 700 : 400 }}>{va > 0 ? fmtA(va) : dash}</td>
                   <td style={{ textAlign: 'right', color: vb > 0 ? '#7c3aed' : '', fontWeight: vb > 0 ? 700 : 400 }}>{vb > 0 ? fmtB(vb) : dash}</td>
@@ -1068,13 +1068,13 @@ const PaymentVoucher = () => {
               })}
             </tbody>
             <tfoot>
-              {/* v1.8.25 â€” per-currency footer totals. */}
+              {/* v1.8.25 — per-currency footer totals. */}
               <tr style={{ fontWeight: 700, borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
                 <td colSpan={6} style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontSize: 13 }}>
                   Total ({filteredVouchers.length} voucher{filteredVouchers.length !== 1 ? 's' : ''})
                 </td>
                 {(() => {
-                  // v1.10.93 â€” per-bucket totals mirror the row logic above.
+                  // v1.10.93 — per-bucket totals mirror the row logic above.
                   const ta = filteredVouchers.reduce((s, v) => s + (isLiquorStyle
                     ? parseFloat(v.usd_amount || v.cash_amount || 0)
                     : (parseFloat(v.usd_amount) > 0 ? parseFloat(v.usd_amount) : parseFloat(v.cash_amount || 0))), 0);
@@ -1101,7 +1101,7 @@ const PaymentVoucher = () => {
       </div>
       </>)}
 
-      {/* â”€â”€ View Voucher Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── View Voucher Modal ────────────────────────────────────────── */}
       {viewVoucher && !showPVPrint && (
         <Portal>
         <div className="modal-overlay" onClick={() => setViewVoucher(null)}>
@@ -1198,7 +1198,7 @@ const PaymentVoucher = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ List Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── List Print Preview ───────────────────────────────────────── */}
       {false && showListPrint && (
         <div
           className="pv-print-overlay"
@@ -1212,7 +1212,7 @@ const PaymentVoucher = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
               <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
-                Print Preview â€” Payment Vouchers ({filteredVouchers.length} records)
+                Print Preview — Payment Vouchers ({filteredVouchers.length} records)
               </span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -1244,7 +1244,7 @@ const PaymentVoucher = () => {
                 <div style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.65, marginBottom: 6 }}>Payment Vouchers</div>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>
                   {filterFrom || filterTo
-                    ? `${filterFrom ? formatDate(filterFrom) : 'All'} â€” ${filterTo ? formatDate(filterTo) : 'All'}`
+                    ? `${filterFrom ? formatDate(filterFrom) : 'All'} — ${filterTo ? formatDate(filterTo) : 'All'}`
                     : 'All Dates'}
                 </div>
                 <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
@@ -1287,7 +1287,7 @@ const PaymentVoucher = () => {
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(v.date)}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{v.paid_from || 'Main cashier'}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 500 }}>{v.paid_to}</td>
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{v.description || 'â€”'}</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{v.description || '—'}</td>
                         <td style={{ padding: '8px 12px' }}>{v.category}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#dc2626' }}>{curSym}{fmt2(v.amount)}</td>
                       </tr>
@@ -1296,7 +1296,7 @@ const PaymentVoucher = () => {
                   <tfoot>
                     <tr style={{ background: '#fef2f2', borderTop: '2px solid #fca5a5' }}>
                       <td colSpan={6} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#dc2626' }}>
-                        TOTAL â€” {filteredVouchers.length} Voucher{filteredVouchers.length !== 1 ? 's' : ''}
+                        TOTAL — {filteredVouchers.length} Voucher{filteredVouchers.length !== 1 ? 's' : ''}
                       </td>
                       <td />
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#dc2626' }}>
@@ -1308,7 +1308,7 @@ const PaymentVoucher = () => {
               </div>
 
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || businessInfo.business?.business_name || 'Business'} â€” Confidential</span>
+                <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || businessInfo.business?.business_name || 'Business'} — Confidential</span>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             </div>
@@ -1316,7 +1316,7 @@ const PaymentVoucher = () => {
         </div>
       )}
 
-      {/* â”€â”€ A4 Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── A4 Print Preview ─────────────────────────────────────────── */}
       {false && showPVPrint && viewVoucher && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
@@ -1445,7 +1445,7 @@ const PaymentVoucher = () => {
         </div>
       )}
 
-      {/* â”€â”€ New / Edit Voucher Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── New / Edit Voucher Modal ─────────────────────────────────── */}
       <PaymentVoucherFormModal
         open={showForm}
         onClose={() => { setShowForm(false); setPrefill(null); }}

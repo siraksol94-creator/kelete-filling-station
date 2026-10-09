@@ -58,7 +58,7 @@ function getDrawerPort() {
   });
 }
 
-// 2026-08-30 â€” the printer to print RECEIPTS on.
+// 2026-08-30 — the printer to print RECEIPTS on.
 //
 // This used to be getDrawerPort(), i.e. the cash-drawer setting, which
 // defaults to the bare string 'POS-80'. Windows had no printer by that exact
@@ -88,7 +88,7 @@ function getReceiptPrinter() {
 ipcMain.handle('print-silent', async (_event, html) => {
   const printerName = await getReceiptPrinter();
   return new Promise((resolve) => {
-    // Write HTML to a temp file â€” more reliable than data: URLs for large content
+    // Write HTML to a temp file — more reliable than data: URLs for large content
     const tmpFile = path.join(os.tmpdir(), 'kelete-print-' + Date.now() + '.html');
     try { fs.writeFileSync(tmpFile, html, 'utf8'); } catch (e) {
       log('print-silent: failed to write temp file: ' + e.message);
@@ -99,16 +99,16 @@ ipcMain.handle('print-silent', async (_event, html) => {
     win.loadFile(tmpFile);
     win.webContents.once('did-finish-load', () => {
       const cleanup = () => { try { fs.unlinkSync(tmpFile); } catch (_) {} };
-      // 2026-08-30 â€” pageSize and margins must be stated explicitly.
+      // 2026-08-30 — pageSize and margins must be stated explicitly.
       //
       // Without them Electron prints at the printer's default page, which on
       // a freshly-installed queue is usually A4/Letter. The receipt then lands
       // on a huge sheet and an 80mm roll produces nothing you would recognise
-      // as a receipt â€” the job "succeeds" and no paper comes out. That is what
+      // as a receipt — the job "succeeds" and no paper comes out. That is what
       // v1.13.165 did: the dialog stopped appearing and so did the printing.
       //
       // Microns. 72mm is the print head's width (the driver reports the paper
-      // as "80(72)"), 297mm is a generous roll length â€” the printer cuts at
+      // as "80(72)"), 297mm is a generous roll length — the printer cuts at
       // the end of content, so this is a ceiling, not a fixed slip length.
       const opts = {
         silent: true,
@@ -168,7 +168,7 @@ function waitForBackend(retries = 30) {
       }).on('error', () => retry(remaining));
     }
     function retry(remaining) {
-      if (remaining <= 0) { log('backend timeout â€” continuing anyway'); resolve(); return; }
+      if (remaining <= 0) { log('backend timeout — continuing anyway'); resolve(); return; }
       setTimeout(() => check(remaining - 1), 500);
     }
     check(retries);
@@ -187,7 +187,7 @@ function createSplashWindow() {
     webPreferences: { nodeIntegration: false },
   });
   // Pass the live app version to the splash via query string so the version
-  // line stays in sync with package.json automatically â€” was previously a
+  // line stays in sync with package.json automatically — was previously a
   // hardcoded "v1.3.2" literal in splash.html that drifted years out of date.
   splashWindow.loadFile(path.join(__dirname, 'splash.html'), {
     query: { v: app.getVersion() },
@@ -233,7 +233,7 @@ function createWindow() {
 function openCustomerDisplay() {
   const displays = screen.getAllDisplays();
   const secondDisplay = displays.find(d => d.id !== screen.getPrimaryDisplay().id);
-  if (!secondDisplay) return; // No second monitor â€” do nothing
+  if (!secondDisplay) return; // No second monitor — do nothing
 
   const { x, y, width, height } = secondDisplay.bounds;
   customerWindow = new BrowserWindow({
@@ -248,7 +248,7 @@ function openCustomerDisplay() {
   customerWindow.on('closed', () => { customerWindow = null; });
 }
 
-// Check for updates â€” resolves with: 'no-update' | 'error' | 'timeout' | { type: 'update-available', info }
+// Check for updates — resolves with: 'no-update' | 'error' | 'timeout' | { type: 'update-available', info }
 function checkForUpdate() {
   return new Promise((resolve) => {
     try {
@@ -262,7 +262,7 @@ function checkForUpdate() {
         url: 'https://keletezm.com/api/updates',
       });
 
-      // Short timeout (3s) so the splash isn't stuck waiting for VPS â€” if the
+      // Short timeout (3s) so the splash isn't stuck waiting for VPS — if the
       // network has bad DNS or no internet, this fails fast and the app opens.
       const timer = setTimeout(() => { log('update check timed out'); resolve('timeout'); }, 3000);
 
@@ -301,7 +301,7 @@ app.whenReady().then(async () => {
   log('app ready');
   createSplashWindow();
 
-  // Attach listener immediately â€” before killPort/startBackend so we never miss the event
+  // Attach listener immediately — before killPort/startBackend so we never miss the event
   const splashLoaded = new Promise(resolve => {
     if (splashWindow && !splashWindow.isDestroyed()) {
       if (splashWindow.webContents.isLoading()) {
@@ -329,14 +329,14 @@ app.whenReady().then(async () => {
 
   if (app.isPackaged) {
     setSplashStatus('Checking for updates...');
-    // Run all three in parallel â€” proceed only when all are done
+    // Run all three in parallel — proceed only when all are done
     [, , updateResult] = await Promise.all([minDelay, backendReady, checkForUpdate()]);
   } else {
     setSplashStatus('Development mode');
     await Promise.all([minDelay, backendReady]);
   }
 
-  // If update is available â€” show dialog BEFORE opening main window
+  // If update is available — show dialog BEFORE opening main window
   if (updateResult && updateResult.type === 'update-available') {
     setSplashStatus('Update available!');
 
@@ -373,9 +373,9 @@ app.whenReady().then(async () => {
       });
 
       _autoUpdater.downloadUpdate();
-      return; // App will restart â€” don't open main window
+      return; // App will restart — don't open main window
     }
-    // User chose Skip â€” fall through to open main window normally
+    // User chose Skip — fall through to open main window normally
   }
 
   setSplashStatus('Ready!');

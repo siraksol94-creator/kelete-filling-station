@@ -22,7 +22,7 @@
       position: relative;
     }
 
-    /* Subtle texture overlay â€” soft glow ring centered behind the icon */
+    /* Subtle texture overlay — soft glow ring centered behind the icon */
     body::before {
       content: '';
       position: absolute;
@@ -197,7 +197,7 @@
   <div class="version" id="version">v?</div>
 
   <script>
-    // Version is passed in by main.js as ?v=1.4.75 â€” falls back to literal if missing.
+    // Version is passed in by main.js as ?v=1.4.75 — falls back to literal if missing.
     var v = new URLSearchParams(window.location.search).get('v');
     document.getElementById('version').textContent = v ? ('v' + v) : 'v?';
   </script>

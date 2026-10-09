@@ -1,11 +1,11 @@
 /**
- * pushNotifications.js â€” the phone side of Firebase push.
+ * pushNotifications.js — the phone side of Firebase push.
  *
  * 2026-09-18. In the APK the page could only ever chime while someone was
  * looking at it: the chime is Web Audio inside the page, and Android's WebView
  * does not implement the web Notification API, so nothing reached the tray and
  * nothing at all happened once the app was closed. This registers the handset
- * with Firebase so the backend can wake it â€” see backend/services/push.js.
+ * with Firebase so the backend can wake it — see backend/services/push.js.
  *
  * Everything here is a no-op in a browser. The plugin only exists inside the
  * APK, so a web till runs the same build and simply does nothing.
@@ -13,7 +13,7 @@
 import { registerPushToken, unregisterPushToken } from '../services/api';
 
 // The Android notification channels. A channel decides the SOUND and whether
-// it may interrupt, and â€” this is the part that bites â€” Android freezes those
+// it may interrupt, and — this is the part that bites — Android freezes those
 // settings the first time a channel is created. Changing a channel's sound
 // later means a NEW channel id, which is why these carry a version.
 const CHANNELS = [
@@ -60,7 +60,7 @@ async function plugin() {
 export async function initPushNotifications(onOpen) {
   if (started) return;
   const Push = await plugin();
-  if (!Push) return;             // browser â€” nothing to do
+  if (!Push) return;             // browser — nothing to do
   started = true;
 
   try {
@@ -70,7 +70,7 @@ export async function initPushNotifications(onOpen) {
       perm = await Push.requestPermissions();
     }
     if (perm.receive !== 'granted') {
-      console.log('[push] permission not granted â€” no notifications on this phone');
+      console.log('[push] permission not granted — no notifications on this phone');
       started = false;
       return;
     }

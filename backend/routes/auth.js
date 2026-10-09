@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
 // Verify an Administrator's password. Used for inline approval flows
 // (delete confirmation, POS discount, etc) where any admin in the tenant
 // can authorize the action without logging out and back in.
-// Accepts { password } only â€” tries every admin in the tenant, returns the
+// Accepts { password } only — tries every admin in the tenant, returns the
 // first match. Email is optional for legacy callers.
 router.post('/verify-admin', async (req, res) => {
   try {
@@ -72,7 +72,7 @@ router.post('/verify-admin', async (req, res) => {
 
     let admins;
     if (email) {
-      // Legacy email+password flow â€” preserved for any caller still using it.
+      // Legacy email+password flow — preserved for any caller still using it.
       admins = tenantId && tenantId !== 'local-only'
         ? db.prepare("SELECT id, first_name, last_name, password FROM users WHERE email = ? AND tenant_id = ? AND role = 'Administrator' AND deleted_at IS NULL").all(email, tenantId)
         : db.prepare("SELECT id, first_name, last_name, password FROM users WHERE email = ? AND role = 'Administrator' AND deleted_at IS NULL").all(email);
@@ -94,7 +94,7 @@ router.post('/verify-admin', async (req, res) => {
   }
 });
 
-// Account status â€” no auth required (used by App.js to check if any users exist)
+// Account status — no auth required (used by App.js to check if any users exist)
 router.get('/account-status', (req, res) => {
   try {
     const userCount = db.prepare('SELECT COUNT(*) as cnt FROM users WHERE deleted_at IS NULL').get();
@@ -104,7 +104,7 @@ router.get('/account-status', (req, res) => {
   }
 });
 
-// First-time registration â€” no auth required, only works if no users exist
+// First-time registration — no auth required, only works if no users exist
 router.post('/register-first', async (req, res) => {
   try {
     // Delete any auto-created default admin so fresh installs can register
@@ -120,7 +120,7 @@ router.post('/register-first', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const { deviceId, tenantId } = syncConfig.getConfig();
     const permissionsJson = JSON.stringify(Array.isArray(permissions) ? permissions : []);
-    // v1.13.3 â€” stamp tenant_id at INSERT so subsequent tenant-filtered
+    // v1.13.3 — stamp tenant_id at INSERT so subsequent tenant-filtered
     // SELECTs (login, permission checks) can find this user. Without it,
     // the row lands with tenant_id=NULL and login returns "Invalid
     // credentials" on the branch subdomain (matches gotcha #2 in memory).
@@ -148,7 +148,7 @@ router.post('/register', async (req, res) => {
     const { firstName, lastName, email, password, phone, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
     const { deviceId, tenantId } = syncConfig.getConfig();
-    // v1.13.3 â€” stamp tenant_id at INSERT (see comment on register-first).
+    // v1.13.3 — stamp tenant_id at INSERT (see comment on register-first).
     const info = db.prepare(
       'INSERT INTO users (first_name, last_name, email, password, phone, role, sync_id, tenant_id, device_id, synced) VALUES (?,?,?,?,?,?,?,?,?,0)'
     ).run(firstName, lastName, email, hashedPassword, phone, role || 'Cashier', randomUUID(), tenantId || null, deviceId);
@@ -159,7 +159,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// 2026-09-13 â€” a signed-in user changes their OWN password (sidebar â†’ Change
+// 2026-09-13 — a signed-in user changes their OWN password (sidebar → Change
 // password). The current password is checked first with the same bcrypt check
 // as login. Mistakes answer 400, never 401: the frontend logs the user out on
 // any 401, which would throw them out for a typo.

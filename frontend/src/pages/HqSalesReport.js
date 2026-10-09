@@ -1,10 +1,10 @@
-// HqSalesReport â€” sales across every depot, as cards.
+// HqSalesReport — sales across every depot, as cards.
 //
-// 2026-09-13 â€” the order list is gone. It was most of the wait (up to 1,000
+// 2026-09-13 — the order list is gone. It was most of the wait (up to 1,000
 // order rows per depot, joined to users, drawn as a table) and its totals were
 // added up from those capped rows, so a busy range read low. The page now asks
 // the server for each depot's COUNT and SUM only: three total cards, then one
-// tile per depot â€” the app-grid layout, in the Red Sea navy with the top three
+// tile per depot — the app-grid layout, in the Red Sea navy with the top three
 // marked in red. A tile opens that depot's own Sales Report for the detail.
 //
 // Filters: date-from, date-to, depot. Backend: GET /api/hq/sales-report.
@@ -21,7 +21,7 @@ const NAVY = '#13306b';
 const NAVY_DEEP = '#0b1f4a';
 const RED = '#c8000a';
 
-// "Kelete Distribution - BANKERS (KABWE)" â†’ "Bankers (Kabwe)"
+// "Kelete Distribution - BANKERS (KABWE)" → "Bankers (Kabwe)"
 const shortName = (name, slug) => String(name || slug || '')
   .split(/\s+-\s+/).pop()
   .toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
@@ -75,11 +75,11 @@ export default function HqSalesReport() {
       <div className="page-header desk-only">
         <div>
           <h1>HQ Sales Report</h1>
-          <p>Sales across every depot â€” tap a depot for its orders</p>
+          <p>Sales across every depot — tap a depot for its orders</p>
         </div>
       </div>
 
-      {/* â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Filters ──────────────────────────────────────────────────── */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
         <Field label="From">
           <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp} />
@@ -95,7 +95,7 @@ export default function HqSalesReport() {
         </Field>
         <button onClick={load} disabled={loading}
           style={{ padding: '9px 18px', background: NAVY, color: '#fff', border: 'none', borderRadius: 8, cursor: loading ? 'wait' : 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <FiRefreshCw /> {loading ? 'Loadingâ€¦' : 'Run'}
+          <FiRefreshCw /> {loading ? 'Loading…' : 'Run'}
         </button>
         <div style={{ flex: 1 }} />
         <ExportButtons
@@ -110,7 +110,7 @@ export default function HqSalesReport() {
             { key: 'credit_sales', label: 'Credit Sales (K)', format: v => Number(v || 0).toFixed(2) },
             { key: 'share',    label: 'Share of sales',  format: v => `${(Number(v || 0) * 100).toFixed(1)}%` },
           ]}
-          pdfOptions={{ title: 'HQ Sales Report', subtitle: `${from} â†’ ${to} Â· ${branch === 'all' ? 'all depots' : branch}` }}
+          pdfOptions={{ title: 'HQ Sales Report', subtitle: `${from} → ${to} · ${branch === 'all' ? 'all depots' : branch}` }}
         />
       </div>
 
@@ -120,28 +120,28 @@ export default function HqSalesReport() {
         </div>
       )}
 
-      {loading && !data && <p style={{ color: '#64748b' }}>Loadingâ€¦</p>}
+      {loading && !data && <p style={{ color: '#64748b' }}>Loading…</p>}
 
       {data && (
         <>
-          {/* â”€â”€ Totals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ── Totals ───────────────────────────────────────────────── */}
           <div className="tiles-2up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 12, marginBottom: 18 }}>
             <div style={{ background: `linear-gradient(150deg, ${NAVY_DEEP}, ${NAVY})`, color: '#fff', borderRadius: 14, padding: '14px 16px' }}>
               <div style={kLbl('rgba(255,255,255,0.75)')}>Total sales</div>
               <div className="tile-value" style={{ fontSize: 24, fontWeight: 800, marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(t.revenue)}</div>
-              <div style={{ fontSize: 11.5, opacity: 0.8, marginTop: 2 }}>{data.from === data.to ? data.from : `${data.from} â†’ ${data.to}`}</div>
+              <div style={{ fontSize: 11.5, opacity: 0.8, marginTop: 2 }}>{data.from === data.to ? data.from : `${data.from} → ${data.to}`}</div>
             </div>
             <div style={card}>
               <div style={kLbl('#64748b')}>Orders</div>
               <div className="tile-value" style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{fmtInt(t.orders)}</div>
               <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>{fmtInt(tiles.filter(x => x.orders > 0).length)} depot{tiles.filter(x => x.orders > 0).length === 1 ? '' : 's'} selling</div>
             </div>
-            {/* 2026-09-13 â€” Collected (cash handed over, change included) is gone.
+            {/* 2026-09-13 — Collected (cash handed over, change included) is gone.
                 Cash sales + Credit sales = Total sales. */}
             <div style={card}>
               <div style={kLbl('#64748b')}>Cash sales</div>
               <div className="tile-value" style={{ fontSize: 24, fontWeight: 800, color: '#15803d', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(t.cash_sales)}</div>
-              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>paid at the till Â· cash, MoMo, bank</div>
+              <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>paid at the till · cash, MoMo, bank</div>
             </div>
             <div style={card}>
               <div style={kLbl('#64748b')}>Credit sales</div>
@@ -150,14 +150,14 @@ export default function HqSalesReport() {
             </div>
           </div>
 
-          {/* â”€â”€ One tile per depot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+          {/* ── One tile per depot ───────────────────────────────────── */}
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#5b6478', margin: '0 0 10px' }}>
-            Depots Â· busiest first
+            Depots · busiest first
           </div>
           {tiles.length === 0 ? (
             <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No depots in this selection.</p>
           ) : (
-            // 2026-09-18 â€” one depot per row on a phone: the tiles-2up class is
+            // 2026-09-18 — one depot per row on a phone: the tiles-2up class is
             // gone, so a card is no longer squeezed into half a screen with its
             // amount shrunk to 15px. Two or more per row on a laptop, as before.
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
@@ -187,7 +187,7 @@ export default function HqSalesReport() {
                     </div>
                     <div style={{ fontSize: 11.5, opacity: quiet ? 1 : 0.85 }}>
                       {quiet ? 'No sales'
-                        : `${fmtInt(d.orders)} orders${d.credit_sales > 0.004 ? ` Â· ${fmtMoney(d.credit_sales)} credit` : ''}`}
+                        : `${fmtInt(d.orders)} orders${d.credit_sales > 0.004 ? ` · ${fmtMoney(d.credit_sales)} credit` : ''}`}
                     </div>
                     <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ flex: 1, height: 4, borderRadius: 4, background: quiet ? '#eef2f7' : 'rgba(255,255,255,0.18)', overflow: 'hidden' }}>

@@ -1,7 +1,7 @@
-// v1.13.153 â€” Opening Balance.
+// v1.13.153 — Opening Balance.
 //
 // Standing up a new depot: what it holds, what that stock cost, and what it
-// sells for â€” on one screen, one row per item. Deliberately the same card grid
+// sells for — on one screen, one row per item. Deliberately the same card grid
 // as Quick Price (v1.8.34) because it is the same job with two more columns,
 // and a second layout to learn would be a second layout to get wrong.
 //
@@ -9,7 +9,7 @@
 // re-declaring a balance that already exists; a filled one makes you type over
 // a real number, which is a decision rather than an accident.
 //
-// REPLACE, NOT ADD â€” the backend edits the single opening row in place, so
+// REPLACE, NOT ADD — the backend edits the single opening row in place, so
 // entering 500 twice leaves 500, not 1000. Nothing in the app would have
 // caught the doubling: there is no stock guard anywhere in routes/orders.js.
 //
@@ -26,7 +26,7 @@ import { matchTokens } from '../utils/tokenSearch';
 const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 
 // Which packaging is the DEFAULT for cascade purposes. Same rule as
-// QuickPrice.js â€” falls back to the base unit when default_unit is unset.
+// QuickPrice.js — falls back to the base unit when default_unit is unset.
 const defaultUnitName = (product) => {
   const dflt = (product.default_unit || '').trim();
   if (dflt) return dflt;
@@ -429,14 +429,14 @@ const OpeningBalance = () => {
           )}
           <button onClick={handleSaveAll} disabled={saving || dirtyIds.size === 0}
             style={{ padding: '10px 20px', borderRadius: 10, border: 'none', background: dirtyIds.size > 0 ? '#16a34a' : '#cbd5e1', color: '#fff', cursor: dirtyIds.size > 0 ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <FiSave size={15} /> {saving ? 'Savingâ€¦' : `Save All Changes${dirtyIds.size > 0 ? ` (${dirtyIds.size})` : ''}`}
+            <FiSave size={15} /> {saving ? 'Saving…' : `Save All Changes${dirtyIds.size > 0 ? ` (${dirtyIds.size})` : ''}`}
           </button>
         </div>
       </div>
 
       {dupes.length > 0 && (
         <div style={{ margin: '10px 0', padding: '10px 14px', borderRadius: 10, background: '#fef3c7', border: '1px solid #fcd34d', color: '#92400e', fontSize: 12.5 }}>
-          <strong>{dupes.length} item(s) carry more than one opening row</strong> â€” from before this page existed. The figure shown is their total.
+          <strong>{dupes.length} item(s) carry more than one opening row</strong> — from before this page existed. The figure shown is their total.
           Saving that item keeps one row and retires the rest.
         </div>
       )}
@@ -444,7 +444,7 @@ const OpeningBalance = () => {
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0 18px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: '0 0 360px' }}>
           <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={15} />
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product name or codeâ€¦"
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product name or code…"
             style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: '#374151', cursor: 'pointer', fontWeight: 600 }}>
@@ -452,12 +452,12 @@ const OpeningBalance = () => {
           Only items with no balance yet
         </label>
         <div style={{ fontSize: 12, color: '#6b7280' }}>
-          {filteredProducts.length} of {products.length} products Â· <strong>{declared}</strong> already declared
+          {filteredProducts.length} of {products.length} products · <strong>{declared}</strong> already declared
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>Loading items and balancesâ€¦</div>
+        <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>Loading items and balances…</div>
       ) : filteredProducts.length === 0 ? (
         <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', background: '#fff', borderRadius: 12 }}>No products match.</div>
       ) : (
@@ -488,7 +488,7 @@ const OpeningBalance = () => {
                         {p._dupes} ROWS
                       </span>
                     )}
-                    {isDirty && <span style={{ color: '#d97706', fontWeight: 700 }}>â— unsaved</span>}
+                    {isDirty && <span style={{ color: '#d97706', fontWeight: 700 }}>● unsaved</span>}
                   </div>
                 </div>
 
@@ -553,7 +553,7 @@ const OpeningBalance = () => {
                             bg: isDirty ? '#fffbeb' : (isDefault ? '#eff6ff' : '#fff'),
                           })}
                         </div>
-                        {!isLast && <div style={{ textAlign: 'center', color: '#cbd5e1', fontSize: 14, lineHeight: 1 }}>â†“</div>}
+                        {!isLast && <div style={{ textAlign: 'center', color: '#cbd5e1', fontSize: 14, lineHeight: 1 }}>↓</div>}
                       </React.Fragment>
                     );
                   })}

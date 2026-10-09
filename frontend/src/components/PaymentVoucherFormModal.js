@@ -1,4 +1,4 @@
-// Shared Payment Voucher form modal â€” used by both the PV page (general
+// Shared Payment Voucher form modal — used by both the PV page (general
 // accounting) and the Cash Report page (cashier end-of-day). Same UI, same
 // fields, same Types dropdown (from pv_types). Caller can lock paid_from
 // to a fixed value (e.g. "Cash Drawer" for cash-report use).
@@ -13,32 +13,32 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 const PaymentVoucherFormModal = ({
   open,
   onClose,
-  onSaved,             // (savedVoucher) => void â€” called after a successful save
-  editVoucher,         // optional â€” pre-fills for edit; null/undefined = new
-  defaultPaidFrom,     // optional â€” overrides 'Main cashier' default for new
-  lockPaidFrom,        // boolean â€” if true, paid_from select is disabled
-  defaultDate,         // optional â€” overrides today's date for new
-  defaultCurrency,     // v1.8.18 â€” 'USD' | 'FRA' | 'K' â€” auto-focuses that
+  onSaved,             // (savedVoucher) => void — called after a successful save
+  editVoucher,         // optional — pre-fills for edit; null/undefined = new
+  defaultPaidFrom,     // optional — overrides 'Main cashier' default for new
+  lockPaidFrom,        // boolean — if true, paid_from select is disabled
+  defaultDate,         // optional — overrides today's date for new
+  defaultCurrency,     // v1.8.18 — 'USD' | 'FRA' | 'K' — auto-focuses that
                        //   currency's amount input. Other inputs visible but blurred.
-  defaultPaidTo,       // v1.8.24 â€” pre-fills the Paid To field on new vouchers
+  defaultPaidTo,       // v1.8.24 — pre-fills the Paid To field on new vouchers
                        //   (e.g. the cashier's name when opened from Cash Report).
-  extraPayload,        // optional object â€” merged into the API payload (e.g. { cashier_id })
-  prefill,             // 2026-09-18 â€” fills a NEW voucher from an approved
+  extraPayload,        // optional object — merged into the API payload (e.g. { cashier_id })
+  prefill,             // 2026-09-18 — fills a NEW voucher from an approved
                        //   expense request, so nothing is typed twice.
-  onRequested,         // (request) => void â€” called after the depot sends an
+  onRequested,         // (request) => void — called after the depot sends an
                        //   over-the-limit voucher to HQ for approval.
 }) => {
   const { symbol: curSym, isLiquorStyle, methodShown } = useCurrency();
-  // v1.13.46 â€” Kelete is single-currency K across HQ and every branch,
+  // v1.13.46 — Kelete is single-currency K across HQ and every branch,
   // so the Kelete-era `isHqHost() ? false : isLiquorStyle` override no
-  // longer applies here â€” it forced USD/FRA/K columns onto Kelete HQ
+  // longer applies here — it forced USD/FRA/K columns onto Kelete HQ
   // and confused operators. Use the CurrencyContext value directly;
   // business_settings on HQ + branches all have
   //   currency_mode=K, payment_methods=cash_momo_bank
   // which resolves isLiquorStyle=true, giving the correct Cash / MoMo
   // / Bank labels everywhere.
   const effectiveLiquorStyle = isLiquorStyle;
-  // v1.10.31 â€” On Liquor-style branches (Lusaka, Mansa, K-only Cash/MoMo/Bank
+  // v1.10.31 — On Liquor-style branches (Lusaka, Mansa, K-only Cash/MoMo/Bank
   // workflow) the three amount inputs are physical methods, not currencies.
   // Storage columns stay the same (usd_amount = Cash, fra_amount = MoMo,
   // k_amount = Bank) to match CashReport's per-method cards and avoid a DB
@@ -56,7 +56,7 @@ const PaymentVoucherFormModal = ({
       ];
 
   const [pvTypes, setPvTypes] = useState([]);
-  // v1.8.5 â€” triple-currency. USD ($), FRA, K each in own currency. Legacy
+  // v1.8.5 — triple-currency. USD ($), FRA, K each in own currency. Legacy
   // cash_amount/bank_amount/momo_amount columns still in DB, kept at 0.
   const [form, setForm] = useState({
     paid_to: '', description: '', category: '',
@@ -66,12 +66,12 @@ const PaymentVoucherFormModal = ({
   });
   const [error, setError]   = useState('');
   const [saving, setSaving] = useState(false);
-  // 2026-09-18 â€” set when the server refuses the voucher for taking the depot
+  // 2026-09-18 — set when the server refuses the voucher for taking the depot
   // over its daily expense limit. Holds what the server said plus the payload,
   // so the same voucher can be sent to HQ for approval with a reason.
   const [overLimit, setOverLimit] = useState(null);
   const [limitReason, setLimitReason] = useState('');
-  // 2026-09-11 â€” a method the branch has switched off (System Settings â†’
+  // 2026-09-11 — a method the branch has switched off (System Settings →
   // Payment methods shown) is hidden, unless this PV already has money on it.
   const shownFields = fieldConfigs.filter(f => !effectiveLiquorStyle || methodShown(f.label) || parseFloat(form[f.key] || 0) > 0);
 
@@ -84,7 +84,7 @@ const PaymentVoucherFormModal = ({
   useEffect(() => {
     if (!open) return;
     if (editVoucher) {
-      // v1.8.5 â€” prefer new usd/fra/k columns; fall back to legacy
+      // v1.8.5 — prefer new usd/fra/k columns; fall back to legacy
       // cash/bank/momo (where the same amounts were stored before the rename).
       const usd = parseFloat(editVoucher.usd_amount || editVoucher.cash_amount || 0) || 0;
       const fra = parseFloat(editVoucher.fra_amount || editVoucher.bank_amount || 0) || 0;
@@ -107,7 +107,7 @@ const PaymentVoucherFormModal = ({
       setForm({
         paid_to:     prefill.paid_to     || '',
         description: prefill.description || '',
-        // 2026-09-20 â€” whatever the request said, or nothing. It used to
+        // 2026-09-20 — whatever the request said, or nothing. It used to
         // fall back to 'Other', which is a real category and quietly the
         // wrong one.
         category:    prefill.category    || '',
@@ -120,8 +120,8 @@ const PaymentVoucherFormModal = ({
       });
     } else {
       setForm({
-        paid_to: defaultPaidTo || '', // v1.8.24 â€” pre-fill with cashier name when provided
-        // 2026-09-20 â€” blank, so the dropdown shows its own
+        paid_to: defaultPaidTo || '', // v1.8.24 — pre-fill with cashier name when provided
+        // 2026-09-20 — blank, so the dropdown shows its own
         // "- Select Type (required) -" placeholder. It opened on 'Other'
         // and could be saved that way without anyone choosing, which is
         // how expenses end up filed under Other. Save already refuses an
@@ -143,9 +143,9 @@ const PaymentVoucherFormModal = ({
   const handleSave = async () => {
     setError('');
     if (!form.paid_to.trim()) return setError('Paid To is required.');
-    // v1.8.25 â€” Type is required. Forces a conscious pick instead of
+    // v1.8.25 — Type is required. Forces a conscious pick instead of
     // accidentally saving with the wrong default.
-    if (!form.category) return setError('Type is required â€” pick one from the dropdown.');
+    if (!form.category) return setError('Type is required — pick one from the dropdown.');
     const usd = parseFloat(form.usd_amount || 0) || 0;
     const fra = parseFloat(form.fra_amount || 0) || 0;
     const k   = parseFloat(form.k_amount   || 0) || 0;
@@ -153,7 +153,7 @@ const PaymentVoucherFormModal = ({
     // this). On Kelete, only USD is canonical since FRA & K would need FX;
     // on Liquor the three slots are all the same currency (Cash/MoMo/Bank
     // in K), so `amount` = sum of whichever slot the user filled in.
-    // v1.10.31 â€” was reading `usd` only, which zeroed the header amount when
+    // v1.10.31 — was reading `usd` only, which zeroed the header amount when
     // a Liquor cashier paid via MoMo or Bank.
     const totalUsd = effectiveLiquorStyle ? (usd + fra + k) : usd;
     if (usd <= 0 && fra <= 0 && k <= 0) return setError(effectiveLiquorStyle ? 'Enter an amount in Cash, Mobile Money, or Bank.' : 'Enter an amount in at least one currency.');
@@ -162,18 +162,18 @@ const PaymentVoucherFormModal = ({
       if (!window.confirm('Are you sure you want to update this record?')) return;
     }
     setSaving(true);
-    // 2026-09-21 â€” built OUTSIDE the try because the catch needs it: when the
+    // 2026-09-21 — built OUTSIDE the try because the catch needs it: when the
     // server refuses a voucher for being over the daily limit, the approval
     // panel is opened with this payload so it can be sent to HQ as it stands.
     // It used to be declared inside the try, so the catch threw
     // "payload is not defined" before it could open the panel OR show the
-    // error â€” the depot clicked Save on an over-limit voucher and got
+    // error — the depot clicked Save on an over-limit voucher and got
     // absolutely nothing, with the refusal sitting unseen in the console.
-    // 2026-09-21 â€” an approved request keeps what it was RAISED with.
+    // 2026-09-21 — an approved request keeps what it was RAISED with.
     //
     // The chain that broke: an expense raised on Cash Report goes over the
     // limit, HQ approves it, the badge opens this modal on the Payment
-    // Voucher page â€” and this line overwrote paid_from with "Cash drawer" and
+    // Voucher page — and this line overwrote paid_from with "Cash drawer" and
     // attached no cashier, so the voucher landed outside the Cash Report it
     // came from and the cashier never saw her own expense.
     //
@@ -209,7 +209,7 @@ const PaymentVoucherFormModal = ({
       onClose();
     } catch (err) {
       const data = err.response?.data || {};
-      // 2026-09-18 â€” over the depot's daily expense limit: offer to send it to
+      // 2026-09-18 — over the depot's daily expense limit: offer to send it to
       // HQ instead. `pending_request` means one is already waiting.
       if (data.needs_approval) setOverLimit({ ...data, payload });
       setError(data.error || 'Failed to save voucher.');
@@ -235,19 +235,19 @@ const PaymentVoucherFormModal = ({
 
   return (
     <Portal>
-      {/* v1.8.24 â€” click-outside does NOT close. Backdrop is decorative.
+      {/* v1.8.24 — click-outside does NOT close. Backdrop is decorative.
           User must click Cancel or X to dismiss. Prevents losing typed
           amounts when accidentally clicking outside the modal. */}
       <div className="modal-overlay">
         <div className="modal" onClick={e => e.stopPropagation()}>
           <div className="modal-header">
             <h3>{editVoucher ? 'Edit Payment Voucher' : 'New Payment Voucher'}</h3>
-            <button className="modal-close" onClick={onClose}>Ã—</button>
+            <button className="modal-close" onClick={onClose}>×</button>
           </div>
           <div className="modal-body">
             {error && <div style={{ color: '#dc2626', marginBottom: 12, fontSize: 13 }}>{error}</div>}
 
-            {/* 2026-09-18 â€” over the depot's daily expense limit. The voucher
+            {/* 2026-09-18 — over the depot's daily expense limit. The voucher
                 is not saved; it goes to HQ with a reason and waits there. */}
             {overLimit && (
               <div style={{ marginBottom: 14, padding: '12px 14px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8 }}>
@@ -262,7 +262,7 @@ const PaymentVoucherFormModal = ({
                   style={{ width: '100%', padding: '9px 12px', marginTop: 4, border: '1px solid #fecaca', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
                 <button type="button" onClick={sendForApproval} disabled={saving}
                   style={{ marginTop: 10, padding: '9px 18px', background: saving ? '#fca5a5' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: saving ? 'wait' : 'pointer' }}>
-                  {saving ? 'Sendingâ€¦' : 'Send to HQ for approval'}
+                  {saving ? 'Sending…' : 'Send to HQ for approval'}
                 </button>
               </div>
             )}
@@ -274,14 +274,14 @@ const PaymentVoucherFormModal = ({
               </div>
               <div className="form-group">
                 <label>Type <span style={{ color: '#dc2626' }}>*</span></label>
-                {/* v1.8.25 â€” start blank so the user can't save with the
+                {/* v1.8.25 — start blank so the user can't save with the
                     wrong default ('Council' wasn't always right). Save
                     handler rejects empty category with an error.
-                    v1.8.53 â€” Update button also disabled until Type is set. */}
+                    v1.8.53 — Update button also disabled until Type is set. */}
                 <select value={form.category} required
                   onChange={e => setForm({ ...form, category: e.target.value })}
                   style={{ borderColor: form.category ? '' : '#dc2626', background: form.category ? '' : '#fef2f2' }}>
-                  <option value="">â€” Select Type (required) â€”</option>
+                  <option value="">— Select Type (required) —</option>
                   {pvTypes.length === 0
                     ? <option value="Other">Other</option>
                     : pvTypes.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
@@ -302,7 +302,7 @@ const PaymentVoucherFormModal = ({
               </div>
             )}
 
-            {/* Amount split across methods â€” mirrors the AP Record Payment modal. */}
+            {/* Amount split across methods — mirrors the AP Record Payment modal. */}
             <div className="form-group">
               <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                 Amount Paid (split across methods)
@@ -310,7 +310,7 @@ const PaymentVoucherFormModal = ({
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${shownFields.length}, 1fr)`, gap: 10 }}>
                 {shownFields.map((f) => {
                   const isDefault = defaultCurrency && f.ccy === defaultCurrency;
-                  // v1.8.24 â€” one PV = one method/currency. Disable an input
+                  // v1.8.24 — one PV = one method/currency. Disable an input
                   // when ANY OTHER already has a value > 0.
                   const otherKeys = fieldConfigs.map(x => x.key).filter(k => k !== f.key);
                   const someoneElseHasValue = otherKeys.some(k => parseFloat(form[k] || 0) > 0);
@@ -324,7 +324,7 @@ const PaymentVoucherFormModal = ({
                         value={form[f.key]}
                         onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                         placeholder={f.placeholder}
-                        title={locked ? (effectiveLiquorStyle ? 'Clear the other method to switch â€” one PV = one method.' : 'Clear the other currency to switch â€” one PV = one currency.') : ''}
+                        title={locked ? (effectiveLiquorStyle ? 'Clear the other method to switch — one PV = one method.' : 'Clear the other currency to switch — one PV = one currency.') : ''}
                         style={{
                           width: '100%', padding: '8px 10px',
                           border: `2px solid ${locked ? '#e5e7eb' : (parseFloat(form[f.key] || 0) > 0 || isDefault ? f.color : '#d1d5db')}`,
@@ -341,7 +341,7 @@ const PaymentVoucherFormModal = ({
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
                 {(() => {
-                  // v1.10.31 â€” Liquor totals sum all three inputs in one currency
+                  // v1.10.31 — Liquor totals sum all three inputs in one currency
                   // (only one is non-zero due to the lock, so this reads the
                   // active method's value). Kelete keeps the USD-only header total
                   // that the DB `amount` column tracks.

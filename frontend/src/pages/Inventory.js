@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiSearch, FiDownload, FiPackage, FiAlertTriangle, FiTrendingUp, FiGrid, FiPrinter } from 'react-icons/fi';
 import CategoryFilter from '../components/CategoryFilter';
-// formatStock / formatStockForProduct no longer used â€” all columns now use
+// formatStock / formatStockForProduct no longer used — all columns now use
 // displayInDefaultUnit so qty + unit are consistent (incl. negatives).
 import { displayInDefaultUnit } from '../utils/productUnits';
 import printHtml from '../utils/printHtml';
@@ -88,7 +88,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
   // Stats follow the filter
   const totalItems = filtered.length;
   const lowStockCount = filtered.filter(i => parseFloat(i.store_balance) <= parseFloat(i.min_stock || 0)).length;
-  // v1.13.83 â€” BALANCE VALUE = qty Ã— WAC (cost basis), not qty Ã— selling_price.
+  // v1.13.83 — BALANCE VALUE = qty × WAC (cost basis), not qty × selling_price.
   // Old code showed "what we'd sell it for", but every stock report expects
   // "what we paid for it" so it reconciles with COGS + AP. avg_cost_price is
   // the stored WAC; fall back to the static cost_price hint if unset.
@@ -97,7 +97,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
 
   // Subtotals by main category
   const subtotalsByMain = (() => {
-    const map = new Map(); // main_id â†’ { name, color, value, items }
+    const map = new Map(); // main_id → { name, color, value, items }
     for (const item of filtered) {
       const mainId = item.main_category_id || '__unassigned__';
       const main = allMains.find(m => String(m.id) === String(item.main_category_id));
@@ -143,7 +143,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
       filter && filter !== 'All Items' && `Filter: ${filter}`,
       from && `From: ${from}`,
       to && `To: ${to}`,
-    ].filter(Boolean).join(' Â· ') || 'All items';
+    ].filter(Boolean).join(' · ') || 'All items';
     const printedAt = new Date().toLocaleString();
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(titleText)}</title>
       <style>
@@ -160,7 +160,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
       </style>
       </head><body>
         <h1>${esc(titleText)}</h1>
-        <div class="meta">${esc(subtitleText)} Â· ${esc(filterLine)} Â· ${filtered.length} item${filtered.length === 1 ? '' : 's'}</div>
+        <div class="meta">${esc(subtitleText)} · ${esc(filterLine)} · ${filtered.length} item${filtered.length === 1 ? '' : 's'}</div>
         <table>
           <thead><tr><th>${esc(t('code'))}</th><th>${esc(t('product'))}</th><th>${esc(t('category'))}</th><th class="r">${esc(t('openingBalance'))}</th><th class="r">${esc(t('totalIn'))}</th><th class="r">${esc(t('totalOut'))}</th><th class="r">${esc(t('storeBalance'))}</th><th class="r">${esc(t('minStock'))}</th><th class="r">${esc(t('balanceValue'))}</th><th>${esc(t('status'))}</th></tr></thead>
           <tbody>${rows || '<tr><td colspan="10" style="text-align:center;padding:20px;color:#9ca3af">No items</td></tr>'}</tbody>
@@ -252,7 +252,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
             }}>
               <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
               <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
-                {s.items} item{s.items !== 1 ? 's' : ''} Â· {curSym}{s.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {s.items} item{s.items !== 1 ? 's' : ''} · {curSym}{s.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
           ))}
@@ -263,7 +263,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
         <table className="data-table">
           <thead>
             <tr>
-              {/* v1.9.24 â€” On the Sales Stock Card variant (viewLocation='sales')
+              {/* v1.9.24 — On the Sales Stock Card variant (viewLocation='sales')
                   the balance is the sales-floor balance, not a "store" balance
                   (Kelete has no store layer). Show a clearer label. */}
               <th>{t('code')}</th><th>{t('product')}</th><th>{t('category')}</th><th>{t('openingBalance')}</th><th>{t('totalIn')}</th><th>{t('totalOut')}</th>
@@ -303,7 +303,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
                         title={transitQty > 0 ? 'PENDING outgoing transfers awaiting receiver confirmation' : undefined}>
                       {transitQty > 0
                         ? `${transitDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${transitDisp.unit}`
-                        : 'â€”'}
+                        : '—'}
                     </td>
                   )}
                   <td style={storeBalance < 0 ? { color: '#dc2626', fontWeight: 600 } : undefined}>

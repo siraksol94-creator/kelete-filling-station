@@ -3,15 +3,15 @@
  * Reusable function to compute and store daily gross/net profit.
  *
  * Formula (after the Sales Inventory / Stock Adjustment retirement):
- *   Gross Profit = Revenue âˆ’ COGS âˆ’ Damages + Supplier Rebates + Stock Variance + Cash Variance
- *   Net Profit   = Gross Profit âˆ’ Expenses (PV)
+ *   Gross Profit = Revenue − COGS − Damages + Supplier Rebates + Stock Variance + Cash Variance
+ *   Net Profit   = Gross Profit − Expenses (PV)
  *
  * "Supplier Rebates" = SUM(supplier_credit_notes.amount) for the day where
- * reason IN ('Discount','Other'). Crate/Bottle returns are excluded â€” those
+ * reason IN ('Discount','Other'). Crate/Bottle returns are excluded — those
  * are deposit refunds, not income (they affect AP balance + empty stock only).
  *
- * Stock Variance is the sum of stock_reconciliation_items.variance_base Ã— cost_at_count
- * for that count_date â€” covers BOTH sales and store locations.
+ * Stock Variance is the sum of stock_reconciliation_items.variance_base × cost_at_count
+ * for that count_date — covers BOTH sales and store locations.
  *
  * Called from: stock reconciliation POST, cash-reports save, payment-vouchers save,
  * order create/reverse, GRN save.
@@ -20,7 +20,7 @@ const { randomUUID } = require('crypto');
 const { baseQtyExpr } = require('./unitsHelper');
 
 /**
- * writeDailyCostSnapshot â€” v1.13.48
+ * writeDailyCostSnapshot — v1.13.48
  * First-write-wins snapshot of avg_cost_price + selling_price per product
  * per date. Uses INSERT OR IGNORE so once a date/product row exists, later
  * calls (which see today's freshly-blended WAC) can never overwrite the
@@ -32,7 +32,7 @@ const { baseQtyExpr } = require('./unitsHelper');
  * else the dated aggregate, else p.cost_price.
  *
  * Called at the top of recalculateDailyProfit so every business event
- * (sale, GRN, PV, damage, transit_writeoff, reconciliation, â€¦) auto-locks
+ * (sale, GRN, PV, damage, transit_writeoff, reconciliation, …) auto-locks
  * that day's cost before COGS/damages queries read from dcs.
  */
 function writeDailyCostSnapshot(db, date, tenantId) {
@@ -88,15 +88,15 @@ function writeDailyCostSnapshot(db, date, tenantId) {
 
 function recalculateDailyProfit(db, date, tenantId) {
   try {
-    // v1.13.48 â€” lock cost for this date BEFORE reading COGS/damages. Any
-    // event that would trigger a recalc (sale, GRN, PV, damage, recon, â€¦)
+    // v1.13.48 — lock cost for this date BEFORE reading COGS/damages. Any
+    // event that would trigger a recalc (sale, GRN, PV, damage, recon, …)
     // now auto-snapshots the date. INSERT OR IGNORE means the very first
     // event of the date wins; later events for the same date leave the
     // frozen cost alone. Result: historical dates become tamper-proof
     // to later cost changes without needing a per-sale cost_at_sale column.
     writeDailyCostSnapshot(db, date, tenantId);
 
-    // Revenue: total sales billed today (accrual â€” includes credit sales whether paid or not).
+    // Revenue: total sales billed today (accrual — includes credit sales whether paid or not).
     // Cash actually collected is tracked separately in the Cash Report.
     const revRow = db.prepare(`
       SELECT COALESCE(SUM(total_amount), 0) AS revenue
@@ -105,17 +105,17 @@ function recalculateDailyProfit(db, date, tenantId) {
         AND (status IS NULL OR status != 'Reversed')
     `).get(date, tenantId);
 
-    // COGS: sale movements Ã— cost.
-    // v1.13.49 â€” cost fallback now starts with sm.cost_at_sale (the WAC
+    // COGS: sale movements × cost.
+    // v1.13.49 — cost fallback now starts with sm.cost_at_sale (the WAC
     // frozen at the MOMENT of the sale by trigger trg_stamp_cost_at_sale).
-    // Fully immune to any later WAC change â€” even mid-day GRN blends.
-    // Fallbacks (in order): frozen sale cost â†’ dcs snapshot â†’ dated GRN
-    // aggregate â†’ live products.cost_price.
+    // Fully immune to any later WAC change — even mid-day GRN blends.
+    // Fallbacks (in order): frozen sale cost → dcs snapshot → dated GRN
+    // aggregate → live products.cost_price.
     //
     // Also fixed movement_type filter from 'reverse' (a ghost that no code
     // path writes) to 'sale_reverse' (what orders.js:1235 actually emits),
-    // and flipped ABS(quantity) â†’ -quantity so reverses subtract cost
-    // (sale is negative â†’ +cost, sale_reverse is positive â†’ -cost).
+    // and flipped ABS(quantity) → -quantity so reverses subtract cost
+    // (sale is negative → +cost, sale_reverse is positive → -cost).
     // Same shape as Kelete v1.10.215.
     const cogsRow = db.prepare(`
       SELECT COALESCE(SUM(-sm.quantity *
@@ -146,23 +146,23 @@ function recalculateDailyProfit(db, date, tenantId) {
 
     // Diff: mirrors exactly what the frontend computes per row:
     // difference = actual_balance - (opening_balance + input - total_sales - total_returns)
-    // totalDiff  = SUM(difference Ã— avg_cost_price)
+    // totalDiff  = SUM(difference × avg_cost_price)
     // Cash difference (drawer over / short for the day).
-    // v1.13.57 â€” for K-only branches (Buseko, Garden â€” Kelete is K-only
+    // v1.13.57 — for K-only branches (Buseko, Garden — Kelete is K-only
     // by default), compute the difference live from the raw fields,
     // matching the Cash Report / Report History display formula exactly:
     //   total = cash + mobile_money + bank + pending + expenses
-    //   diff  = total âˆ’ expected
+    //   diff  = total − expected
     // The stored `difference` column is legacy USD-bucket math left over
     // from an older save version that drops MoMo + Bank on K-only
     // branches, producing wildly negative diffs even when the drawer
     // balanced. Report History (CashReport.js:1795-1804) already computes
     // correctly on the fly; profitHelper now mirrors it.
     // Tri-currency branches (if any registered in future) keep using the
-    // stored `difference` â€” already correct in USD terms.
+    // stored `difference` — already correct in USD terms.
     //
     // Ported from Kelete v1.10.222.
-    // v1.13.58 â€” SUM across all cash_reports rows for the date. Some
+    // v1.13.58 — SUM across all cash_reports rows for the date. Some
     // dates have multiple reports (one per cashier); prior .get() picked
     // only the first row and silently dropped the rest. Cash Report's
     // top-tile totals sum across ALL reports, so profitHelper matches now.
@@ -187,9 +187,9 @@ function recalculateDailyProfit(db, date, tenantId) {
       FROM payment_vouchers WHERE date = ? AND deleted_at IS NULL AND tenant_id = ?
     `).get(date, tenantId);
 
-    // Stock Variance â€” from Stock Reconciliation only (replaces the old daily_actual_balance + stock_adjustments)
-    // Sums variance Ã— cost_at_count across BOTH sales and store reconciliations for the date.
-    // Positive = found extra stock (stock gain) Â· Negative = shrinkage.
+    // Stock Variance — from Stock Reconciliation only (replaces the old daily_actual_balance + stock_adjustments)
+    // Sums variance × cost_at_count across BOTH sales and store reconciliations for the date.
+    // Positive = found extra stock (stock gain) · Negative = shrinkage.
     const reconRow = db.prepare(`
       SELECT COALESCE(SUM(sri.variance_base * sri.cost_at_count), 0) AS recon_value
       FROM stock_reconciliation_items sri
@@ -197,10 +197,10 @@ function recalculateDailyProfit(db, date, tenantId) {
       WHERE sr.count_date = ? AND sr.deleted_at IS NULL AND sri.deleted_at IS NULL AND sr.tenant_id = ?
     `).get(date, tenantId);
 
-    // Damages â€” items destroyed/expired (recorded via Sales Damages page).
-    // Cost = ABS(qty) Ã— avg_cost_price for sales_return movements at 'sales' location.
+    // Damages — items destroyed/expired (recorded via Sales Damages page).
+    // Cost = ABS(qty) × avg_cost_price for sales_return movements at 'sales' location.
     // Uses the same cost basis as COGS (snapshot-first, falling back to GRN+production avg, then cost_price).
-    // v1.13.49 â€” damages: prefer sm.cost_at_sale (frozen on the movement
+    // v1.13.49 — damages: prefer sm.cost_at_sale (frozen on the movement
     // by trigger trg_stamp_cost_at_sale) before falling through to dcs and
     // the dated aggregates. Ensures a Sales Damages / transit_writeoff
     // recorded today can't retroactively re-cost when the product's live
@@ -226,10 +226,10 @@ function recalculateDailyProfit(db, date, tenantId) {
         GROUP BY gi.product_sync_id
       ) grn_agg ON grn_agg.product_sync_id = sm.product_sync_id
       LEFT JOIN (SELECT product_sync_id, SUM(quantity) AS total_qty, SUM(total_allocated_cost) AS total_cost FROM production_outputs WHERE deleted_at IS NULL AND product_sync_id IS NOT NULL GROUP BY product_sync_id) prod_agg ON prod_agg.product_sync_id = sm.product_sync_id
-      -- v1.13.47 â€” include transit_writeoff (Option C: HQ resolves a Transit
+      -- v1.13.47 — include transit_writeoff (Option C: HQ resolves a Transit
       -- Variance as WRITE_OFF and the loss lands on the chosen branch's
       -- damages line). Written by hq.js with location='books_only' so it's
-      -- invisible to inventory sums but visible here â€” drop the location
+      -- invisible to inventory sums but visible here — drop the location
       -- filter for the writeoff type so it's picked up regardless.
       WHERE ((sm.location = 'sales' AND sm.movement_type = 'sales_return')
              OR sm.movement_type = 'transit_writeoff')
@@ -237,7 +237,7 @@ function recalculateDailyProfit(db, date, tenantId) {
         AND p.tenant_id = ?
     `).get(date, date, tenantId);
 
-    // Supplier Rebates â€” confirmed credit notes for the day, excluding
+    // Supplier Rebates — confirmed credit notes for the day, excluding
     // crate/bottle returns (those are deposit refunds, not income).
     const rebateRow = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) AS supplier_rebates
@@ -248,9 +248,9 @@ function recalculateDailyProfit(db, date, tenantId) {
         AND (raised_by_branch IS NULL OR branch_confirmed_at IS NOT NULL)
     `).get(date, tenantId);
 
-    // Interest Expense â€” interest payments on loans for the day. The cost of
+    // Interest Expense — interest payments on loans for the day. The cost of
     // borrowing IS a real expense. Principal repayments and disbursements are
-    // not â€” they only move cash + the loan balance, not the P&L.
+    // not — they only move cash + the loan balance, not the P&L.
     const intRow = db.prepare(`
       SELECT COALESCE(SUM(amount), 0) AS interest_expense
       FROM loan_transactions
@@ -266,11 +266,11 @@ function recalculateDailyProfit(db, date, tenantId) {
     const damages         = parseFloat(damageRow?.damages ?? 0);
     const supplierRebates = parseFloat(rebateRow?.supplier_rebates ?? 0);
     const interestExpense = parseFloat(intRow?.interest_expense ?? 0);
-    // Gross = Revenue âˆ’ COGS âˆ’ Damages + Supplier Rebates + Stock Variance + Cash Variance
+    // Gross = Revenue − COGS − Damages + Supplier Rebates + Stock Variance + Cash Variance
     const grossProfit     = revenue - cogs - damages + supplierRebates + stockVariance + cashDiff;
-    // Net = Gross âˆ’ PV expenses âˆ’ Interest expense on loans
+    // Net = Gross − PV expenses − Interest expense on loans
     const netProfit       = grossProfit - pvTotal - interestExpense;
-    // Legacy columns kept for schema compatibility â€” diff_value now stores the stock variance, stock_adj retired (0).
+    // Legacy columns kept for schema compatibility — diff_value now stores the stock variance, stock_adj retired (0).
     const diffValue     = stockVariance;
     const stockAdj      = 0;
 
@@ -303,7 +303,7 @@ function recalculateDailyProfit(db, date, tenantId) {
 /**
  * reapplyReconciliation
  * After a SIV is created/edited/deleted, re-run reconciliation for each affected product
- * on the SIV date â€” but ONLY if a daily_actual_balance already exists for that product+date.
+ * on the SIV date — but ONLY if a daily_actual_balance already exists for that product+date.
  * This keeps POS "In Stock" correct after SIV changes.
  */
 function reapplyReconciliation(db, date, productSyncIds, tenantId, branchId, deviceId, userId) {
@@ -313,9 +313,9 @@ function reapplyReconciliation(db, date, productSyncIds, tenantId, branchId, dev
       const actual = db.prepare(
         `SELECT actual_balance, product_id FROM daily_actual_balance WHERE product_sync_id = ? AND date = ? AND deleted_at IS NULL`
       ).get(productSyncId, date);
-      if (!actual) continue; // No actual balance saved â€” skip
+      if (!actual) continue; // No actual balance saved — skip
 
-      // v1.10.24 â€” roll the old reconciliation off current_stock before deleting it.
+      // v1.10.24 — roll the old reconciliation off current_stock before deleting it.
       const oldRec = db.prepare(
         `SELECT COALESCE(SUM(quantity), 0) AS net FROM stock_movements
           WHERE product_sync_id = ? AND location = 'sales'
@@ -346,7 +346,7 @@ function reapplyReconciliation(db, date, productSyncIds, tenantId, branchId, dev
         ).run(actual.product_id, productSyncId, diff,
               `Reconciliation: actual balance set to ${actual.actual_balance}`,
               userId, randomUUID(), tenantId, branchId, deviceId, date);
-        // v1.10.24 â€” apply new reconciliation delta to current_stock.
+        // v1.10.24 — apply new reconciliation delta to current_stock.
         db.prepare(
           `UPDATE products SET current_stock = current_stock + ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
         ).run(diff, productSyncId);

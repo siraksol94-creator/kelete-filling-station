@@ -18,9 +18,9 @@ function adminAuth(req, res, next) {
   next();
 }
 
-// 2026-08-31 â€” KELETE, not KELETE. Kelete is a Kelete fork and this generator
+// 2026-08-31 — KELETE, not KELETE. Kelete is a Kelete fork and this generator
 // was never renamed, so every licence minted for a Kelete branch came out
-// Kelete-branded â€” including the two currently on Buseko and Garden.
+// Kelete-branded — including the two currently on Buseko and Garden.
 //
 // The prefix is cosmetic: licences are matched on the whole key string and
 // nothing parses it, so existing keys keep working untouched and are
@@ -30,13 +30,13 @@ function genLicenseKey() {
   return `KELETE-${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}`;
 }
 
-// GET /api/tenant-admin/list â€” all tenants
+// GET /api/tenant-admin/list — all tenants
 router.get('/list', adminAuth, (req, res) => {
   const tenants = listTenants();
   res.json({ tenants });
 });
 
-// GET /api/tenant-admin/stats â€” license stats for dashboard
+// GET /api/tenant-admin/stats — license stats for dashboard
 router.get('/stats', adminAuth, (req, res) => {
   try {
     const now  = new Date().toISOString().slice(0, 10);
@@ -50,7 +50,7 @@ router.get('/stats', adminAuth, (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// GET /api/tenant-admin/licenses â€” full license list with branch info
+// GET /api/tenant-admin/licenses — full license list with branch info
 router.get('/licenses', adminAuth, (req, res) => {
   try {
     const licenses = masterDb.prepare('SELECT * FROM licenses ORDER BY created_at DESC').all();
@@ -70,7 +70,7 @@ router.get('/licenses', adminAuth, (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/tenant-admin/create-license â€” mint a license (no slug â€” claimed at register)
+// POST /api/tenant-admin/create-license — mint a license (no slug — claimed at register)
 router.post('/create-license', adminAuth, (req, res) => {
   try {
     const { maxBranches = 1, expiresAt, notes } = req.body;
@@ -84,7 +84,7 @@ router.post('/create-license', adminAuth, (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// PATCH /api/tenant-admin/licenses/:key â€” edit expiry / branches / active
+// PATCH /api/tenant-admin/licenses/:key — edit expiry / branches / active
 router.patch('/licenses/:key', adminAuth, (req, res) => {
   try {
     const { expiresAt, maxBranches, isActive } = req.body;
@@ -95,7 +95,7 @@ router.patch('/licenses/:key', adminAuth, (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/tenant-admin/register â€” register a new tenant + pre-init DB
+// POST /api/tenant-admin/register — register a new tenant + pre-init DB
 router.post('/register', adminAuth, (req, res) => {
   const { slug, businessName, email } = req.body;
   if (!slug || !businessName) return res.status(400).json({ error: 'slug and businessName are required' });
@@ -108,7 +108,7 @@ router.post('/register', adminAuth, (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// PUT /api/tenant-admin/tenants/:slug â€” edit business name / email
+// PUT /api/tenant-admin/tenants/:slug — edit business name / email
 router.put('/tenants/:slug', adminAuth, (req, res) => {
   try {
     const { businessName, email } = req.body;
@@ -118,7 +118,7 @@ router.put('/tenants/:slug', adminAuth, (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST /api/tenant-admin/deactivate â€” flip is_active off
+// POST /api/tenant-admin/deactivate — flip is_active off
 router.post('/deactivate', adminAuth, (req, res) => {
   const { slug } = req.body;
   if (!slug) return res.status(400).json({ error: 'slug is required' });

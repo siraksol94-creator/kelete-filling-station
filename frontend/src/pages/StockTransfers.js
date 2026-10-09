@@ -1,4 +1,4 @@
-// StockTransfers â€” universal page (HQ + per-branch) for moving stock
+// StockTransfers — universal page (HQ + per-branch) for moving stock
 // between branches. Stored in master.db so both sides see one row.
 //
 // The "current branch" is derived from the host:
@@ -7,9 +7,9 @@
 //   - Per-branch (kassumbalesa1.keletezm.com): the host's first subdomain.
 //
 // Tabs:
-//   Outgoing â€” transfers SENT from current branch. PENDING ones can be
+//   Outgoing — transfers SENT from current branch. PENDING ones can be
 //              cancelled (restores source stock).
-//   Incoming â€” transfers HEADED TO current branch. PENDING ones can be
+//   Incoming — transfers HEADED TO current branch. PENDING ones can be
 //              received (increments destination stock).
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -23,14 +23,14 @@ import {
   getProducts,
 } from '../services/api';
 import { sortBranches } from '../utils/sortBranches';
-// v1.8.40 â€” show On Hand in the product's configured default unit
+// v1.8.40 — show On Hand in the product's configured default unit
 // (e.g. Box) instead of the raw base unit (Bottle).
 import { formatStockForProduct } from '../utils/unitFormat';
 import { matchTokens } from '../utils/tokenSearch';
 
 function currentBranchSlug() {
   if (isHqHost()) return getHqBranch() || '';
-  // Electron's hostname is always "localhost" â€” use the slug cached at
+  // Electron's hostname is always "localhost" — use the slug cached at
   // boot from /api/sync/status's vpsUrl (set in App.js).
   try {
     const host = window.location.hostname;
@@ -41,12 +41,12 @@ function currentBranchSlug() {
   } catch { return getBranchSlug() || ''; }
 }
 
-// v1.13.53 â€” Kelete is K-only; the $ hard-code was misleading (showed $0
+// v1.13.53 — Kelete is K-only; the $ hard-code was misleading (showed $0
 // on Send Transfer even though quantities were valued in Kwacha).
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtQty   = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-// v1.9.22 â€” default the history date range to the last 30 days. Outgoing
+// v1.9.22 — default the history date range to the last 30 days. Outgoing
 // & Incoming "All Time" hits the LIMIT 500 ceiling on busy branches so
 // the page should default to a recent window the user can widen.
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -58,13 +58,13 @@ const daysAgoISO = (n) => {
 
 export default function StockTransfers() {
   const slug = currentBranchSlug();
-  // 2026-09-15 â€” ?tab=incoming (from the incoming transfer notice) opens the
+  // 2026-09-15 — ?tab=incoming (from the incoming transfer notice) opens the
   // Incoming tab, also when the page is already open.
   const location = useLocation();
   const tabFromUrl = new URLSearchParams(location.search).get('tab') === 'incoming' ? 'incoming' : null;
   const [tab, setTab] = useState(tabFromUrl || 'outgoing');
   useEffect(() => { if (tabFromUrl) setTab(tabFromUrl); }, [location.key, tabFromUrl]);
-  // v1.9.22 â€” sub-tab inside each main tab: pending | received | cancelled.
+  // v1.9.22 — sub-tab inside each main tab: pending | received | cancelled.
   // pending = active queue (no date filter); received/cancelled = history
   // (date filter applies).
   const [subTab, setSubTab]   = useState('pending');
@@ -77,12 +77,12 @@ export default function StockTransfers() {
   const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [toast, setToast] = useState(null);
-  // v1.8.64 â€” View/Receive modal. `viewing` carries the transfer row to show.
+  // v1.8.64 — View/Receive modal. `viewing` carries the transfer row to show.
   // `mode='view'` is read-only; `mode='receive'` exposes the per-line received
   // qty + reason inputs and a Confirm Receive button (only for PENDING incoming).
   const [viewing, setViewing] = useState(null); // { transfer, mode }
 
-  // v1.9.22 â€” pending lists (small, always loaded for the count badges).
+  // v1.9.22 — pending lists (small, always loaded for the count badges).
   // History loads on demand per active sub-tab.
   const refresh = async () => {
     if (!slug) return;
@@ -95,18 +95,18 @@ export default function StockTransfers() {
       setOut(o.data?.transfers || []);
       setInc(i.data?.transfers || []);
     } catch (err) {
-      // non-fatal â€” page still renders
+      // non-fatal — page still renders
     }
     setLoading(false);
   };
 
-  // v1.9.22 â€” load the right history list whenever the user changes
+  // v1.9.22 — load the right history list whenever the user changes
   // tab/sub-tab/date-range. PENDING sub-tab uses the already-loaded
   // out/inc arrays; the historical sub-tabs hit the API with status
   // + date range.
   const refreshHistory = async () => {
     if (!slug) return;
-    if (subTab === 'pending') return; // nothing to fetch â€” pending lists drive the table
+    if (subTab === 'pending') return; // nothing to fetch — pending lists drive the table
     setLoading(true);
     try {
       const fetcher = tab === 'outgoing' ? getOutgoingTransfers : getIncomingTransfers;
@@ -117,8 +117,8 @@ export default function StockTransfers() {
       };
       // "all" sub-tab: no status filter.
       //
-      // 2026-08-29 â€” must be '' and NOT undefined. Axios drops undefined
-      // params, so the request went out with no status at all â€” and
+      // 2026-08-29 — must be '' and NOT undefined. Axios drops undefined
+      // params, so the request went out with no status at all — and
       // /transfers/incoming reads a MISSING status as 'PENDING' (its default
       // for the receiving queue). "All" therefore silently showed only
       // pending, i.e. nothing once everything had been received. An empty
@@ -137,7 +137,7 @@ export default function StockTransfers() {
   useEffect(() => {
     if (!slug) return;
     refresh();
-    // 2026-09-20 â€” alphabetical, by the depot name people see. The list
+    // 2026-09-20 — alphabetical, by the depot name people see. The list
     // arrives newest-first, so a depot had to be hunted for.
     getHqBranches().then(r => setBranches(sortBranches(r.data?.branches || []))).catch(() => {});
     const id = setInterval(refresh, 15_000);
@@ -145,13 +145,13 @@ export default function StockTransfers() {
   // eslint-disable-next-line
   }, [slug]);
 
-  // v1.9.22 â€” re-fetch history whenever the active history view changes.
+  // v1.9.22 — re-fetch history whenever the active history view changes.
   useEffect(() => {
     refreshHistory();
   // eslint-disable-next-line
   }, [slug, tab, subTab, historyFrom, historyTo]);
 
-  // v1.9.22 â€” when switching main tab, reset sub-tab to pending so the
+  // v1.9.22 — when switching main tab, reset sub-tab to pending so the
   // user always starts on the actionable queue.
   useEffect(() => { setSubTab('pending'); }, [tab]);
 
@@ -160,7 +160,7 @@ export default function StockTransfers() {
     setTimeout(() => setToast(null), type === 'error' ? 4500 : 2500);
   };
 
-  // v1.8.64 â€” Open the View/Receive modal instead of accepting blindly.
+  // v1.8.64 — Open the View/Receive modal instead of accepting blindly.
   // For incoming + PENDING, the modal exposes per-line received qty +
   // reason so the receiver can record shortages / damage / loss before
   // confirming. Anything else opens read-only.
@@ -174,7 +174,7 @@ export default function StockTransfers() {
     try {
       const res = await receiveTransfer(id, payload);
       const hadVariance = res?.data?.status === 'RECEIVED_WITH_VARIANCE';
-      flash(hadVariance ? 'Stock received with variance â€” HQ notified.' : 'Stock received.', 'success');
+      flash(hadVariance ? 'Stock received with variance — HQ notified.' : 'Stock received.', 'success');
       setViewing(null);
       refresh();
       window.dispatchEvent(new Event('stock:refresh'));
@@ -208,7 +208,7 @@ export default function StockTransfers() {
       <div className="page-header">
         <div>
           <h1>Stock Transfers</h1>
-          <p>Move stock between branches Â· current branch: <strong>{slug}</strong></p>
+          <p>Move stock between branches · current branch: <strong>{slug}</strong></p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={refresh}
@@ -240,7 +240,7 @@ export default function StockTransfers() {
         </TabButton>
       </div>
 
-      {/* v1.9.22 â€” sub-tabs + date filter. Pending shows the live queue;
+      {/* v1.9.22 — sub-tabs + date filter. Pending shows the live queue;
           Received / Variance / Cancelled show history (date-filtered). */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         <div style={{ display: 'flex', gap: 6 }}>
@@ -249,7 +249,7 @@ export default function StockTransfers() {
             { id: 'received',  label: 'Received' },
             { id: 'variance',  label: 'With Variance' },
             { id: 'cancelled', label: 'Cancelled' },
-            // v1.13.91 â€” "All" shows every historical transfer regardless
+            // v1.13.91 — "All" shows every historical transfer regardless
             // of status. Same date filter applies; skips the status query.
             { id: 'all',       label: 'All' },
           ].map(s => (
@@ -283,7 +283,7 @@ export default function StockTransfers() {
 
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
         {(() => {
-          // v1.9.22 â€” pick which list to render based on main tab + sub-tab.
+          // v1.9.22 — pick which list to render based on main tab + sub-tab.
           // Pending uses the in-memory polled list (out/inc); history sub-
           // tabs use the on-demand fetched list (`history`). Direction
           // controls which action buttons render in the table.
@@ -333,7 +333,7 @@ function TabButton({ active, onClick, children }) {
 }
 
 function TransferTable({ rows, loading, direction, onReceive, onCancel, onView }) {
-  if (loading && rows.length === 0) return <p style={{ color: '#64748b' }}>Loadingâ€¦</p>;
+  if (loading && rows.length === 0) return <p style={{ color: '#64748b' }}>Loading…</p>;
   if (rows.length === 0) return <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No transfers.</p>;
 
   return (
@@ -347,11 +347,11 @@ function TransferTable({ rows, loading, direction, onReceive, onCancel, onView }
             <th style={{ ...th, textAlign: 'right' }}>Value</th>
             <th style={th}>Status</th>
             <th style={th}>Created</th>
-            {/* 2026-09-04 â€” "By" was the sender only. Both names are stored on
+            {/* 2026-09-04 — "By" was the sender only. Both names are stored on
                 the transfer row (created_by_name at Send, received_by_name at
                 Receive) and cost nothing to show, so the two halves are now
                 separate. Received by stays blank while a transfer is PENDING,
-                which is itself useful â€” it says who has not confirmed yet. */}
+                which is itself useful — it says who has not confirmed yet. */}
             <th style={th}>Sent by</th>
             <th style={th}>Received by</th>
             <th style={th}></th>
@@ -368,14 +368,14 @@ function TransferTable({ rows, loading, direction, onReceive, onCancel, onView }
               <td style={{ ...td, textAlign: 'right' }}>{t.total_items}</td>
               <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{fmtMoney(t.total_value)}</td>
               <td style={td}>{statusBadge(t.status)}</td>
-              <td style={td}>{t.created_at ? new Date(t.created_at).toLocaleString() : 'â€”'}</td>
-              <td style={td}>{t.created_by_name || 'â€”'}</td>
+              <td style={td}>{t.created_at ? new Date(t.created_at).toLocaleString() : '—'}</td>
+              <td style={td}>{t.created_by_name || '—'}</td>
               <td style={{ ...td, color: t.received_by_name ? '#0f172a' : '#94a3b8' }}>
-                {t.received_by_name || 'â€”'}
+                {t.received_by_name || '—'}
               </td>
               <td style={{ ...td, whiteSpace: 'nowrap' }}>
                 <div style={{ display: 'inline-flex', gap: 6 }}>
-                  {/* v1.8.64 â€” View always visible. Receive routes through
+                  {/* v1.8.64 — View always visible. Receive routes through
                       the same modal so the user can verify items + record
                       shortages/damage before confirming. */}
                   <button onClick={() => onView(t)}
@@ -411,7 +411,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
   const [cart, setCart] = useState({}); // { product_sync_id: { product, qty } }
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  // v1.10.54 â€” WAC redesign push 2: one FX rate per whole transfer.
+  // v1.10.54 — WAC redesign push 2: one FX rate per whole transfer.
   // Same shape as the HQ PO modal. Required when destination is
   // tri-currency (USD+FRA / USD+FRA+K), skipped on K-only branches.
   const [costCurrency, setCostCurrency] = useState('');
@@ -434,7 +434,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
     return products.filter(p => matchTokens(search, p.name, p.code, p.barcode));
   }, [products, search]);
 
-  // v1.8.47 â€” input + cart speak the product's configured default unit
+  // v1.8.47 — input + cart speak the product's configured default unit
   // (e.g. Box) instead of always the base unit (Bottle). cart.qty is the
   // value the user typed *in that unit*. We convert to base only at
   // submit time so the backend math (conversionToBase) stays identical.
@@ -465,18 +465,18 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
   };
 
   const cartItems = Object.values(cart);
-  // v1.13.53 â€” prefer avg_cost_price (real WAC blended by GRNs/transfers)
+  // v1.13.53 — prefer avg_cost_price (real WAC blended by GRNs/transfers)
   // over cost_price (static hint entered on create). Same three-step chain
   // profitHelper + cost_at_sale trigger + Item Details use. Was showing $0
   // for products with cost_price=0 even when avg_cost_price was populated.
   const wacOf = (p) => (parseFloat(p?.avg_cost_price) > 0 ? parseFloat(p.avg_cost_price) : parseFloat(p?.cost_price) || 0);
-  // qty is in display unit; cost is per base unit â€” multiply by conv.
+  // qty is in display unit; cost is per base unit — multiply by conv.
   const totalValue = cartItems.reduce((s, x) => s + x.qty * (x.unitConv || 1) * wacOf(x.product), 0);
 
   const submit = async () => {
     if (!toSlug)          return onError('Pick a destination branch');
     if (cartItems.length === 0) return onError('Add at least one product');
-    // v1.10.54 â€” validate FX inputs when destination is tri-currency.
+    // v1.10.54 — validate FX inputs when destination is tri-currency.
     if (destIsTriCcy) {
       if (!costCurrency) return onError('Pick the source cost currency (destination is tri-currency).');
       if (costCurrency !== 'USD' && !(parseFloat(fxRate) > 0)) {
@@ -489,7 +489,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
         from_slug: sourceSlug,
         to_slug:   toSlug,
         notes,
-        // v1.10.54 â€” only send FX fields when destination is tri-currency;
+        // v1.10.54 — only send FX fields when destination is tri-currency;
         // K-only destinations omit them so backend stores NULL.
         ...(destIsTriCcy && costCurrency
           ? { cost_currency: costCurrency, fx_rate_used: costCurrency === 'USD' ? 1 : parseFloat(fxRate) }
@@ -497,15 +497,15 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
         items: cartItems.map(x => ({
           product_sync_id: x.product.sync_id,
           product_name:    x.product.name,
-          // Always send in base unit â€” backend conversionToBase(prod, unit)
+          // Always send in base unit — backend conversionToBase(prod, unit)
           // expects (qty, unit) to be self-consistent. Easiest: convert here.
           unit:            x.product.unit,
           quantity:        x.qty * (x.unitConv || 1),
-          // v1.13.53 â€” carry real WAC on the transfer so the destination's
+          // v1.13.53 — carry real WAC on the transfer so the destination's
           // WAC blend + cost_at_sale trigger start from truth, not the stale
           // static hint. Same wacOf() helper used in totalValue above.
           cost_price:      wacOf(x.product),
-          // v1.8.66 â€” carry the product's default-unit metadata so the
+          // v1.8.66 — carry the product's default-unit metadata so the
           // View / Receive modal can render qty + cost in the configured
           // default unit (e.g. Box) instead of the raw base unit (Bottle).
           // Stored verbatim in items_json; backend math is unchanged.
@@ -526,8 +526,8 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 }}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(880px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0 }}>Send Transfer Â· from <span style={{ color: '#0ea5e9' }}>{sourceSlug}</span></h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>Ã—</button>
+          <h3 style={{ margin: 0 }}>Send Transfer · from <span style={{ color: '#0ea5e9' }}>{sourceSlug}</span></h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>×</button>
         </div>
 
         <div style={{ padding: 16, overflowY: 'auto', flex: 1 }}>
@@ -535,7 +535,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
             <div>
               <label style={lbl}>To Branch</label>
               <select value={toSlug} onChange={e => setToSlug(e.target.value)} style={inp}>
-                <option value="">â€” pick a destination â€”</option>
+                <option value="">— pick a destination —</option>
                 {destChoices.map(b => <option key={b.slug} value={b.slug}>{b.name} ({b.slug})</option>)}
               </select>
             </div>
@@ -545,20 +545,20 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
             </div>
           </div>
 
-          {/* v1.10.54 â€” WAC redesign push 2: FX rate row.
+          {/* v1.10.54 — WAC redesign push 2: FX rate row.
               Only rendered when destination is a tri-currency branch. One
               rate applies to every line on this transfer and is used at
               /receive time to blend delivery CP into destination WAC. */}
           {destIsTriCcy && (
             <div style={{ marginBottom: 14, padding: '10px 12px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 8 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#78350f', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 8 }}>
-                FX Rate (required â€” destination is tri-currency)
+                FX Rate (required — destination is tri-currency)
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <div>
                   <label style={lbl}>Cost currency at source <span style={{ color: '#dc2626' }}>*</span></label>
                   <select value={costCurrency} onChange={e => setCostCurrency(e.target.value)} style={inp}>
-                    <option value="">â€” currency â€”</option>
+                    <option value="">— currency —</option>
                     <option value="USD">USD ($)</option>
                     <option value="K">K (Kwacha)</option>
                     <option value="FRA">FRA</option>
@@ -570,12 +570,12 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                     value={fxRate}
                     onChange={e => setFxRate(e.target.value)}
                     disabled={!costCurrency || costCurrency === 'USD'}
-                    placeholder={costCurrency === 'USD' ? 'n/a â€” USD already' : costCurrency === 'K' ? 'e.g. 25' : costCurrency === 'FRA' ? 'e.g. 2250' : ''}
+                    placeholder={costCurrency === 'USD' ? 'n/a — USD already' : costCurrency === 'K' ? 'e.g. 25' : costCurrency === 'FRA' ? 'e.g. 2250' : ''}
                     style={{ ...inp, background: (!costCurrency || costCurrency === 'USD') ? '#f9fafb' : '#fff' }} />
                 </div>
               </div>
               <div style={{ fontSize: 10.5, color: '#78350f', marginTop: 6, fontStyle: 'italic' }}>
-                One rate locks the whole transfer. Used to convert source cost â†’ USD for the destination's WAC.
+                One rate locks the whole transfer. Used to convert source cost → USD for the destination's WAC.
               </div>
             </div>
           )}
@@ -584,7 +584,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
             {/* Product picker */}
             <div>
               <label style={lbl}>Products at {sourceSlug}</label>
-              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Searchâ€¦"
+              <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
                 style={{ ...inp, marginBottom: 8 }} />
               <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -593,7 +593,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                   </thead>
                   <tbody>
                     {filtered.map(p => {
-                      // v1.8.47 â€” both On Hand display and Send Qty input now
+                      // v1.8.47 — both On Hand display and Send Qty input now
                       // use the product's configured default unit (e.g. Box).
                       const displayQty = formatStockForProduct(p.current_stock, p, {
                         showBaseInParens: true, decimals: 0,
@@ -633,7 +633,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                     {cartItems.map(x => {
                       const unitName = x.unitName || x.product.unit;
                       const conv     = x.unitConv || 1;
-                      // v1.13.55 â€” align per-line preview with totalValue by
+                      // v1.13.55 — align per-line preview with totalValue by
                       // reading the same wacOf(product) source instead of the
                       // raw cost_price. Was showing K0.00 per line even though
                       // the total was correct.
@@ -643,7 +643,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                         <div key={x.product.sync_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 4px', borderBottom: '1px dashed #e5e7eb' }}>
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 13 }}>{x.product.name}</div>
-                            <div style={{ fontSize: 10, color: '#64748b' }}>{fmtQty(x.qty)} {unitName} Ã— {fmtMoney(perUnit)}</div>
+                            <div style={{ fontSize: 10, color: '#64748b' }}>{fmtQty(x.qty)} {unitName} × {fmtMoney(perUnit)}</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                             <strong style={{ fontSize: 13 }}>{fmtMoney(lineTotal)}</strong>
@@ -675,7 +675,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                      background: !toSlug || cartItems.length === 0 || submitting ? '#94a3b8' : 'linear-gradient(135deg,#16a34a,#15803d)',
                      color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700,
                      display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <FiTruck /> {submitting ? 'Sendingâ€¦' : 'Send Transfer'}
+            <FiTruck /> {submitting ? 'Sending…' : 'Send Transfer'}
           </button>
         </div>
       </div>
@@ -688,15 +688,15 @@ function statusBadge(s) {
     'PENDING':   ['#fef3c7', '#92400e', 'Pending'],
     'RECEIVED':  ['#dcfce7', '#166534', 'Received'],
     'CANCELLED': ['#fee2e2', '#991b1b', 'Cancelled'],
-    'RECEIVED_WITH_VARIANCE': ['#fef3c7', '#92400e', 'Received Â· Variance'],
+    'RECEIVED_WITH_VARIANCE': ['#fef3c7', '#92400e', 'Received · Variance'],
   };
   const [bg, fg, label] = map[s] || ['#e2e8f0', '#0f172a', s];
   return <span style={{ background: bg, color: fg, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</span>;
 }
 
-// v1.8.64 â€” Transfer detail modal. Two modes:
-//   'view'    â€” read-only summary (any transfer, any status)
-//   'receive' â€” receiver's confirmation flow. Per-line inputs for
+// v1.8.64 — Transfer detail modal. Two modes:
+//   'view'    — read-only summary (any transfer, any status)
+//   'receive' — receiver's confirmation flow. Per-line inputs for
 //               received_qty + reason (OK/Short/Damaged/Lost) + notes,
 //               with a live variance preview. Submits to /receive.
 const REASON_OPTIONS = [
@@ -714,10 +714,10 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
     } catch { return []; }
   }, [transfer]);
 
-  // v1.8.92 â€” pull the product list so we can resolve each line's CURRENT
+  // v1.8.92 — pull the product list so we can resolve each line's CURRENT
   // default_unit (e.g. Box), instead of whatever unit was used at send time.
   // Old behaviour: if a transfer was sent in Bottle (1 conv), the detail
-  // modal also showed Bottle â€” wrong for products whose preferred display
+  // modal also showed Bottle — wrong for products whose preferred display
   // is Box. Now we always render in the product's configured default_unit.
   // Falls back to items_json's display_unit (then base unit) if the product
   // can't be found in the response (deleted, sync gap, etc).
@@ -750,8 +750,8 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
     return { unit: it.display_unit || it.unit, conv: parseFloat(it.display_conv || 1) || 1 };
   };
 
-  // Per-line edit state â€” receive mode only.
-  // v1.8.66 â€” qty + cost displayed in the product's default unit (Box).
+  // Per-line edit state — receive mode only.
+  // v1.8.66 — qty + cost displayed in the product's default unit (Box).
   // Initial state uses items_json's display info; useEffect below replaces
   // it with the product's current default_unit once products arrive.
   const [lines, setLines] = useState(() =>
@@ -760,9 +760,9 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
       const dispConv = parseFloat(it.display_conv || 1) || 1;
       const sentBase = parseFloat(it.quantity || 0);
       const sentDisp = sentBase / dispConv;
-      // v1.13.46 â€” items_json now carries received_qty/reason/notes after
+      // v1.13.46 — items_json now carries received_qty/reason/notes after
       // /receive (backend stamps them there). For pending transfers or old
-      // rows saved before this fix, received_qty is missing â†’ fall back to
+      // rows saved before this fix, received_qty is missing → fall back to
       // sent so the Receive modal opens at full and old View modals keep
       // their prior behaviour instead of breaking.
       const hasRecv = it.received_qty !== undefined && it.received_qty !== null;
@@ -784,7 +784,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
     })
   );
 
-  // v1.8.92 â€” once products load, swap each line's display_unit/conv for the
+  // v1.8.92 — once products load, swap each line's display_unit/conv for the
   // product's CURRENT default_unit. Preserves any received_qty the user typed
   // by converting it to the new unit.
   useEffect(() => {
@@ -823,7 +823,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
       const isOk = !isNaN(recv) && Math.abs(recv - l.sent_qty) < 0.0001;
       const next = { ...l, received_qty: value };
       // Only auto-flip the reason if the user hasn't manually set something
-      // more specific (Damaged / Lost) â€” preserve their explicit choice.
+      // more specific (Damaged / Lost) — preserve their explicit choice.
       if (l.reason === 'OK' || l.reason === 'Short') {
         next.reason = isOk ? 'OK' : 'Short';
       }
@@ -842,7 +842,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
   const submit = async () => {
     setSubmitting(true);
     try {
-      // v1.8.66 â€” received_qty is in display unit (Box); backend expects
+      // v1.8.66 — received_qty is in display unit (Box); backend expects
       // base units (Bottle). Multiply by display_conv before sending.
       const payload = {
         received_lines: lines.map(l => ({
@@ -867,17 +867,17 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
         style={{ background: '#fff', borderRadius: 12, width: 'min(900px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ margin: 0 }}>{isReceive ? 'Receive Transfer' : 'Transfer Detail'} Â· {transfer.transfer_number}</h3>
+            <h3 style={{ margin: 0 }}>{isReceive ? 'Receive Transfer' : 'Transfer Detail'} · {transfer.transfer_number}</h3>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
-              From <strong>{transfer.from_name || transfer.from_slug}</strong> â†’ To <strong>{transfer.to_name || transfer.to_slug}</strong>
-              {transfer.created_by_name && <> Â· Sent by {transfer.created_by_name}</>}
-              {transfer.created_at && <> Â· {new Date(transfer.created_at).toLocaleString()}</>}
+              From <strong>{transfer.from_name || transfer.from_slug}</strong> → To <strong>{transfer.to_name || transfer.to_slug}</strong>
+              {transfer.created_by_name && <> · Sent by {transfer.created_by_name}</>}
+              {transfer.created_at && <> · {new Date(transfer.created_at).toLocaleString()}</>}
             </div>
             {transfer.notes && (
               <div style={{ fontSize: 12, color: '#475569', marginTop: 4 }}>Notes: <em>{transfer.notes}</em></div>
             )}
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>Ã—</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>×</button>
         </div>
 
         <div style={{ padding: 16, overflowY: 'auto', flex: 1 }}>
@@ -901,10 +901,10 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                 {lines.map((l, idx) => {
                   const recvNum = parseFloat(l.received_qty) || 0;
                   const variance = (parseFloat(l.sent_qty) || 0) - recvNum;
-                  // v1.8.66 â€” cost shown is per-display-unit (per Box) so
-                  // the line total = received_qty (in Box) Ã— cost_per_Box.
-                  // Numerically identical to received_base Ã— cost_per_base
-                  // â€” just easier to read.
+                  // v1.8.66 — cost shown is per-display-unit (per Box) so
+                  // the line total = received_qty (in Box) × cost_per_Box.
+                  // Numerically identical to received_base × cost_per_base
+                  // — just easier to read.
                   const dispUnit = l.display_unit || l.unit;
                   const lineDollar = recvNum * (parseFloat(l.cost_display || l.cost_price) || 0);
                   const hasIssue = variance > 0.0001 || l.reason === 'Damaged' || l.reason === 'Lost';
@@ -940,7 +940,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                             placeholder={hasIssue ? 'e.g. crate broken on arrival' : ''}
                             style={{ width: '100%', padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12 }} />
                         ) : (
-                          <span style={{ fontSize: 12, color: '#475569' }}>{l.notes || 'â€”'}</span>
+                          <span style={{ fontSize: 12, color: '#475569' }}>{l.notes || '—'}</span>
                         )}
                       </td>
                       <td style={{ ...td, textAlign: 'right', color: '#64748b' }}>
@@ -984,7 +984,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
           {isReceive && (
             <button onClick={submit} disabled={submitting || items.length === 0}
               style={{ padding: '8px 22px', background: submitting ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <FiCheckCircle size={14} /> {submitting ? 'Receivingâ€¦' : (anyVariance ? 'Confirm Receive with Variance' : 'Confirm Receive')}
+              <FiCheckCircle size={14} /> {submitting ? 'Receiving…' : (anyVariance ? 'Confirm Receive with Variance' : 'Confirm Receive')}
             </button>
           )}
         </div>

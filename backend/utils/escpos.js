@@ -1,9 +1,9 @@
 // ESC/POS printer dispatcher. Two transports:
-//   USB â†’ writes the raw ticket to the Windows Print Spooler queue (`receipt_printer_name`)
+//   USB → writes the raw ticket to the Windows Print Spooler queue (`receipt_printer_name`)
 //         using the same PowerShell + winspool.Drv trick the existing /open-drawer route uses.
-//   LAN â†’ opens a TCP socket to `receipt_printer_ip:receipt_printer_port` (default 9100).
+//   LAN → opens a TCP socket to `receipt_printer_ip:receipt_printer_port` (default 9100).
 //
-// Falls back silently â€” printer issues must never break the order/payment flow.
+// Falls back silently — printer issues must never break the order/payment flow.
 const net  = require('net');
 const fs   = require('fs');
 const os   = require('os');
@@ -26,16 +26,16 @@ const CMD = {
   CUT:          GS  + 'V\x41\x05',
   FEED:         ESC + 'd\x03',
   DRAWER_KICK:  ESC + 'p\x00\x19\xFA',
-  // v1.10.62 â€” GS L nL nH sets left margin in dots (nH*256+nL). Epson
-  // TM-T88VII prints at 180dpi, so 24 dots â‰ˆ 3.4mm. Compensates for the
+  // v1.10.62 — GS L nL nH sets left margin in dots (nH*256+nL). Epson
+  // TM-T88VII prints at 180dpi, so 24 dots ≈ 3.4mm. Compensates for the
   // physical paper feed offset that clips leftmost characters.
   LEFT_MARGIN_24: GS + 'L\x18\x00',
 };
 
-// â”€â”€ Settings helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Settings helper ─────────────────────────────────────────────────────────
 // Returns { type, name, ip, port } from business_settings, with sane defaults.
 // Falls back to the legacy sync_config.drawer_port for the USB name when
-// receipt_printer_name isn't set yet â€” so existing tenants keep working.
+// receipt_printer_name isn't set yet — so existing tenants keep working.
 function loadPrinterSettings(db) {
   let row;
   try { row = db.prepare('SELECT receipt_printer_type, receipt_printer_name, receipt_printer_ip, receipt_printer_port FROM business_settings LIMIT 1').get(); }
@@ -51,7 +51,7 @@ function loadPrinterSettings(db) {
   };
 }
 
-// â”€â”€ LAN print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── LAN print ───────────────────────────────────────────────────────────────
 // Opens a TCP socket, writes the raw bytes, closes. Resolves silently on error.
 function printOverLAN(ip, port, bytes) {
   return new Promise((resolve) => {
@@ -70,8 +70,8 @@ function printOverLAN(ip, port, bytes) {
   });
 }
 
-// â”€â”€ USB print (Windows Print Spooler) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Uses the same RAW winspool.Drv approach as /open-drawer â€” sends bytes directly
+// ── USB print (Windows Print Spooler) ───────────────────────────────────────
+// Uses the same RAW winspool.Drv approach as /open-drawer — sends bytes directly
 // to the configured printer queue with no driver interpretation. Resolves with
 // `{ ok, error? }` so callers can surface a problem if they care.
 function printOverUSB(printerName, bytes) {
@@ -129,7 +129,7 @@ Add-Type -TypeDefinition $source -Language CSharp
   });
 }
 
-// â”€â”€ Public dispatcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Public dispatcher ───────────────────────────────────────────────────────
 // Reads the configured transport from settings and routes accordingly.
 // `bytes` is a string of raw ESC/POS data (use the CMD constants to compose it).
 function sendToPrinter(db, bytes) {

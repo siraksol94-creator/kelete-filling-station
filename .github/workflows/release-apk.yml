@@ -38,7 +38,7 @@ jobs:
           fi
         working-directory: frontend
 
-      # 2026-09-18 â€” Firebase config for push notifications. The Android folder
+      # 2026-09-18 — Firebase config for push notifications. The Android folder
       # is gitignored and regenerated on every run, so the file has to be put
       # back each time or the build silently produces an APK that can never
       # receive a notification: Capacitor's app/build.gradle applies the
@@ -47,7 +47,7 @@ jobs:
       #
       # It is committed rather than kept in a secret: the repo is private, and
       # this file ships inside every APK anyway, so anyone holding the APK can
-      # read it. It cannot send anything â€” only the service-account key on the
+      # read it. It cannot send anything — only the service-account key on the
       # VPS can do that, and that one is not in git.
       - name: Put the Firebase config into the Android project
         run: cp firebase/google-services.json android/app/google-services.json
@@ -67,7 +67,7 @@ jobs:
         # adaptive-icon foreground so Android 8+ devices use our icon instead
         # of the template placeholder.
         #
-        # 2026-09-11 (from Kelete v1.10.291) â€” the adaptive-icon FOREGROUND is
+        # 2026-09-11 (from Kelete v1.10.291) — the adaptive-icon FOREGROUND is
         # the logo at 66% of the canvas, padded with transparency. Android 8+
         # crops adaptive icons through the launcher's mask (circle, squircle
         # or square) and only the middle ~66 of the 108 dp is safe, so a
@@ -91,7 +91,7 @@ jobs:
 
       - name: Round app icon, and the launch-screen background in the logo navy
         # The adaptive icon puts the foreground on a background layer, which
-        # Capacitor leaves white â€” a white square round the logo on most
+        # Capacitor leaves white — a white square round the logo on most
         # launchers. It is made transparent: the foreground is the round
         # badge alone (icon.png has transparent corners), so the icon shows
         # as a circle whatever shape the launcher's mask is, instead of a
@@ -114,7 +114,7 @@ jobs:
         working-directory: frontend/android
 
       - name: Inject splash screen into every Android density bucket
-        # Same approach as the icon â€” stamp splash.png into each drawable
+        # Same approach as the icon — stamp splash.png into each drawable
         # folder. Capacitor's SplashScreen plugin reads @drawable/splash.
         run: |
           SPLASH=../assets/splash.png

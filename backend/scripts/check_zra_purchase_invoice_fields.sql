@@ -1,5 +1,5 @@
 -- Which ZRA-approved purchases predate the base/VAT/discount fields?
--- 2026-08-31 â€” READ ONLY. Nothing is written.
+-- 2026-08-31 — READ ONLY. Nothing is written.
 --
 -- Purchases approved from the ZRA Purchase Queue before this change stored
 -- only prc, so their lines carry base_price = 0 and were costed at BASE
@@ -12,7 +12,7 @@
 --   sqlite3 master.db < backend/scripts/check_zra_purchase_invoice_fields.sql
 --
 -- If it reports nothing, there is nothing to fix and the forward change
--- covers you. If it reports rows, send the output back â€” the figures can be
+-- covers you. If it reports rows, send the output back — the figures can be
 -- recovered from zra_pending_purchases.raw_json, but the line matching has to
 -- be checked case by case: a MAPPED line stores OUR item code, not the
 -- supplier's, so it cannot be joined back on itemCd blindly.

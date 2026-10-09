@@ -13,10 +13,10 @@ import Toast from '../components/Toast';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 
-// 2026-09-14 â€” "Kelete Distribution - KABWE" / "Kabwe Depo" â†’ "Kabwe".
+// 2026-09-14 — "Kelete Distribution - KABWE" / "Kabwe Depo" → "Kabwe".
 const depotLabel = (name) => (name
   ? String(name).split(/\s+-\s+/).pop().replace(/\s+Depo$/i, '').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
-  : 'â€”');
+  : '—');
 
 // A labelled fact in the View pop-up.
 function Fact({ label, value, mono }) {
@@ -35,7 +35,7 @@ import {
   FiX, FiTrash2, FiEye, FiEdit2, FiPrinter, FiChevronRight, FiChevronDown, FiChevronUp,
 } from 'react-icons/fi';
 
-// Crates and bottles share one reason â€” both are returnable containers.
+// Crates and bottles share one reason — both are returnable containers.
 // Goods Return is for the actual purchased product going back (damaged, wrong,
 // excess). All three "with items" reasons reduce AP balance and move stock,
 // but Profit Report only counts Discount + Other as income (Supplier Rebate);
@@ -64,8 +64,8 @@ const isCrateProduct = (p) => {
   return cat.includes('crate') || cat.includes('bottle') || cat.includes('container') || cat.includes('empty');
 };
 // Pick the product's preferred unit (default_unit, else base). Returns
-// { name, conv } â€” conv is the base-unit count for one of the picked unit
-// (e.g. one "Crate" of a 12-pack â†’ conv = 12).
+// { name, conv } — conv is the base-unit count for one of the picked unit
+// (e.g. one "Crate" of a 12-pack → conv = 12).
 const pickProductUnit = (p) => {
   if (!p) return { name: '', conv: 1 };
   const units = unitsForProduct(p);
@@ -74,11 +74,11 @@ const pickProductUnit = (p) => {
   return { name: found.name || wanted, conv: parseFloat(found.conv) || 1 };
 };
 // Pick the right unit value for a row.
-// 2026-09-12 â€” a returnable container is worth its deposit whatever the reason
+// 2026-09-12 — a returnable container is worth its deposit whatever the reason
 // on the note (the deposit is per physical crate, already per-picked-unit).
 // Goods Return is now the only reason the form offers, so crates and empty
 // bottles come back through it and must still seed at the deposit rather than
-// at the container's own cost price. Everything else is cost Ã— conv.
+// at the container's own cost price. Everything else is cost × conv.
 const productUnitValue = (p, defaultDep, reason, conv = 1) => {
   if (!p) return '';
   const c = parseFloat(conv) > 0 ? parseFloat(conv) : 1;
@@ -86,7 +86,7 @@ const productUnitValue = (p, defaultDep, reason, conv = 1) => {
   const avg = parseFloat(p.avg_cost_price || p.cost_price || 0);
   return avg > 0 ? (avg * c).toFixed(2) : '';
 };
-// 2026-09-11 â€” a price from an invoice line (VAT inclusive Ã· qty, per the
+// 2026-09-11 — a price from an invoice line (VAT inclusive ÷ qty, per the
 // line's own unit), expressed per the unit picked on the credit note. An
 // invoice unit the product does not know is taken to be the picked unit.
 const unitConvOf = (p, unitName, fallback) => {
@@ -103,7 +103,7 @@ const nameKey = (s) => String(s || '').trim().toLowerCase();
 const fmtQty = (q) => { const n = parseFloat(q) || 0; return n % 1 === 0 ? n.toFixed(0) : n.toFixed(2); };
 
 const formatDate = (d) => {
-  if (!d) return 'â€”';
+  if (!d) return '—';
   const dt = new Date(d);
   return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
@@ -146,7 +146,7 @@ const CreditNotes = () => {
   const [editMode, setEditMode]     = useState(false);
   const [editId, setEditId]         = useState(null);
   const [viewCN, setViewCN]         = useState(null);
-  // 2026-09-14 â€” HQ sees every depot's notes (Depot column) and is the only
+  // 2026-09-14 — HQ sees every depot's notes (Depot column) and is the only
   // side that confirms them.
   const onHq = isHqHost();
   const [viewLoading, setViewLoading] = useState(false);
@@ -158,11 +158,11 @@ const CreditNotes = () => {
   const [date, setDate]             = useState(todayStr);
   const [reason, setReason]         = useState('Discount');
   const [reference, setReference]   = useState('');
-  // 2026-09-04 â€” the GRN this credit is against. Sending grn_sync_id is what
+  // 2026-09-04 — the GRN this credit is against. Sending grn_sync_id is what
   // turns a note that merely lowers the supplier's overall balance into one
   // that reduces a specific payable, which is what a damaged delivery needs.
   const [grnSyncId, setGrnSyncId]   = useState('');
-  // 2026-09-18 â€” the invoice an edited note is already attached to, shown
+  // 2026-09-18 — the invoice an edited note is already attached to, shown
   // locked. null while adding a new note.
   const [editInvoice, setEditInvoice] = useState(null);
   // The note's own VAT, kept only on notes raised at goods-receive. 0 otherwise.
@@ -171,8 +171,8 @@ const CreditNotes = () => {
   const [amount, setAmount]         = useState('');
   const [notes, setNotes]           = useState('');
   const [items, setItems]           = useState([emptyItem()]);
-  // 2026-09-11 â€” the chosen invoice's lines, and each item's price on the
-  // last invoice that delivered it. Both VAT inclusive Ã· qty.
+  // 2026-09-11 — the chosen invoice's lines, and each item's price on the
+  // last invoice that delivered it. Both VAT inclusive ÷ qty.
   const [grnLines, setGrnLines]     = useState([]);
   const [lastPrices, setLastPrices] = useState([]);
   const [saving, setSaving]         = useState(false);
@@ -197,7 +197,7 @@ const CreditNotes = () => {
   useEffect(() => {
     fetchAll();
     getProducts().then(r => setProducts((r.data || []).sort((a, b) => a.name.localeCompare(b.name)))).catch(() => {});
-    // 2026-09-06 â€” HQ's supplier list, not the depot's own. Suppliers are
+    // 2026-09-06 — HQ's supplier list, not the depot's own. Suppliers are
     // HQ-only, so a depot's table is empty and the box had nothing to offer -
     // which mattered most for a credit with NO invoice, where picking the
     // supplier is the only way to say who owes it. A depot's note is written
@@ -297,7 +297,7 @@ const CreditNotes = () => {
     resetForm();
     if (supplierParam) setSupplierId(supplierParam);
     if (referenceParam) setReference(referenceParam);
-    // 2026-09-12 â€” a `reason` URL param is ignored now. The form records Goods
+    // 2026-09-12 — a `reason` URL param is ignored now. The form records Goods
     // Returns only, so an old bookmark can no longer mint a Discount note.
     setShowForm(true);
     setSearchParams({}, { replace: true });
@@ -305,7 +305,7 @@ const CreditNotes = () => {
 
   // For Crate/Bottle Return: line subtotals
   const calcTotal = (rows) => rows.reduce((s, r) => s + (parseFloat(r.quantity) || 0) * (parseFloat(r.unit_value) || 0), 0);
-  // 2026-09-18 â€” a note raised at goods-receive carries a discount per line and
+  // 2026-09-18 — a note raised at goods-receive carries a discount per line and
   // the note's VAT on the header, so its lines alone are NOT what the supplier
   // is credited. The preview has to show the same figure the server will save
   // (see the matching sum in routes/supplierCreditNotes.js), or Save Changes
@@ -316,15 +316,15 @@ const CreditNotes = () => {
     ? calcTotal(items) - editDiscount + editVat
     : (parseFloat(amount) || 0)), [reason, items, amount, editDiscount, editVat]);
 
-  // â”€â”€ Form open / reset â”€â”€
+  // ── Form open / reset ──
   const resetForm = () => {
     setSupplierId(''); setDate(todayStr); setReason('Goods Return');
     setReference(''); setAmount(''); setNotes(''); setGrnSyncId(''); setEditInvoice(null); setEditVat(0);
-    // 2026-09-12 â€” every new note is a Goods Return, and rows seed blank so the
+    // 2026-09-12 — every new note is a Goods Return, and rows seed blank so the
     // value comes from the invoice line rather than from a guessed price.
     setItems([emptyItem('')]); setError(''); setEditMode(false); setEditId(null);
   };
-  // The picker narrows to the chosen supplier â€” a credit belongs to one
+  // The picker narrows to the chosen supplier — a credit belongs to one
   // supplier's invoice, and an unfiltered list of every GRN invites attaching
   // it to the wrong one.
   useEffect(() => {
@@ -344,13 +344,13 @@ const CreditNotes = () => {
   }, [showForm, supplierId, suppliers]);
 
   // The supplier the chosen invoice belongs to. Used to fill the box in and
-  // to carry the sync_id on save â€” suppliers are HQ-only, so a depot cannot
+  // to carry the sync_id on save — suppliers are HQ-only, so a depot cannot
   // be relied on to hold a matching row id.
   const invoiceSupplier = grnSyncId
     ? (linkable.find(g => g.grn_sync_id === grnSyncId) || null)
     : null;
 
-  // 2026-09-11 â€” the invoice's lines, offered first and priced as billed.
+  // 2026-09-11 — the invoice's lines, offered first and priced as billed.
   useEffect(() => {
     if (!showForm || !grnSyncId) { setGrnLines([]); return undefined; }
     let live = true;
@@ -359,7 +359,7 @@ const CreditNotes = () => {
       .catch(() => { if (live) setGrnLines([]); });
     return () => { live = false; };
   }, [showForm, grnSyncId]);
-  // â€¦and the last-invoice price of everything else. HQ asks for the branch
+  // …and the last-invoice price of everything else. HQ asks for the branch
   // of the invoice it is working on; a depot always gets its own.
   const invoiceBranch = invoiceSupplier?.branch_slug || '';
   useEffect(() => {
@@ -389,7 +389,7 @@ const CreditNotes = () => {
   }, [products, grnLines]);
   const invoiceTag = (p) => {
     const l = invoiceLineFor(p);
-    return l ? `on invoice Â· ${fmtQty(l.quantity)}${l.unit ? ' ' + l.unit : ''}` : null;
+    return l ? `on invoice · ${fmtQty(l.quantity)}${l.unit ? ' ' + l.unit : ''}` : null;
   };
 
   // What a newly picked item's value starts at. Goods Return: its line on
@@ -414,8 +414,8 @@ const CreditNotes = () => {
       setDate(d.date); setReason(d.reason);
       setReference(d.reference || ''); setAmount(String(d.amount || ''));
       setNotes(d.notes || '');
-      // 2026-09-18 â€” the invoice a note is attached to was never loaded back,
-      // so every edit opened reading "â€” none â€”" on a note that IS linked.
+      // 2026-09-18 — the invoice a note is attached to was never loaded back,
+      // so every edit opened reading "— none —" on a note that IS linked.
       // It is restored and shown locked: moving a credit to another invoice
       // changes which payable it reduces, which is its own decision, not
       // something to happen by accident while fixing a quantity.
@@ -443,7 +443,7 @@ const CreditNotes = () => {
     } catch (e) { showToast(e.response?.data?.error || 'Failed to load credit note.', 'error'); }
   };
 
-  // â”€â”€ Item rows helpers (mirror EmptyReturns) â”€â”€
+  // ── Item rows helpers (mirror EmptyReturns) ──
   // Crate Return seeds new rows with the default deposit (K57 from settings).
   // Goods Return / others start blank so the user isn't tricked into
   // recording a goods return at the crate-deposit price.
@@ -461,7 +461,7 @@ const CreditNotes = () => {
           const picked = pickProductUnit(m);
           next[idx].unit = picked.name;
           next[idx].unit_conv = picked.conv;
-          // Always reprice when the user picks a different product â€” the old
+          // Always reprice when the user picks a different product — the old
           // product's price is meaningless for the new one. Keeps "swap to
           // another item" working correctly.
           if (String(m.id) !== String(oldProductId)) {
@@ -504,7 +504,7 @@ const CreditNotes = () => {
   const typeRow  = (idx, text) => setItems(prev => prev.map((r, i) => i !== idx ? r : { ...r, product_text: text, product_id: '' }));
   const clearRow = (idx) => setItems(prev => prev.map((r, i) => i !== idx ? r : { ...r, product_text: '', product_id: '', unit: '', unit_conv: 1 }));
 
-  // â”€â”€ Save â”€â”€
+  // ── Save ──
   const save = async () => {
     setError('');
     // The invoice carries the supplier's sync_id, which is what the server
@@ -556,7 +556,7 @@ const CreditNotes = () => {
     finally { setSaving(false); }
   };
 
-  // â”€â”€ Delete â”€â”€
+  // ── Delete ──
   const [pendingDelete, setPendingDelete] = useState(null);
   const confirmDelete = async () => {
     const job = pendingDelete;
@@ -586,7 +586,7 @@ const CreditNotes = () => {
 
   const handleDelete = (cn) => {
     setPendingDelete({
-      subject: `Credit Note ${cn.credit_note_number} â€” reverses AP credit + stock`,
+      subject: `Credit Note ${cn.credit_note_number} — reverses AP credit + stock`,
       perform: async () => {
         try { await deleteCreditNote(cn.id); await fetchAll(); showToast('Credit note deleted.'); }
         catch (e) { showToast(e.response?.data?.error || 'Delete failed.', 'error'); }
@@ -594,7 +594,7 @@ const CreditNotes = () => {
     });
   };
 
-  // â”€â”€ View â”€â”€
+  // ── View ──
   const openView = async (cn) => {
     setViewLoading(true);
     try {
@@ -604,7 +604,7 @@ const CreditNotes = () => {
     finally { setViewLoading(false); }
   };
 
-  // â”€â”€ Print (A5-ish receipt window) â”€â”€
+  // ── Print (A5-ish receipt window) ──
   const handlePrint = (cn) => {
     const reasonBadge = reasonStyle(cn.reason);
     const rows = (cn.items || []).map((it, i) => `
@@ -634,12 +634,12 @@ const CreditNotes = () => {
       .footer { margin-top: 22px; display: flex; justify-content: space-between; font-size: 10px; color: #555; }
     </style></head><body>
       <h1>SUPPLIER CREDIT NOTE</h1>
-      <div class="meta">${cn.credit_note_number} Â· printed ${new Date().toLocaleString()}</div>
+      <div class="meta">${cn.credit_note_number} · printed ${new Date().toLocaleString()}</div>
       <div class="grid">
         <div><strong>Date</strong>${formatDate(cn.date)}</div>
-        <div><strong>Supplier</strong>${cn.supplier_name || 'â€”'}</div>
+        <div><strong>Supplier</strong>${cn.supplier_name || '—'}</div>
         <div><strong>Reason</strong><span class="badge">${cn.reason}</span></div>
-        <div><strong>Reference</strong>${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || 'â€”')}</div>
+        <div><strong>Reference</strong>${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || '—')}</div>
       </div>
       ${(cn.items && cn.items.length) ? `
       <table>
@@ -652,7 +652,7 @@ const CreditNotes = () => {
       </table>`}
       ${cn.notes ? `<div class="notes"><strong>Notes:</strong> ${cn.notes}</div>` : ''}
       <div class="footer">
-        <div>Prepared by: ${cn.created_by_name || 'â€”'}</div>
+        <div>Prepared by: ${cn.created_by_name || '—'}</div>
         <div>Effect on AP balance: ${curSym}${parseFloat(cn.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} credit</div>
       </div>
     </body></html>`;
@@ -662,7 +662,7 @@ const CreditNotes = () => {
     setTimeout(() => { w.print(); }, 300);
   };
 
-  // â”€â”€ Subtotal of the currently-filtered list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Subtotal of the currently-filtered list ─────────────────────────────
   // Updates live as the user changes date / reason filters so they can see
   // exactly how much the filter slice adds up to.
   const filteredTotal = useMemo(
@@ -670,14 +670,14 @@ const CreditNotes = () => {
     [list],
   );
 
-  // â”€â”€ By-Supplier rollup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── By-Supplier rollup ──────────────────────────────────────────────────
   // Groups the same filtered list by supplier. The cashier picks "By
   // Supplier" when they want one row per ZB / Maruf etc., showing how much
   // each supplier owes in credits and split between discount vs. crate-return.
   const bySupplier = useMemo(() => {
     const map = new Map();
     for (const cn of list) {
-      const key = cn.supplier_name || 'â€” (no supplier)';
+      const key = cn.supplier_name || '— (no supplier)';
       const cur = map.get(key) || {
         supplier_name: key, count: 0, total: 0,
         discount: 0, crate_return: 0, goods_return: 0, other: 0,
@@ -693,27 +693,27 @@ const CreditNotes = () => {
     return [...map.values()].sort((a, b) => b.total - a.total);
   }, [list]);
 
-  // â”€â”€ Print: A4 report of the currently-filtered Credit Notes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Print: A4 report of the currently-filtered Credit Notes ─────────────
   const handlePrintReport = () => {
     const fmt = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const biz = businessInfo.business_name || 'Business Name';
     const addr = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join('  |  ');
-    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
     const filterLabel = [
       filterFrom && `From ${filterFrom}`,
       filterTo   && `To ${filterTo}`,
       filterReason !== 'All' && `Reason: ${filterReason}`,
-    ].filter(Boolean).join(' Â· ') || 'All time, all reasons';
+    ].filter(Boolean).join(' · ') || 'All time, all reasons';
 
     const rowsByDoc = list.map((cn, i) => `
       <tr style="border-bottom:1px solid #ddd;background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
         <td style="padding:7px 9px;font-size:10.5px">${i + 1}</td>
         <td style="padding:7px 9px;font-weight:600">${cn.credit_note_number}</td>
         <td style="padding:7px 9px">${formatDate(cn.date)}</td>
-        <td style="padding:7px 9px">${cn.supplier_name || 'â€”'}</td>
+        <td style="padding:7px 9px">${cn.supplier_name || '—'}</td>
         <td style="padding:7px 9px">${cn.reason}</td>
-        <td style="padding:7px 9px">${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || 'â€”')}</td>
+        <td style="padding:7px 9px">${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || '—')}</td>
         <td style="padding:7px 9px;text-align:right;font-weight:700">${curSym}${fmt(cn.amount)}</td>
       </tr>`).join('');
 
@@ -742,7 +742,7 @@ const CreditNotes = () => {
         </tr></thead>
         <tbody>${rowsBySup}</tbody>
         <tfoot><tr>
-          <td colspan="3">TOTAL â€” ${bySupplier.length} supplier${bySupplier.length !== 1 ? 's' : ''}</td>
+          <td colspan="3">TOTAL — ${bySupplier.length} supplier${bySupplier.length !== 1 ? 's' : ''}</td>
           <td style="text-align:right">${curSym}${fmt(bySupplier.reduce((s, x) => s + x.discount, 0))}</td>
           <td style="text-align:right">${curSym}${fmt(bySupplier.reduce((s, x) => s + x.crate_return, 0))}</td>
           <td style="text-align:right">${curSym}${fmt(bySupplier.reduce((s, x) => s + x.goods_return, 0))}</td>
@@ -757,12 +757,12 @@ const CreditNotes = () => {
         </tr></thead>
         <tbody>${rowsByDoc}</tbody>
         <tfoot><tr>
-          <td colspan="6">TOTAL â€” ${list.length} credit note${list.length !== 1 ? 's' : ''}</td>
+          <td colspan="6">TOTAL — ${list.length} credit note${list.length !== 1 ? 's' : ''}</td>
           <td style="text-align:right;font-size:13px">${curSym}${fmt(filteredTotal)}</td>
         </tr></tfoot>
       </table>`;
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Credit Notes â€” ${printedAt}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Credit Notes — ${printedAt}</title>
       <style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
@@ -799,7 +799,7 @@ const CreditNotes = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:9px">${biz} â€” Confidential</span>
+        <span style="font-size:9px">${biz} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
       </body></html>`;
@@ -809,17 +809,17 @@ const CreditNotes = () => {
     setTimeout(() => { w.print(); w.close(); }, 300);
   };
 
-  // â”€â”€ Print: one supplier's CNs grouped by reason â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Print: one supplier's CNs grouped by reason ─────────────────────────
   // Triggered from the bySupplier drill-down modal. Prints only this
   // supplier's slice of the currently-filtered list.
   const handlePrintSupplier = (supplierName) => {
-    const cns = list.filter(cn => (cn.supplier_name || 'â€” (no supplier)') === supplierName);
+    const cns = list.filter(cn => (cn.supplier_name || '— (no supplier)') === supplierName);
     if (cns.length === 0) return;
     const fmt = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const biz = businessInfo.business_name || 'Business Name';
     const addr = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join('  |  ');
-    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
     const total = cns.reduce((s, c) => s + parseFloat(c.amount || 0), 0);
     const groupOrder = ['Discount', 'Crate Return', 'Goods Return', 'Other'];
     const groups = groupOrder.map(g => ({
@@ -837,7 +837,7 @@ const CreditNotes = () => {
         <tr style="background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
           <td style="padding:6px 9px;font-weight:600">${cn.credit_note_number}</td>
           <td style="padding:6px 9px">${formatDate(cn.date)}</td>
-          <td style="padding:6px 9px">${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || 'â€”')}</td>
+          <td style="padding:6px 9px">${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || '—')}</td>
           <td style="padding:6px 9px;text-align:right;font-weight:700">${curSym}${fmt(cn.amount)}</td>
         </tr>`;
         if (!isExp || !cache) return baseRow;
@@ -881,7 +881,7 @@ const CreditNotes = () => {
       return `
         <div style="margin-bottom:14px;border:1.5px solid #000">
           <div style="padding:7px 10px;background:${rs.bg};color:${rs.color};border-bottom:1.5px solid #000;display:flex;justify-content:space-between;align-items:center">
-            <span style="font-weight:700;letter-spacing:0.4px">${g.reason} Â· ${g.rows.length}</span>
+            <span style="font-weight:700;letter-spacing:0.4px">${g.reason} · ${g.rows.length}</span>
             <span style="font-weight:800">${curSym}${fmt(sub)}</span>
           </div>
           <table style="width:100%;border-collapse:collapse;font-size:11px">
@@ -896,7 +896,7 @@ const CreditNotes = () => {
         </div>`;
     }).join('');
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${supplierName} â€” Credit Notes â€” ${printedAt}</title>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${supplierName} — Credit Notes — ${printedAt}</title>
       <style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       </style></head><body>
@@ -907,7 +907,7 @@ const CreditNotes = () => {
           <div style="font-size:10px">${addr}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Credit Notes â€” Supplier Detail</div>
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Credit Notes — Supplier Detail</div>
           <div style="font-size:14px;font-weight:700">${supplierName}</div>
           <div style="font-size:9px;margin-top:3px">Printed: ${printedAt}</div>
         </div>
@@ -924,7 +924,7 @@ const CreditNotes = () => {
       </div>
       ${sectionsHtml}
       <div style="margin-top:18px;padding-top:10px;border-top:2px solid #000;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:800">
-        <span>GRAND TOTAL â€” ${cns.length} credit note${cns.length !== 1 ? 's' : ''}</span>
+        <span>GRAND TOTAL — ${cns.length} credit note${cns.length !== 1 ? 's' : ''}</span>
         <span>${curSym}${fmt(total)}</span>
       </div>
       <div style="margin-top:24px;font-size:10px;color:#555">Printed by ${printedBy}</div>
@@ -935,7 +935,7 @@ const CreditNotes = () => {
     setTimeout(() => { wS.print(); wS.close(); }, 300);
   };
 
-  // â”€â”€ Subtotals by reason for the stat strip â”€â”€
+  // ── Subtotals by reason for the stat strip ──
   const reasonStats = useMemo(() => {
     const by = { Discount: 0, 'Crate Return': 0, 'Goods Return': 0, Other: 0 };
     (stats.byReason || []).forEach(r => {
@@ -972,7 +972,7 @@ const CreditNotes = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Stat cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Stat cards ─────────────────────────────────────────────────────── */}
       <div className="stat-cards">
         <div className="stat-card blue">
           <div className="stat-icon"><FiTag /></div>
@@ -1004,7 +1004,7 @@ const CreditNotes = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Filter bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Filter bar ─────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
                     padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
@@ -1034,12 +1034,12 @@ const CreditNotes = () => {
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
           {list.length} credit note{list.length !== 1 ? 's' : ''}
           {list.length > 0 && (
-            <> &nbsp;Â·&nbsp; Total: <strong style={{ color: '#0369a1' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>
+            <> &nbsp;·&nbsp; Total: <strong style={{ color: '#0369a1' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>
           )}
         </span>
       </div>
 
-      {/* â”€â”€ Tabs: per-document detail vs per-supplier rollup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Tabs: per-document detail vs per-supplier rollup ─────────────── */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e5e7eb' }}>
         {[
           { key: 'byDocument', label: 'By Document' },
@@ -1056,7 +1056,7 @@ const CreditNotes = () => {
         ))}
       </div>
 
-      {/* â”€â”€ Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Table ──────────────────────────────────────────────────────────── */}
       <div className="data-table-container">
         {list.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
@@ -1086,16 +1086,16 @@ const CreditNotes = () => {
                   </td>
                   <td style={{ textAlign: 'center' }}>{s.count}</td>
                   <td style={{ textAlign: 'right', color: s.discount > 0 ? '#16a34a' : '#9ca3af' }}>
-                    {s.discount > 0 ? `${curSym}${s.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'â€”'}
+                    {s.discount > 0 ? `${curSym}${s.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', color: s.crate_return > 0 ? '#1d4ed8' : '#9ca3af' }}>
-                    {s.crate_return > 0 ? `${curSym}${s.crate_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'â€”'}
+                    {s.crate_return > 0 ? `${curSym}${s.crate_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', color: s.goods_return > 0 ? '#9a3412' : '#9ca3af' }}>
-                    {s.goods_return > 0 ? `${curSym}${s.goods_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'â€”'}
+                    {s.goods_return > 0 ? `${curSym}${s.goods_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', color: s.other > 0 ? '#374151' : '#9ca3af' }}>
-                    {s.other > 0 ? `${curSym}${s.other.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : 'â€”'}
+                    {s.other > 0 ? `${curSym}${s.other.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: '#0369a1' }}>
                     {curSym}{s.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1103,7 +1103,7 @@ const CreditNotes = () => {
                 </tr>
               ))}
               <tr style={{ background: '#f0f9ff', fontWeight: 700 }}>
-                <td>TOTAL â€” {bySupplier.length} supplier{bySupplier.length !== 1 ? 's' : ''}</td>
+                <td>TOTAL — {bySupplier.length} supplier{bySupplier.length !== 1 ? 's' : ''}</td>
                 <td style={{ textAlign: 'center' }}>{list.length}</td>
                 <td style={{ textAlign: 'right', color: '#16a34a' }}>
                   {curSym}{bySupplier.reduce((s, x) => s + x.discount, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1146,7 +1146,7 @@ const CreditNotes = () => {
                   <tr key={cn.id}>
                     <td style={{ fontWeight: 500 }}>{cn.credit_note_number}</td>
                     <td>{formatDate(cn.date)}</td>
-                    <td>{cn.supplier_name || 'â€”'}</td>
+                    <td>{cn.supplier_name || '—'}</td>
                     {onHq && <td>{depotLabel(cn.depot_name)}</td>}
                     <td>
                       <span style={{ padding: '2px 9px', borderRadius: 10, fontSize: 11, fontWeight: 700,
@@ -1154,12 +1154,12 @@ const CreditNotes = () => {
                         {cn.reason}
                       </span>
                       {!reasonAffectsProfit(cn.reason) && (
-                        <span title="Deposit refund â€” does not affect Profit Report" style={{ marginLeft: 6, fontSize: 10, color: '#9ca3af' }}>
+                        <span title="Deposit refund — does not affect Profit Report" style={{ marginLeft: 6, fontSize: 10, color: '#9ca3af' }}>
                           (deposit refund)
                         </span>
                       )}
                     </td>
-                    {/* 2026-09-07 â€” where the note stands. A depot's credit
+                    {/* 2026-09-07 — where the note stands. A depot's credit
                         is a claim until HQ agrees it: the stock has already
                         left the shelf, but nothing has been taken off what the
                         supplier is owed. Saying so is the difference between
@@ -1173,16 +1173,16 @@ const CreditNotes = () => {
                         <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: '#fef3c7', color: '#92400e' }}>
                           Awaiting confirmation
                         </span>
-                      ) : <span style={{ color: '#cbd5e1' }}>â€”</span>}
+                      ) : <span style={{ color: '#cbd5e1' }}>—</span>}
                     </td>
                     <td style={{ color: '#6b7280' }}>{cn.linked_grn_number
-                        ? <span title={cn.linked_is_proposed ? 'Proposed â€” waiting for HQ to confirm' : 'Attached to this GRN'}>
+                        ? <span title={cn.linked_is_proposed ? 'Proposed — waiting for HQ to confirm' : 'Attached to this GRN'}>
                             <span style={{ fontFamily: 'monospace' }}>{cn.linked_grn_number}</span>
-                            {cn.linked_is_proposed && <span style={{ color: '#b45309' }}> Â· pending</span>}
+                            {cn.linked_is_proposed && <span style={{ color: '#b45309' }}> · pending</span>}
                           </span>
-                        : (cn.reference || 'â€”')}</td>
+                        : (cn.reference || '—')}</td>
                     <td style={{ fontFamily: 'monospace', color: cn.supplier_invoice_number ? '#111827' : '#cbd5e1' }}>
-                      {cn.supplier_invoice_number || 'â€”'}
+                      {cn.supplier_invoice_number || '—'}
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 600 }}>
                       {curSym}{parseFloat(cn.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1194,7 +1194,7 @@ const CreditNotes = () => {
                                    borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#6b7280', cursor: 'pointer', fontSize: 12 }}>
                           <FiEye size={12} /> {t('view')}
                         </button>
-                          {/* 2026-09-14 â€” HQ confirms; a depot only sees the status. */}
+                          {/* 2026-09-14 — HQ confirms; a depot only sees the status. */}
                           {onHq && cn.proposed_grn_sync_id && !cn.branch_confirmed_at && (
                             <button onClick={() => handleConfirm(cn)} title="Confirm this depot's credit note"
                               style={{ padding: '4px 10px', borderRadius: 6, border: 'none', background: '#16a34a', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer', marginRight: 4 }}>
@@ -1204,7 +1204,7 @@ const CreditNotes = () => {
                         {/* A confirmed credit is agreed with the supplier
                             and already off the payable. Editing or deleting it
                             would move money nobody looked at again, so it is
-                            view-only from that point â€” at HQ as well as at the
+                            view-only from that point — at HQ as well as at the
                             depot. Correct a bad one with a reversing entry,
                             not by making it disappear.
 
@@ -1238,7 +1238,7 @@ const CreditNotes = () => {
                 );
               })}
               <tr style={{ background: '#f0f9ff', fontWeight: 700 }}>
-                <td colSpan={6} style={{ textAlign: 'right' }}>TOTAL â€” {list.length} credit note{list.length !== 1 ? 's' : ''}</td>
+                <td colSpan={6} style={{ textAlign: 'right' }}>TOTAL — {list.length} credit note{list.length !== 1 ? 's' : ''}</td>
                 <td style={{ textAlign: 'right', fontSize: 14, color: '#0369a1' }}>
                   {curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
@@ -1249,7 +1249,7 @@ const CreditNotes = () => {
         )}
       </div>
 
-      {/* â”€â”€ New / Edit modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── New / Edit modal ───────────────────────────────────────────────── */}
       {showForm && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -1260,11 +1260,11 @@ const CreditNotes = () => {
             </div>
 
             <div style={{ padding: 22 }}>
-              {/* 2026-09-12 â€” one reason, so nothing to choose. Goods Return
+              {/* 2026-09-12 — one reason, so nothing to choose. Goods Return
                   covers every credit a depot raises: the supplier's goods going
                   back, and crates or empty bottles, which still price at the
                   deposit. Discount and Other are gone (Red Sea gives no
-                  discounts), and Crate Return is gone from the form only â€” the
+                  discounts), and Crate Return is gone from the form only — the
                   Empty Returns page still mints its own. An older note keeps
                   whatever reason it was saved with, and this shows it. */}
               <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>Reason</label>
@@ -1279,10 +1279,10 @@ const CreditNotes = () => {
               {!reasonAffectsProfit(reason) && (
                 <div style={{ marginBottom: 12, padding: '8px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 11, color: '#1e3a8a' }}>
                   {reason === 'Crate Return' && (
-                    <><strong>Note:</strong> Crate Returns are deposit refunds â€” covers any returnable container (crates, empty bottles, kegs). They reduce AP balance and move empty stock, but do <strong>not</strong> appear on the Profit Report (they're not income).</>
+                    <><strong>Note:</strong> Crate Returns are deposit refunds — covers any returnable container (crates, empty bottles, kegs). They reduce AP balance and move empty stock, but do <strong>not</strong> appear on the Profit Report (they're not income).</>
                   )}
                   {reason === 'Goods Return' && (
-                    <><strong>Note:</strong> pick whatever is going back to the supplier â€” damaged, wrong or excess goods, and crates or empty bottles too. Stock leaves your store and the AP balance drops by the same amount. Does <strong>not</strong> appear on the Profit Report (it's a reversal, not income).</>
+                    <><strong>Note:</strong> pick whatever is going back to the supplier — damaged, wrong or excess goods, and crates or empty bottles too. Stock leaves your store and the AP balance drops by the same amount. Does <strong>not</strong> appear on the Profit Report (it's a reversal, not income).</>
                   )}
                 </div>
               )}
@@ -1296,7 +1296,7 @@ const CreditNotes = () => {
                       credit with no invoice still needs one picked here. */}
                   <select value={supplierId} onChange={e => setSupplierId(e.target.value)}
                     style={{ width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, background: '#fff', boxSizing: 'border-box' }}>
-                    <option value="">â€” Select supplier â€”</option>
+                    <option value="">— Select supplier —</option>
                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
@@ -1307,18 +1307,18 @@ const CreditNotes = () => {
                 </div>
               </div>
 
-              {/* 2026-09-04 â€” attach to a GRN. Optional: a credit that belongs
+              {/* 2026-09-04 — attach to a GRN. Optional: a credit that belongs
                   to no particular delivery still lowers the supplier's overall
                   balance, which is what Reference alone used to do. Choosing a
                   GRN is what makes it reduce THAT invoice's payable. */}
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>
                   Invoice number <span style={{ textTransform: 'none', fontWeight: 500, color: '#9ca3af' }}>
-                    {editMode && grnSyncId ? 'â€” already attached' : 'â€” optional'}
+                    {editMode && grnSyncId ? '— already attached' : '— optional'}
                   </span>
                 </label>
                 {editMode && grnSyncId ? (
-                  // 2026-09-18 â€” locked while editing. Which invoice a credit
+                  // 2026-09-18 — locked while editing. Which invoice a credit
                   // reduces is not something to change by accident; to move it,
                   // delete the note and raise it against the right invoice.
                   <div style={{ width: '100%', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 8,
@@ -1328,10 +1328,10 @@ const CreditNotes = () => {
                       {editInvoice?.invoice ? `Inv ${editInvoice.invoice}` : (editInvoice?.grn || 'Attached to an invoice')}
                     </span>
                     {editInvoice?.grn && editInvoice?.invoice && (
-                      <span style={{ color: '#6b7280', fontSize: 12 }}>Â· {editInvoice.grn}</span>
+                      <span style={{ color: '#6b7280', fontSize: 12 }}>· {editInvoice.grn}</span>
                     )}
                     {editInvoice?.proposed && (
-                      <span style={{ color: '#b45309', fontSize: 11, fontWeight: 700 }}>Â· WAITING FOR HQ</span>
+                      <span style={{ color: '#b45309', fontSize: 11, fontWeight: 700 }}>· WAITING FOR HQ</span>
                     )}
                     <span style={{ marginLeft: 'auto', color: '#9ca3af', fontSize: 11 }}>locked</span>
                   </div>
@@ -1349,63 +1349,63 @@ const CreditNotes = () => {
                     }
                   }}
                   style={{ width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
-                  <option value="">â€” none Â· lowers the supplier's balance â€”</option>
+                  <option value="">— none · lowers the supplier's balance —</option>
                   {linkable.map(g => (
-                    // 2026-09-04 â€” the SUPPLIER'S invoice number leads. That is the
+                    // 2026-09-04 — the SUPPLIER'S invoice number leads. That is the
                     // number on the paper the depot is holding; the GRN number is
                     // ours, minted when HQ confirmed receipt, and they have no
                     // reason to know it. Date and amount next, because those are
                     // also on the invoice. GRN number kept in the tail for HQ.
-                    // 2026-09-06 â€” the supplier's name, right after their
+                    // 2026-09-06 — the supplier's name, right after their
                     // invoice number. With no supplier chosen this list mixes
                     // every supplier's invoices together and nothing said
                     // whose was whose.
-                    // 2026-09-14 â€” an invoice that already has a credit note is
+                    // 2026-09-14 — an invoice that already has a credit note is
                     // coloured and says so, with the amount, so the same credit
                     // is not raised twice. The text carries it too: some phones
                     // ignore colours on dropdown options.
                     <option key={g.grn_sync_id} value={g.grn_sync_id}
                       style={g.cn_count > 0 ? { color: '#b45309', background: '#fff7ed', fontWeight: 600 } : undefined}>
-                      {g.cn_count > 0 ? 'â— ' : ''}
+                      {g.cn_count > 0 ? '● ' : ''}
                       {(g.supplier_invoice_number || g.invoice_number) ? `Inv ${g.supplier_invoice_number || g.invoice_number}` : g.grn_number}
-                      {g.supplier_name ? ` Â· ${g.supplier_name}` : ''}
-                      {g.date ? ` Â· ${g.date}` : ''}
-                      {` Â· ${curSym}${Number(g.final_payable || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                      {(g.supplier_invoice_number || g.invoice_number) ? ` Â· ${g.grn_number}` : ''}
-                      {g.branch_name ? ` Â· ${g.branch_name}` : ''}
-                      {g.cn_count > 0 ? ` Â· HAS CN ${curSym}${Number(g.cn_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
+                      {g.supplier_name ? ` · ${g.supplier_name}` : ''}
+                      {g.date ? ` · ${g.date}` : ''}
+                      {` · ${curSym}${Number(g.final_payable || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                      {(g.supplier_invoice_number || g.invoice_number) ? ` · ${g.grn_number}` : ''}
+                      {g.branch_name ? ` · ${g.branch_name}` : ''}
+                      {g.cn_count > 0 ? ` · HAS CN ${curSym}${Number(g.cn_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : ''}
                     </option>
                   ))}
                 </select>
                 )}
                 {linkable.some(g => g.cn_count > 0) && !grnSyncId && (
                   <div style={{ fontSize: 11, color: '#b45309', marginTop: 4 }}>
-                    â— Amber invoices already have a credit note.
+                    ● Amber invoices already have a credit note.
                   </div>
                 )}
                 {supplierId && linkable.length === 0 && (
                   <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
-                    No unpaid GRNs for this supplier â€” a paid invoice cannot take a credit.
+                    No unpaid GRNs for this supplier — a paid invoice cannot take a credit.
                   </div>
                 )}
-                {/* 2026-09-14 â€” the chosen invoice already has credit notes:
+                {/* 2026-09-14 — the chosen invoice already has credit notes:
                     say which, and how much, before a second one is saved. */}
                 {invoiceSupplier && invoiceSupplier.cn_count > 0 && (
                   <div style={{ marginTop: 6, padding: '9px 12px', background: '#fff7ed', border: '1px solid #fdba74', borderRadius: 8, fontSize: 12, color: '#9a3412' }}>
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>
-                      This invoice already has {invoiceSupplier.cn_count} credit note{invoiceSupplier.cn_count === 1 ? '' : 's'} Â·{' '}
+                      This invoice already has {invoiceSupplier.cn_count} credit note{invoiceSupplier.cn_count === 1 ? '' : 's'} ·{' '}
                       {curSym}{Number(invoiceSupplier.cn_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     {(invoiceSupplier.credit_notes || []).map(n => (
                       <div key={n.number} style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                        <span style={{ fontFamily: 'monospace' }}>{n.number}{n.pending ? ' Â· awaiting HQ' : ''}</span>
+                        <span style={{ fontFamily: 'monospace' }}>{n.number}{n.pending ? ' · awaiting HQ' : ''}</span>
                         <span>{curSym}{Number(n.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     ))}
                     <div style={{ marginTop: 4, color: '#b45309' }}>Check it is not the same return before saving another.</div>
                   </div>
                 )}
-                {/* 2026-09-12 â€” what the chosen invoice still owes. It was only
+                {/* 2026-09-12 — what the chosen invoice still owes. It was only
                     ever readable inside the dropdown option, so once the list
                     closed there was nothing to size the credit against. */}
                 {invoiceSupplier && (
@@ -1415,7 +1415,7 @@ const CreditNotes = () => {
                       {(invoiceSupplier.supplier_invoice_number || invoiceSupplier.invoice_number)
                         ? `Invoice ${invoiceSupplier.supplier_invoice_number || invoiceSupplier.invoice_number}`
                         : invoiceSupplier.grn_number}
-                      {invoiceSupplier.branch_name ? ` Â· ${invoiceSupplier.branch_name}` : ''}
+                      {invoiceSupplier.branch_name ? ` · ${invoiceSupplier.branch_name}` : ''}
                     </span>
                     <span style={{ color: '#0f172a', fontWeight: 700 }}>
                       Final payable {curSym}{Number(invoiceSupplier.final_payable || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1446,8 +1446,8 @@ const CreditNotes = () => {
                     )}
                     {reason === 'Goods Return' && (
                       <span style={{ fontSize: 10, color: '#9a3412', background: '#ffedd5', border: '1px solid #fed7aa', borderRadius: 6, padding: '2px 8px' }}>
-                        Value fills from the invoice (VAT incl Ã· qty), else the last invoice
-                        {defaultDeposit > 0 ? ` Â· crates & empties at ${curSym}${parseFloat(defaultDeposit).toFixed(2)}` : ''}
+                        Value fills from the invoice (VAT incl ÷ qty), else the last invoice
+                        {defaultDeposit > 0 ? ` · crates & empties at ${curSym}${parseFloat(defaultDeposit).toFixed(2)}` : ''}
                       </span>
                     )}
                   </div>
@@ -1477,7 +1477,7 @@ const CreditNotes = () => {
                             return (
                               <React.Fragment key={idx}>
                               <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, alignItems: 'center', padding: '4px' }}>
-                                {/* 2026-09-11 â€” the New HQ Purchase picker, with the
+                                {/* 2026-09-11 — the New HQ Purchase picker, with the
                                     chosen invoice's items first, in green. */}
                                 <div style={{ minWidth: 0 }}>
                                   <ItemPicker
@@ -1485,7 +1485,7 @@ const CreditNotes = () => {
                                     text={r.product_text || ''}
                                     selected={!!r.product_id}
                                     tagFor={grnLines.length ? invoiceTag : null}
-                                    placeholder={reason === 'Goods Return' ? 'Type to search itemsâ€¦' : 'Crate or empty bottle'}
+                                    placeholder={reason === 'Goods Return' ? 'Type to search items…' : 'Crate or empty bottle'}
                                     onPick={(p) => pickRow(idx, p)}
                                     onText={(t) => typeRow(idx, t)}
                                     onClear={() => clearRow(idx)}
@@ -1517,7 +1517,7 @@ const CreditNotes = () => {
                               </div>
                               {overInvoice && (
                                 <div style={{ fontSize: 11, color: '#b45309', padding: '0 4px 4px' }}>
-                                  More than the {fmtQty(invQty)}{r.unit ? ` ${r.unit}` : ''} on this invoice â€” check the quantity.
+                                  More than the {fmtQty(invQty)}{r.unit ? ` ${r.unit}` : ''} on this invoice — check the quantity.
                                 </div>
                               )}
                               </React.Fragment>
@@ -1550,10 +1550,10 @@ const CreditNotes = () => {
 
               {/* Total preview */}
               <div style={{ marginBottom: 12, padding: '10px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10 }}>
-                {/* 2026-09-18 â€” on a note raised at goods-receive the lines are
+                {/* 2026-09-18 — on a note raised at goods-receive the lines are
                     pre-discount and ex-VAT, so the figure below is not just
                     their sum. Spelling it out is what stops "the total changed
-                    when I opened it" â€” it did not; the rest was never shown. */}
+                    when I opened it" — it did not; the rest was never shown. */}
                 {reasonHasItems(reason) && (editVat > 0 || editDiscount > 0) && (
                   <>
                     {[['Goods (before VAT)', calcTotal(items)],
@@ -1579,7 +1579,7 @@ const CreditNotes = () => {
                 </div>
               </div>
 
-              {/* 2026-09-12 â€” and what that leaves on the invoice. A credit for
+              {/* 2026-09-12 — and what that leaves on the invoice. A credit for
                   more than the invoice owes is a mistake worth seeing before it
                   is saved, not after Accounts finds a negative payable. */}
               {invoiceSupplier && (() => {
@@ -1626,7 +1626,7 @@ const CreditNotes = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ View modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── View modal ─────────────────────────────────────────────────────── */}
       {viewCN && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -1634,7 +1634,7 @@ const CreditNotes = () => {
             <div style={{ padding: '16px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{viewCN.credit_note_number}</h2>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{formatDate(viewCN.date)} Â· {viewCN.supplier_name}</div>
+                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{formatDate(viewCN.date)} · {viewCN.supplier_name}</div>
               </div>
               <button onClick={() => setViewCN(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
             </div>
@@ -1647,17 +1647,17 @@ const CreditNotes = () => {
                   </span>
                 ); })()}
                 {!reasonAffectsProfit(viewCN.reason) && (
-                  <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>(deposit refund â€” not income)</span>
+                  <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>(deposit refund — not income)</span>
                 )}
               </div>
 
-              {/* 2026-09-14 â€” the depot and the supplier's invoice number, next to the GRN. */}
+              {/* 2026-09-14 — the depot and the supplier's invoice number, next to the GRN. */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, marginBottom: 12 }}>
                 {onHq && <Fact label="Depot" value={depotLabel(viewCN.depot_name)} />}
-                <Fact label="Supplier invoice #" value={viewCN.supplier_invoice_number || 'â€”'} mono />
+                <Fact label="Supplier invoice #" value={viewCN.supplier_invoice_number || '—'} mono />
                 <Fact label="GRN" value={viewCN.linked_grn_number
                   ? `${viewCN.linked_grn_number}${viewCN.linked_is_proposed ? ' (pending)' : ''}`
-                  : 'â€”'} mono />
+                  : '—'} mono />
               </div>
 
               {viewCN.reference && (
@@ -1693,12 +1693,12 @@ const CreditNotes = () => {
                 </div>
               )}
 
-              {/* 2026-09-18 â€” notes raised at goods-receive (up to 10 Sept)
+              {/* 2026-09-18 — notes raised at goods-receive (up to 10 Sept)
                   hold their lines at the BASE price, with the discount and the
                   note's VAT kept separately. Listing only the lines made those
-                  notes look wrong: 10 Ã— K252.28 under a total of K3,439.048,
+                  notes look wrong: 10 × K252.28 under a total of K3,439.048,
                   with nothing saying where the rest came from. The breakdown
-                  shows only when there is something to explain â€” a note raised
+                  shows only when there is something to explain — a note raised
                   on this page has neither, and still shows one Amount line. */}
               {(() => {
                 const lines = (viewCN.items || []).reduce((s, i) => s + (parseFloat(i.total_price) || 0), 0);
@@ -1737,7 +1737,7 @@ const CreditNotes = () => {
               )}
 
               <div style={{ marginTop: 14, fontSize: 11, color: '#9ca3af' }}>
-                Prepared by {viewCN.created_by_name || 'â€”'} on {formatDate(viewCN.created_at?.split(' ')[0])}
+                Prepared by {viewCN.created_by_name || '—'} on {formatDate(viewCN.created_at?.split(' ')[0])}
               </div>
             </div>
 
@@ -1754,9 +1754,9 @@ const CreditNotes = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ Supplier drill-down modal (by-supplier rollup) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Supplier drill-down modal (by-supplier rollup) ─────────────────── */}
       {supplierDetail && (() => {
-        const cns = list.filter(cn => (cn.supplier_name || 'â€” (no supplier)') === supplierDetail);
+        const cns = list.filter(cn => (cn.supplier_name || '— (no supplier)') === supplierDetail);
         const total = cns.reduce((s, c) => s + parseFloat(c.amount || 0), 0);
         const groupOrder = ['Discount', 'Crate Return', 'Goods Return', 'Other'];
         const groups = groupOrder.map(g => ({
@@ -1771,7 +1771,7 @@ const CreditNotes = () => {
                   <div style={{ minWidth: 0 }}>
                     <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{supplierDetail}</h2>
                     <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                      {cns.length} credit note{cns.length !== 1 ? 's' : ''} Â· {curSym}{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      {cns.length} credit note{cns.length !== 1 ? 's' : ''} · {curSym}{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -1799,7 +1799,7 @@ const CreditNotes = () => {
                     return (
                       <div key={g.reason} style={{ marginBottom: 16, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
                         <div style={{ padding: '8px 12px', background: rs.bg, color: rs.color, borderBottom: `1px solid ${rs.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 700, fontSize: 13 }}>{g.reason} Â· {g.rows.length}</span>
+                          <span style={{ fontWeight: 700, fontSize: 13 }}>{g.reason} · {g.rows.length}</span>
                           <span style={{ fontWeight: 800, fontSize: 13 }}>{curSym}{sub.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         </div>
                         <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -1822,11 +1822,11 @@ const CreditNotes = () => {
                                     <td style={{ padding: '8px 10px', fontWeight: 600 }}>{cn.credit_note_number}</td>
                                     <td style={{ padding: '8px 10px', color: '#6b7280' }}>{formatDate(cn.date)}</td>
                                     <td style={{ padding: '8px 10px', color: '#6b7280' }}>{cn.linked_grn_number
-                        ? <span title={cn.linked_is_proposed ? 'Proposed â€” waiting for HQ to confirm' : 'Attached to this GRN'}>
+                        ? <span title={cn.linked_is_proposed ? 'Proposed — waiting for HQ to confirm' : 'Attached to this GRN'}>
                             <span style={{ fontFamily: 'monospace' }}>{cn.linked_grn_number}</span>
-                            {cn.linked_is_proposed && <span style={{ color: '#b45309' }}> Â· pending</span>}
+                            {cn.linked_is_proposed && <span style={{ color: '#b45309' }}> · pending</span>}
                           </span>
-                        : (cn.reference || 'â€”')}</td>
+                        : (cn.reference || '—')}</td>
                                     <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700 }}>{curSym}{parseFloat(cn.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                     <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                       <button type="button" onClick={() => toggleExpand(cn)} title={isExp ? 'Hide breakdown' : 'Show breakdown'}
@@ -1839,7 +1839,7 @@ const CreditNotes = () => {
                                     <tr style={{ background: '#f8fafc' }}>
                                       <td colSpan={5} style={{ padding: '4px 12px 12px' }}>
                                         {cache?.loading ? (
-                                          <div style={{ padding: 10, fontSize: 11, color: '#6b7280' }}>Loadingâ€¦</div>
+                                          <div style={{ padding: 10, fontSize: 11, color: '#6b7280' }}>Loading…</div>
                                         ) : cache?.error ? (
                                           <div style={{ padding: 10, fontSize: 11, color: '#dc2626' }}>Failed to load: {cache.error}</div>
                                         ) : reasonHasStock && (cache?.items || []).length > 0 ? (

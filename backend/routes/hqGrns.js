@@ -1,20 +1,20 @@
 /**
- * hqGrns.js â€” HQ-side review of branch GRNs that were generated from a
+ * hqGrns.js — HQ-side review of branch GRNs that were generated from a
  * HQ PO (v1.9.7 procurement flow).
  *
  * Lifecycle recap:
  *   1. HQ creates PO at /api/hq/purchases (lines target branches).
- *   2. Branch sees PO in "Incoming Stock" queue â†’ clicks "Accept &
- *      Generate GRN" â†’ opens a normal GRN form with PO# pre-filled.
+ *   2. Branch sees PO in "Incoming Stock" queue → clicks "Accept &
+ *      Generate GRN" → opens a normal GRN form with PO# pre-filled.
  *   3. Branch fills the GRN with invoice qty + credit notes, saves.
  *      The GRN is stored at the branch DB with hq_status='PENDING_HQ_CONFIRM';
- *      the parent PO line flips from AWAITING_GRN â†’ GRN_SUBMITTED in
- *      master.db. NO stock has moved yet â€” that's HQ's job.
+ *      the parent PO line flips from AWAITING_GRN → GRN_SUBMITTED in
+ *      master.db. NO stock has moved yet — that's HQ's job.
  *   4. HQ opens /api/hq/grns/awaiting (this file's GET endpoint), sees
  *      every branch's pending GRN, opens the full doc, and either:
- *         /confirm  â†’ posts stock at branch location='sales', updates
+ *         /confirm  → posts stock at branch location='sales', updates
  *                     the linked PO lines to CONFIRMED, locks supplier AP.
- *         /reject   â†’ resets hq_status, sends the GRN back to the branch
+ *         /reject   → resets hq_status, sends the GRN back to the branch
  *                     for re-entry (PO line flips back to AWAITING_GRN
  *                     so branch can create a fresh GRN).
  *
@@ -27,11 +27,11 @@ const { randomUUID } = require('crypto');
 const { listTenants, isRegistered, masterDb } = require('../config/masterDb');
 const { getTenantDb } = require('../config/tenantDb');
 
-// 2026-08-28 â€” stock movements written from HQ were ORPHANED on the server.
+// 2026-08-28 — stock movements written from HQ were ORPHANED on the server.
 //
 // The inserts below stamped tenant_id/branch_id from grn.tenant_id etc, but
 // hq_grns has no such columns, so every one was NULL. The branch pull filters
-// `WHERE tenant_id = ?`, and NULL never matches â€” so a GRN confirmed at HQ
+// `WHERE tenant_id = ?`, and NULL never matches — so a GRN confirmed at HQ
 // updated products.current_stock (that row already had its tenant_id and
 // synced fine) while the MOVEMENT never reached the branch. Symptom: the till
 // showed the right stock number but its Bin Card was missing the receipt, so
@@ -49,7 +49,7 @@ function branchSyncIds(branchDb) {
     tenantId = branchDb.prepare(
       'SELECT tenant_id FROM business_settings WHERE tenant_id IS NOT NULL LIMIT 1'
     ).get()?.tenant_id || null;
-  } catch (_) { /* settings row not readable â€” leave null */ }
+  } catch (_) { /* settings row not readable — leave null */ }
   try {
     branchId = branchDb.prepare(
       "SELECT value FROM sync_config WHERE key = 'branch_id' LIMIT 1"
@@ -111,9 +111,9 @@ router.get('/awaiting', hqAuth, (req, res) => {
   }
 });
 
-// v1.10.0 â€” /receipt/:syncId + /awaiting-generation are declared here so
+// v1.10.0 — /receipt/:syncId + /awaiting-generation are declared here so
 // they win over the wildcard /:slug/:syncId below (Express matches in
-// order â€” a 2-segment specific must precede a 2-segment wildcard, else
+// order — a 2-segment specific must precede a 2-segment wildcard, else
 // the wildcard swallows "receipt" as if it were a branch slug).
 router.get('/awaiting-generation', hqAuth, (req, res) => {
   try {
@@ -143,13 +143,13 @@ router.get('/awaiting-generation', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ AP APPROVAL CHAIN (v1.13.30) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Kelete's payable workflow: Store Manager confirms GRN â†’ Accounts
-// clerk checks â†’ Finance Head approves â†’ Main Cashier records payment.
+// ─── AP APPROVAL CHAIN (v1.13.30) ─────────────────────────────────────
+// Kelete's payable workflow: Store Manager confirms GRN → Accounts
+// clerk checks → Finance Head approves → Main Cashier records payment.
 // Declared BEFORE /:slug/:syncId (same reason as /hq/:syncId below):
 // /ap/queue would otherwise be caught by that generic route with
 // slug='ap', syncId='queue'.
-// POST /api/hq/grns/ap/approve-batch â€” approve several GRNs of ONE supplier
+// POST /api/hq/grns/ap/approve-batch — approve several GRNs of ONE supplier
 // as a single payment batch.
 //
 // 2026-08-30. Approving invoices in a run is how AP actually works, and it is
@@ -159,9 +159,9 @@ router.get('/awaiting-generation', hqAuth, (req, res) => {
 // invoice was settled and the per-GRN answer is what reconciles to the
 // supplier ledger.
 //
-// Not called a voucher â€” payment_vouchers is an existing, unrelated
+// Not called a voucher — payment_vouchers is an existing, unrelated
 // general cash-out table, and a second PV series would break reconciliation.
-// â”€â”€â”€ Standalone credit notes: the same stages a GRN walks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Standalone credit notes: the same stages a GRN walks ────────────────
 //
 // 2026-08-31. A credit that belongs to no invoice now goes
 //   Awaiting Check -> Awaiting Confirmation -> Ready for Payment -> Applied
@@ -172,7 +172,7 @@ router.get('/awaiting-generation', hqAuth, (req, res) => {
 // are raised on the HQ host and sit in its own supplier_credit_notes.
 //
 // Each step re-asserts the status it expects inside the UPDATE, so two people
-// acting at once cannot skip a stage â€” the second one changes no rows and is
+// acting at once cannot skip a stage — the second one changes no rows and is
 // told why.
 function cnActor(req) {
   return [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ')
@@ -190,7 +190,7 @@ function loadStandaloneCredit(syncId) {
 
 // POST /api/hq/grns/ap/credit/:syncId/check   body: { grn_sync_id }
 //
-// 2026-08-31 â€” checking a standalone credit is where it gets ATTACHED to a
+// 2026-08-31 — checking a standalone credit is where it gets ATTACHED to a
 // GRN, because a person decides which invoice it belongs against. Splitting
 // it across GRNs by formula would have been a guess dressed as a fact; asking
 // the checker is both simpler and true.
@@ -202,7 +202,7 @@ router.post('/ap/credit/:syncId/check', hqAuth, (req, res) => {
     const cn = loadStandaloneCredit(req.params.syncId);
     if (!cn) return res.status(404).json({ error: 'Credit note not found' });
     if ((cn.ap_status || 'PENDING') !== 'PENDING') {
-      return res.status(400).json({ error: `Cannot check â€” status is ${cn.ap_status}.` });
+      return res.status(400).json({ error: `Cannot check — status is ${cn.ap_status}.` });
     }
     const grnSyncId = String(req.body?.grn_sync_id || '').trim();
     if (!grnSyncId) {
@@ -219,7 +219,7 @@ router.post('/ap/credit/:syncId/check', hqAuth, (req, res) => {
     if (cnSup !== grnSup) {
       return res.status(400).json({ error: 'The credit note and the GRN belong to different suppliers.' });
     }
-    // A settled GRN cannot absorb a credit â€” the money has already moved.
+    // A settled GRN cannot absorb a credit — the money has already moved.
     if (['PAID'].includes(grn.ap_status)) {
       return res.status(400).json({
         error: `${grn.grn_number} is already paid. Attach the credit to an unpaid GRN, or leave it for the supplier to offset.`,
@@ -260,7 +260,7 @@ router.post('/ap/credit/:syncId/confirm-review', hqAuth, (req, res) => {
     const cn = loadStandaloneCredit(req.params.syncId);
     if (!cn) return res.status(404).json({ error: 'Credit note not found' });
     if ((cn.ap_status || 'PENDING') !== 'CHECKED') {
-      return res.status(400).json({ error: `Cannot confirm â€” status is ${cn.ap_status}.` });
+      return res.status(400).json({ error: `Cannot confirm — status is ${cn.ap_status}.` });
     }
     dbProxy.prepare(
       `UPDATE supplier_credit_notes
@@ -278,7 +278,7 @@ router.post('/ap/credit/:syncId/unconfirm-review', hqAuth, (req, res) => {
     const cn = loadStandaloneCredit(req.params.syncId);
     if (!cn) return res.status(404).json({ error: 'Credit note not found' });
     if ((cn.ap_status || 'PENDING') !== 'CHECKED') {
-      return res.status(400).json({ error: 'Already approved â€” nothing to unconfirm.' });
+      return res.status(400).json({ error: 'Already approved — nothing to unconfirm.' });
     }
     dbProxy.prepare(
       `UPDATE supplier_credit_notes
@@ -290,7 +290,7 @@ router.post('/ap/credit/:syncId/unconfirm-review', hqAuth, (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// POST /api/hq/grns/ap/credit/approve-batch â€” mirrors the GRN batch approve.
+// POST /api/hq/grns/ap/credit/approve-batch — mirrors the GRN batch approve.
 router.post('/ap/credit/approve-batch', hqAuth, (req, res) => {
   try {
     const ids = Array.isArray(req.body?.credit_sync_ids) ? req.body.credit_sync_ids.filter(Boolean) : [];
@@ -337,7 +337,7 @@ router.post('/ap/credit/approve-batch', hqAuth, (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// POST /api/hq/grns/ap/credit/:syncId/send-back â€” one stage back, like a GRN.
+// POST /api/hq/grns/ap/credit/:syncId/send-back — one stage back, like a GRN.
 router.post('/ap/credit/:syncId/send-back', hqAuth, (req, res) => {
   try {
     const reason = String(req.body?.reason || '').trim();
@@ -346,7 +346,7 @@ router.post('/ap/credit/:syncId/send-back', hqAuth, (req, res) => {
     if (!cn) return res.status(404).json({ error: 'Credit note not found' });
     const current = cn.ap_status || 'PENDING';
     if (!['CHECKED', 'APPROVED'].includes(current)) {
-      return res.status(400).json({ error: `Nothing to send back â€” status is ${current}.` });
+      return res.status(400).json({ error: `Nothing to send back — status is ${current}.` });
     }
     const backTo = current === 'APPROVED' ? 'CHECKED' : 'PENDING';
     // Sending back also clears the review, or it would return pre-confirmed
@@ -367,21 +367,21 @@ router.post('/ap/credit/:syncId/send-back', hqAuth, (req, res) => {
 });
 
 // POST /api/hq/grns/ap/:grnSyncId/confirm-review  (and /unconfirm-review)
-// 2026-08-31 â€” Finance marks a GRN as reviewed, one at a time.
+// 2026-08-31 — Finance marks a GRN as reviewed, one at a time.
 //
 // The button lives inside the detail modal deliberately: confirming is only a
 // real control if you had to open the thing to do it. Approval itself stays a
 // batch action, so there is one way to approve rather than two doing the same
 // job.
 //
-// The row stays CHECKED throughout â€” this is a marker, not a status.
+// The row stays CHECKED throughout — this is a marker, not a status.
 router.post('/ap/:grnSyncId/confirm-review', hqAuth, (req, res) => {
   try {
     if (!masterDb) return res.status(503).json({ error: 'master.db unavailable' });
     const row = masterDb.prepare('SELECT ap_status FROM hq_confirmed_grn_totals WHERE grn_sync_id = ?').get(req.params.grnSyncId);
     if (!row) return res.status(404).json({ error: 'GRN snapshot not found' });
     if ((row.ap_status || 'PENDING') !== 'CHECKED') {
-      return res.status(400).json({ error: `Cannot confirm â€” status is ${row.ap_status || 'PENDING'}. Only checked GRNs await approval.` });
+      return res.status(400).json({ error: `Cannot confirm — status is ${row.ap_status || 'PENDING'}. Only checked GRNs await approval.` });
     }
     const actorName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ') || req.user?.email || 'user';
     masterDb.prepare(`
@@ -398,12 +398,12 @@ router.post('/ap/:grnSyncId/confirm-review', hqAuth, (req, res) => {
 router.post('/ap/:grnSyncId/unconfirm-review', hqAuth, (req, res) => {
   try {
     if (!masterDb) return res.status(503).json({ error: 'master.db unavailable' });
-    // Undo is allowed only while it is still unapproved â€” after that the batch
+    // Undo is allowed only while it is still unapproved — after that the batch
     // approval is the record and this marker no longer decides anything.
     const row = masterDb.prepare('SELECT ap_status FROM hq_confirmed_grn_totals WHERE grn_sync_id = ?').get(req.params.grnSyncId);
     if (!row) return res.status(404).json({ error: 'GRN snapshot not found' });
     if ((row.ap_status || 'PENDING') !== 'CHECKED') {
-      return res.status(400).json({ error: 'Already approved â€” nothing to unconfirm.' });
+      return res.status(400).json({ error: 'Already approved — nothing to unconfirm.' });
     }
     masterDb.prepare(`
       UPDATE hq_confirmed_grn_totals
@@ -433,7 +433,7 @@ router.post('/ap/approve-batch', hqAuth, (req, res) => {
       return res.status(400).json({ error: 'One or more selected GRNs could not be found.' });
     }
 
-    // One supplier per batch â€” the batch exists to become one payment, and a
+    // One supplier per batch — the batch exists to become one payment, and a
     // payment row carries a single supplier.
     const suppliers = [...new Set(rows.map(r => r.supplier_sync_id || 'id:' + r.supplier_id))];
     if (suppliers.length > 1) {
@@ -524,7 +524,7 @@ router.post('/ap/:grnSyncId/check', hqAuth, (req, res) => {
     if (!row) return res.status(404).json({ error: 'GRN snapshot not found' });
     const currentStatus = row.ap_status || 'PENDING';
     if (currentStatus !== 'PENDING') {
-      return res.status(400).json({ error: `Cannot Check â€” current status is ${currentStatus}. Only PENDING rows can be Checked.` });
+      return res.status(400).json({ error: `Cannot Check — current status is ${currentStatus}. Only PENDING rows can be Checked.` });
     }
     const actorName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ') || req.user?.email || 'user';
     masterDb.prepare(`
@@ -546,7 +546,7 @@ router.post('/ap/:grnSyncId/approve', hqAuth, (req, res) => {
     if (!row) return res.status(404).json({ error: 'GRN snapshot not found' });
     const currentStatus = row.ap_status || 'PENDING';
     if (currentStatus !== 'CHECKED') {
-      return res.status(400).json({ error: `Cannot Approve â€” current status is ${currentStatus}. Only CHECKED rows can be Approved.` });
+      return res.status(400).json({ error: `Cannot Approve — current status is ${currentStatus}. Only CHECKED rows can be Approved.` });
     }
     const actorName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ') || req.user?.email || 'user';
     masterDb.prepare(`
@@ -560,7 +560,7 @@ router.post('/ap/:grnSyncId/approve', hqAuth, (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// Send-Back â€” dormant per user's Option A choice, wired in case we
+// Send-Back — dormant per user's Option A choice, wired in case we
 // enable the button in the UI later.
 router.post('/ap/:grnSyncId/send-back', hqAuth, (req, res) => {
   try {
@@ -572,10 +572,10 @@ router.post('/ap/:grnSyncId/send-back', hqAuth, (req, res) => {
     if (!row) return res.status(404).json({ error: 'GRN snapshot not found' });
     const currentStatus = row.ap_status || 'PENDING';
     if (!['CHECKED', 'APPROVED'].includes(currentStatus)) {
-      return res.status(400).json({ error: `Cannot reject â€” current status is ${currentStatus}. Only rows awaiting approval or ready for payment can be sent back.` });
+      return res.status(400).json({ error: `Cannot reject — current status is ${currentStatus}. Only rows awaiting approval or ready for payment can be sent back.` });
     }
 
-    // 2026-08-30 â€” go back ONE step, not to the beginning.
+    // 2026-08-30 — go back ONE step, not to the beginning.
     //
     // This used to drop everything to PENDING and wipe both the check and the
     // approval. So Finance rejecting an approved GRN also undid Accounts'
@@ -585,7 +585,7 @@ router.post('/ap/:grnSyncId/send-back', hqAuth, (req, res) => {
     //     APPROVED -> CHECKED   (clears approval, keeps the check)
     //     CHECKED  -> PENDING   (clears the check)
     const backTo = currentStatus === 'APPROVED' ? 'CHECKED' : 'PENDING';
-    // 2026-08-30 â€” leaving APPROVED also leaves the payment batch.
+    // 2026-08-30 — leaving APPROVED also leaves the payment batch.
     //
     // A batch is a set of invoices approved together for one payment; a GRN
     // sent back is no longer approved, so keeping it in the batch would show
@@ -593,7 +593,7 @@ router.post('/ap/:grnSyncId/send-back', hqAuth, (req, res) => {
     // members keep the batch and its number, and the total simply shrinks.
     // A batch reduced to one GRN still renders as a normal row, since the
     // grouping is display-only.
-    // 2026-08-31 â€” a send-back also clears Finance's review. Otherwise a GRN
+    // 2026-08-31 — a send-back also clears Finance's review. Otherwise a GRN
     // pushed back for a correction would return already confirmed, and be
     // approved on the strength of a review of the version before the fix.
     const clearReview = 'review_confirmed_at = NULL, review_confirmed_by_id = NULL, '
@@ -618,7 +618,7 @@ router.post('/ap/:grnSyncId/send-back', hqAuth, (req, res) => {
 });
 
 // GET /api/hq/grns/ap/reject-reasons
-// 2026-08-30 â€” the reasons already used, most recent first, so a rejection can
+// 2026-08-30 — the reasons already used, most recent first, so a rejection can
 // be picked from a list rather than retyped. The same handful recur ("invoice
 // does not match the delivery", "wrong supplier"), and retyping them by hand
 // produces near-duplicates that are useless to search or report on later.
@@ -637,10 +637,10 @@ router.get('/ap/reject-reasons', hqAuth, (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// GET /api/hq/grns/ap/queue â€” rows for the AP page, filtered by stage.
+// GET /api/hq/grns/ap/queue — rows for the AP page, filtered by stage.
 // GET /api/hq/grns/ap/:grnSyncId/pending-credits
 //
-// 2026-09-06 â€” the credits a depot has raised against this delivery and
+// 2026-09-06 — the credits a depot has raised against this delivery and
 // nobody has agreed yet. The Confirm Delivery modal lists them so the Store
 // Manager settles them and the delivery in one place, instead of being sent
 // to the Credit Notes page and back. That page still works; this is the same
@@ -664,7 +664,7 @@ router.get('/ap/:grnSyncId/pending-credits', hqAuth, (req, res) => {
 // POST /api/hq/grns/ap/:grnSyncId/confirm-delivery
 // Body: { invoice_attachment }
 //
-// 2026-09-06 â€” the Store Manager's confirmation, the stage in front of the AP
+// 2026-09-06 — the Store Manager's confirmation, the stage in front of the AP
 // queue. Every GRN waits here from the moment it is generated while the depot
 // finishes offloading and raises whatever credits the truck produced.
 // Confirming says "this delivery and its credits are what the supplier says
@@ -710,7 +710,7 @@ router.post('/ap/:grnSyncId/confirm-delivery', hqAuth, (req, res) => {
       return res.status(400).json({ error: `${row.grn_number} is already past confirmation (${row.ap_status}).` });
     }
 
-    // Existing attachment counts â€” one may already have come from the depot,
+    // Existing attachment counts — one may already have come from the depot,
     // or from an earlier confirmation before a credit pulled this GRN back.
     const existing = masterDb.prepare(
       'SELECT invoice_attachment FROM hq_grns WHERE sync_id = ?'
@@ -736,7 +736,7 @@ router.post('/ap/:grnSyncId/confirm-delivery', hqAuth, (req, res) => {
         error: 'Confirm or reject the credit note'
              + (pending.length > 1 ? 's ' : ' ')
              + pending.map(c => c.credit_note_number).join(', ')
-             + ' first â€” they change what is payable on this GRN.',
+             + ' first — they change what is payable on this GRN.',
         pending_credits: pending,
       });
     }
@@ -767,7 +767,7 @@ router.post('/ap/:grnSyncId/confirm-delivery', hqAuth, (req, res) => {
 router.get('/ap/queue', hqAuth, (req, res) => {
   try {
     if (!masterDb) return res.json({ rows: [] });
-    // 2026-08-30 â€” PARTIAL belongs with the unpaid work, not with Paid.
+    // 2026-08-30 — PARTIAL belongs with the unpaid work, not with Paid.
     //
     // A part-paid GRN is still owed money, so it stays in Ready for Payment
     // alongside APPROVED. Asking for APPROVED returns both, so the cashier
@@ -805,7 +805,7 @@ router.get('/ap/queue', hqAuth, (req, res) => {
        LIMIT 500
     `).all(...params);
 
-    // 2026-08-30 â€” attach what has actually been paid against each GRN, and
+    // 2026-08-30 — attach what has actually been paid against each GRN, and
     // correct any status that predates the PARTIAL rule.
     //
     // Payments live in the tenant DB (ap_payments) while the GRN totals live
@@ -816,7 +816,7 @@ router.get('/ap/queue', hqAuth, (req, res) => {
     // short-paid GRNs are sitting in the Paid tab looking settled. Recomputing
     // here moves them back where they belong the moment the page is opened,
     // rather than needing a migration to guess at history.
-    // dbProxy, not db â€” this file imports the database as dbProxy (line 62).
+    // dbProxy, not db — this file imports the database as dbProxy (line 62).
     const paidFor = makePaidStmt(dbProxy);  // allocations - see services/apPaid.js
     const fixStmt = masterDb.prepare(
       'UPDATE hq_confirmed_grn_totals SET ap_status = ? WHERE grn_sync_id = ?'
@@ -836,11 +836,11 @@ router.get('/ap/queue', hqAuth, (req, res) => {
       return { ...r, ap_status, paid_amount: paid, remaining_amount: remaining };
     });
 
-    // 2026-08-30 â€” re-apply the tab filter AFTER the correction above.
+    // 2026-08-30 — re-apply the tab filter AFTER the correction above.
     //
     // The WHERE clause selected on the STORED status. A GRN wrongly stamped
     // PAID is therefore fetched for the Paid tab, corrected to PARTIAL on the
-    // way out, and rendered under Paid wearing a "Partially Paid" badge â€” the
+    // way out, and rendered under Paid wearing a "Partially Paid" badge — the
     // repair working, in the wrong list. It would move on the next refresh
     // once the stored value caught up, which is worse than either being
     // right: it looks like the page cannot make up its mind.
@@ -850,7 +850,7 @@ router.get('/ap/queue', hqAuth, (req, res) => {
                  : ['PENDING', 'CHECKED', 'APPROVED', 'PARTIAL'];
     const grnRows = out.filter(r => wanted.includes(r.ap_status));
 
-    // 2026-08-31 â€” standalone credit notes join the queue as their own rows.
+    // 2026-08-31 — standalone credit notes join the queue as their own rows.
     //
     // A credit that belongs to no invoice used to lower the supplier's balance
     // the moment it was saved and then sit there unusable: payments are
@@ -909,7 +909,7 @@ router.get('/ap/queue', hqAuth, (req, res) => {
           confirmed_at:      c.date || null,
         }));
       }
-    } catch (_) { /* pre-migration DB â€” the queue is still valid without them */ }
+    } catch (_) { /* pre-migration DB — the queue is still valid without them */ }
 
     res.json({ rows: [...grnRows, ...creditRows] });
   } catch (error) { res.status(500).json({ error: error.message }); }
@@ -917,13 +917,13 @@ router.get('/ap/queue', hqAuth, (req, res) => {
 
 // POST /api/hq/grns/hq/:syncId/void   { reason }
 //
-// 2026-09-17 â€” Void GRN, for a GRN generated by mistake. HQ Administrator only.
+// 2026-09-17 — Void GRN, for a GRN generated by mistake. HQ Administrator only.
 // Undoes everything /generate did, or refuses without touching anything:
 //
 //   Refused when  AP has approved it (APPROVED / PARTIAL / PAID, or in a
 //                 payment batch) or any payment is recorded against it
-//                 Â· a credit note was raised against it AFTER generation
-//                 Â· the depot no longer holds the stock (already sold)
+//                 · a credit note was raised against it AFTER generation
+//                 · the depot no longer holds the stock (already sold)
 //   Depot         the GRN's stock movements (receipt, in-transit damage, and
 //                 the returns of credit notes made with it) are removed,
 //                 current_stock follows, and the average-cost blend is
@@ -952,7 +952,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
     if (!grn) return res.status(404).json({ error: 'GRN not found. Only GRNs generated at HQ can be voided.' });
     if (grn.voided_at) return res.status(400).json({ error: `GRN ${grn.grn_number} is already voided.` });
 
-    // â”€â”€ AP: not approved, not in a batch, nothing paid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── AP: not approved, not in a batch, nothing paid ─────────────────
     const totals = masterDb.prepare('SELECT * FROM hq_confirmed_grn_totals WHERE grn_sync_id = ?').get(syncId);
     const apStatus = totals?.ap_status || 'UNCONFIRMED';
     if (['APPROVED', 'PARTIAL', 'PAID'].includes(apStatus) || totals?.ap_batch_ref) {
@@ -963,7 +963,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
       return res.status(400).json({ error: `Cannot void: K${paid.toLocaleString()} has already been paid against this GRN.` });
     }
 
-    // â”€â”€ Credit notes: made with the GRN (voided with it) vs raised later â”€â”€
+    // ── Credit notes: made with the GRN (voided with it) vs raised later ──
     const genCns = masterDb.prepare(
       `SELECT * FROM hq_supplier_credit_notes WHERE grn_sync_id = ? AND (deleted_at IS NULL OR deleted_at = '')`
     ).all(syncId);
@@ -1001,7 +1001,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
       : null;
     const items = masterDb.prepare('SELECT * FROM hq_grn_items WHERE grn_sync_id = ?').all(syncId);
 
-    // â”€â”€ Depot stock movements to undo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Depot stock movements to undo ─────────────────────────────────
     const refIds = [syncId, ...genCns.map(c => c.sync_id)];
     const movs = branchDb.prepare(
       `SELECT id, product_sync_id, quantity FROM stock_movements
@@ -1009,7 +1009,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
           AND reference_type IN ('hq_grn', 'hq_grn_damage', 'credit_note')
           AND deleted_at IS NULL`
     ).all(...refIds);
-    const net = new Map();   // product_sync_id â†’ base qty the depot loses
+    const net = new Map();   // product_sync_id → base qty the depot loses
     for (const m of movs) {
       if (!m.product_sync_id) continue;
       net.set(m.product_sync_id, (net.get(m.product_sync_id) || 0) + (parseFloat(m.quantity) || 0));
@@ -1049,7 +1049,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
     const prodRow = branchDb.prepare(
       'SELECT id, sync_id, name, unit, alt_unit, conversion_factor, units_json, current_stock, avg_cost_price FROM products WHERE sync_id = ?'
     );
-    const received = new Map();   // product_sync_id â†’ { qty, value }
+    const received = new Map();   // product_sync_id → { qty, value }
     for (const it of items) {
       const qty = parseFloat(it.quantity) || 0;
       if (!it.product_sync_id || qty <= 0) continue;
@@ -1063,7 +1063,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
       received.set(it.product_sync_id, r);
     }
 
-    // â”€â”€ 1. Depot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 1. Depot ──────────────────────────────────────────────────────
     const stockChanges = [];
     branchDb.transaction(() => {
       const upd = branchDb.prepare(
@@ -1095,7 +1095,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
       }
     })();
 
-    // â”€â”€ 2. HQ (master) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 2. HQ (master) ───────────────────────────────────────────────
     const actorName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ')
       || req.user?.name || req.user?.email || 'HQ';
     let purchaseCancelled = false;
@@ -1128,7 +1128,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
       }
     })();
 
-    // â”€â”€ 3. HQ book: out of the supplier balance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 3. HQ book: out of the supplier balance ──────────────────────
     const warnings = [];
     const softDelete = (sql, ...args) => {
       try { hqDb.prepare(sql).run(...args); }
@@ -1141,7 +1141,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
       softDelete(`UPDATE supplier_credit_note_items SET deleted_at = datetime('now'), updated_at = datetime('now'), synced = 0 WHERE credit_note_sync_id = ? AND deleted_at IS NULL`, cn.sync_id);
     }
 
-    // â”€â”€ 4. ZRA: Return (03) for what was reported as purchased â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── 4. ZRA: Return (03) for what was reported as purchased ────────
     let zra = { skipped: true, reason: 'the purchase was not sent to ZRA' };
     if (purchase && purchase.zra_status === 'SIGNED') {
       const lines = items
@@ -1187,7 +1187,7 @@ router.post('/hq/:syncId/void', hqAuth, async (req, res) => {
   }
 });
 
-// v1.10.3 â€” Full doc for a v1.10.0 HQ-generated GRN. Reads master.db only
+// v1.10.3 — Full doc for a v1.10.0 HQ-generated GRN. Reads master.db only
 // (no branch DB round-trip). Declared above the /:slug/:syncId wildcard so
 // Express matches "/hq/<uuid>" here instead of treating "hq" as a slug.
 router.get('/hq/:syncId', hqAuth, (req, res) => {
@@ -1199,7 +1199,7 @@ router.get('/hq/:syncId', hqAuth, (req, res) => {
     const items = masterDb.prepare(
       `SELECT * FROM hq_grn_items WHERE grn_sync_id = ? ORDER BY id ASC`
     ).all(syncId);
-    // v1.10.114 â€” damaged_quantity isn't stored on hq_grn_items (only on
+    // v1.10.114 — damaged_quantity isn't stored on hq_grn_items (only on
     // stock_movements at generate-time with reference_type='hq_grn_damage'),
     // so cross-DB read from the destination branch's stock_movements is
     // required to surface it. Group by product_sync_id, sum abs(quantity)
@@ -1232,7 +1232,7 @@ router.get('/hq/:syncId', hqAuth, (req, res) => {
           in_base:      parseFloat(r.qty_base)     || 0,
         };
       }
-    } catch (e) { /* branch DB open failed â€” non-fatal */ }
+    } catch (e) { /* branch DB open failed — non-fatal */ }
     let credit_notes = [];
     try {
       credit_notes = masterDb.prepare(`
@@ -1242,15 +1242,15 @@ router.get('/hq/:syncId', hqAuth, (req, res) => {
          WHERE grn_sync_id = ? AND deleted_at IS NULL
          ORDER BY id ASC
       `).all(syncId);
-      // v1.13.34 â€” attach line items so the AP Approvals detail modal
+      // v1.13.34 — attach line items so the AP Approvals detail modal
       // can show CN item breakdown (goods returned / crates / bottles).
-      // 2026-08-31 â€” a FREE credit note attached at check time lives in the
+      // 2026-08-31 — a FREE credit note attached at check time lives in the
       // tenant table, not master, so it moved the GRN's payable without ever
       // appearing in this list: the row would read "- CN 66,322" with nothing
       // beneath it to explain the figure. Both kinds are listed now, tagged so
       // the screen can say which is which.
       credit_notes = credit_notes.map(c => ({ ...c, is_free_credit: 0 }));
-      // 2026-09-05 â€” HQ's book holds a COPY of every GRN credit note as well
+      // 2026-09-05 — HQ's book holds a COPY of every GRN credit note as well
       // as any genuinely separate one attached at check time. Listing the
       // table wholesale printed each ordinary credit twice. Only rows master
       // does not already have are free credits.
@@ -1276,7 +1276,7 @@ router.get('/hq/:syncId', hqAuth, (req, res) => {
           created_at: c.checked_at || c.date || null,
         }));
         credit_notes = [...credit_notes, ...free];
-      } catch (_) { /* pre-migration branch â€” master's list still stands */ }
+      } catch (_) { /* pre-migration branch — master's list still stands */ }
 
       if (credit_notes.length) {
         const itemStmt = masterDb.prepare(`
@@ -1287,7 +1287,7 @@ router.get('/hq/:syncId', hqAuth, (req, res) => {
            ORDER BY id ASC
         `);
         for (const cn of credit_notes) {
-          // A free credit note has no line items in master â€” it was raised on
+          // A free credit note has no line items in master — it was raised on
           // the Credit Notes page, not minted from a GRN.
           if (cn.is_free_credit) continue;
           try { cn.items = itemStmt.all(cn.sync_id) || []; }
@@ -1314,9 +1314,9 @@ router.get('/receipt/:syncId', hqAuth, (req, res) => {
     const extras = masterDb.prepare(
       `SELECT * FROM hq_purchase_receipt_extras WHERE purchase_sync_id = ? ORDER BY id ASC`
     ).all(syncId);
-    // v1.13.35 â€” Read-only surface of the branch-authored CN drafts so
+    // v1.13.35 — Read-only surface of the branch-authored CN drafts so
     // the HQ Generate GRN modal can show them alongside items. HQ can't
-    // edit â€” CN authoring is branch-only now.
+    // edit — CN authoring is branch-only now.
     let credit_notes = [];
     try {
       credit_notes = masterDb.prepare(`
@@ -1373,7 +1373,7 @@ router.get('/:slug/:syncId', hqAuth, (req, res) => {
        WHERE gi.grn_sync_id = ? AND gi.deleted_at IS NULL
        ORDER BY gi.id ASC
     `).all(syncId);
-    // v1.9.14 â€” also return credit notes attached to this GRN so the
+    // v1.9.14 — also return credit notes attached to this GRN so the
     // HQ See Details modal can show them. supplier_credit_notes was
     // linked via grn_sync_id in v1.9.13.
     let credit_notes = [];
@@ -1385,7 +1385,7 @@ router.get('/:slug/:syncId', hqAuth, (req, res) => {
          ORDER BY id ASC
       `).all(syncId);
     } catch { /* table may not have the column yet on very old DBs */ }
-    // v1.10.114 â€” damage-per-product from stock_movements (same tag used
+    // v1.10.114 — damage-per-product from stock_movements (same tag used
     // by the /hq/:syncId endpoint). Branch DB is already open, so this is
     // a straight local query, no cross-DB hop.
     let damageByProduct = {};
@@ -1411,7 +1411,7 @@ router.get('/:slug/:syncId', hqAuth, (req, res) => {
 //   (a) Post a stock_movement per GRN line at location='sales' (Kelete has
 //       no store layer; product current_stock is incremented in the same
 //       transaction so the sales floor shows the new stock immediately).
-//   (b) Flip the parent PO line(s) at master.db from GRN_SUBMITTED â†’
+//   (b) Flip the parent PO line(s) at master.db from GRN_SUBMITTED →
 //       CONFIRMED, stamping the HQ confirmer.
 // Marking grn.hq_status='CONFIRMED' is the third step (in branch DB).
 // All three are wrapped so a failure at any step rolls back cleanly.
@@ -1425,19 +1425,19 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
     const grn = db.prepare(`SELECT * FROM grn WHERE sync_id = ? AND deleted_at IS NULL`).get(syncId);
     if (!grn) return res.status(404).json({ error: 'GRN not found.' });
     if (grn.hq_status !== 'PENDING_HQ_CONFIRM') {
-      return res.status(400).json({ error: `GRN hq_status is ${grn.hq_status} â€” only PENDING_HQ_CONFIRM GRNs can be confirmed.` });
+      return res.status(400).json({ error: `GRN hq_status is ${grn.hq_status} — only PENDING_HQ_CONFIRM GRNs can be confirmed.` });
     }
 
     const items = db.prepare(`SELECT * FROM grn_items WHERE grn_sync_id = ? AND deleted_at IS NULL`).all(syncId);
     if (items.length === 0) return res.status(400).json({ error: 'GRN has no line items.' });
 
     const confirmerName = req.user.firstName || req.user.email || 'HQ';
-    // 2026-09-04 â€” this route takes the branch from the URL, so the confirmer
+    // 2026-09-04 — this route takes the branch from the URL, so the confirmer
     // may be an HQ user OR a user of the branch itself. It used to write NULL
     // unconditionally, because an HQ id does not exist in the branch's users
     // table and created_by REFERENCES users(id) would fail. But the common
     // case is a depot confirming its own delivery, and that person DOES exist
-    // here â€” so their name was being thrown away for a problem they did not
+    // here — so their name was being thrown away for a problem they did not
     // have. Resolve it: real id when the confirmer exists in this branch,
     // NULL when they don't. Either way the HQ-side identity is preserved on
     // the master row (confirmed_by + confirmed_by_name).
@@ -1453,14 +1453,14 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
       // Same pattern as legacy GRN POST but always location='sales',
       // and created_by=NULL because HQ users don't exist in branch users.
       const movementCreatedAt = (grn.date || new Date().toISOString().slice(0,10)) + ' ' + new Date().toTimeString().slice(0,8);
-      // Ownership for the movements below â€” see branchSyncIds().
+      // Ownership for the movements below — see branchSyncIds().
       const __ids = branchSyncIds(db);
       for (const it of items) {
         const prod = db.prepare(`
           SELECT id, sync_id, unit, alt_unit, conversion_factor, units_json, container_product_sync_id
             FROM products WHERE sync_id = ? AND deleted_at IS NULL
         `).get(it.product_sync_id);
-        if (!prod) continue; // line points at a deleted product â€” skip rather than crash
+        if (!prod) continue; // line points at a deleted product — skip rather than crash
 
         const baseQty = parseFloat(it.quantity) * conversionToBase(prod, it.unit || prod.unit);
         db.prepare(`
@@ -1480,13 +1480,13 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
         `).run(
           prod.id, prod.sync_id, 'sales', 'grn', baseQty,
           grn.id, 'grn', grn.sync_id,
-          `HQ-confirmed GRN ${grn.grn_number}${notes ? ' â€” ' + notes : ''}`,
+          `HQ-confirmed GRN ${grn.grn_number}${notes ? ' — ' + notes : ''}`,
           confirmedByLocal,
           randomUUID(), __ids.tenantId, __ids.branchId, null,
           movementCreatedAt
         );
 
-        // Container settlement (returnables) â€” same as legacy GRN POST.
+        // Container settlement (returnables) — same as legacy GRN POST.
         const recv = parseFloat(it.containers_received || 0);
         const ret  = parseFloat(it.containers_returned || 0);
         const delta = recv - ret;
@@ -1523,7 +1523,7 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
       `).run(req.user.id || null, confirmerName, syncId);
     })();
 
-    // v1.9.14 â€” write the HQ snapshot row so HQ reports + AP run on
+    // v1.9.14 — write the HQ snapshot row so HQ reports + AP run on
     // master.db alone. Full GRN doc stays at the branch; HQ pulls via
     // the existing GET /api/hq/grns/:slug/:syncId when a user clicks
     // "See Details". Pull CN total from supplier_credit_notes by GRN
@@ -1592,7 +1592,7 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
               FROM hq_purchase_items WHERE purchase_id = ?
           `).get(headerRow.purchase_id);
           if ((cnt.open || 0) === 0) {
-            // 2026-08-28 â€” do NOT set updated_at here. hq_purchases is master-synced
+            // 2026-08-28 — do NOT set updated_at here. hq_purchases is master-synced
             // and the touch trigger stamps updated_at + synced=0 itself; setting it
             // manually makes the trigger skip, so synced stays 1 and this status
             // change never reaches the branches. See masterDb.js CONTRACT block.
@@ -1602,15 +1602,15 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
         }
       } catch (err) {
         // Branch-side stock is already committed at this point. Log and
-        // continue â€” HQ Purchases status drift is recoverable manually.
+        // continue — HQ Purchases status drift is recoverable manually.
         console.error('[hq.grns.confirm] master.db update failed (branch stock already posted):', err.message);
       }
     }
 
-    // â”€â”€ Phase 2 (Â§5.11): ZRA chain fires HERE for ZRA-pulled POs â”€â”€â”€â”€â”€
+    // ── Phase 2 (§5.11): ZRA chain fires HERE for ZRA-pulled POs ─────
     // The linked HQ Purchase carries zra_reg_ty_cd='A' if it originated
-    // from /api/zra/purchases/:id/approve â€” a VSDC-supplier pull. In
-    // that case Â§5.11's savePurchase â†’ saveStockItems â†’ saveStockMaster
+    // from /api/zra/purchases/:id/approve — a VSDC-supplier pull. In
+    // that case §5.11's savePurchase → saveStockItems → saveStockMaster
     // chain fires now, because stock has PHYSICALLY LANDED at the
     // branch (the transaction above just bumped current_stock). This
     // is the only point in Red Sea's 4-step flow where ZRA's stock
@@ -1619,7 +1619,7 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
     //
     // Runs in the destination branch's DB context (dbProxy.runWithDb)
     // so vsdcClient reads that branch's zra_config and writes to its
-    // own audit log. HQ has no VSDC device of its own â€” the branch
+    // own audit log. HQ has no VSDC device of its own — the branch
     // device proxies the fiscal write, per project-kelete HQ VSDC
     // DEVICE decision (Pattern A).
     //
@@ -1654,17 +1654,17 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
   }
 });
 
-// â”€â”€ Phase 2 (Â§5.11) helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Phase 2 (§5.11) helper ─────────────────────────────────────────────
 // Fire savePurchase + saveStockItems + saveStockMaster for a just-
 // confirmed HQ GRN whose linked HQ Purchase originated from a ZRA
 // pull. Called from /:slug/:syncId/confirm above.
 //
-// hq             â€” hq_purchases row (with zra_reg_ty_cd='A')
-// grn            â€” the branch GRN row that just got confirmed
-// grnItems       â€” grn_items rows for this GRN
-// toDb           â€” destination branch's tenant DB (for VSDC config)
-// toSlug         â€” destination slug (fallback tenant id)
-// user           â€” req.user (for audit log actor)
+// hq             — hq_purchases row (with zra_reg_ty_cd='A')
+// grn            — the branch GRN row that just got confirmed
+// grnItems       — grn_items rows for this GRN
+// toDb           — destination branch's tenant DB (for VSDC config)
+// toSlug         — destination slug (fallback tenant id)
+// user           — req.user (for audit log actor)
 async function fireZraChainForConfirmedGrn(hq, grn, grnItems, toDb, toSlug, user) {
   const branchTenantId = toDb.prepare(
     'SELECT tenant_id FROM business_settings LIMIT 1'
@@ -1682,10 +1682,10 @@ async function fireZraChainForConfirmedGrn(hq, grn, grnItems, toDb, toSlug, user
     return { skipped: true, reason: 'no matching hq_purchase_items for this GRN' };
   }
 
-  // 2026-08-26 â€” the branch's own products row, as a fallback source for
+  // 2026-08-26 — the branch's own products row, as a fallback source for
   // the ZRA item code. hq_purchase_items.zra_* is only populated for
   // ZRA-pulled POs; a manual PO leaves it NULL, and products created
-  // after the one-time ZM-code backfill have no zra_item_cd either â€” they
+  // after the one-time ZM-code backfill have no zra_item_cd either — they
   // are registered under products.code. Without this the lines below sent
   // a NULL itemCd. See vsdcClient.itemCodeFor for the full write-up.
   const prodBySync = (() => {
@@ -1737,7 +1737,7 @@ async function fireZraChainForConfirmedGrn(hq, grn, grnItems, toDb, toSlug, user
   }
 
   // grn.id=null on the shim so vsdcClient's `UPDATE grn WHERE id=?`
-  // no-ops â€” we don't want to overwrite the branch's just-confirmed
+  // no-ops — we don't want to overwrite the branch's just-confirmed
   // GRN row. All ZRA state persists on hq_purchases in master.db.
   const grnShim = {
     id:                    null,
@@ -1764,9 +1764,9 @@ async function fireZraChainForConfirmedGrn(hq, grn, grnItems, toDb, toSlug, user
       `UPDATE hq_purchases SET zra_pchs_invc_no=?, zra_status='SIGNED' WHERE id=?`
     ).run(purchaseRes.pchsInvcNo || null, hq.id);
 
-    // Stock chain â€” saveNonSaleStockChain computes per-line VAT and
+    // Stock chain — saveNonSaleStockChain computes per-line VAT and
     // fires both saveStockItems + saveStockMaster. sarTyCd='02' =
-    // PURCHASE (stock IN) per Â§6.14. sarNo unique per hq_purchase
+    // PURCHASE (stock IN) per §6.14. sarNo unique per hq_purchase
     // to avoid collisions with tenant-side sales sarNo sequences.
     const stockRes = await vsdc.saveNonSaleStockChain(
       branchTenantId,
@@ -1782,11 +1782,11 @@ async function fireZraChainForConfirmedGrn(hq, grn, grnItems, toDb, toSlug, user
 // POST /api/hq/grns/:slug/:syncId/reject
 // HQ sends the GRN back to the branch for re-entry. Branch's GRN gets
 // hq_status='REJECTED' (visible on their GRN list with the reason).
-// Parent PO line(s) at master.db flip back from GRN_SUBMITTED â†’
+// Parent PO line(s) at master.db flip back from GRN_SUBMITTED →
 // AWAITING_GRN so the branch can create a fresh GRN from the PO again.
-// The rejected GRN itself is NOT deleted â€” it stays as an audit record.
+// The rejected GRN itself is NOT deleted — it stays as an audit record.
 //
-// Body: { reason } â€” required, surfaced on the branch GRN list.
+// Body: { reason } — required, surfaced on the branch GRN list.
 router.post('/:slug/:syncId/reject', hqAuth, (req, res) => {
   try {
     const { slug, syncId } = req.params;
@@ -1798,7 +1798,7 @@ router.post('/:slug/:syncId/reject', hqAuth, (req, res) => {
     const grn = db.prepare(`SELECT * FROM grn WHERE sync_id = ? AND deleted_at IS NULL`).get(syncId);
     if (!grn) return res.status(404).json({ error: 'GRN not found.' });
     if (grn.hq_status !== 'PENDING_HQ_CONFIRM') {
-      return res.status(400).json({ error: `GRN hq_status is ${grn.hq_status} â€” only PENDING_HQ_CONFIRM GRNs can be rejected.` });
+      return res.status(400).json({ error: `GRN hq_status is ${grn.hq_status} — only PENDING_HQ_CONFIRM GRNs can be rejected.` });
     }
 
     db.prepare(`
@@ -1837,7 +1837,7 @@ router.post('/:slug/:syncId/reject', hqAuth, (req, res) => {
 });
 
 // GET /api/hq/grns/archive
-// v1.9.14 â€” HQ-wide list of CONFIRMED GRNs, served entirely from the
+// v1.9.14 — HQ-wide list of CONFIRMED GRNs, served entirely from the
 // master.db snapshot table. Supports filters via query string:
 //   ?branch=slug      one branch only (default: all)
 //   ?supplier=syncId  one supplier only (default: all)
@@ -1846,7 +1846,7 @@ router.post('/:slug/:syncId/reject', hqAuth, (req, res) => {
 //   ?limit=N          row cap (default 500, max 2000)
 // Returns rows + roll-up totals so the page header can show
 // "X GRNs / $Y payable" without a second query.
-// 2026-09-26 â€” Product Received Breakdown, the HQ twin of the branch report
+// 2026-09-26 — Product Received Breakdown, the HQ twin of the branch report
 // at grn.js:463. Two steps: a row per product across a date range, then every
 // GRN behind one product.
 //
@@ -1925,7 +1925,7 @@ router.get('/product-breakdown', hqAuth, (req, res) => {
              g.supplier_name,
              -- The invoice the DEPOT stamped at Confirm Received. The PO's own
              -- invoice_number is typed at HQ and is NULL on most rows; reading
-             -- it is what makes a GRN show "Invoice â€”" when it plainly has one.
+             -- it is what makes a GRN show "Invoice —" when it plainly has one.
              g.supplier_invoice_number,
              g.branch_name,
              g.branch_slug,
@@ -1949,10 +1949,10 @@ router.get('/archive', hqAuth, (req, res) => {
     const { branch, supplier, from, to } = req.query || {};
     const limit = Math.min(parseInt(req.query.limit, 10) || 500, 2000);
 
-    // v1.10.3 â€” UNION legacy + new-flow GRNs. Legacy live in
+    // v1.10.3 — UNION legacy + new-flow GRNs. Legacy live in
     // hq_confirmed_grn_totals (branch-generated, HQ-confirmed); new-flow
     // live in hq_grns (HQ-generated end-to-end). Both feed the same page.
-    // 2026-09-04 â€” the supplier filter returned nothing for every supplier.
+    // 2026-09-04 — the supplier filter returned nothing for every supplier.
     // Both arms keyed on supplier_sync_id, and the GRN generator writes that
     // column as a literal NULL (see the hq_confirmed_grn_totals insert in
     // this file) - so the legacy arm matched no row, and the new arm's
@@ -2052,12 +2052,12 @@ router.get('/archive', hqAuth, (req, res) => {
       .sort((a, b) => String(b.confirmed_at || '').localeCompare(String(a.confirmed_at || '')))
       .slice(0, limit);
 
-    // 2026-08-30 â€” payment state per GRN, so the Archive can say Not Paid /
+    // 2026-08-30 — payment state per GRN, so the Archive can say Not Paid /
     // Partially Paid / Paid. It showed nothing at all before: the state lives
     // on hq_confirmed_grn_totals.ap_status, which this query never read, and
     // the amounts live in the tenant ap_payments table, which master.db cannot
     // join to. Summed per row instead, bounded by the same limit.
-    // dbProxy, not db â€” this file imports the database as dbProxy (line 62).
+    // dbProxy, not db — this file imports the database as dbProxy (line 62).
     const paidFor = makePaidStmt(dbProxy);  // allocations - see services/apPaid.js
     const grns = grnsRaw.map(g => {
       let paid = 0;
@@ -2070,7 +2070,7 @@ router.get('/archive', hqAuth, (req, res) => {
       return { ...g, paid_amount: paid, remaining_amount: remaining, payment_status };
     });
 
-    // 2026-09-17 â€” a voided GRN is listed (marked) but counts for nothing.
+    // 2026-09-17 — a voided GRN is listed (marked) but counts for nothing.
     const totals = grns.filter(g => !g.voided_at).reduce((acc, g) => {
       acc.count    += 1;
       acc.subtotal += parseFloat(g.items_subtotal) || 0;
@@ -2085,7 +2085,7 @@ router.get('/archive', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€ v1.10.0 â€” HQ generates the GRN from a branch's confirmed receipt â”€â”€â”€â”€â”€â”€â”€â”€
+// ── v1.10.0 — HQ generates the GRN from a branch's confirmed receipt ────────
 // (GET /awaiting-generation and /receipt/:syncId are declared near the top
 // of this file so they win over the /:slug/:syncId wildcard.)
 
@@ -2101,7 +2101,7 @@ router.get('/archive', hqAuth, (req, res) => {
 // Side-effects:
 //   1. Inserts hq_grns + hq_grn_items at master.db
 //   2. Posts +qty stock_movements + current_stock at the branch tenant DB
-//      (location='sales' â€” Kelete's no-store model)
+//      (location='sales' — Kelete's no-store model)
 //   3. Updates linked hq_purchase_items.status = 'CONFIRMED', stamps audit
 //   4. Persists CNs at hq_supplier_credit_notes if provided
 router.post('/generate', hqAuth, async (req, res) => {
@@ -2118,7 +2118,7 @@ router.post('/generate', hqAuth, async (req, res) => {
       return res.status(400).json({ error: 'At least one item is required.' });
     }
 
-    // v1.13.35 â€” CN authoring moved to branch. HQ Generate GRN no longer
+    // v1.13.35 — CN authoring moved to branch. HQ Generate GRN no longer
     // accepts credit_notes in the payload; instead we materialise them
     // from the branch draft table. Legacy payload-supplied CNs are still
     // honoured if this route is called by an older client.
@@ -2148,7 +2148,7 @@ router.post('/generate', hqAuth, async (req, res) => {
             items,
           });
         }
-      } catch { /* draft tables missing on old DB â€” treat as no CNs */ }
+      } catch { /* draft tables missing on old DB — treat as no CNs */ }
     }
 
     const purchase = masterDb.prepare(`SELECT * FROM hq_purchases WHERE sync_id = ?`).get(purchase_sync_id);
@@ -2172,8 +2172,8 @@ router.post('/generate', hqAuth, async (req, res) => {
     const validItems = items.filter(i => parseFloat(i.quantity) > 0);
     const itemsSubtotal = validItems.reduce((s, i) =>
       s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unit_price) || 0), 0);
-    // v1.10.67 â€” cnTotal recomputed server-side per CN. Stock-affecting
-    // reasons ignore c.amount and use Î£ qty Ã— unit_value from items[]
+    // v1.10.67 — cnTotal recomputed server-side per CN. Stock-affecting
+    // reasons ignore c.amount and use Σ qty × unit_value from items[]
     // instead; money-only reasons take c.amount. Prevents a malformed
     // client payload from booking a mismatched final_payable.
     const cnTotal = Array.isArray(credit_notes)
@@ -2182,7 +2182,7 @@ router.post('/generate', hqAuth, async (req, res) => {
           const stockR = reason === 'Crate Return' || reason === 'Bottle Return' || reason === 'Goods Return';
           if (stockR) {
             const items = Array.isArray(c.items) ? c.items : [];
-            // 2026-08-30 â€” net of each line's discount, plus the note's VAT.
+            // 2026-08-30 — net of each line's discount, plus the note's VAT.
             return s + items.reduce((a, i) =>
               a + ((parseFloat(i.quantity) || 0) * (parseFloat(i.unit_value) || 0))
                 - (parseFloat(i.discount) || 0), 0)
@@ -2196,12 +2196,12 @@ router.post('/generate', hqAuth, async (req, res) => {
     const generatorId   = req.user?.id || null;
     const generatorName = req.user?.firstName || req.user?.email || 'HQ';
 
-    // v1.10.67 â€” filled inside the master tx below with per-CN metadata
+    // v1.10.67 — filled inside the master tx below with per-CN metadata
     // for stock-affecting reasons; walked over outside the tx to post
     // negative stock_movements on the branch tenant DB.
     const returnCnBundle = [];
 
-    // 2026-09-05 â€” exactly what master booked for each credit note, so the
+    // 2026-09-05 — exactly what master booked for each credit note, so the
     // HQ mirror below copies it instead of working the figure out again.
     //
     // It used to recompute, with a different formula: goods value only, no
@@ -2258,7 +2258,7 @@ router.post('/generate', hqAuth, async (req, res) => {
         );
       }
 
-      // 2. Update PO lines â†’ CONFIRMED, copy the GRN link onto them
+      // 2. Update PO lines → CONFIRMED, copy the GRN link onto them
       masterDb.prepare(`
         UPDATE hq_purchase_items
            SET status              = 'CONFIRMED',
@@ -2271,7 +2271,7 @@ router.post('/generate', hqAuth, async (req, res) => {
            AND status = 'RECEIPT_REPORTED'
       `).run(grnSyncId, grnNumber, generatorId, generatorName, purchase_sync_id);
 
-      // 2026-08-29 â€” tell the header it is finished. Without this the lines
+      // 2026-08-29 — tell the header it is finished. Without this the lines
       // went CONFIRMED and the purchase stayed OPEN for ever: every Kelete
       // purchase on the live VPS was OPEN, none COMPLETED. Looked up by
       // sync_id, not the integer id, because those do not survive a copy.
@@ -2283,7 +2283,7 @@ router.post('/generate', hqAuth, async (req, res) => {
       }
 
       // 3. CNs (if any)
-      // v1.10.67 â€” Stock-affecting reasons (Crate Return, Bottle Return,
+      // v1.10.67 — Stock-affecting reasons (Crate Return, Bottle Return,
       // Goods Return) now carry an items[] array; each item row goes into
       // hq_supplier_credit_note_items and the branch tenant DB gets a
       // negative stock_movement (posted outside the master tx below, same
@@ -2346,7 +2346,7 @@ router.post('/generate', hqAuth, async (req, res) => {
             for (const i of validCnItems) {
               const qty = parseFloat(i.quantity) || 0;
               const unitVal = parseFloat(i.unit_value || 0) || 0;
-              // 2026-08-30 â€” net of the line's discount, matching the amount
+              // 2026-08-30 — net of the line's discount, matching the amount
               // booked on the header above. unit_value stays the pre-discount
               // price so returned stock is valued as the purchase valued it.
               const lineDisc = parseFloat(i.discount) || 0;
@@ -2375,7 +2375,7 @@ router.post('/generate', hqAuth, async (req, res) => {
       }
     })();
 
-    // v1.13.32 â€” mirror the new-flow GRN into hq_confirmed_grn_totals so
+    // v1.13.32 — mirror the new-flow GRN into hq_confirmed_grn_totals so
     // the AP Approvals page (which reads that table) picks it up. Legacy
     // /confirm already writes here; /generate previously didn't, which
     // meant every HQ-generated GRN was invisible to the approval chain.
@@ -2385,7 +2385,7 @@ router.post('/generate', hqAuth, async (req, res) => {
       supplierSyncIdForGrn = require('../config/database').defaultDb
         .prepare('SELECT sync_id FROM suppliers WHERE id = ? LIMIT 1')
         .get(purchase.supplier_id)?.sync_id || null;
-    } catch (_) { /* leave null â€” the filter no longer depends on it */ }
+    } catch (_) { /* leave null — the filter no longer depends on it */ }
 
     try {
       const genActorName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ') || req.user?.email || 'system';
@@ -2400,7 +2400,7 @@ router.post('/generate', hqAuth, async (req, res) => {
         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,datetime('now'),?,'UNCONFIRMED')
       `).run(
         grnSyncId, grnNumber, branchSlug, branchName,
-        // 2026-09-04 â€” carry the supplier's sync_id instead of a hard NULL.
+        // 2026-09-04 — carry the supplier's sync_id instead of a hard NULL.
         // Every HQ-generated GRN wrote NULL here, which broke the Archive's
         // supplier filter outright; new rows now carry it, and the filter no
         // longer depends on them doing so.
@@ -2411,7 +2411,7 @@ router.post('/generate', hqAuth, async (req, res) => {
         purchase.supplier_invoice_number || null,
         req.user?.id || null, genActorName, notes || null
       );
-      // 2026-09-06 â€” UNCONFIRMED above, not the table's PENDING default. A
+      // 2026-09-06 — UNCONFIRMED above, not the table's PENDING default. A
       // delivery is provisional from the moment the GRN exists: stock is live
       // and selling has started, but the truck is still being offloaded and
       // the credits it will produce are not known yet. Accounts must not see
@@ -2420,15 +2420,15 @@ router.post('/generate', hqAuth, async (req, res) => {
       console.error('[hq.grns.generate] hq_confirmed_grn_totals write failed:', err.message);
     }
 
-    // v1.10.75 â€” HQ TENANT DB MIRROR. Every GRN + CN also lives in hq.db
+    // v1.10.75 — HQ TENANT DB MIRROR. Every GRN + CN also lives in hq.db
     // (grn, grn_items, supplier_credit_notes, supplier_credit_note_items)
     // so HQ Suppliers page and Account Payables page share ONE source
     // of truth. Master tables (hq_grns / hq_grn_items / hq_supplier_*)
     // remain as an audit trail but no code path reads them for AP anymore.
-    // Wrapped in try/catch â€” failure logs but doesn't roll back the
+    // Wrapped in try/catch — failure logs but doesn't roll back the
     // master GRN; a hq.db backfill script can repair later.
     try {
-      // v1.10.76 â€” HQ uses kelete.db (defaultDb), not tenants/hq.db.
+      // v1.10.76 — HQ uses kelete.db (defaultDb), not tenants/hq.db.
       // See routes/hqSuppliers.js:22-38 for the rationale.
       const hqDb = require('../config/database').defaultDb;
       const HQ_TENANT_ID = 'local-only';
@@ -2443,8 +2443,8 @@ router.post('/generate', hqAuth, async (req, res) => {
           ).get(purchase.supplier_name);
           if (supRow) { hqSupplierId = supRow.id; hqSupplierSyncId = supRow.sync_id; }
         }
-        // 1. grn row â€” total_amount = final_payable (AP-owed after CNs).
-        // v1.10.79 â€” cost_currency (K default) propagates from the PO so
+        // 1. grn row — total_amount = final_payable (AP-owed after CNs).
+        // v1.10.79 — cost_currency (K default) propagates from the PO so
         // the Account Payables page can render the outstanding balance in
         // the right currency instead of the tenant's primary symbol.
         const grnCcy = String(purchase.cost_currency || 'K').toUpperCase();
@@ -2504,7 +2504,7 @@ router.post('/generate', hqAuth, async (req, res) => {
                                                      synced, created_at, updated_at)
             VALUES ((SELECT id FROM supplier_credit_notes WHERE sync_id = ?),?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
           `);
-          // Straight copy of what master booked â€” same number, same sync_id,
+          // Straight copy of what master booked — same number, same sync_id,
           // same amount. Nothing is recalculated here: a second formula is
           // how the two books came to disagree in the first place.
           for (const cn of cnMirror) {
@@ -2539,14 +2539,14 @@ router.post('/generate', hqAuth, async (req, res) => {
       console.error('[hq.grns.generate] hq.db mirror failed:', hqMirrorErr.message);
     }
 
-    // 4. Post stock to branch tenant DB (outside master tx â€” different connection)
-    // v1.10.55 â€” WAC redesign push 3: blend delivery cost into the branch's
+    // 4. Post stock to branch tenant DB (outside master tx — different connection)
+    // v1.10.55 — WAC redesign push 3: blend delivery cost into the branch's
     // avg_cost_price. Delivery CP is derived from the PO's declared FX rate
     // (captured at PO Create time in v1.10.54). Formula per user's
     // 2026-07-03 memo:
-    //   new_wac = (existing_qty Ã— existing_avg + received_qty Ã— delivery_cp)
+    //   new_wac = (existing_qty × existing_avg + received_qty × delivery_cp)
     //             / (existing_qty + received_qty)
-    // Never overwrites â€” always blends. Old stock keeps its historical avg
+    // Never overwrites — always blends. Old stock keeps its historical avg
     // in the numerator. If existing avg is NULL (product never received
     // any stock), we seed it with the delivery CP.
     const poCurrency = String(purchase.cost_currency || '').toUpperCase();
@@ -2560,7 +2560,7 @@ router.post('/generate', hqAuth, async (req, res) => {
     try {
       const branchDb = getTenantDb(branchSlug);
       const branchMovementAt = grnDate + ' ' + new Date().toTimeString().slice(0, 8);
-      // v1.10.55 â€” atomic UPDATE that bumps current_stock AND blends
+      // v1.10.55 — atomic UPDATE that bumps current_stock AND blends
       // avg_cost_price in one statement. Uses the pre-update snapshot of
       // both fields (SQLite evaluates the row RHS before applying the SET).
       const updWithWac = branchDb.prepare(`
@@ -2577,7 +2577,7 @@ router.post('/generate', hqAuth, async (req, res) => {
                synced         = 0
          WHERE sync_id = ?
       `);
-      // Ownership for the movements below â€” see branchSyncIds().
+      // Ownership for the movements below — see branchSyncIds().
       const __bids = branchSyncIds(branchDb);
       const insMov = branchDb.prepare(`
         INSERT INTO stock_movements
@@ -2587,7 +2587,7 @@ router.post('/generate', hqAuth, async (req, res) => {
            synced, created_at, updated_at)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,datetime('now'))
       `);
-      // v1.10.103 â€” decrement helper for damage-out step below. Same shape
+      // v1.10.103 — decrement helper for damage-out step below. Same shape
       // as updWithWac but only current_stock moves; avg_cost_price stays
       // untouched (option A: supplier billed us for the full quantity, WAC
       // blends the full received amount, damage is a separate P&L loss).
@@ -2599,7 +2599,7 @@ router.post('/generate', hqAuth, async (req, res) => {
          WHERE sync_id = ?
       `);
       for (const it of validItems) {
-        if (!it.product_sync_id) continue; // extra items without a known product â€” skip stock posting
+        if (!it.product_sync_id) continue; // extra items without a known product — skip stock posting
         const qty = parseFloat(it.quantity) || 0;
         if (qty <= 0) continue;
         const prod = branchDb.prepare(`
@@ -2607,7 +2607,7 @@ router.post('/generate', hqAuth, async (req, res) => {
             FROM products WHERE sync_id = ? AND deleted_at IS NULL
         `).get(it.product_sync_id);
         if (!prod) continue;
-        // v1.10.66 â€” convert line qty (e.g. 100 crates) into base units
+        // v1.10.66 — convert line qty (e.g. 100 crates) into base units
         // (bottles) using the product's units_json conversion. Prior
         // versions posted the raw qty as if it were already in base
         // units, which meant a "100 crates" GRN only added 100 bottles
@@ -2623,7 +2623,7 @@ router.post('/generate', hqAuth, async (req, res) => {
         updWithWac.run(
           baseQty,                     // current_stock += baseQty
           deliveryCpUsdPerBase,        // seed value when avg was NULL or stock was 0
-          baseQty, deliveryCpUsdPerBase, // numerator: received_base Ã— cp_per_base
+          baseQty, deliveryCpUsdPerBase, // numerator: received_base × cp_per_base
           baseQty,                     // denominator adjust: + baseQty
           prod.sync_id
         );
@@ -2636,17 +2636,17 @@ router.post('/generate', hqAuth, async (req, res) => {
           branchMovementAt
         );
 
-        // v1.10.103 â€” in-flow damage. If any of the received qty was
+        // v1.10.103 — in-flow damage. If any of the received qty was
         // damaged in transit, book it as a separate stock-out AFTER the
         // WAC blend so:
         //   1. WAC absorbs the full delivery cost (supplier billed us for
         //      the full qty).
         //   2. current_stock nets down to the actually-saleable amount.
         //   3. Damage flows into daily_profit_summary.damages as a P&L
-        //      loss â€” profitHelper.js:111 reads stock_movements with
+        //      loss — profitHelper.js:111 reads stock_movements with
         //      location='sales' AND movement_type='sales_return'. The
         //      existing damage queue (hqDamages.js) uses the same tag,
-        //      so this reuses the same pipeline: cost = |qty| Ã— WAC hits
+        //      so this reuses the same pipeline: cost = |qty| × WAC hits
         //      the damages column on daily_profit_summary.
         const damagedLine = Math.max(0, parseFloat(it.damaged_quantity) || 0);
         if (damagedLine > 0) {
@@ -2662,9 +2662,9 @@ router.post('/generate', hqAuth, async (req, res) => {
           decStock.run(damagedBase, prod.sync_id);
         }
       }
-      // v1.10.67 â€” negative stock movements for Crate Return / Bottle Return
+      // v1.10.67 — negative stock movements for Crate Return / Bottle Return
       // / Goods Return CNs. Mirrors routes/grn.js:290-317 on the branch side.
-      // WAC intentionally left alone (Option B, user 2026-07-03) â€” Liquor
+      // WAC intentionally left alone (Option B, user 2026-07-03) — Liquor
       // branches don't touch avg_cost_price on returns either. Consequence:
       // if you return goods above current WAC (e.g. supplier price rose
       // since last delivery), the residual stock keeps the pre-return WAC.
@@ -2682,7 +2682,7 @@ router.post('/generate', hqAuth, async (req, res) => {
           if (!bprod) continue;
           const bconv = conversionToBase(bprod, bi.unit || bprod.unit);
           const bBaseQty = bqty * bconv;
-          // Only decrement current_stock â€” WAC untouched.
+          // Only decrement current_stock — WAC untouched.
           branchDb.prepare(`
             UPDATE products
                SET current_stock = current_stock - ?,
@@ -2702,11 +2702,11 @@ router.post('/generate', hqAuth, async (req, res) => {
       }
     } catch (err) {
       console.error('[hq.grns.generate] stock post failed:', err.message);
-      // Don't roll back the master tx â€” the GRN is recorded; stock can be
+      // Don't roll back the master tx — the GRN is recorded; stock can be
       // backfilled if needed. Surface a warning to the caller.
     }
 
-    // v1.13.35 â€” Purge the branch-authored CN drafts now that they've
+    // v1.13.35 — Purge the branch-authored CN drafts now that they've
     // been persisted as real hq_supplier_credit_notes rows tied to this
     // GRN. Safe if drafts don't exist.
     try {
@@ -2721,27 +2721,27 @@ router.post('/generate', hqAuth, async (req, res) => {
       console.error('[hq.grns.generate] CN draft cleanup failed:', err.message);
     }
 
-    // â”€â”€ Phase 2 (Â§5.11 + Â§5.12 T06A) / Phase 3 (Â§5.11 T07A) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Phase 2 (§5.11 + §5.12 T06A) / Phase 3 (§5.11 T07A) ──────────
     // In Kelete's v1.10.0 procurement flow, /generate is the FINAL step
     // where stock physically posts to the branch sales floor. That's
     // the only correct moment to fire ZRA's savePurchase +
-    // saveStockItems + saveStockMaster chain â€” before stock arrives
+    // saveStockItems + saveStockMaster chain — before stock arrives
     // ZRA would see phantom qty, after it's already posted our audit
     // trail is complete.
     //
-    // v1.13.156 â€” T07A gap fix. Previously this ONLY fired when
+    // v1.13.156 — T07A gap fix. Previously this ONLY fired when
     // zra_reg_ty_cd='A' (a ZRA-pulled, Smart-Invoice-registered
-    // supplier â€” T06A). Manually-entered purchases (non-Smart-Invoice
-    // supplier â€” T07A) always had zra_reg_ty_cd NULL and silently
+    // supplier — T06A). Manually-entered purchases (non-Smart-Invoice
+    // supplier — T07A) always had zra_reg_ty_cd NULL and silently
     // never registered with ZRA at all, even though T07A's own
     // verification requires "purchase details are saved on the CIS
     // AND transmitted to Smart Invoice." Now both paths fire the same
-    // chain â€” regTyCd differs ('A' vs 'M') and classification data
+    // chain — regTyCd differs ('A' vs 'M') and classification data
     // comes from a different source (see fireZraChainForGeneratedGrn).
     //
     // Runs in the destination branch's DB context via dbProxy.runWithDb
     // so vsdcClient reads that branch's zra_config and writes to its
-    // own audit log. HQ has no VSDC device â€” the branch device proxies.
+    // own audit log. HQ has no VSDC device — the branch device proxies.
     let zraResult = { skipped: true, reason: 'not from ZRA pull' };
     if (purchase.zra_status === 'SIGNED') {
       zraResult = { skipped: true, reason: 'ZRA chain already fired for this PO' };
@@ -2770,22 +2770,22 @@ router.post('/generate', hqAuth, async (req, res) => {
   }
 });
 
-// â”€â”€ Phase 2/3 (Â§5.11 T06A + T07A) helper for the /generate flow â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Phase 2/3 (§5.11 T06A + T07A) helper for the /generate flow ────────
 // Fires savePurchase + saveStockItems + saveStockMaster against the
 // destination branch's VSDC device. Called at the end of /generate for
 // EVERY HQ Purchase (both ZRA-pulled and manually-entered), not signed
 // yet.
 //
-// purchase    â€” hq_purchases row
-// grnNumber   â€” the fresh GRN- number just created
-// grnSyncId   â€” the fresh GRN sync_id just created
-// validItems  â€” the items[] payload passed into /generate (matches
+// purchase    — hq_purchases row
+// grnNumber   — the fresh GRN- number just created
+// grnSyncId   — the fresh GRN sync_id just created
+// validItems  — the items[] payload passed into /generate (matches
 //               hq_grn_items rows already inserted, has product_sync_id,
 //               product_name, unit, quantity, unit_price)
-// branchSlug  â€” destination branch slug
-// user        â€” req.user (for audit log actor)
-// regTyCd     â€” 'A' (ZRA-pulled, Smart-Invoice supplier â€” T06A) or
-//               'M' (manually entered, non-Smart-Invoice supplier â€”
+// branchSlug  — destination branch slug
+// user        — req.user (for audit log actor)
+// regTyCd     — 'A' (ZRA-pulled, Smart-Invoice supplier — T06A) or
+//               'M' (manually entered, non-Smart-Invoice supplier —
 //               T07A). Determines both the savePurchase flag AND
 //               where per-line ZRA classification data comes from.
 async function fireZraChainForGeneratedGrn(purchase, grnNumber, grnSyncId, validItems, branchSlug, user, regTyCd = 'A') {
@@ -2802,21 +2802,21 @@ async function fireZraChainForGeneratedGrn(purchase, grnNumber, grnSyncId, valid
   ).all(purchase.sync_id);
   const bySync = new Map(hqItems.map(h => [h.product_sync_id, h]));
 
-  // v1.13.156 â€” regTyCd='M': manual POs never carry a ZRA-pull
+  // v1.13.156 — regTyCd='M': manual POs never carry a ZRA-pull
   // snapshot (hq_purchase_items.zra_* stays NULL for them), so fall
-  // back to the DESTINATION BRANCH's own products table â€” those
+  // back to the DESTINATION BRANCH's own products table — those
   // fields were captured at T04A item registration and are the
   // authoritative classification for that product regardless of which
   // supplier it's being bought from this time.
   //
-  // 2026-08-26 â€” this lookup is now loaded for BOTH regTyCd values, and
+  // 2026-08-26 — this lookup is now loaded for BOTH regTyCd values, and
   // selects `code` as well. Two reasons, both from a live miss:
   //
   //   * A ZRA-pulled PO ('A') can still contain a line whose cached
   //     snapshot lacks an item code, and previously had no fallback
   //     source at all because this block was gated on 'M'.
   //   * `code` is needed because products created after the one-time
-  //     ZM-code backfill never get zra_item_cd populated â€” it stays
+  //     ZM-code backfill never get zra_item_cd populated — it stays
   //     NULL and every other ZRA call falls back to products.code
   //     (`product.zra_item_cd || product.code` in saveItem, saveSales
   //     and the stock chain). This function was the lone exception.
@@ -2835,22 +2835,22 @@ async function fireZraChainForGeneratedGrn(purchase, grnNumber, grnSyncId, valid
   const zraItems = [];
   const movementLines = [];
   for (const vi of validItems) {
-    if (!vi.product_sync_id) continue;   // extras with no product â€” skip
+    if (!vi.product_sync_id) continue;   // extras with no product — skip
     const qty = parseFloat(vi.quantity) || 0;
     if (qty <= 0) continue;
     const hi   = bySync.get(vi.product_sync_id);
     const prod = productsBySync.get(vi.product_sync_id);
-    if (!hi && !prod) continue;           // no classification source at all â€” skip
-    // 2026-08-26 â€” `|| prod?.code` added. Without it this skipped every
+    if (!hi && !prod) continue;           // no classification source at all — skip
+    // 2026-08-26 — `|| prod?.code` added. Without it this skipped every
     // line whose product had no zra_item_cd, zraItems came back empty,
     // and the whole chain returned "no classification data" WITHOUT
-    // firing a single VSDC call â€” a silent no-op, not an error. Any
+    // firing a single VSDC call — a silent no-op, not an error. Any
     // product created after the one-time ZM-code backfill hits this
     // (they keep zra_item_cd NULL and rely on the code fallback that
     // saveItem/saveSales/the stock chain already use), so purchases of
     // newly-added items never reached ZRA while local stock still rose.
     const zraItemCd  = vsdc.itemCodeFor(hi, prod);
-    if (!zraItemCd) continue;             // ZRA requires an item code â€” nothing to send
+    if (!zraItemCd) continue;             // ZRA requires an item code — nothing to send
     zraItems.push({
       product_id:       null,
       product_code:     zraItemCd,
@@ -2877,7 +2877,7 @@ async function fireZraChainForGeneratedGrn(purchase, grnNumber, grnSyncId, valid
   const grnShim = {
     id:                    null,
     zra_pchs_invc_no:      null,
-    // v1.13.156 â€” manual (regTyCd='M') suppliers have no ZRA-side TPIN/
+    // v1.13.156 — manual (regTyCd='M') suppliers have no ZRA-side TPIN/
     // branch to reference; savePurchase's own default already falls
     // back to 'M' when this is null, but we set it explicitly so the
     // intent is unambiguous in the request body.
@@ -2905,12 +2905,12 @@ async function fireZraChainForGeneratedGrn(purchase, grnNumber, grnSyncId, valid
 
     // saveNonSaleStockChain handles per-line VAT + fires both
     // saveStockItems and saveStockMaster. sarTyCd='02' = PURCHASE.
-    // sarNo unique per hq_purchase (id Ã— 1000000) to avoid collisions
+    // sarNo unique per hq_purchase (id × 1000000) to avoid collisions
     // with tenant-side sales sarNo sequences.
     const stockRes = await vsdc.saveNonSaleStockChain(
       branchTenantId,
       purchase.id * 1000000 + Date.now() % 1000000,
-      { remark: `HQ Purchase ${purchase.purchase_number} â†’ ${grnNumber} at ${branchSlug}` },
+      { remark: `HQ Purchase ${purchase.purchase_number} → ${grnNumber} at ${branchSlug}` },
       movementLines,
       vsdc.SAR_TY_CD.PURCHASE
     );

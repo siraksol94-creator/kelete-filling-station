@@ -43,7 +43,7 @@ const CustomerDisplay = () => {
       {/* Header bar */}
       <div style={{ background: 'rgba(59,130,246,0.15)', borderBottom: '1px solid rgba(59,130,246,0.3)', padding: '16px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{ ...logoStyle, width: 40, height: 40, fontSize: 22 }}>ðŸ·</div>
+          <div style={{ ...logoStyle, width: 40, height: 40, fontSize: 22 }}>🍷</div>
           <div>
             <div style={{ fontSize: 22, fontWeight: 700, letterSpacing: 1 }}>{businessName}</div>
             <div style={{ fontSize: 12, color: '#93c5fd', letterSpacing: 2, textTransform: 'uppercase' }}>Point of Sale</div>
@@ -79,7 +79,7 @@ const CustomerDisplay = () => {
         {/* Idle screen */}
         {screen === 'idle' && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ ...logoStyle, width: 120, height: 120, fontSize: 64, margin: '0 auto 24px', transform: 'rotate(-4deg)' }}>ðŸ·</div>
+            <div style={{ ...logoStyle, width: 120, height: 120, fontSize: 64, margin: '0 auto 24px', transform: 'rotate(-4deg)' }}>🍷</div>
             <h1 style={{ fontSize: 64, fontWeight: 800, margin: '0 0 16px', color: '#fff', letterSpacing: 1 }}>
               {businessName ? `Welcome to ${businessName}!` : 'Welcome!'}
             </h1>
@@ -94,9 +94,9 @@ const CustomerDisplay = () => {
             <div style={{ color: '#9ca3af', fontSize: 18, lineHeight: 2 }}>
               <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 3, color: '#6b7280', marginBottom: 8 }}>Powered by</div>
               <div style={{ fontSize: 24, fontWeight: 600, color: '#e5e7eb', marginBottom: 4 }}>SIDAN IT & Business Solutions</div>
-              <div>ðŸ“ž +260 775 722 196 / +260 775 722 228</div>
-              <div>ðŸŒ www.sidanitsolutions.com</div>
-              <div>ðŸ“ Lusaka, Zambia</div>
+              <div>📞 +260 775 722 196 / +260 775 722 228</div>
+              <div>🌐 www.sidanitsolutions.com</div>
+              <div>📍 Lusaka, Zambia</div>
             </div>
           </div>
         )}
@@ -138,7 +138,7 @@ const CustomerDisplay = () => {
       {/* Footer */}
       <div style={{ padding: '12px 40px', borderTop: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center' }}>
         <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', letterSpacing: 2, textTransform: 'uppercase' }}>
-          Kelete â€¢ Powered by SIDAN IT & Business Solutions â€¢ www.sidanitsolutions.com
+          Kelete • Powered by SIDAN IT & Business Solutions • www.sidanitsolutions.com
         </span>
       </div>
     </div>

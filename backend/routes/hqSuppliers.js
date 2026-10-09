@@ -1,5 +1,5 @@
 /**
- * hqSuppliers.js â€” HQ-level supplier master + AP tracking.
+ * hqSuppliers.js — HQ-level supplier master + AP tracking.
  *
  * AP per supplier is computed live from the source tables, never stored:
  *   purchases = SUM(hq_purchases.total_amount  WHERE supplier matches)
@@ -9,7 +9,7 @@
  * Matching is a UNION: rows linked by supplier_id (preferred) + rows whose
  * supplier_name matches the master name case-insensitively (fallback for
  * legacy purchases entered before the master existed). This means renaming
- * a supplier here AFTER you have legacy purchases will detach those â€” fix
+ * a supplier here AFTER you have legacy purchases will detach those — fix
  * is to also re-save the affected purchase row, which is rare.
  *
  * Auth: hqAuth (JWT only).
@@ -22,17 +22,17 @@ const { randomUUID } = require('crypto');
 const { masterDb } = require('../config/masterDb');
 const db = require('../config/database');
 
-// v1.10.76 â€” On this deploy HQ runs as the single-tenant "bare host"
+// v1.10.76 — On this deploy HQ runs as the single-tenant "bare host"
 // (keletezm.com, no subdomain), which means the tenant middleware
 // doesn't fire and all HQ requests hit backend/kelete.db (the
-// defaultDb). Earlier v1.10.72â€“75 wrote to tenants/hq.db instead â€”
+// defaultDb). Earlier v1.10.72–75 wrote to tenants/hq.db instead —
 // wrong file, empty on this deploy. Point every HQ tenant read/write
 // at db.defaultDb explicitly so it's stable regardless of any
 // AsyncLocalStorage routing.
 function getHqDb() {
   return db.defaultDb;
 }
-// HQ_TENANT_ID â€” the tenant_id value AR / AP / Cash Book pages filter
+// HQ_TENANT_ID — the tenant_id value AR / AP / Cash Book pages filter
 // by. On this deploy every existing row in kelete.db has
 // tenant_id='local-only' (auth.js falls back to that string when
 // sync_config is empty), so we use it verbatim for every new HQ row.
@@ -50,9 +50,9 @@ function hqAuth(req, res, next) {
 }
 
 function nextPaymentNumber() {
-  // v1.10.72 â€” count HSP-prefixed payments in hq.db.ap_payments (single
+  // v1.10.72 — count HSP-prefixed payments in hq.db.ap_payments (single
   // source of truth). Falls back to master.hq_supplier_payments count
-  // when the tenant DB isn't available yet â€” keeps numbering monotonic
+  // when the tenant DB isn't available yet — keeps numbering monotonic
   // across the migration window.
   let seq = 0;
   try {
@@ -62,7 +62,7 @@ function nextPaymentNumber() {
     }
   } catch (_) { /* fall through */ }
   if (seq === 0) {
-    // Migration fallback â€” respect the old counter so we don't collide.
+    // Migration fallback — respect the old counter so we don't collide.
     seq = masterDb.prepare(`SELECT COUNT(*) AS n FROM hq_supplier_payments`).get()?.n || 0;
   }
   const yr = new Date().getFullYear();
@@ -70,18 +70,18 @@ function nextPaymentNumber() {
 }
 
 // Aggregate purchases + payments + credit_notes for one supplier.
-// v1.10.52 â€” was reading `hq_purchases.total_amount` which committed AP
-// the moment HQ typed a PO â€” even before the branch confirmed receipt
+// v1.10.52 — was reading `hq_purchases.total_amount` which committed AP
+// the moment HQ typed a PO — even before the branch confirmed receipt
 // and before HQ generated a GRN. It also ignored supplier credit notes.
 // Now mirrors Liquor AP (routes/accountPayables.js):
-//   purchases = SUM(hq_grns.final_payable)             â† goods actually received
+//   purchases = SUM(hq_grns.final_payable)             ← goods actually received
 //   payments  = SUM(hq_supplier_payments.amount)
-//   credits   = SUM(hq_supplier_credit_notes.amount)   â† now included
-//   balance   = purchases âˆ’ payments âˆ’ credits
+//   credits   = SUM(hq_supplier_credit_notes.amount)   ← now included
+//   balance   = purchases − payments − credits
 // hq_grns.final_payable already nets the invoice against the GRN-time CNs,
 // but standalone CNs recorded later against the same supplier still need
 // to be deducted separately.
-// v1.10.75 â€” everything (purchases + payments + CNs) now reads from
+// v1.10.75 — everything (purchases + payments + CNs) now reads from
 // HQ tenant DB. Master.hq_* tables kept as a frozen audit trail; no
 // code path reads them here anymore. Aligns with the memoised
 // architecture: Suppliers/AP is HQ-only, HQ IS a tenant.
@@ -97,7 +97,7 @@ function getBalances(supplierId, supplierName) {
      WHERE deleted_at IS NULL
        AND (supplier_id = ? OR LOWER(COALESCE(supplier_name,'')) = LOWER(?))
   `).get(supplierId, supplierName);
-  // v1.10.79 â€” supplier currency = the majority cost_currency across the
+  // v1.10.79 — supplier currency = the majority cost_currency across the
   // supplier's GRNs. NULL rows count as 'K' (legacy default from the
   // migration script). If a supplier has no GRNs yet, default to 'K'.
   const ccyRow = hqDb.prepare(`
@@ -116,12 +116,12 @@ function getBalances(supplierId, supplierName) {
      WHERE deleted_at IS NULL
        AND (supplier_id = ? OR LOWER(COALESCE(supplier_name,'')) = LOWER(?))
   `).get(supplierId, supplierName);
-  // 2026-09-05 â€” every credit note, and separately the part already netted
-  // into grn.total_amount (which holds final_payable = subtotal âˆ’ cn_total).
+  // 2026-09-05 — every credit note, and separately the part already netted
+  // into grn.total_amount (which holds final_payable = subtotal − cn_total).
   // Purchases are then reported GROSS and every credit deducted once, so this
   // page reads the same way as GRN Archive and Account Payables:
-  //     purchases 12,049,571.63 âˆ’ credits 150,181.78 = 11,899,389.85
-  // Tenant supplier_credit_notes has no supplier_name column â€” filter by
+  //     purchases 12,049,571.63 − credits 150,181.78 = 11,899,389.85
+  // Tenant supplier_credit_notes has no supplier_name column — filter by
   // supplier_id only. The migration script always populates it.
   const credits = hqDb.prepare(`
     SELECT COALESCE(SUM(amount), 0) AS s, COUNT(*) AS c,
@@ -145,7 +145,7 @@ function getBalances(supplierId, supplierName) {
   };
 }
 
-// v1.10.75 â€” helpers for the CRUD/list/detail routes. Every read AND write
+// v1.10.75 — helpers for the CRUD/list/detail routes. Every read AND write
 // now targets HQ's tenant DB (hq.db) so Account Payables and HQ Suppliers
 // share one source of truth.
 function requireHqDb(res) {
@@ -157,7 +157,7 @@ function requireHqDb(res) {
   return hqDb;
 }
 
-// GET /api/hq/suppliers â€” list with AP balance per row.
+// GET /api/hq/suppliers — list with AP balance per row.
 router.get('/', hqAuth, (req, res) => {
   try {
     const hqDb = requireHqDb(res); if (!hqDb) return;
@@ -172,7 +172,7 @@ router.get('/', hqAuth, (req, res) => {
   }
 });
 
-// GET /api/hq/suppliers/:id â€” detail with purchases + payments + credits history.
+// GET /api/hq/suppliers/:id — detail with purchases + payments + credits history.
 router.get('/:id', hqAuth, (req, res) => {
   try {
     const hqDb = requireHqDb(res); if (!hqDb) return;
@@ -195,8 +195,8 @@ router.get('/:id', hqAuth, (req, res) => {
        ORDER BY date DESC, id DESC
        LIMIT 200
     `).all(s.id, s.name);
-    // Payments list â€” same shape as the frontend expects (v1.10.72
-    // aliasing kept: date â†’ payment_date, paid_from â†’ payment_method).
+    // Payments list — same shape as the frontend expects (v1.10.72
+    // aliasing kept: date → payment_date, paid_from → payment_method).
     const payments = hqDb.prepare(`
       SELECT id,
              payment_number,
@@ -228,11 +228,11 @@ router.get('/:id', hqAuth, (req, res) => {
   }
 });
 
-// POST /api/hq/suppliers â€” create.
+// POST /api/hq/suppliers — create.
 router.post('/', hqAuth, (req, res) => {
   try {
     const hqDb = requireHqDb(res); if (!hqDb) return;
-    // 2026-08-30 â€” tpin. The column already existed and was being written by
+    // 2026-08-30 — tpin. The column already existed and was being written by
     // the ZRA supplier resolver and the orphan backfill, but no route read or
     // wrote it, so it could not be seen or corrected from anywhere.
     const { name, phone, email, address, contact_person, notes, tpin } = req.body || {};
@@ -257,14 +257,14 @@ router.post('/', hqAuth, (req, res) => {
   }
 });
 
-// PUT /api/hq/suppliers/:id â€” edit.
+// PUT /api/hq/suppliers/:id — edit.
 router.put('/:id', hqAuth, (req, res) => {
   try {
     const hqDb = requireHqDb(res); if (!hqDb) return;
     const s = hqDb.prepare(`SELECT * FROM suppliers WHERE id = ?`).get(req.params.id);
     if (!s) return res.status(404).json({ error: 'Supplier not found' });
     const { name, phone, email, address, contact_person, notes, status, tpin } = req.body || {};
-    // Undefined means "not sent" â€” keep what is there. An empty string is a
+    // Undefined means "not sent" — keep what is there. An empty string is a
     // deliberate clear. Distinguishing them matters: an older client that does
     // not send tpin must not wipe one the ZRA resolver recorded.
     const nextTpin = (tpin === undefined) ? s.tpin : ((tpin || '').toString().trim() || null);
@@ -289,12 +289,12 @@ router.put('/:id', hqAuth, (req, res) => {
   }
 });
 
-// DELETE /api/hq/suppliers/:id â€” soft delete (kept for AP history).
+// DELETE /api/hq/suppliers/:id — soft delete (kept for AP history).
 // Everything on record against one supplier. Used to refuse a delete rather
 // than to describe it - a supplier who has ever been transacted with cannot
 // be removed, only left alone.
 //
-// 2026-09-05 â€” the old check looked at purchases and payments only, so a
+// 2026-09-05 — the old check looked at purchases and payments only, so a
 // supplier carrying credit notes, empty returns or HQ purchases deleted
 // clean away. It also soft-deleted anything with history, which is how
 // CHAMBISHI METALS PLC came to be a deleted supplier still holding a live
@@ -322,7 +322,7 @@ function supplierHistory(hqDb, s) {
     `SELECT COUNT(*) AS n FROM zra_supplier_map
       WHERE supplier_id = ? OR supplier_sync_id = ?`, s.id, s.sync_id || ''));
 
-  // master.db matches on name â€” hq_purchases has no supplier_sync_id.
+  // master.db matches on name — hq_purchases has no supplier_sync_id.
   if (masterDb && s.name) {
     add('HQ purchase(s)', count(masterDb,
       `SELECT COUNT(*) AS n FROM hq_purchases
@@ -337,7 +337,7 @@ function supplierHistory(hqDb, s) {
 }
 
 // DELETE /api/hq/suppliers/:id
-// Body: { password } â€” an Administrator's password, checked HERE rather than
+// Body: { password } — an Administrator's password, checked HERE rather than
 // in the browser. A confirm dialog only stops an accident; the check has to
 // be server-side or the endpoint is still one curl away from wiping a
 // supplier.
@@ -362,7 +362,7 @@ router.delete('/:id', hqAuth, async (req, res) => {
     const history = supplierHistory(hqDb, s);
     if (history.length > 0) {
       return res.status(409).json({
-        error: `"${s.name}" cannot be deleted â€” ${history.join(', ')} on record. `
+        error: `"${s.name}" cannot be deleted — ${history.join(', ')} on record. `
              + 'Deleting would leave those documents pointing at a supplier that no longer exists.',
         history,
       });
@@ -376,7 +376,7 @@ router.delete('/:id', hqAuth, async (req, res) => {
   }
 });
 
-// POST /api/hq/suppliers/:id/payments â€” record a payment to this supplier.
+// POST /api/hq/suppliers/:id/payments — record a payment to this supplier.
 router.post('/:id/payments', hqAuth, (req, res) => {
   try {
     const hqDb = requireHqDb(res); if (!hqDb) return;
@@ -394,7 +394,7 @@ router.post('/:id/payments', hqAuth, (req, res) => {
     const momoAmt = method === 'Mobile Money' ? amt : 0;
     const description = notes
       ? notes
-      : (reference ? `${s.name} Â· ${reference}` : s.name);
+      : (reference ? `${s.name} · ${reference}` : s.name);
     hqDb.prepare(`
       INSERT INTO ap_payments (payment_number, supplier_id, supplier_sync_id, supplier_name,
                                 amount, cash_amount, bank_amount, momo_amount,
@@ -414,8 +414,8 @@ router.post('/:id/payments', hqAuth, (req, res) => {
   }
 });
 
-// DELETE /api/hq/supplier-payments/:id â€” reverse a payment.
-// v1.10.72 â€” payments live in HQ tenant DB now. Soft-delete via
+// DELETE /api/hq/supplier-payments/:id — reverse a payment.
+// v1.10.72 — payments live in HQ tenant DB now. Soft-delete via
 // deleted_at so Cash Book's WHERE deleted_at IS NULL drops the row
 // while keeping the audit trail.
 router.delete('/payments/:id', hqAuth, (req, res) => {

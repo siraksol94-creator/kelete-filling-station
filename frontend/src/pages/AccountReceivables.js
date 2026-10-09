@@ -37,13 +37,13 @@ const AccountReceivables = () => {
   const { hasPermission, user: authUser } = useAuth();
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown } = useCurrency();
   const { t } = useLanguage();
-  // v1.8.55 â€” Kelete triple-currency gating + live FX rates for AR receipts.
+  // v1.8.55 — Kelete triple-currency gating + live FX rates for AR receipts.
   const isDual = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
   const [fxRate, setFxRate] = useState({ sell: 0, buy: 0, sellK: 0, buyK: 0 });
   const SELL_RATE   = fxRate.sell;
   const SELL_RATE_K = fxRate.sellK;
   const hasK        = SELL_RATE_K > 0;
-  // Local fmt â€” uses the tenant's primary currency symbol.
+  // Local fmt — uses the tenant's primary currency symbol.
   const fmt = (n) => `${curSym}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const [businessInfo, setBusinessInfo] = useState({});
   const [stats, setStats] = useState({ totalSales: 0, totalReceived: 0, outstanding: 0, customers: 0, owingCount: 0 });
@@ -52,10 +52,10 @@ const AccountReceivables = () => {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('receivables'); // receivables | payments
   const [paymentModal, setPaymentModal] = useState(null);
-  // v1.8.55 â€” triple-currency AR receipts (Kelete). usd/fra/k mirror the
+  // v1.8.55 — triple-currency AR receipts (Kelete). usd/fra/k mirror the
   // Cashier Pay modal. Legacy bank/momo columns are no longer collected
   // from the UI but the backend still accepts them for backwards compat.
-  // v1.8.56 â€” `sell_rate` / `sell_rate_k` are editable per-receipt
+  // v1.8.56 — `sell_rate` / `sell_rate_k` are editable per-receipt
   // overrides (default to the current FX rate at open time).
   const [paymentForm, setPaymentForm] = useState({
     usd_amount: '', fra_amount: '', k_amount: '',
@@ -83,7 +83,7 @@ const AccountReceivables = () => {
     }
   };
   const [toast, setToast] = useState(null);
-  // Date filter. 2026-09-10 â€” opens on ALL TIME. A month view leaves out every
+  // Date filter. 2026-09-10 — opens on ALL TIME. A month view leaves out every
   // sale and payment from before the 1st, so a customer who bought on credit
   // last month and has not paid read as owing nothing.
   const _today = new Date();
@@ -108,8 +108,8 @@ const AccountReceivables = () => {
         const paid        = cashAtSale + arPaid;
         // Display convention: positive = customer paid more than they bought (advance),
         // negative = customer still owes us. That's the flip of the backend's `outstanding`
-        // (which is sold âˆ’ paid). All conditions below reference this flipped value.
-        // 2026-09-07 â€” the balance carried over from the old system counts as
+        // (which is sold − paid). All conditions below reference this flipped value.
+        // 2026-09-07 — the balance carried over from the old system counts as
         // owed, the same as an unpaid sale. This page derives its own figure
         // rather than using the backend's `outstanding`, so leaving it out
         // here made a customer owing K92,998 read as K0.00.
@@ -122,7 +122,7 @@ const AccountReceivables = () => {
         else if (balance >= -0.01)             status = 'Paid';     // fully paid or advance
         else if (paid > 0)                     status = 'Partial';
         else                                   status = 'Unpaid';
-        // v1.8.57 â€” carry per-currency outstanding for FRA / K display.
+        // v1.8.57 — carry per-currency outstanding for FRA / K display.
         // Backend computes these using each unpaid order's captured sale rate.
         return {
           ...c, _sold: sold, _paid: paid, _balance: balance, _status: status,
@@ -140,7 +140,7 @@ const AccountReceivables = () => {
   useEffect(() => {
     fetchAll();
     getSettings().then(r => setBusinessInfo(r.data?.business || {})).catch(() => {});
-    // v1.8.55 â€” pull current FX rates so the AR receipt can convert FRA/K
+    // v1.8.55 — pull current FX rates so the AR receipt can convert FRA/K
     // to USD at the same rates the Cashier uses.
     getCurrentFxRate().then(r => {
       const d = r.data;
@@ -157,23 +157,23 @@ const AccountReceivables = () => {
     return () => window.removeEventListener('sync-complete', fetchAll);
   }, [fetchAll]);
 
-  // Print the receivables list â€” A4 portrait, matches AP's layout for consistency.
+  // Print the receivables list — A4 portrait, matches AP's layout for consistency.
   const handlePrint = () => {
     const fmtPlain = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const biz = businessInfo.business_name || 'Business Name';
     const addr = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join('  |  ');
-    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
     const period = (filterFrom || filterTo)
-      ? `${filterFrom || 'â€”'} to ${filterTo || 'â€”'}`
+      ? `${filterFrom || '—'} to ${filterTo || '—'}`
       : 'All Time';
     const rowsHtml = receivablesRows.map((r, idx) => `
       <tr style="border-bottom:1px solid #ddd;background:${idx % 2 === 1 ? '#f9f9f9' : '#fff'}">
         <td style="padding:8px 10px;font-size:10.5px">${idx + 1}</td>
         <td style="padding:8px 10px;font-weight:700">${r.name}</td>
-        <td style="padding:8px 10px">${r.phone || 'â€”'}</td>
-        <td style="padding:8px 10px;text-align:right">${parseFloat(r.credit_limit) > 0 ? '$' + fmtPlain(r.credit_limit) : 'â€”'}</td>
-        <td style="padding:8px 10px;text-align:right">${r._opening > 0 ? '$' + fmtPlain(r._opening) : 'â€”'}</td>
+        <td style="padding:8px 10px">${r.phone || '—'}</td>
+        <td style="padding:8px 10px;text-align:right">${parseFloat(r.credit_limit) > 0 ? '$' + fmtPlain(r.credit_limit) : '—'}</td>
+        <td style="padding:8px 10px;text-align:right">${r._opening > 0 ? '$' + fmtPlain(r._opening) : '—'}</td>
         <td style="padding:8px 10px;text-align:right">$${fmtPlain(r._sold)}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:600">$${fmtPlain(r._paid)}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:700">$${fmtPlain(Math.abs(r._balance))}${r._balance < -0.01 ? ' (owed)' : r._balance > 0.01 ? ' (advance)' : ''}</td>
@@ -221,7 +221,7 @@ const AccountReceivables = () => {
           </tr></thead>
           <tbody>${rowsHtml || `<tr><td colspan="9" style="padding:24px;text-align:center;color:#666">No receivables for this period.</td></tr>`}</tbody>
           ${receivablesRows.length > 0 ? `<tfoot><tr>
-            <td colspan="4">TOTAL â€” ${receivablesRows.length} Customer${receivablesRows.length !== 1 ? 's' : ''}</td>
+            <td colspan="4">TOTAL — ${receivablesRows.length} Customer${receivablesRows.length !== 1 ? 's' : ''}</td>
             <td style="text-align:right">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._opening, 0))}</td>
             <td style="text-align:right">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._sold, 0))}</td>
             <td style="text-align:right">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._paid, 0))}</td>
@@ -240,7 +240,7 @@ const AccountReceivables = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:9px">${biz} â€” Confidential</span>
+        <span style="font-size:9px">${biz} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
     </body></html>`;
@@ -250,21 +250,21 @@ const AccountReceivables = () => {
     setTimeout(() => { w.print(); w.close(); }, 300);
   };
 
-  // Receivables tab â€” only customers with a balance (or who have ever transacted)
+  // Receivables tab — only customers with a balance (or who have ever transacted)
   // A customer whose only entry is an opening balance has no sales and no
   // payments, so the old filter hid the very rows this was built for.
   const receivablesRows = rows.filter(r => r._sold > 0 || r._paid > 0 || r._opening > 0)
     .filter(r => matchTokens(search, r.name, r.phone, r.email))
     // By name. Sorted by balance the list reshuffled every time a payment
-    // landed, so the row you were looking at moved â€” and with 25 customers
+    // landed, so the row you were looking at moved — and with 25 customers
     // there is no scanning for one by size.
     .sort((a, b) => (a.name || '').localeCompare(b.name || '', undefined, { sensitivity: 'base' }));
 
   const paymentsRows = payments.filter(p => matchTokens(search, p.customer_name, p.reference, p.payment_number));
 
   const openPayment = (c) => {
-    // v1.8.55 â€” default to USD pre-filled with the customer's balance.
-    // v1.8.56 â€” pre-fill sell rates from the current live FX rates;
+    // v1.8.55 — default to USD pre-filled with the customer's balance.
+    // v1.8.56 — pre-fill sell rates from the current live FX rates;
     //          the accountant can override per-receipt if the customer
     //          negotiated a different rate.
     setPaymentForm({
@@ -282,7 +282,7 @@ const AccountReceivables = () => {
     const usd = parseFloat(paymentForm.usd_amount || 0) || 0;
     const fra = parseFloat(paymentForm.fra_amount || 0) || 0;
     const kAmt= parseFloat(paymentForm.k_amount   || 0) || 0;
-    // v1.8.56 â€” use the per-receipt rate from the form (defaults to
+    // v1.8.56 — use the per-receipt rate from the form (defaults to
     // current live rate but the accountant may override).
     const sellRate  = parseFloat(paymentForm.sell_rate   || 0) || 0;
     const sellRateK = parseFloat(paymentForm.sell_rate_k || 0) || 0;
@@ -293,7 +293,7 @@ const AccountReceivables = () => {
     if (!isLiquorStyle && fra > 0 && !(sellRate > 0))  { showToast('FRA Sell rate is required', 'error'); return; }
     if (!isLiquorStyle && kAmt > 0 && !(sellRateK > 0)){ showToast('K Sell rate is required', 'error'); return; }
     try {
-      // v1.10.74 â€” on Liquor branches, the three fields ARE the payment
+      // v1.10.74 — on Liquor branches, the three fields ARE the payment
       // methods (Cash / Mobile Money / Bank) in native K. Send them as
       // legacy cash_amount / bank_amount / momo_amount so the backend
       // labels the payment method correctly (Cash/Bank/Mobile Money
@@ -303,8 +303,8 @@ const AccountReceivables = () => {
       const payload = isLiquorStyle
         ? {
             customer_id: paymentModal.customer.id,
-            // Under the Liquor convention Cash â†’ cash_amount,
-            // Mobile Money â†’ momo_amount, Bank â†’ bank_amount. The frontend
+            // Under the Liquor convention Cash → cash_amount,
+            // Mobile Money → momo_amount, Bank → bank_amount. The frontend
             // fields still carry those values under the usd_/fra_/k_ keys
             // (kept for schema symmetry with Kelete), but the payload maps
             // them to legacy method columns.
@@ -329,7 +329,7 @@ const AccountReceivables = () => {
       await createCustomerPayment(payload);
       setPaymentModal(null);
       await fetchAll();
-      showToast('Payment recorded â€” Cash Receipt issued');
+      showToast('Payment recorded — Cash Receipt issued');
     } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error'); }
   };
 
@@ -350,7 +350,7 @@ const AccountReceivables = () => {
   };
   const handleDeletePayment = (p) => {
     setPendingDelete({
-      subject: `Payment ${fmt(p.amount)} from ${p.customer_name} â€” voids its Cash Receipt`,
+      subject: `Payment ${fmt(p.amount)} from ${p.customer_name} — voids its Cash Receipt`,
       perform: async () => {
         try { await deleteCustomerPayment(p.id); await fetchAll(); showToast('Payment + Cash Receipt deleted'); }
         catch (err) { showToast(err.response?.data?.error || 'Failed', 'error'); }
@@ -394,8 +394,8 @@ const AccountReceivables = () => {
         </div>
       )}
 
-      {/* Stat cards â€” split Outstanding from Customer Credit so the dashboard never shows a
-          confusing net like "âˆ’$30 Outstanding". rows already carry the flipped _balance
+      {/* Stat cards — split Outstanding from Customer Credit so the dashboard never shows a
+          confusing net like "−$30 Outstanding". rows already carry the flipped _balance
           (positive = advance, negative = still owed). */}
       {(() => {
         const outstandingOnly    = rows.reduce((s, r) => s + Math.max(0, -(parseFloat(r._balance) || 0)), 0);
@@ -404,14 +404,14 @@ const AccountReceivables = () => {
           <div className="stat-cards">
             {card(t('totalSales'),    fmt(stats.totalSales),    t('allCustomers'),                          'blue',   FiDollarSign)}
             {card(t('totalReceived'), fmt(stats.totalReceived), t('paidIn'),                                'green',  FiDollarSign)}
-            {card(t('outstanding'),   (outstandingOnly > 0.01 ? 'âˆ’' : '') + fmt(outstandingOnly), t('stillOwed'), 'red', FiAlertCircle)}
+            {card(t('outstanding'),   (outstandingOnly > 0.01 ? '−' : '') + fmt(outstandingOnly), t('stillOwed'), 'red', FiAlertCircle)}
             {customerCreditOnly > 0.01 && card(t('customerCredit'), fmt(customerCreditOnly), t('paidInAdvance'), 'green', FiDollarSign)}
             {card(t('customers'),     stats.customers,          `${stats.owingCount} ${t('owing')}`,        'purple', FiUsers)}
           </div>
         );
       })()}
 
-      {/* â”€â”€ Date Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Date Filter Bar ─────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
@@ -454,7 +454,7 @@ const AccountReceivables = () => {
         })()}
         <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af' }}>
           {filterFrom || filterTo
-            ? `${filterFrom || 'â€”'} ${t('to')} ${filterTo || 'â€”'}`
+            ? `${filterFrom || '—'} ${t('to')} ${filterTo || '—'}`
             : t('showingAllTime')}
         </span>
       </div>
@@ -489,7 +489,7 @@ const AccountReceivables = () => {
       {/* Receivables tab */}
       {tab === 'receivables' && (
         <>
-        {/* v1.13.43 â€” universal export (ZRA #30) */}
+        {/* v1.13.43 — universal export (ZRA #30) */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
           <ExportButtons
             rows={receivablesRows}
@@ -499,7 +499,7 @@ const AccountReceivables = () => {
               { key: 'name',         label: 'Customer' },
               { key: 'phone',        label: 'Phone' },
               { key: 'credit_limit', label: 'Credit Limit', format: v => Number(v || 0).toFixed(2) },
-              // 2026-09-10 â€” these read the same derived figures the table
+              // 2026-09-10 — these read the same derived figures the table
               // shows. They used to ask for `total_sales` and `balance`, which
               // no row carries, so every export printed 0.00 in both; and
               // `total_paid` alone leaves out the cash taken at the till.
@@ -534,26 +534,26 @@ const AccountReceivables = () => {
                         {r.name} <FiChevronRight size={13} />
                       </button>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#6b7280' }}>{r.phone || 'â€”'}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>{parseFloat(r.credit_limit) > 0 ? fmt(r.credit_limit) : <span style={{ color: '#9ca3af' }}>â€”</span>}</td>
-                    {/* 2026-09-10 â€” the balance carried over from the old
+                    <td style={{ padding: '10px 12px', color: '#6b7280' }}>{r.phone || '—'}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>{parseFloat(r.credit_limit) > 0 ? fmt(r.credit_limit) : <span style={{ color: '#9ca3af' }}>—</span>}</td>
+                    {/* 2026-09-10 — the balance carried over from the old
                         system. Balance already counts it; without this column
                         the only way to see it was to open each customer. */}
                     <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                      {r._opening > 0 ? fmt(r._opening) : <span style={{ color: '#9ca3af' }}>â€”</span>}
+                      {r._opening > 0 ? fmt(r._opening) : <span style={{ color: '#9ca3af' }}>—</span>}
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmt(r._sold)}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a' }}>{fmt(r._paid)}</td>
-                    {/* 2026-09-13 â€” overpaid (an advance / down payment) reads
-                        +K4,255 in green, not K4,255 in amber. Owed stays âˆ’K in red. */}
+                    {/* 2026-09-13 — overpaid (an advance / down payment) reads
+                        +K4,255 in green, not K4,255 in amber. Owed stays −K in red. */}
                     <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: r._balance < -0.01 ? '#dc2626' : '#16a34a' }}>
-                      {/* Signed value â€” the sign goes BEFORE the currency symbol (standard accounting). */}
-                      {r._balance < -0.01 ? 'âˆ’' : r._balance > 0.01 ? '+' : ''}{fmt(Math.abs(r._balance))}
-                      {/* v1.8.57 â€” FRA / K equivalents at captured sale rates. */}
+                      {/* Signed value — the sign goes BEFORE the currency symbol (standard accounting). */}
+                      {r._balance < -0.01 ? '−' : r._balance > 0.01 ? '+' : ''}{fmt(Math.abs(r._balance))}
+                      {/* v1.8.57 — FRA / K equivalents at captured sale rates. */}
                       {r._balance < -0.01 && (r._outstandingFra > 0.01 || r._outstandingK > 0.01) && (
                         <div style={{ fontSize: 10, fontWeight: 500, color: '#94a3b8', marginTop: 2 }}>
-                          â‰ˆ {r._outstandingFra > 0.01 && <>FRA {Math.round(r._outstandingFra).toLocaleString()}</>}
-                          {r._outstandingFra > 0.01 && r._outstandingK > 0.01 && ' Â· '}
+                          ≈ {r._outstandingFra > 0.01 && <>FRA {Math.round(r._outstandingFra).toLocaleString()}</>}
+                          {r._outstandingFra > 0.01 && r._outstandingK > 0.01 && ' · '}
                           {r._outstandingK > 0.01 && <>K {Math.round(r._outstandingK).toLocaleString()}</>}
                         </div>
                       )}
@@ -562,7 +562,7 @@ const AccountReceivables = () => {
                       <span style={{ padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: s.bg, color: s.fg }}>{r._status === 'OnHold' ? 'On Hold' : r._status}</span>
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                      {/* v1.10.92 â€” Pay / Down Payment button now gates on
+                      {/* v1.10.92 — Pay / Down Payment button now gates on
                           AccountReceivables:Add (recording a payment IS an AR
                           add operation) with a Customers:Edit fallback so
                           pre-v1.10.92 grants keep working. Previously only
@@ -592,7 +592,7 @@ const AccountReceivables = () => {
       {/* Payments tab */}
       {tab === 'payments' && (
         <>
-        {/* v1.13.43 â€” universal export (ZRA #30) */}
+        {/* v1.13.43 — universal export (ZRA #30) */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
           <ExportButtons
             rows={payments}
@@ -625,17 +625,17 @@ const AccountReceivables = () => {
               ) : paymentsRows.map(p => (
                 <tr key={`${p.source || 'manual'}-${p.id}`} style={{ borderBottom: '1px solid #f3f4f6', background: p.source === 'pos' ? '#fafafa' : '#fff' }}>
                   <td style={{ padding: '10px 12px' }}>{(p.payment_date || '').slice(0, 10)}</td>
-                  <td style={{ padding: '10px 12px', fontWeight: 600 }}>{p.customer_name || 'â€”'}</td>
+                  <td style={{ padding: '10px 12px', fontWeight: 600 }}>{p.customer_name || '—'}</td>
                   <td style={{ padding: '10px 12px', color: '#6b7280' }}>
                     {p.payment_method}
                     {p.source === 'pos' && (
                       <span style={{ marginLeft: 6, padding: '1px 6px', background: '#dbeafe', color: '#1d4ed8', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3 }}>POS</span>
                     )}
                   </td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{p.reference || 'â€”'}</td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{p.notes || 'â€”'}</td>
+                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{p.reference || '—'}</td>
+                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{p.notes || '—'}</td>
                   <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>{fmt(p.amount)}</td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 12 }}>{p.created_by_name || 'â€”'}</td>
+                  <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 12 }}>{p.created_by_name || '—'}</td>
                   <td style={{ padding: '8px 12px', textAlign: 'right' }}>
                     {p.source !== 'pos' && hasPermission('Customers:Edit') !== false && (
                       <button onClick={() => handleDeletePayment(p)} title="Delete payment"
@@ -678,27 +678,27 @@ const AccountReceivables = () => {
                   From <strong>{paymentModal.customer.name}</strong>
                   {paymentModal.customer._balance < -0.01 ? (
                     <>
-                      {' Â· owes '}{fmt(Math.abs(paymentModal.customer._balance))}
-                      {/* v1.8.57 â€” show FRA / K equivalents using captured sale rates. */}
+                      {' · owes '}{fmt(Math.abs(paymentModal.customer._balance))}
+                      {/* v1.8.57 — show FRA / K equivalents using captured sale rates. */}
                       {(paymentModal.customer._outstandingFra > 0.01 || paymentModal.customer._outstandingK > 0.01) && (
                         <span style={{ color: '#94a3b8', fontWeight: 500 }}>
-                          {' â‰ˆ '}
+                          {' ≈ '}
                           {paymentModal.customer._outstandingFra > 0.01 && <>FRA {Math.round(paymentModal.customer._outstandingFra).toLocaleString()}</>}
-                          {paymentModal.customer._outstandingFra > 0.01 && paymentModal.customer._outstandingK > 0.01 && ' Â· '}
+                          {paymentModal.customer._outstandingFra > 0.01 && paymentModal.customer._outstandingK > 0.01 && ' · '}
                           {paymentModal.customer._outstandingK > 0.01 && <>K {Math.round(paymentModal.customer._outstandingK).toLocaleString()}</>}
                           {' (at sale-time rate)'}
                         </span>
                       )}
                     </>
-                  ) : <> Â· advance (credit applied to future credit sales)</>}
+                  ) : <> · advance (credit applied to future credit sales)</>}
                 </div>
               </div>
               <button onClick={() => setPaymentModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={18} /></button>
             </div>
             <div style={{ padding: 22, display: 'grid', gap: 12 }}>
-              {/* v1.8.56 â€” per-receipt FX rate (defaults to live rate, editable).
+              {/* v1.8.56 — per-receipt FX rate (defaults to live rate, editable).
                   Only shown when FRA or K is enabled for this tenant.
-                  v1.10.73 â€” hidden on Liquor branches (K-only, native, no FX). */}
+                  v1.10.73 — hidden on Liquor branches (K-only, native, no FX). */}
               {!isLiquorStyle && (isDual || hasK) && (
                 <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, padding: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -736,11 +736,11 @@ const AccountReceivables = () => {
                 </div>
               )}
 
-              {/* v1.8.55 â€” Kelete triple-currency receipt: USD / FRA / K.
-                  v1.10.73 â€” Liquor branches show Cash / Mobile Money / Bank
+              {/* v1.8.55 — Kelete triple-currency receipt: USD / FRA / K.
+                  v1.10.73 — Liquor branches show Cash / Mobile Money / Bank
                   instead (all in native K, no FX). Same field-to-column
-                  mapping as CashReceipt.js: Cashâ†’usd_amount,
-                  MoMoâ†’fra_amount, Bankâ†’k_amount â€” keeps the receipt row
+                  mapping as CashReceipt.js: Cash→usd_amount,
+                  MoMo→fra_amount, Bank→k_amount — keeps the receipt row
                   compatible with the existing customer_payments schema and
                   Cash Book split logic. */}
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 }}>
@@ -750,7 +750,7 @@ const AccountReceivables = () => {
                 const fields = isLiquorStyle
                   ? [
                       { key: 'usd_amount', label: 'Cash',         color: '#16a34a', step: '0.01', placeholder: '0.00', show: true },
-                      // 2026-09-11 â€” MoMo / Bank follow System Settings â†’ Payment methods shown.
+                      // 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown.
                       { key: 'fra_amount', label: 'Mobile Money', color: '#ea580c', step: '0.01', placeholder: '0.00', show: methodShown('momo') },
                       { key: 'k_amount',   label: 'Bank',         color: '#2563eb', step: '0.01', placeholder: '0.00', show: methodShown('bank') },
                     ]
@@ -779,9 +779,9 @@ const AccountReceivables = () => {
                 const usd = parseFloat(paymentForm.usd_amount || 0) || 0;
                 const fra = parseFloat(paymentForm.fra_amount || 0) || 0;
                 const kAmt= parseFloat(paymentForm.k_amount   || 0) || 0;
-                // v1.10.73 â€” Liquor: all three fields are native K, just sum
+                // v1.10.73 — Liquor: all three fields are native K, just sum
                 // them and display with tenant symbol. Kelete: convert
-                // FRA + K â†’ USD via the receipt's FX rate.
+                // FRA + K → USD via the receipt's FX rate.
                 if (isLiquorStyle) {
                   const totalK = usd + fra + kAmt;
                   return (
@@ -798,7 +798,7 @@ const AccountReceivables = () => {
                 const totalUsd = usd + fraAsUsd + kAsUsd;
                 return (
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13 }}>
-                    <span style={{ color: '#6b7280' }}>Total (â‰ˆ USD)</span>
+                    <span style={{ color: '#6b7280' }}>Total (≈ USD)</span>
                     <span style={{ fontWeight: 800, color: totalUsd > 0 ? '#1d4ed8' : '#9ca3af' }}>{fmt(totalUsd)}</span>
                   </div>
                 );
@@ -825,9 +825,9 @@ const AccountReceivables = () => {
         </Portal>
       )}
 
-      {/* Statement modal â€” 2026-09-10: one chronological ledger, the same shape
+      {/* Statement modal — 2026-09-10: one chronological ledger, the same shape
           as Kelete's AP supplier statement. Sales in Debit (+), payments in
-          Credit (âˆ’), a running balance down the right. It replaced three
+          Credit (−), a running balance down the right. It replaced three
           separate boxes (opening balance, orders, payments) that each had their
           own total and never showed the balance moving: you could not see what
           was owed on a given day without doing the sum yourself. */}
@@ -840,7 +840,7 @@ const AccountReceivables = () => {
         // as a dash.
         const fmtD = (d) => {
           const s = day(d);
-          if (!s || s < '1971') return 'â€”';
+          if (!s || s < '1971') return '—';
           const dt = new Date(s + 'T00:00:00');
           return isNaN(dt) ? s : dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         };
@@ -848,28 +848,28 @@ const AccountReceivables = () => {
         const esc   = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         // One event per entry. Within a day: opening, then the sale, then what
-        // was paid â€” so a sale settled at the till reads as sale-then-payment,
+        // was paid — so a sale settled at the till reads as sale-then-payment,
         // not the other way round.
         const RANK = { opening: 0, order: 1, payment: 2 };
         const allEvs = entries.map((e, i) => {
           const amt  = parseFloat(e.amount) || 0;
           const base = { key: `${e.type}-${e.id}-${i}`, date: day(e.date), sortKey: `${day(e.date)} ${RANK[e.type] ?? 3} ${e.date || ''}` };
           if (e.type === 'opening') {
-            return { ...base, kind: 'OB', doc: 'â€”', orderId: null,
-                     reference: 'Opening balance â€” carried over, before this system',
+            return { ...base, kind: 'OB', doc: '—', orderId: null,
+                     reference: 'Opening balance — carried over, before this system',
                      debit: amt > 0 ? amt : 0, credit: amt < 0 ? amt : 0 };
           }
           if (e.type === 'order') {
-            return { ...base, kind: 'INV', doc: e.order_number ? fmtInvoiceNo(e.order_number) : 'â€”', orderId: e.id,
+            return { ...base, kind: 'INV', doc: e.order_number ? fmtInvoiceNo(e.order_number) : '—', orderId: e.id,
                      reference: 'Sale', debit: amt, credit: 0 };
           }
           // Payments arrive negative from the server: they reduce what is owed.
           const pos    = e.source === 'pos';
           const method = e.payment_method || 'Cash';
           return { ...base, kind: 'PAY',
-                   doc: pos ? (e.reference ? fmtInvoiceNo(e.reference) : 'â€”') : (e.receipt_number || 'â€”'),
+                   doc: pos ? (e.reference ? fmtInvoiceNo(e.reference) : '—') : (e.receipt_number || '—'),
                    orderId: pos ? e.order_id : null,
-                   reference: pos ? `Paid at sale Â· ${method}` : [method, e.reference, e.notes].filter(Boolean).join(' Â· '),
+                   reference: pos ? `Paid at sale · ${method}` : [method, e.reference, e.notes].filter(Boolean).join(' · '),
                    debit: 0, credit: amt };
         }).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
@@ -918,10 +918,10 @@ const AccountReceivables = () => {
         const som      = iso(new Date(now.getFullYear(), now.getMonth(), 1));
         const prevSom  = iso(new Date(now.getFullYear(), now.getMonth() - 1, 1));
         const prevEom  = iso(new Date(now.getFullYear(), now.getMonth(), 0));
-        const windowLabel = stFrom || stTo ? `${stFrom || 'â€”'} to ${stTo || 'â€”'}` : 'All time';
+        const windowLabel = stFrom || stTo ? `${stFrom || '—'} to ${stTo || '—'}` : 'All time';
 
         const balColor = (v) => (v > 0.01 ? '#dc2626' : v < -0.01 ? '#16a34a' : '#374151');
-        const signed   = (v) => `${v < -0.01 ? 'âˆ’' : ''}${money(v)}`;
+        const signed   = (v) => `${v < -0.01 ? '−' : ''}${money(v)}`;
         const verdict  = finalBal > 0.01 ? 'Customer owes you:' : finalBal < -0.01 ? 'Customer is in credit (advance):' : 'Account is square';
         const pill = (kind) => (
           kind === 'INV' ? { bg: '#fee2e2', fg: '#991b1b' }
@@ -933,7 +933,7 @@ const AccountReceivables = () => {
           const biz       = businessInfo.business_name || 'Business Name';
           const addr      = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join('  |  ');
           const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-          const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
+          const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
           const pillCss   = (k) => { const p = pill(k); return `background:${p.bg};color:${p.fg};padding:1px 6px;border-radius:3px;font-size:9px;font-weight:700`; };
 
           const bfRow = stFrom && Math.abs(bf) > 0.001 ? `
@@ -950,9 +950,9 @@ const AccountReceivables = () => {
                 <td style="padding:5px 9px;color:#374151;white-space:nowrap">${esc(fmtD(r.date))}</td>
                 <td style="padding:5px 9px;color:#6b7280;font-family:monospace;font-size:9.5px">${esc(r.doc)}</td>
                 <td style="padding:5px 9px"><span style="${pillCss(r.kind)}">${r.kind}</span></td>
-                <td style="padding:5px 9px;color:${r.kind === 'PAY' ? '#6b7280' : '#000'};font-weight:${r.kind === 'PAY' ? '400' : '700'}">${esc(r.reference) || 'â€”'}</td>
+                <td style="padding:5px 9px;color:${r.kind === 'PAY' ? '#6b7280' : '#000'};font-weight:${r.kind === 'PAY' ? '400' : '700'}">${esc(r.reference) || '—'}</td>
                 <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.debit > 0 ? '#dc2626' : '#d1d5db'}">${r.debit > 0 ? `+${money(r.debit)}` : ''}</td>
-                <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.credit < 0 ? '#16a34a' : '#d1d5db'}">${r.credit < 0 ? `âˆ’${money(r.credit)}` : ''}</td>
+                <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.credit < 0 ? '#16a34a' : '#d1d5db'}">${r.credit < 0 ? `−${money(r.credit)}` : ''}</td>
                 <td style="padding:5px 9px;text-align:right;font-family:monospace;font-weight:600;color:${balColor(r.balance)}">${signed(r.balance)}</td>
               </tr>`).join('');
 
@@ -968,7 +968,7 @@ const AccountReceivables = () => {
               </div>
             </div>` : '';
 
-          const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Statement â€” ${esc(cust.name)}</title>
+          const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Statement — ${esc(cust.name)}</title>
             <style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
             body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;color:#000}
             table{width:100%;border-collapse:collapse}
@@ -992,7 +992,7 @@ const AccountReceivables = () => {
             </div>
 
             <div style="font-size:9px;color:#6b7280;margin-bottom:10px">
-              Convention: sales and the opening balance in Debit (+), payments in Credit (âˆ’). Balance is signed: positive = customer owes you, negative = customer is in credit.
+              Convention: sales and the opening balance in Debit (+), payments in Credit (−). Balance is signed: positive = customer owes you, negative = customer is in credit.
             </div>
 
             <div style="border:1.5px solid #000;margin-bottom:14px">
@@ -1001,7 +1001,7 @@ const AccountReceivables = () => {
                   <tr>
                     <th>Date</th><th>Doc #</th><th>Type</th><th>Reference</th>
                     <th style="text-align:right;color:#dc2626">Debit (+)</th>
-                    <th style="text-align:right;color:#16a34a">Credit (âˆ’)</th>
+                    <th style="text-align:right;color:#16a34a">Credit (−)</th>
                     <th style="text-align:right">Balance</th>
                   </tr>
                 </thead>
@@ -1013,7 +1013,7 @@ const AccountReceivables = () => {
                   <tr>
                     <td colspan="4" style="text-align:right">Totals</td>
                     <td style="text-align:right;color:#dc2626">+${money(totalDebit)}</td>
-                    <td style="text-align:right;color:#16a34a">âˆ’${money(totalCredit)}</td>
+                    <td style="text-align:right;color:#16a34a">−${money(totalCredit)}</td>
                     <td style="text-align:right;color:${balColor(finalBal)}">${signed(finalBal)}</td>
                   </tr>
                 </tfoot>
@@ -1037,7 +1037,7 @@ const AccountReceivables = () => {
                 </div>`).join('')}
             </div>
             <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
-              <span style="font-size:8px">${esc(biz)} â€” Confidential</span>
+              <span style="font-size:8px">${esc(biz)} — Confidential</span>
               <span style="font-size:8px">Printed: ${esc(printedAt)}</span>
             </div>
           </body></html>`;
@@ -1080,7 +1080,7 @@ const AccountReceivables = () => {
                       {cust.tpin && <div><strong>TPIN:</strong> {cust.tpin}</div>}
                     </div>
                     <div>
-                      <div style={{ color: '#6b7280' }}>Convention: sales and the opening balance in Debit (+), payments in Credit (âˆ’).</div>
+                      <div style={{ color: '#6b7280' }}>Convention: sales and the opening balance in Debit (+), payments in Credit (−).</div>
                       <div style={{ color: '#6b7280' }}>Balance is signed: positive = customer owes you, negative = customer is in credit.</div>
                     </div>
                   </div>
@@ -1113,7 +1113,7 @@ const AccountReceivables = () => {
                       <th style={th('left')}>Type</th>
                       <th style={th('left')}>Reference</th>
                       <th style={th('right', '#dc2626')}>Debit (+)</th>
-                      <th style={th('right', '#16a34a')}>Credit (âˆ’)</th>
+                      <th style={th('right', '#16a34a')}>Credit (−)</th>
                       <th style={th('right')}>Balance</th>
                     </tr>
                   </thead>
@@ -1145,12 +1145,12 @@ const AccountReceivables = () => {
                           <td style={{ padding: '6px 10px' }}>
                             <span style={{ background: p.bg, color: p.fg, padding: '1px 7px', borderRadius: 3, fontSize: 10, fontWeight: 700 }}>{r.kind}</span>
                           </td>
-                          <td style={{ padding: '6px 10px', color: r.kind === 'PAY' ? '#6b7280' : '#111827', fontWeight: r.kind === 'PAY' ? 400 : 700 }}>{r.reference || 'â€”'}</td>
+                          <td style={{ padding: '6px 10px', color: r.kind === 'PAY' ? '#6b7280' : '#111827', fontWeight: r.kind === 'PAY' ? 400 : 700 }}>{r.reference || '—'}</td>
                           <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: r.debit > 0 ? '#dc2626' : '#d1d5db' }}>
                             {r.debit > 0 ? `+${money(r.debit)}` : ''}
                           </td>
                           <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: r.credit < 0 ? '#16a34a' : '#d1d5db' }}>
-                            {r.credit < 0 ? `âˆ’${money(r.credit)}` : ''}
+                            {r.credit < 0 ? `−${money(r.credit)}` : ''}
                           </td>
                           <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: balColor(r.balance) }}>
                             {signed(r.balance)}
@@ -1163,7 +1163,7 @@ const AccountReceivables = () => {
                     <tr style={{ background: '#f9fafb', borderTop: '2px solid #cbd5e1', fontWeight: 700 }}>
                       <td colSpan={4} style={{ padding: '8px 10px', textAlign: 'right' }}>Totals</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#dc2626' }}>+{money(totalDebit)}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#16a34a' }}>âˆ’{money(totalCredit)}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#16a34a' }}>−{money(totalCredit)}</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: balColor(finalBal) }}>{signed(finalBal)}</td>
                     </tr>
                   </tfoot>
@@ -1177,7 +1177,7 @@ const AccountReceivables = () => {
                   <span style={{ fontWeight: 800, fontSize: 18, color: balColor(finalBal) }}>{money(finalBal)}</span>
                 </div>
 
-                {/* Age analysis â€” only while the customer owes something */}
+                {/* Age analysis — only while the customer owes something */}
                 {allBal > 0.01 && (
                   <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: '12px 14px', marginBottom: 12 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Age analysis (as of today)</div>
@@ -1198,7 +1198,7 @@ const AccountReceivables = () => {
         );
       })()}
 
-      {/* Order detail modal â€” opened by clicking an order# anywhere in the AR statement. */}
+      {/* Order detail modal — opened by clicking an order# anywhere in the AR statement. */}
       {orderDetail && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
@@ -1211,7 +1211,7 @@ const AccountReceivables = () => {
               <button onClick={() => setOrderDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
             </div>
             <div style={{ padding: '18px 22px' }}>
-              {orderDetail.loading && <div style={{ color: '#6b7280', fontSize: 13 }}>Loadingâ€¦</div>}
+              {orderDetail.loading && <div style={{ color: '#6b7280', fontSize: 13 }}>Loading…</div>}
               {orderDetail.error && <div style={{ color: '#dc2626', fontSize: 13 }}>{orderDetail.error}</div>}
               {orderDetail.data && (() => {
                 const o = orderDetail.data;
@@ -1228,7 +1228,7 @@ const AccountReceivables = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14, fontSize: 13 }}>
                       <div><span style={{ color: '#6b7280' }}>Date: </span><strong>{(o.created_at || '').slice(0, 10)}</strong></div>
                       <div><span style={{ color: '#6b7280' }}>Customer: </span><strong>{o.customer_name || 'Walk-in'}</strong></div>
-                      <div><span style={{ color: '#6b7280' }}>Cashier: </span><strong>{o.created_by_name || 'â€”'}</strong></div>
+                      <div><span style={{ color: '#6b7280' }}>Cashier: </span><strong>{o.created_by_name || '—'}</strong></div>
                       <div><span style={{ color: '#6b7280' }}>Status: </span><strong>{o.status || 'Active'}</strong></div>
                     </div>
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 14 }}>
@@ -1246,7 +1246,7 @@ const AccountReceivables = () => {
                           <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                             <td style={{ padding: '7px 10px' }}>{it.product_name}</td>
                             <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{(parseFloat(parseFloat(it.quantity))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                            <td style={{ padding: '7px 10px', color: '#6b7280' }}>{it.unit || 'â€”'}</td>
+                            <td style={{ padding: '7px 10px', color: '#6b7280' }}>{it.unit || '—'}</td>
                             <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{fmt(it.unit_price)}</td>
                             <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{fmt(it.total_price)}</td>
                           </tr>
@@ -1260,7 +1260,7 @@ const AccountReceivables = () => {
                       </div>
                       {parseFloat(o.discount) > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                          <span style={{ color: '#6b7280' }}>Discount</span><span>âˆ’{fmt(o.discount)}</span>
+                          <span style={{ color: '#6b7280' }}>Discount</span><span>−{fmt(o.discount)}</span>
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
@@ -1271,7 +1271,7 @@ const AccountReceivables = () => {
                         {c > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#16a34a' }}>Cash</span><span>{fmt(c)}</span></div>}
                         {m > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#f59e0b' }}>Mobile Money</span><span>{fmt(m)}</span></div>}
                         {b > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#2563eb' }}>Bank</span><span>{fmt(b)}</span></div>}
-                        {tendered === 0 && <div style={{ color: '#9ca3af' }}>Full credit â€” nothing tendered at till</div>}
+                        {tendered === 0 && <div style={{ color: '#9ca3af' }}>Full credit — nothing tendered at till</div>}
                         {change > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#1d4ed8' }}><span>Change given</span><span>{fmt(change)}</span></div>}
                         {credit > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#dc2626', fontWeight: 700 }}><span>On credit (AR)</span><span>{fmt(credit)}</span></div>}
                       </div>

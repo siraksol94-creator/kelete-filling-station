@@ -39,7 +39,7 @@ function streamAsset(assetUrl, res) {
     },
   };
   https.get(options, (ghRes) => {
-    // GitHub returns a 302 redirect to S3 â€” send it directly to the client
+    // GitHub returns a 302 redirect to S3 — send it directly to the client
     if (ghRes.statusCode === 302 || ghRes.statusCode === 301) {
       res.redirect(302, ghRes.headers.location);
     } else {
@@ -48,7 +48,7 @@ function streamAsset(assetUrl, res) {
   }).on('error', () => res.status(502).end());
 }
 
-// GET /api/updates/latest.yml  â€” electron-updater polls this
+// GET /api/updates/latest.yml  — electron-updater polls this
 router.get('/latest.yml', async (req, res) => {
   try {
     if (!GH_TOKEN) return res.status(503).send('Update server not configured');
@@ -62,7 +62,7 @@ router.get('/latest.yml', async (req, res) => {
   }
 });
 
-// GET /api/updates/:filename  â€” electron-updater downloads installer via this
+// GET /api/updates/:filename  — electron-updater downloads installer via this
 router.get('/:filename', async (req, res) => {
   try {
     if (!GH_TOKEN) return res.status(503).send('Update server not configured');

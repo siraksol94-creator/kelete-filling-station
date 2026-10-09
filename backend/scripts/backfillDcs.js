@@ -1,7 +1,7 @@
 /**
- * backfillDcs.js â€” v1.13.48
+ * backfillDcs.js — v1.13.48
  * One-shot: write daily_cost_snapshot rows for every historical date that
- * had ANY business activity, using date-bounded WAC. Idempotent â€” because
+ * had ANY business activity, using date-bounded WAC. Idempotent — because
  * writeDailyCostSnapshot uses INSERT OR IGNORE, running it twice is safe
  * (existing snapshots stay untouched).
  *
@@ -25,7 +25,7 @@ const { writeDailyCostSnapshot } = require('../config/profitHelper');
 function backfillForSlug(slug) {
   const db = getTenantDb(slug);
   if (!db) {
-    console.error(`[backfill] tenant "${slug}" not registered â€” skipping`);
+    console.error(`[backfill] tenant "${slug}" not registered — skipping`);
     return;
   }
 
@@ -47,7 +47,7 @@ function backfillForSlug(slug) {
 
   const tenantIdRow = db.prepare('SELECT tenant_id FROM products WHERE tenant_id IS NOT NULL LIMIT 1').get();
   if (!tenantIdRow) {
-    console.warn(`[backfill] ${slug} â€” no product with tenant_id, skipping`);
+    console.warn(`[backfill] ${slug} — no product with tenant_id, skipping`);
     return;
   }
   const tenantId = tenantIdRow.tenant_id;
@@ -62,7 +62,7 @@ function backfillForSlug(slug) {
 
   console.log(
     `[backfill] ${slug}: swept ${dates.length} date(s), ` +
-    `dcs rows ${before} â†’ ${after} (+${after - before}), ` +
+    `dcs rows ${before} → ${after} (+${after - before}), ` +
     `${elapsed}ms`
   );
 }

@@ -1,13 +1,13 @@
-// HqConfirmGrn â†’ v1.10.0 Generate GRN queue (file kept for route stability).
+// HqConfirmGrn → v1.10.0 Generate GRN queue (file kept for route stability).
 //
 // HQ queue of branch-confirmed receipts that are waiting for HQ to generate
 // the GRN. Replaces the v1.9.7 "Confirm GRN" review-and-approve flow.
 //
 // Lifecycle:
 //   1. HQ creates PO. Branch sees in Incoming Stock.
-//   2. Branch clicks "Confirm Received" â†’ fills qty + invoice + photo â†’
+//   2. Branch clicks "Confirm Received" → fills qty + invoice + photo →
 //      submits via /api/branch/po-receipts/:syncId/confirm.
-//   3. PO appears here. HQ clicks "Generate GRN" â†’ reviews + saves â†’
+//   3. PO appears here. HQ clicks "Generate GRN" → reviews + saves →
 //      stock posts to branch sales floor, hq_grns row created.
 
 import React, { useEffect, useState } from 'react';
@@ -19,9 +19,9 @@ import {
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtQty   = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-// v1.10.2 â€” invoices are uploaded at the branch subdomain (mansa1.keletezm.com)
+// v1.10.2 — invoices are uploaded at the branch subdomain (mansa1.keletezm.com)
 // and served from that tenant's uploads dir. HQ (keletezm.com) can't just link
-// to the raw path â€” it has to point back at the branch host. Build the full
+// to the raw path — it has to point back at the branch host. Build the full
 // URL from the current hostname + the branch slug so this works in dev too.
 function branchUploadUrl(branchSlug, path) {
   if (!path || !branchSlug) return null;
@@ -29,7 +29,7 @@ function branchUploadUrl(branchSlug, path) {
   // If we're already on the branch host (dev), just link locally.
   if (currentHost.startsWith(`${branchSlug}.`)) return `/uploads/${path}`;
   // Strip a leading subdomain off the current host to find the apex, then
-  // prepend the branch slug. keletezm.com â†’ mansa1.keletezm.com.
+  // prepend the branch slug. keletezm.com → mansa1.keletezm.com.
   const parts = currentHost.split('.');
   const apex = parts.length > 2 ? parts.slice(1).join('.') : currentHost;
   const proto = (typeof window !== 'undefined' && window.location.protocol) || 'https:';
@@ -71,7 +71,7 @@ export default function HqConfirmGrn() {
         purchase:      r.data?.purchase       || p,
         items:         r.data?.items          || [],
         extras:        r.data?.extras         || [],
-        // v1.13.35 â€” CN drafts authored by the branch. Read-only at HQ.
+        // v1.13.35 — CN drafts authored by the branch. Read-only at HQ.
         credit_notes:  r.data?.credit_notes   || [],
       });
     } catch (err) {
@@ -84,7 +84,7 @@ export default function HqConfirmGrn() {
       <div className="page-header">
         <div>
           <h1>Generate GRN</h1>
-          <p>Branch-submitted receipts waiting for HQ to generate the GRN. Generate â†’ stock posts to branch sales floor + supplier AP locks in.</p>
+          <p>Branch-submitted receipts waiting for HQ to generate the GRN. Generate → stock posts to branch sales floor + supplier AP locks in.</p>
         </div>
         <button onClick={refresh}
           style={{ padding: '8px 14px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
@@ -101,7 +101,7 @@ export default function HqConfirmGrn() {
       )}
 
       {loading && purchases.length === 0 ? (
-        <p style={{ color: '#64748b' }}>Loadingâ€¦</p>
+        <p style={{ color: '#64748b' }}>Loading…</p>
       ) : purchases.length === 0 ? (
         <p style={{ color: '#94a3b8', fontStyle: 'italic' }}><FiInbox /> Nothing waiting for generation.</p>
       ) : (
@@ -122,10 +122,10 @@ export default function HqConfirmGrn() {
               {purchases.map(p => (
                 <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <td style={{ ...td, fontFamily: 'monospace' }}>{p.purchase_number}</td>
-                  <td style={td}>{p.confirmed_branch_slug || 'â€”'}</td>
-                  <td style={td}>{p.supplier_name || 'â€”'}</td>
+                  <td style={td}>{p.confirmed_branch_slug || '—'}</td>
+                  <td style={td}>{p.supplier_name || '—'}</td>
                   <td style={td}>
-                    {p.supplier_invoice_number || 'â€”'}
+                    {p.supplier_invoice_number || '—'}
                     {p.invoice_attachment && (
                       <a href={branchUploadUrl(p.confirmed_branch_slug, p.invoice_attachment)} target="_blank" rel="noopener noreferrer"
                         style={{ marginLeft: 8, color: '#1d4ed8', fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 2 }}>
@@ -134,7 +134,7 @@ export default function HqConfirmGrn() {
                     )}
                   </td>
                   <td style={td}>
-                    {p.confirmed_by_branch_name || 'â€”'}
+                    {p.confirmed_by_branch_name || '—'}
                     {p.confirmed_at_branch && (
                       <div style={{ fontSize: 11, color: '#94a3b8' }}>{new Date(p.confirmed_at_branch).toLocaleString()}</div>
                     )}
@@ -174,8 +174,8 @@ export default function HqConfirmGrn() {
   );
 }
 
-// â”€â”€ GRN generation modal (HQ side, minimal v1.10.0) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// v1.13.35 â€” CN authoring lives at the branch. HQ sees the branch-authored
+// ── GRN generation modal (HQ side, minimal v1.10.0) ─────────────────────────
+// v1.13.35 — CN authoring lives at the branch. HQ sees the branch-authored
 // CN drafts read-only here; they're folded into Final Payable and the
 // backend materialises them into hq_supplier_credit_notes on generate.
 function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGenerated }) {
@@ -188,7 +188,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
       unit:            it.unit,
       quantity:        String(it.received_qty != null ? it.received_qty : it.dispatched_qty || 0),
       unit_price:      String(it.cost_price || 0),
-      // 2026-08-30 â€” carry the supplier's own figures onto the GRN line, so
+      // 2026-08-30 — carry the supplier's own figures onto the GRN line, so
       // AP Approvals and the GRN Archive can show WHY the cost is K574.01
       // when the invoice says K504.56. Scaled to what was actually received:
       // VAT and discount are line totals for the full ordered quantity, so a
@@ -226,13 +226,13 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
   const [error, setError]   = useState('');
   const [saving, setSaving] = useState(false);
 
-  // v1.13.35 â€” CNs are branch-authored (see ReceiptConfirmationModal).
+  // v1.13.35 — CNs are branch-authored (see ReceiptConfirmationModal).
   // The `creditNotes` prop is read-only here; total flows straight into
   // Final Payable. Backend re-reads the drafts on /generate so the
   // client can't tamper with amounts.
   const isStockCn = (reason) => reason === 'Crate Return' || reason === 'Bottle Return' || reason === 'Goods Return';
   const cnAmount = (c) => isStockCn(c.reason)
-    // 2026-08-30 â€” net of each line's discount, plus the note's VAT. This
+    // 2026-08-30 — net of each line's discount, plus the note's VAT. This
     // preview used to recompute as qty x unit_value alone, so it showed
     // K66,322.83 for a note the branch had entered as K66,621.54 and the
     // server would book as K66,621.54: HQ approved one figure and got another.
@@ -258,7 +258,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
     if (valid.length === 0) return setError('At least one line must have a quantity.');
     setSaving(true);
     try {
-      // v1.13.35 â€” CNs no longer sent from HQ. The backend loads them
+      // v1.13.35 — CNs no longer sent from HQ. The backend loads them
       // from the branch-authored drafts on hq_receipt_credit_notes and
       // materialises them into hq_supplier_credit_notes at generate time.
       await generateHqGrn({
@@ -291,16 +291,16 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
           <div>
             <h3 style={{ margin: 0, fontSize: 17 }}>Generate GRN from {purchase.purchase_number}</h3>
             <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>
-              Supplier: {purchase.supplier_name || 'â€”'} Â· Invoice #: {purchase.supplier_invoice_number || 'â€”'}
+              Supplier: {purchase.supplier_name || '—'} · Invoice #: {purchase.supplier_invoice_number || '—'}
               {purchase.invoice_attachment && (
-                <> Â· <a href={branchUploadUrl(purchase.confirmed_branch_slug, purchase.invoice_attachment)} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>view invoice</a></>
+                <> · <a href={branchUploadUrl(purchase.confirmed_branch_slug, purchase.invoice_attachment)} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>view invoice</a></>
               )}
             </p>
             <p style={{ margin: '2px 0 0', fontSize: 11, color: '#94a3b8' }}>
-              Confirmed by {purchase.confirmed_by_branch_name || 'â€”'} Â· {purchase.confirmed_at_branch ? new Date(purchase.confirmed_at_branch).toLocaleString() : ''}
+              Confirmed by {purchase.confirmed_by_branch_name || '—'} · {purchase.confirmed_at_branch ? new Date(purchase.confirmed_at_branch).toLocaleString() : ''}
             </p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4, fontSize: 20 }}>Ã—</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4, fontSize: 20 }}>×</button>
         </div>
 
         <div style={{ padding: '20px 24px' }}>
@@ -324,13 +324,13 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                       {r.product_name}
                       {r.is_extra && <span style={{ marginLeft: 6, padding: '1px 6px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: 10, fontWeight: 700 }}>EXTRA</span>}
                     </td>
-                    <td style={{ ...td, textAlign: 'right', color: '#94a3b8' }}>{r.po_expected_qty != null ? fmtQty(r.po_expected_qty) : 'â€”'}</td>
+                    <td style={{ ...td, textAlign: 'right', color: '#94a3b8' }}>{r.po_expected_qty != null ? fmtQty(r.po_expected_qty) : '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <input type="number" min="0" step="any" value={r.quantity}
                         onChange={e => updateLine(idx, 'quantity', e.target.value)}
                         style={{ width: 90, padding: '5px 8px', border: '1px solid #d1d5db', borderRadius: 5, fontSize: 12, textAlign: 'right' }} />
                     </td>
-                    <td style={{ ...td, color: '#475569' }}>{r.unit || 'â€”'}</td>
+                    <td style={{ ...td, color: '#475569' }}>{r.unit || '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <input type="number" min="0" step="0.01" value={r.unit_price}
                         onChange={e => updateLine(idx, 'unit_price', e.target.value)}
@@ -352,11 +352,11 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
           <div style={{ marginBottom: 16 }}>
             <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Notes (optional)</label>
             <input value={notes} onChange={e => setNotes(e.target.value)}
-              placeholder="Truck #, driver, additional contextâ€¦"
+              placeholder="Truck #, driver, additional context…"
               style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
           </div>
 
-          {/* v1.13.35 â€” Credit Notes are branch-authored (in the Receipt
+          {/* v1.13.35 — Credit Notes are branch-authored (in the Receipt
               Confirmation modal at the branch). HQ sees them read-only
               here; the backend re-reads the drafts on /generate. */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 16, background: '#fafbfc' }}>
@@ -369,7 +369,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
               </div>
               {cnList.length > 0 && (
                 <div style={{ fontSize: 13, color: '#b45309', fontWeight: 700 }}>
-                  Total: âˆ’{fmtMoney(cnTotal)}
+                  Total: −{fmtMoney(cnTotal)}
                 </div>
               )}
             </div>
@@ -387,18 +387,18 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline' }}>
                       <span style={{ padding: '2px 10px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8', fontSize: 11, fontWeight: 700 }}>{c.reason}</span>
                       {c.notes && <span style={{ fontSize: 12, color: '#475569' }}>{c.notes}</span>}
-                      {c.created_by_name && <span style={{ fontSize: 11, color: '#94a3b8' }}>Â· by {c.created_by_name}</span>}
+                      {c.created_by_name && <span style={{ fontSize: 11, color: '#94a3b8' }}>· by {c.created_by_name}</span>}
                     </div>
-                    <strong style={{ color: '#b45309', fontSize: 13 }}>âˆ’{fmtMoney(derivedAmt)}</strong>
+                    <strong style={{ color: '#b45309', fontSize: 13 }}>−{fmtMoney(derivedAmt)}</strong>
                   </div>
                   {stock && cnItems.length > 0 && (
                     <div style={{ marginTop: 8, padding: '6px 8px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12 }}>
                       {cnItems.map((it, ii) => (
                         <div key={ii} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-                          <span>{it.product_name} <span style={{ color: '#94a3b8' }}>Â· {it.unit || 'â€”'}</span></span>
+                          <span>{it.product_name} <span style={{ color: '#94a3b8' }}>· {it.unit || '—'}</span></span>
                           <span>
-                            {parseFloat(it.quantity).toLocaleString()} Ã— {fmtMoney(it.unit_value)}
-                            {parseFloat(it.discount) > 0 && <> âˆ’ {fmtMoney(it.discount)}</>} =
+                            {parseFloat(it.quantity).toLocaleString()} × {fmtMoney(it.unit_value)}
+                            {parseFloat(it.discount) > 0 && <> − {fmtMoney(it.discount)}</>} =
                             <strong style={{ marginLeft: 6 }}>
                               {fmtMoney(((parseFloat(it.quantity) || 0) * (parseFloat(it.unit_value) || 0)) - (parseFloat(it.discount) || 0))}
                             </strong>
@@ -412,11 +412,11 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
             })}
           </div>
 
-          {/* Final payable summary â€” highlighted so HQ sees the true net. */}
+          {/* Final payable summary — highlighted so HQ sees the true net. */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 32, alignItems: 'baseline', marginBottom: 12, padding: '10px 14px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 8 }}>
             <div style={{ fontSize: 12, color: '#065f46' }}>
               Items subtotal <strong>{fmtMoney(total)}</strong>
-              {cnTotal > 0.001 && <> Â· CNs <strong>âˆ’{fmtMoney(cnTotal)}</strong></>}
+              {cnTotal > 0.001 && <> · CNs <strong>−{fmtMoney(cnTotal)}</strong></>}
             </div>
             <div style={{ fontSize: 15, fontWeight: 800, color: '#065f46' }}>
               Final Payable: {fmtMoney(finalPayable)}
@@ -439,7 +439,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
             style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
             style={{ padding: '10px 28px', background: saving ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
-            {saving ? 'Generatingâ€¦' : 'Generate GRN'}
+            {saving ? 'Generating…' : 'Generate GRN'}
           </button>
         </div>
       </div>

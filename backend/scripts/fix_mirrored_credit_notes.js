@@ -1,5 +1,5 @@
 /**
- * fix_mirrored_credit_notes.js â€” make HQ's copy of each GRN credit note match
+ * fix_mirrored_credit_notes.js — make HQ's copy of each GRN credit note match
  * the master record it was copied from.
  *
  * 2026-09-05. Generating a GRN wrote every credit note into two books:

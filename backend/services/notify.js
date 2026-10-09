@@ -1,5 +1,5 @@
 /**
- * notify.js â€” who to tell, and telling them.
+ * notify.js — who to tell, and telling them.
  *
  * 2026-09-18. Routes call THIS, never services/push.js directly. push.js knows
  * how to reach a phone; this knows which people a thing concerns and which
@@ -54,7 +54,7 @@ async function deliver(book, userIds, payload) {
   }
 }
 
-// â”€â”€ Who â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Who ──────────────────────────────────────────────────────────────────────
 
 // Everyone at HQ holding one of these roles.
 function notifyHqRoles(roles, payload) {

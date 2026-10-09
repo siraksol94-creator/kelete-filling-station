@@ -1,5 +1,5 @@
 /**
- * dedupHqOwnedDuplicates.js â€” v1.13.105 (2026-07-29)
+ * dedupHqOwnedDuplicates.js — v1.13.105 (2026-07-29)
  *
  * One-shot: on branch tenant DBs (buseko, garden, ...), find HQ-owned rows
  * that share the same NAME but have different sync_ids and reconcile them
@@ -8,7 +8,7 @@
  * Root cause this repairs: the /sync/push handler used to match rows by
  * sync_id only and INSERT when no match was found. When an Electron install
  * (whose local HQ mints its own sync_ids for the same product names) pushed
- * a branch's rows upstream, VPS didn't recognise the sync_ids â†’ INSERTed â†’
+ * a branch's rows upstream, VPS didn't recognise the sync_ids → INSERTed →
  * every product name ended up with two rows in the branch DB. v1.13.105
  * adds a guard in /sync/push that stops the recurrence; this script cleans
  * the rows that already got in.
@@ -19,18 +19,18 @@
  *     re-push, so it must be the one that stays.
  *   - Every other same-name row in the branch DB is an "orphan":
  *       1. Rewire every *_sync_id FK across all sync tables that references
- *          the orphan sync_id â†’ point at canonical instead.
+ *          the orphan sync_id → point at canonical instead.
  *       2. Soft-delete the orphan row (deleted_at=now, synced=0) so the
  *          deletion propagates to Electron on next /sync/pull.
  *   - If NO branch row matches HQ's sync_id (Electron ran alone, never
  *     received the HQ mirror), the OLDEST branch row is promoted to
  *     canonical and the rest are treated as orphans. That keeps FK history
  *     intact and mirrorAllHqToBranches on next boot will UPDATE the row
- *     with HQ's data â€” but its sync_id will still diverge from HQ's, so
+ *     with HQ's data — but its sync_id will still diverge from HQ's, so
  *     future HQ pushes create a second row again. Re-run this script after
  *     HQ push in that case.
  *
- * Idempotent â€” running twice does nothing. --dry-run previews without
+ * Idempotent — running twice does nothing. --dry-run previews without
  * writing.
  *
  * Usage on VPS:
@@ -75,7 +75,7 @@ const CATEGORY_FKS = [
 const MAIN_CATEGORY_FKS = [
   { table: 'categories', col: 'main_category_sync_id' },
 ];
-// Units are referenced by name string (products.unit), not sync_id â€” no
+// Units are referenced by name string (products.unit), not sync_id — no
 // FK rewire needed. Duplicate unit rows are safe to soft-delete directly.
 const UNIT_FKS = [];
 
@@ -95,7 +95,7 @@ function columnExists(db, table, col) {
 }
 
 // Returns Map<normName, canonicalSyncId> from the HQ default DB. Only rows
-// still live (deleted_at IS NULL) count as canonical â€” a deleted HQ row is
+// still live (deleted_at IS NULL) count as canonical — a deleted HQ row is
 // not authoritative.
 function buildCanonicalMap(hqDb, table) {
   const map = new Map();
@@ -148,7 +148,7 @@ function dedupTable(label, branchDb, hqDb, table, fks) {
         const sorted = [...group].sort((a, b) => String(a.created_at || '').localeCompare(String(b.created_at || '')));
         canonicalSyncId = sorted[0].sync_id;
         orphanedGroups++;
-        problems.push(`  [orphan-group] name="${group[0].name}" â€” no HQ match; keeping oldest sync_id=${canonicalSyncId}`);
+        problems.push(`  [orphan-group] name="${group[0].name}" — no HQ match; keeping oldest sync_id=${canonicalSyncId}`);
       }
 
       for (const r of group) {
@@ -181,7 +181,7 @@ function dedupBranch(slug, branchDb, hqDb) {
   for (const step of plan) {
     const result = dedupTable(slug, branchDb, hqDb, step.table, step.fks);
     if (result.skipped) { console.log(`  ${step.table.padEnd(18)}: (table missing, skipped)`); continue; }
-    console.log(`  ${step.table.padEnd(18)}: scanned=${result.rowsScanned}  duplicate-name-groups=${result.groups}  orphan-only-groups=${result.orphanedGroups}  rows soft-deleted=${result.softDeleted}${dryRun ? ' (dry-run)' : ''}  FK cells rewired=${result.rewired}${dryRun ? ' (dry-run â€” not written)' : ''}`);
+    console.log(`  ${step.table.padEnd(18)}: scanned=${result.rowsScanned}  duplicate-name-groups=${result.groups}  orphan-only-groups=${result.orphanedGroups}  rows soft-deleted=${result.softDeleted}${dryRun ? ' (dry-run)' : ''}  FK cells rewired=${result.rewired}${dryRun ? ' (dry-run — not written)' : ''}`);
     for (const p of result.problems || []) console.log(p);
   }
 }
@@ -192,7 +192,7 @@ if (!target) {
   process.exit(1);
 }
 
-if (dryRun) console.log('[dedup] DRY-RUN mode â€” no database writes will be made.');
+if (dryRun) console.log('[dedup] DRY-RUN mode — no database writes will be made.');
 
 const hqDb = defaultDb;
 

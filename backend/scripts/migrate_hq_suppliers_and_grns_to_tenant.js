@@ -1,26 +1,26 @@
 /**
- * v1.10.75 â€” one-off migration:
- *   master.hq_suppliers                  â†’ hq.db.suppliers
- *   master.hq_grns                       â†’ hq.db.grn   (total_amount = final_payable)
- *   master.hq_grn_items                  â†’ hq.db.grn_items
- *   master.hq_supplier_credit_notes      â†’ hq.db.supplier_credit_notes
- *   master.hq_supplier_credit_note_items â†’ hq.db.supplier_credit_note_items
+ * v1.10.75 — one-off migration:
+ *   master.hq_suppliers                  → hq.db.suppliers
+ *   master.hq_grns                       → hq.db.grn   (total_amount = final_payable)
+ *   master.hq_grn_items                  → hq.db.grn_items
+ *   master.hq_supplier_credit_notes      → hq.db.supplier_credit_notes
+ *   master.hq_supplier_credit_note_items → hq.db.supplier_credit_note_items
  *
  * WHY:
- *   v1.10.72 already moved hq_supplier_payments â†’ hq.db.ap_payments.
+ *   v1.10.72 already moved hq_supplier_payments → hq.db.ap_payments.
  *   This ships the rest, so HQ Suppliers + Account Payables + Cash Book
- *   all read from ONE source (hq.db) â€” no more cross-DB reads, no more
+ *   all read from ONE source (hq.db) — no more cross-DB reads, no more
  *   $0 vs $485K mismatch between HQ Suppliers page and Account Payables
  *   page. Aligns with the memoised architecture: Suppliers/AP is HQ-only,
  *   HQ is itself a tenant, so the branch-style ap tables apply.
  *
  * SAFETY:
- *   * Idempotent â€” each row skipped if its sync_id already exists in the
+ *   * Idempotent — each row skipped if its sync_id already exists in the
  *     destination table.
- *   * Preserves original master.hq_suppliers.id â†’ hq.db.suppliers.id so
+ *   * Preserves original master.hq_suppliers.id → hq.db.suppliers.id so
  *     the existing HQ Suppliers URL routes keep resolving to the same
  *     records after migration.
- *   * Read-only on master â€” the historical rows stay as an audit trail.
+ *   * Read-only on master — the historical rows stay as an audit trail.
  *     No code path reads them after v1.10.75 refactor of hqSuppliers.js.
  *   * Prints before/after counts per table so the operator can eyeball.
  *
@@ -54,8 +54,8 @@ function migrateSuppliers(masterDb, hqDb) {
                             synced, created_at, updated_at)
     VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,?)
   `);
-  const nameToSyncId = new Map(); // name (lower) â†’ sync_id in hq.db
-  const nameToNewId  = new Map(); // name (lower) â†’ id in hq.db
+  const nameToSyncId = new Map(); // name (lower) → sync_id in hq.db
+  const nameToNewId  = new Map(); // name (lower) → id in hq.db
 
   let inserted = 0, skipped = 0;
   hqDb.transaction(() => {
@@ -190,7 +190,7 @@ function migrateCreditNotes(masterDb, hqDb, nameToSyncId, nameToNewId) {
   const before = hqDb.prepare(`SELECT COUNT(*) AS n FROM supplier_credit_notes`).get().n;
 
   const findBySyncId = hqDb.prepare(`SELECT id FROM supplier_credit_notes WHERE sync_id = ? LIMIT 1`);
-  // NOTE â€” tenant supplier_credit_notes has NO supplier_name column; the
+  // NOTE — tenant supplier_credit_notes has NO supplier_name column; the
   // name is JOIN'd via suppliers.id. So we drop that field from the INSERT
   // and rely on supplier_id + supplier_sync_id resolving correctly (they
   // point into the hq.db.suppliers rows we just migrated).
@@ -264,12 +264,12 @@ function migrateCreditNoteItems(masterDb, hqDb) {
 }
 
 function main() {
-  if (!masterDb) { console.error('master.db not accessible â€” aborting.'); process.exit(1); }
+  if (!masterDb) { console.error('master.db not accessible — aborting.'); process.exit(1); }
   const hqSlug = getHqSlug();
   const hqDb = getTenantDb(hqSlug);
-  if (!hqDb) { console.error(`HQ tenant DB not accessible at slug "${hqSlug}" â€” aborting.`); process.exit(1); }
+  if (!hqDb) { console.error(`HQ tenant DB not accessible at slug "${hqSlug}" — aborting.`); process.exit(1); }
   console.log(`HQ tenant slug resolved: ${hqSlug}`);
-  console.log('Migratingâ€¦\n');
+  console.log('Migrating…\n');
 
   hqDb.pragma('foreign_keys = OFF');
 
@@ -279,10 +279,10 @@ function main() {
   migrateCreditNotes(masterDb, hqDb, nameToSyncId, nameToNewId);
   migrateCreditNoteItems(masterDb, hqDb);
 
-  // v1.10.75 hotfix â€” backfill tenant_id on the rows we just inserted.
+  // v1.10.75 hotfix — backfill tenant_id on the rows we just inserted.
   // Account Payables page filters WHERE tenant_id = ? so a NULL leaves
   // migrated rows invisible even though HQ Suppliers page sees them.
-  console.log('\nResolving HQ tenant_id for backfillâ€¦');
+  console.log('\nResolving HQ tenant_id for backfill…');
   const rows = ['cash_receipts', 'payment_vouchers', 'ap_payments', 'orders', 'products', 'users'];
   let tenantId = null;
   for (const t of rows) {

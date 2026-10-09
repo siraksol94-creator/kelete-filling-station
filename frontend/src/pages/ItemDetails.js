@@ -17,19 +17,19 @@ import { matchTokens } from '../utils/tokenSearch';
 
 const API_BASE = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5300';
 
-// 2026-09-02 â€” "Push Prices to All Branches" HIDDEN at the user's request:
+// 2026-09-02 — "Push Prices to All Branches" HIDDEN at the user's request:
 // too dangerous to sit next to the everyday buttons.
 //
 // One click overwrites the selling price of EVERY product in EVERY one of the
-// 15 depots with HQ's price. Prices are branch-owned by design â€” each depot was
-// loaded with its own â€” and there is no undo. The routine HQ mirror deliberately
+// 15 depots with HQ's price. Prices are branch-owned by design — each depot was
+// loaded with its own — and there is no undo. The routine HQ mirror deliberately
 // does NOT touch prices (mirrorAllHqToBranches defaults pushPrices = false);
 // this button was the single thing in the system that did, and it sat in the
 // same toolbar as Print and New Item.
 //
 // Nothing is deleted. The button, its confirmation modal, the handler and the
-// POST /products/bulk-push-prices endpoint are all intact â€” set this to true to
-// bring it back. To change one branch's prices, use HQ â†’ Stock â†’ Branch Prices,
+// POST /products/bulk-push-prices endpoint are all intact — set this to true to
+// bring it back. To change one branch's prices, use HQ → Stock → Branch Prices,
 // which changes one branch and shows what it is changing first.
 const SHOW_BULK_PUSH_PRICES = false;
 
@@ -95,12 +95,12 @@ const BarcodePreview = ({ form }) => {
         })}
       </div>
       <div style={{ display: 'flex', gap: 16, marginTop: 8, fontSize: 12 }}>
-        <span style={{ color: '#1d4ed8' }}>â–  Product Code (pos {numStart}â€“{numStart + numLen - 1})</span>
-        {qLen > 0 && <span style={{ color: '#15803d' }}>â–  Weight (pos {qStart}â€“{qStart + qLen - 1})</span>}
+        <span style={{ color: '#1d4ed8' }}>■ Product Code (pos {numStart}–{numStart + numLen - 1})</span>
+        {qLen > 0 && <span style={{ color: '#15803d' }}>■ Weight (pos {qStart}–{qStart + qLen - 1})</span>}
       </div>
       {qLen > 0 && (
         <div style={{ marginTop: 6, fontSize: 12, color: '#475569' }}>
-          Weight digits: <strong>{sample.slice(qStart, qStart + qLen)}</strong> â†’ insert decimal at {decStart} â†’{' '}
+          Weight digits: <strong>{sample.slice(qStart, qStart + qLen)}</strong> → insert decimal at {decStart} →{' '}
           <strong>{sample.slice(qStart, qStart + decStart)}.{sample.slice(qStart + decStart, qStart + qLen)}</strong> ={' '}
           <strong style={{ color: '#15803d' }}>{parseFloat(sample.slice(qStart, qStart + decStart) + '.' + sample.slice(qStart + decStart, qStart + qLen)).toFixed(3)} kg</strong>
         </div>
@@ -110,20 +110,20 @@ const BarcodePreview = ({ form }) => {
 };
 
 const ItemDetails = () => {
-  // 'items' | 'cost' â€” the C.P. tab is HQ-only (see the strip below).
+  // 'items' | 'cost' — the C.P. tab is HQ-only (see the strip below).
   const [tab, setTab] = useState('items');
   const { t } = useLanguage();
   const { hasPermission, user: authUser } = useAuth();
   const { symbol: curSym } = useCurrency();
   // v1.6.1: HQ uses the same Item Details page that branches use. HQ
   // sees the New/Import/Sample buttons; branches don't (only HQ creates).
-  // Inside the modal the form is split into two tabs â€” Item Details
+  // Inside the modal the form is split into two tabs — Item Details
   // (HQ-owned fields) and Pricing & Stock (branch-owned fields). HQ sees
   // only Tab 1; branches see both but Tab 1 is read-only for is_hq_owned=1
   // rows.
   const isBranch = !isHqHost();
   const isHq     = !isBranch;
-  // Modal tab state â€” 'details' (Tab 1) or 'pricing' (Tab 2).
+  // Modal tab state — 'details' (Tab 1) or 'pricing' (Tab 2).
   const [activeTab, setActiveTab] = useState('details');
   const [items, setItems] = useState([]);
   const [dbCategories, setDbCategories] = useState([]);
@@ -132,9 +132,9 @@ const ItemDetails = () => {
   const [selMainIds, setSelMainIds] = useState(null);
   const [selCatIds, setSelCatIds] = useState(null);
   const [search, setSearch] = useState('');
-  // 2026-09-12 â€” phone only: the full category filter sits behind "Filters".
+  // 2026-09-12 — phone only: the full category filter sits behind "Filters".
   const [showPhoneFilters, setShowPhoneFilters] = useState(false);
-  // 2026-09-13 â€” Sync Products to All, moved here from HQ Overview: products
+  // 2026-09-13 — Sync Products to All, moved here from HQ Overview: products
   // are managed on this page, so pushing them to the branches belongs with
   // them. HQ only. Same call and the same summary as before.
   const [mirroring, setMirroring] = useState(false);
@@ -156,27 +156,27 @@ const ItemDetails = () => {
   };
   const [showModal, setShowModal] = useState(false);
   const [editItem, setEditItem] = useState(null);
-  // v1.8.1 â€” Bulk "Transfer all store stock to Sales" modal state.
-  // v1.13.91 â€” bulkSiv state removed with the "Transfer All to Sales" button.
+  // v1.8.1 — Bulk "Transfer all store stock to Sales" modal state.
+  // v1.13.91 — bulkSiv state removed with the "Transfer All to Sales" button.
   // packagings: additional larger units (e.g. [{ name: 'Pack', conv: 6, price: 11 }, { name: 'Box', conv: 24, price: 40 }]).
   // The base unit (form.unit) is always the smallest packaging and lives in its own fields.
-  // v1.7.2 â€” opening_base + per-packaging `opening` mirrors Grocery's pattern:
+  // v1.7.2 — opening_base + per-packaging `opening` mirrors Grocery's pattern:
   // user enters how many of each unit they have ("46 Box + 10 Bottle"); save
   // collapses to a single base-unit total stored as current_stock in DB.
   const [form, setForm] = useState({ code: '', name: '', category_id: '', unit: 'pcs', cost_price: '', selling_price: '', current_stock: '', opening_base: '', min_stock: '', min_stock_unit: '', status: 'Active', packagings: [], container_product_sync_id: '', units_per_container: '', default_unit: '' });
   const [formError, setFormError] = useState('');
-  // Fix A â€” "Also apply this price to all branches" checkbox on the HQ
+  // Fix A — "Also apply this price to all branches" checkbox on the HQ
   // product edit modal. When ticked, the PUT body carries
   // push_price_to_all=true so the backend force-overwrites cost/selling/
   // alt + units_json prices on every branch. Reset to false on every
   // open/close.
   const [pushPriceToAll, setPushPriceToAll] = useState(false);
-  // Fix A â€” bulk "Push Prices to All Branches" confirmation modal + busy flag.
+  // Fix A — bulk "Push Prices to All Branches" confirmation modal + busy flag.
   const [showBulkPushConfirm, setShowBulkPushConfirm] = useState(false);
   const [bulkPushing, setBulkPushing] = useState(false);
   const [importMsg, setImportMsg] = useState('');
-  // Per-row breakdown of the last import â€” {imported_rows:[{row,code,name}],
-  // skipped_rows:[{row,code,name,reason}]} â€” shown in a collapsible panel
+  // Per-row breakdown of the last import — {imported_rows:[{row,code,name}],
+  // skipped_rows:[{row,code,name,reason}]} — shown in a collapsible panel
   // below the status banner so the user can see exactly which CSV rows
   // landed and which got dropped (and why).
   const [importDetail, setImportDetail] = useState(null);
@@ -226,7 +226,7 @@ const ItemDetails = () => {
   };
 
   const handleDownloadSample = () => {
-    // v1.6.2 â€” HQ-only columns. Branch-owned (cost/selling/current_stock/
+    // v1.6.2 — HQ-only columns. Branch-owned (cost/selling/current_stock/
     // min_stock/alt_price) are intentionally absent: branches set those
     // on their own Item Details page. Backend ignores them on HQ import
     // even if present in the file.
@@ -317,7 +317,7 @@ const ItemDetails = () => {
     return matchSearch && matchCat;
   });
 
-  // v1.13.174 â€” every item code is RS + a four-digit number, assigned here
+  // v1.13.174 — every item code is RS + a four-digit number, assigned here
   // and not editable. The old generator built a prefix from the category name
   // (Beer -> BR001, no category -> IT001), which is why the catalogue drifted:
   // nothing in it ever produced an RS code, so all of them were typed by hand.
@@ -343,14 +343,14 @@ const ItemDetails = () => {
   const handleSave = async () => {
     setFormError('');
     if (!form.code.trim()) {
-      setFormError('Item code is required. Enter a code or click âš¡ to generate one.');
+      setFormError('Item code is required. Enter a code or click ⚡ to generate one.');
       return;
     }
     if (!form.name.trim()) {
       setFormError('Item name is required.');
       return;
     }
-    // v1.13.174 â€” category is mandatory. It was never checked, which is how
+    // v1.13.174 — category is mandatory. It was never checked, which is how
     // RS088..RS091 ended up with no category at all. Editing one of those old
     // items now requires picking a category before it will save.
     if (!String(form.category_id || '').trim()) {
@@ -380,7 +380,7 @@ const ItemDetails = () => {
       if (p.price !== '' && parseFloat(p.price) < 0) { setFormError(`Price for "${name}" cannot be negative.`); return; }
     }
     try {
-      // Build the units array â€” base first, then any larger packagings the user added.
+      // Build the units array — base first, then any larger packagings the user added.
       const units = [
         { name: (form.unit || 'pcs').trim() || 'pcs', conv: 1, price: parseFloat(form.selling_price || 0), is_base: true },
         ...(form.packagings || []).map(p => ({
@@ -397,7 +397,7 @@ const ItemDetails = () => {
         ? (units.find(u => u.name === minStockUnit)?.conv || 1)
         : 1;
       const minStockEntered = form.min_stock === '' ? 10 : parseFloat(form.min_stock);
-      // v1.7.2 (Grocery pattern): total opening stock = base qty + Î£(pack.qty Ã— pack.conv).
+      // v1.7.2 (Grocery pattern): total opening stock = base qty + Σ(pack.qty × pack.conv).
       // The form lets the user type "46 Box + 10 Bottle"; we collapse it to a single
       // base-unit number (1114 Bottle) before saving. DB stores the total only.
       const openingBaseQty = parseFloat(form.opening_base) || 0;
@@ -417,7 +417,7 @@ const ItemDetails = () => {
         units,
         container_product_sync_id: form.container_product_sync_id || null,
         units_per_container: form.units_per_container === '' ? null : parseFloat(form.units_per_container),
-        // v1.13.72 â€” MTV RRP. Blank means "no RRP set" (send null so
+        // v1.13.72 — MTV RRP. Blank means "no RRP set" (send null so
         // backend clears the column rather than storing 0, which would
         // force MTV boost to 0 tax).
         zra_rrp:       form.zra_rrp === '' || form.zra_rrp == null ? null : parseFloat(form.zra_rrp),
@@ -427,7 +427,7 @@ const ItemDetails = () => {
       delete data.min_stock_unit;
       let savedProduct;
       if (editItem) {
-        // Fix A â€” forward the "Also apply this price to all branches"
+        // Fix A — forward the "Also apply this price to all branches"
         // flag only on PUT. Create path doesn't need it (INSERT into
         // branch already inherits HQ's prices).
         const res = await updateProduct(editItem.id, { ...data, push_price_to_all: pushPriceToAll });
@@ -438,11 +438,11 @@ const ItemDetails = () => {
       }
       if (imageFile && savedProduct?.id) await uploadProductImage(savedProduct.id, imageFile);
       // Backend returns .zra = { ok } | { ok:false, error, resultCd } | { skipped }.
-      // Only surface a warning when it actively failed â€” silence when ZRA
+      // Only surface a warning when it actively failed — silence when ZRA
       // is off or the call succeeded.
       const zra = savedProduct?.zra;
       if (zra && zra.ok === false) {
-        window.alert(`Saved locally, but ZRA registration failed:\n${zra.error || 'unknown error'}\n\nCheck ZRA Smart Invoice â†’ Recent VSDC Calls.`);
+        window.alert(`Saved locally, but ZRA registration failed:\n${zra.error || 'unknown error'}\n\nCheck ZRA Smart Invoice → Recent VSDC Calls.`);
       }
       fetchItems();
       setShowModal(false);
@@ -481,7 +481,7 @@ const ItemDetails = () => {
       await deleteProduct(id);
       fetchItems();
     } catch (err) {
-      // Show the backend's blocking message (e.g. "used in 3 GRN line(s)â€¦") instead of
+      // Show the backend's blocking message (e.g. "used in 3 GRN line(s)…") instead of
       // silently removing the row from the UI.
       alert(err.response?.data?.error || err.message || 'Failed to delete item.');
     }
@@ -521,7 +521,7 @@ const ItemDetails = () => {
         name: u.name, conv: String(u.conv ?? ''), price: String(u.price ?? ''), opening: '', _locked: true,
       }));
     }
-    // Legacy fallback â€” single alt_unit row.
+    // Legacy fallback — single alt_unit row.
     if (item.alt_unit) {
       return [{ name: item.alt_unit, conv: String(item.conversion_factor ?? ''), price: String(item.alt_price ?? ''), opening: '', _locked: true }];
     }
@@ -548,7 +548,7 @@ const ItemDetails = () => {
       container_product_sync_id: item.container_product_sync_id || '',
       units_per_container: item.units_per_container ?? '',
       default_unit: item.default_unit || '',
-      // ZRA VSDC fields â€” seed from existing row so an edit doesn't blank
+      // ZRA VSDC fields — seed from existing row so an edit doesn't blank
       // them out (undefined would fall through the PUT patch logic).
       hs_code:          item.hs_code || '',
       tax_label:        item.tax_label || '',
@@ -559,7 +559,7 @@ const ItemDetails = () => {
       zra_qty_unit_cd:  item.zra_qty_unit_cd || '',
       zra_vat_cat_cd:   item.zra_vat_cat_cd || '',
       zra_excise_ty_cd: item.zra_excise_ty_cd || '',
-      // v1.13.72 â€” RRP for MTV (cat B) items. String in the form for
+      // v1.13.72 — RRP for MTV (cat B) items. String in the form for
       // clean input handling; parsed to REAL at submit time.
       zra_rrp:          item.zra_rrp != null ? String(item.zra_rrp) : '',
     });
@@ -567,8 +567,8 @@ const ItemDetails = () => {
     setImagePreview(item.image_url ? `${API_BASE}${item.image_url}` : null);
     setFormError('');
     setPushPriceToAll(false);
-    // Branch editing an HQ-owned item â†’ land on Pricing tab (since Details
-    // is read-only there). HQ + non-HQ items â†’ land on Details tab.
+    // Branch editing an HQ-owned item → land on Pricing tab (since Details
+    // is read-only there). HQ + non-HQ items → land on Details tab.
     setActiveTab(isBranch && item.is_hq_owned ? 'pricing' : 'details');
     setShowModal(true);
   };
@@ -613,7 +613,7 @@ const ItemDetails = () => {
   const inputSt = { width: '100%', padding: '7px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
   const labelSt = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 };
 
-  // â”€â”€ Print preview stats â€” follow the filter â”€â”€
+  // ── Print preview stats — follow the filter ──
   const lowStockItems = filtered.filter(i => parseFloat(i.store_balance || 0) <= parseFloat(i.min_stock || 0));
   const categories    = [...new Set(filtered.map(i => i.category_name).filter(Boolean))];
 
@@ -637,21 +637,21 @@ const ItemDetails = () => {
     const bizName = businessInfo.business_name || 'Business Name';
     const addr = [businessInfo.business_address, businessInfo.business_phone, businessInfo.business_email].filter(Boolean).join('  |  ');
     const printedAt = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
     const avgSell = items.length > 0 ? (items.reduce((s, i) => s + parseFloat(i.selling_price || 0), 0) / items.length).toFixed(2) : '0.00';
 
     const rows = items.map((item, idx) => {
       const isLow = parseFloat(item.store_balance || 0) <= parseFloat(item.min_stock || 0);
       return `<tr style="border-bottom:1px solid #ddd;background:${isLow ? '#f5f5f5' : idx % 2 === 1 ? '#f9f9f9' : '#fff'}">
         <td style="padding:7px 10px;font-size:10.5px">${idx + 1}</td>
-        <td style="padding:7px 10px;font-weight:700;font-family:monospace;font-size:11px">${item.code || 'â€”'}</td>
+        <td style="padding:7px 10px;font-weight:700;font-family:monospace;font-size:11px">${item.code || '—'}</td>
         <td style="padding:7px 10px;font-weight:500">${item.name}</td>
-        <td style="padding:7px 10px">${item.category_name || 'â€”'}</td>
-        <td style="padding:7px 10px">${item.unit || 'â€”'}</td>
+        <td style="padding:7px 10px">${item.category_name || '—'}</td>
+        <td style="padding:7px 10px">${item.unit || '—'}</td>
         <td style="padding:7px 10px;text-align:right;font-family:monospace">${(parseFloat(parseFloat(item.avg_cost_price || item.cost_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:7px 10px;text-align:right;font-weight:600;font-family:monospace">${(parseFloat(parseFloat(item.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
         <td style="padding:7px 10px;text-align:right;font-family:monospace">${(parseFloat(parseFloat(item.min_stock || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-        <td style="padding:7px 10px;text-align:right;font-weight:700;font-family:monospace">${isLow ? 'âš  ' : ''}${(parseFloat(parseFloat(item.store_balance || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${item.unit || ''}</td>
+        <td style="padding:7px 10px;text-align:right;font-weight:700;font-family:monospace">${isLow ? '⚠ ' : ''}${(parseFloat(parseFloat(item.store_balance || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${item.unit || ''}</td>
       </tr>`;
     }).join('');
 
@@ -695,17 +695,17 @@ const ItemDetails = () => {
           </tr></thead>
           <tbody>${rows}</tbody>
           <tfoot><tr>
-            <td colspan="5">Total â€” ${items.length} items</td>
-            <td style="text-align:right">â€”</td>
+            <td colspan="5">Total — ${items.length} items</td>
+            <td style="text-align:right">—</td>
             <td style="text-align:right">Avg ${curSym}${avgSell}</td>
-            <td colspan="2" style="text-align:right">${lowStockItems.length > 0 ? `âš  ${lowStockItems.length} low on stock` : 'âœ“ All OK'}</td>
+            <td colspan="2" style="text-align:right">${lowStockItems.length > 0 ? `⚠ ${lowStockItems.length} low on stock` : '✓ All OK'}</td>
           </tr></tfoot>
         </table>
       </div>
       ${lowStockItems.length > 0 ? `
         <div style="border:1.5px solid #000;padding:10px 14px;margin-bottom:16px">
-          <div style="font-weight:700;font-size:11px;margin-bottom:4px">âš  Low Stock Alert</div>
-          <div style="font-size:11px">${lowStockItems.map(i => i.name).join(', ')} â€” at or below minimum threshold</div>
+          <div style="font-weight:700;font-size:11px;margin-bottom:4px">⚠ Low Stock Alert</div>
+          <div style="font-size:11px">${lowStockItems.map(i => i.name).join(', ')} — at or below minimum threshold</div>
         </div>` : ''}
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:24px;margin-bottom:14px">
         ${[['Prepared By', ''], ['Checked By', ''], ['Printed By', printedBy]].map(([label, name]) => `
@@ -717,7 +717,7 @@ const ItemDetails = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:9px">${bizName} â€” Confidential</span>
+        <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
     </body></html>`;
@@ -730,11 +730,11 @@ const ItemDetails = () => {
     setTimeout(() => { w.print(); w.close(); }, 300);
   };
 
-  // 2026-09-21 â€” a second tab for the opening cost price. It sits here because
+  // 2026-09-21 — a second tab for the opening cost price. It sits here because
   // it is the same list of items seen a different way. Returned separately so
   // the item list below is left exactly as it was.
   //
-  // Later the same day â€” the depots asked for it too. They get the identical
+  // Later the same day — the depots asked for it too. They get the identical
   // screen READ-ONLY: HQ is still the only place a C.P. can be set, but a depot
   // can now see what its own costs are, and which of its items have none.
   const tabStrip = (
@@ -761,14 +761,14 @@ const ItemDetails = () => {
   }
 
   return (
-    // 2026-09-12 â€” item-details-page: on phones index.css lets this page
+    // 2026-09-12 — item-details-page: on phones index.css lets this page
     // scroll normally; the locked desk layout left the list no height there.
     <div className="page-content item-details-page" style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
-      {/* â”€â”€ Sticky Top Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Sticky Top Section ──────────────────────────────────── */}
       <div style={{ flexShrink: 0, background: '#fff', zIndex: 10 }}>
       {tabStrip}
-      {/* â”€â”€ Page Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="page-header desk-only">
         <div>
           <h1>{t('itemDetailsTitle')}</h1>
@@ -790,7 +790,7 @@ const ItemDetails = () => {
             <button onClick={runMirror} disabled={mirroring}
               title="Push every HQ product / category / unit to all branches. Branch prices, stock, and status are preserved."
               style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: mirroring ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: mirroring ? 'wait' : 'pointer', fontSize: 13, fontWeight: 600 }}>
-              <FiUploadCloud size={14} /> {mirroring ? 'Syncingâ€¦' : 'Sync Products to All'}
+              <FiUploadCloud size={14} /> {mirroring ? 'Syncing…' : 'Sync Products to All'}
             </button>
           )}
           <button
@@ -801,11 +801,11 @@ const ItemDetails = () => {
           >
             <FiPrinter size={16} /> {t('print')}
           </button>
-          {/* v1.13.91 â€” "Transfer All to Sales" bulk button removed at
+          {/* v1.13.91 — "Transfer All to Sales" bulk button removed at
               user's request. Backend endpoint bulkSivStoreToSales kept in
               case anything else calls it; only the branch UI + modal +
               handler + state were pulled. */}
-          {/* Fix A â€” HQ-only bulk "Push Prices to All Branches". Wipes
+          {/* Fix A — HQ-only bulk "Push Prices to All Branches". Wipes
               every branch's price override in one shot. Amber to signal
               destructive-ish (branches lose their local prices). */}
           {SHOW_BULK_PUSH_PRICES && isHqHost() && (
@@ -814,7 +814,7 @@ const ItemDetails = () => {
               disabled={bulkPushing}
               style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: bulkPushing ? '#fde68a' : 'linear-gradient(135deg,#d97706,#f59e0b)', color: '#fff', border: 'none', borderRadius: 8, cursor: bulkPushing ? 'default' : 'pointer', fontSize: 13, fontWeight: 600, boxShadow: '0 3px 10px rgba(245,158,11,0.3)' }}
               title="Overwrite every branch's cost/selling/alt prices with HQ's">
-              {bulkPushing ? 'Pushingâ€¦' : 'Push Prices to All Branches'}
+              {bulkPushing ? 'Pushing…' : 'Push Prices to All Branches'}
             </button>
           )}
           {!isBranch && hasPermission('Items:Add') && (
@@ -845,7 +845,7 @@ const ItemDetails = () => {
           {importDetail.imported_rows.length > 0 && (
             <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: 8, overflow: 'hidden' }}>
               <div style={{ padding: '8px 12px', background: '#f0fdf4', color: '#166534', fontSize: 12, fontWeight: 700, borderBottom: '1px solid #bbf7d0' }}>
-                âœ“ Imported ({importDetail.imported_rows.length})
+                ✓ Imported ({importDetail.imported_rows.length})
               </div>
               <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -872,7 +872,7 @@ const ItemDetails = () => {
           {importDetail.skipped_rows.length > 0 && (
             <div style={{ background: '#fff', border: '1px solid #fde68a', borderRadius: 8, overflow: 'hidden' }}>
               <div style={{ padding: '8px 12px', background: '#fffbeb', color: '#92400e', fontSize: 12, fontWeight: 700, borderBottom: '1px solid #fde68a' }}>
-                âš  Skipped ({importDetail.skipped_rows.length})
+                ⚠ Skipped ({importDetail.skipped_rows.length})
               </div>
               <div style={{ maxHeight: 220, overflowY: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -888,8 +888,8 @@ const ItemDetails = () => {
                     {importDetail.skipped_rows.map((r, i) => (
                       <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '6px 10px', color: '#94a3b8' }}>{r.row}</td>
-                        <td style={{ padding: '6px 10px', fontWeight: 600 }}>{r.code || 'â€”'}</td>
-                        <td style={{ padding: '6px 10px' }}>{r.name || 'â€”'}</td>
+                        <td style={{ padding: '6px 10px', fontWeight: 600 }}>{r.code || '—'}</td>
+                        <td style={{ padding: '6px 10px' }}>{r.name || '—'}</td>
                         <td style={{ padding: '6px 10px', color: '#92400e' }}>{r.reason}</td>
                       </tr>
                     ))}
@@ -901,7 +901,7 @@ const ItemDetails = () => {
         </div>
       )}
 
-      {/* 2026-09-12 â€” phone header, as designed: search with Print and New on
+      {/* 2026-09-12 — phone header, as designed: search with Print and New on
           one line, one sideways row of main categories with their counts, the
           item count with average sell price, and the full filter behind
           "Filters". The title is already in the top bar. */}
@@ -963,7 +963,7 @@ const ItemDetails = () => {
         <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
           <span style={{ fontSize: 12, color: '#5b6478' }}>
             {filtered.length} item{filtered.length === 1 ? '' : 's'}
-            {filtered.length > 0 && <> Â· avg sell <b style={{ color: '#0f172a' }}>{curSym}{(filtered.reduce((s, i) => s + (parseFloat(i.selling_price) || 0), 0) / filtered.length).toFixed(2)}</b></>}
+            {filtered.length > 0 && <> · avg sell <b style={{ color: '#0f172a' }}>{curSym}{(filtered.reduce((s, i) => s + (parseFloat(i.selling_price) || 0), 0) / filtered.length).toFixed(2)}</b></>}
           </span>
           <button type="button" onClick={() => setShowPhoneFilters(v => !v)}
             style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, border: '1px solid #e2e6ee', background: showPhoneFilters ? '#e8edf7' : '#fff', color: '#13306b', cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -1010,15 +1010,15 @@ const ItemDetails = () => {
             }}>
               <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
               <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
-                {s.count} item{s.count !== 1 ? 's' : ''} Â· avg {curSym}{s.count > 0 ? (s.totalSell / s.count).toFixed(2) : '0.00'}
+                {s.count} item{s.count !== 1 ? 's' : ''} · avg {curSym}{s.count > 0 ? (s.totalSell / s.count).toFixed(2) : '0.00'}
               </span>
             </div>
           ))}
         </div>
       )}
 
-      {/* 2026-09-12 â€” the phone list, as designed: one card per item. Name
-          and selling price; main category Â· category Â· code; stock at a depot
+      {/* 2026-09-12 — the phone list, as designed: one card per item. Name
+          and selling price; main category · category · code; stock at a depot
           (HQ holds none). Tap to edit. */}
       <div className="phone-only">
         {filtered.map(item => {
@@ -1043,7 +1043,7 @@ const ItemDetails = () => {
               </div>
               <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 4 }}>
                 <div style={{ fontSize: 11.5, color: '#5b6478', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {main ? main.name : 'Uncategorized'}{item.category_name ? ` Â· ${item.category_name}` : ''} Â· <span style={{ fontFamily: 'monospace' }}>{item.code}</span>
+                  {main ? main.name : 'Uncategorized'}{item.category_name ? ` · ${item.category_name}` : ''} · <span style={{ fontFamily: 'monospace' }}>{item.code}</span>
                 </div>
                 {!isHqHost() && (
                   isLow
@@ -1117,7 +1117,7 @@ const ItemDetails = () => {
                   {(() => {
                     const cost = parseFloat(item.avg_cost_price || item.cost_price || 0);
                     const sell = parseFloat(item.selling_price || 0);
-                    if (!(sell > 0)) return <span style={{ color: '#9ca3af' }}>â€”</span>;
+                    if (!(sell > 0)) return <span style={{ color: '#9ca3af' }}>—</span>;
                     const margin = ((sell - cost) / sell) * 100;
                     const color = margin >= 50 ? '#16a34a' : margin >= 25 ? '#b45309' : '#dc2626';
                     const bg    = margin >= 50 ? '#dcfce7' : margin >= 25 ? '#fef3c7' : '#fee2e2';
@@ -1149,7 +1149,7 @@ const ItemDetails = () => {
                     >
                       <FaBarcode />
                     </button>
-                    {/* v1.13.148 â€” Delete removed from HQ per Sirak 2026-08-26,
+                    {/* v1.13.148 — Delete removed from HQ per Sirak 2026-08-26,
                         raised mid ZRA UAT-2 T04A live testing: HQ is where
                         real catalog items live and a stray click during a
                         demo could delete production data. Branches keep
@@ -1164,19 +1164,19 @@ const ItemDetails = () => {
       </div>
       </div>{/* end scrollable */}
 
-      {/* â”€â”€ Add / Edit Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Add / Edit Modal ──────────────────────────────────────── */}
       {showModal && (() => {
         // v1.6.1: HQ + branches share this same modal, split into two tabs:
-        //   Tab 1 (details) â€” HQ-owned: code, name, category, unit,
+        //   Tab 1 (details) — HQ-owned: code, name, category, unit,
         //     packagings, default unit, container, photo, UB barcode.
-        //   Tab 2 (pricing) â€” Branch-owned: cost, selling, min stock,
+        //   Tab 2 (pricing) — Branch-owned: cost, selling, min stock,
         //     status, opening stock, notes.
         // HQ sees only Tab 1 (saves push to all branches).
         // Branches see both tabs but Tab 1 is read-only for is_hq_owned
         // items (Tab 2 is where the branch fills its own prices).
         const hqLocked = !!(editItem && editItem.is_hq_owned && isBranch);
         const showDetailsTab = true;            // both hosts can view it
-        // v1.13.143 â€” Fix A follow-up: HQ now owns the initial C.P/S.P
+        // v1.13.143 — Fix A follow-up: HQ now owns the initial C.P/S.P
         // (per Sirak, 2026-08-14). Show the Pricing tab at HQ so the
         // operator can actually type prices when creating/editing a
         // product. Old rule was HQ-doesn't-price; new rule is HQ sets
@@ -1190,7 +1190,7 @@ const ItemDetails = () => {
         <Portal>
         <div className="modal-overlay">
           <div className="modal" onClick={e => e.stopPropagation()} style={{ width: 680 }}>
-            {/* Sticky header â€” item name + breadcrumb (code Â· category Â· unit) */}
+            {/* Sticky header — item name + breadcrumb (code · category · unit) */}
             <div className="modal-header" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                 <h3 style={{ margin: 0 }}>
@@ -1198,17 +1198,17 @@ const ItemDetails = () => {
                     ? (form.name || editItem.name || 'Item')
                     : `${t('newEntry')} Item`}
                 </h3>
-                <button className="modal-close" onClick={closeModal}>Ã—</button>
+                <button className="modal-close" onClick={closeModal}>×</button>
               </div>
               {editItem && (
                 <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
                   {(form.code || editItem.code) && <span style={{ fontFamily: 'monospace' }}>{form.code || editItem.code}</span>}
-                  {editItem.category_name && <> Â· {editItem.category_name}</>}
-                  {(form.unit || editItem.unit) && <> Â· {form.unit || editItem.unit}</>}
+                  {editItem.category_name && <> · {editItem.category_name}</>}
+                  {(form.unit || editItem.unit) && <> · {form.unit || editItem.unit}</>}
                   {editItem.is_hq_owned ? <span style={{ marginLeft: 8, background: '#fef3c7', color: '#92400e', padding: '1px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, letterSpacing: 0.3 }}>HQ</span> : null}
                 </div>
               )}
-              {/* Tabs â€” only when BOTH are visible (branch). HQ sees one
+              {/* Tabs — only when BOTH are visible (branch). HQ sees one
                   panel without tabs. */}
               {(showDetailsTab && showPricingTab) && (
                 <div style={{ display: 'flex', gap: 0, marginTop: 12, borderBottom: '1px solid #e5e7eb' }}>
@@ -1233,7 +1233,7 @@ const ItemDetails = () => {
             <div className="modal-body">
               {formError && (
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 14px', marginBottom: 14, borderRadius: 8, background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 13 }}>
-                  <span style={{ flexShrink: 0, fontSize: 15, marginTop: 1 }}>âš </span>
+                  <span style={{ flexShrink: 0, fontSize: 15, marginTop: 1 }}>⚠</span>
                   <span>{formError}</span>
                 </div>
               )}
@@ -1247,9 +1247,9 @@ const ItemDetails = () => {
                 <div className="form-group">
                   <label>
                     Code <span style={{ color: '#dc2626' }}>*</span>
-                    {!editItem && <span style={{ fontSize: 10.5, fontWeight: 400, color: '#9ca3af', marginLeft: 6 }}>or click âš¡ to generate</span>}
+                    {!editItem && <span style={{ fontSize: 10.5, fontWeight: 400, color: '#9ca3af', marginLeft: 6 }}>or click ⚡ to generate</span>}
                   </label>
-                  {/* v1.13.174 â€” assigned, never typed, on new AND on edit.
+                  {/* v1.13.174 — assigned, never typed, on new AND on edit.
                       An existing code is also the ZRA fallback identifier
                       (zra_item_cd || code), so letting one be re-typed could
                       break that item's VSDC mapping. */}
@@ -1280,14 +1280,14 @@ const ItemDetails = () => {
                     {form.unit && !dbUnits.some(u => u.name === form.unit) && (
                       <option value={form.unit}>{form.unit}</option>
                     )}
-                    {dbUnits.length === 0 && !form.unit && <option value="">â€” No units configured â€”</option>}
+                    {dbUnits.length === 0 && !form.unit && <option value="">— No units configured —</option>}
                     {dbUnits.map(u => (
                       <option key={u.id} value={u.name}>{u.name}{u.abbreviation ? ` (${u.abbreviation})` : ''}</option>
                     ))}
                   </select>
                   {dbUnits.length === 0 && (
                     <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
-                      Add units in <strong>Categories and Units â†’ Units</strong> tab.
+                      Add units in <strong>Categories and Units → Units</strong> tab.
                     </div>
                   )}
                 </div>
@@ -1302,7 +1302,7 @@ const ItemDetails = () => {
                 </div>
               </div>
 
-              {/* ZRA Smart Invoice fields â€” only used when VSDC is configured;
+              {/* ZRA Smart Invoice fields — only used when VSDC is configured;
                   safe to leave blank otherwise. */}
               <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: '#f8fafc', border: '1px dashed #cbd5e1' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
@@ -1320,9 +1320,9 @@ const ItemDetails = () => {
                     </span>
                   )}
                 </div>
-                {/* v1.13.86 â€” ZRA classification is HQ-only. Branches see the
+                {/* v1.13.86 — ZRA classification is HQ-only. Branches see the
                     fields (for confidence + audit) but every input is disabled.
-                    RRP consistency across branches is the hard constraint â€”
+                    RRP consistency across branches is the hard constraint —
                     if Buseko sets RRP=K128 and Garden sets K130, ZRA sees
                     inconsistent MTV declarations for the same SKU. */}
                 <div className="form-row">
@@ -1340,7 +1340,7 @@ const ItemDetails = () => {
                       onChange={cd => setForm({ ...form, zra_vat_cat_cd: cd })}
                       disabled={hqLocked} />
                   </div>
-                  {/* v1.13.72 â€” MTV RRP. Only rendered for cat B items.
+                  {/* v1.13.72 — MTV RRP. Only rendered for cat B items.
                       Value stored VAT-inclusive (matches how ZB invoices
                       + till receipts present it). At sale time,
                       vsdcClient computes tax on MAX(price, RRP). */}
@@ -1386,7 +1386,7 @@ const ItemDetails = () => {
                   </div>
                 </div>
               </div>
-              </>)}{/* end tab===details block A â€” code/name/unit/category */}
+              </>)}{/* end tab===details block A — code/name/unit/category */}
               {tab === 'pricing' && (<>
               <div className="form-row">
                 <div className="form-group">
@@ -1405,9 +1405,9 @@ const ItemDetails = () => {
                     onBlur={e => { if (e.target.value !== '' && parseFloat(e.target.value) < 0) setForm(f => ({ ...f, cost_price: '0' })); }} />
                   {editItem && parseFloat(form.cost_price || 0) !== parseFloat(editItem.cost_price || 0) && (
                     <div style={{ marginTop: 6, padding: '8px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 6, fontSize: 11.5, color: '#92400e', lineHeight: 1.5 }}>
-                      <strong>âš  Changing cost price.</strong> Past sales keep their original COGS â€” historical Profit
+                      <strong>⚠ Changing cost price.</strong> Past sales keep their original COGS — historical Profit
                       Reports won't change. New sales (and any GRN-less products) will use the new cost going forward.
-                      Was <strong>{curSym}{(parseFloat(parseFloat(editItem.cost_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong> â†’
+                      Was <strong>{curSym}{(parseFloat(parseFloat(editItem.cost_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong> →
                       Will be <strong>{curSym}{(parseFloat(parseFloat(form.cost_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>.
                     </div>
                   )}
@@ -1428,7 +1428,7 @@ const ItemDetails = () => {
                       const v = e.target.value;
                       // If the base unit IS the default unit (or no default set),
                       // a change here propagates: every packaging price becomes
-                      // basePrice Ã— conv. Otherwise just update the base price.
+                      // basePrice × conv. Otherwise just update the base price.
                       const baseName = (form.unit || 'pcs').trim();
                       const dflt = (form.default_unit || '').trim() || baseName;
                       if (dflt === baseName) {
@@ -1448,8 +1448,8 @@ const ItemDetails = () => {
                     onBlur={e => { if (e.target.value !== '' && parseFloat(e.target.value) < 0) setForm(f => ({ ...f, selling_price: '0' })); }} />
                 </div>
               </div>
-              {/* Fix A â€” "Also apply this price to all branches" (HQ-only, edit-only).
-                  Ticked â†’ PUT body carries push_price_to_all=true â†’ backend
+              {/* Fix A — "Also apply this price to all branches" (HQ-only, edit-only).
+                  Ticked → PUT body carries push_price_to_all=true → backend
                   force-overwrites branch cost/selling/alt + units_json prices
                   in this call, wiping any local override. Unticked keeps the
                   default sticky-price behaviour (branches keep whatever they
@@ -1463,13 +1463,13 @@ const ItemDetails = () => {
                   </label>
                 </div>
               )}
-              </>)}{/* end tab===pricing block A â€” cost/selling */}
+              </>)}{/* end tab===pricing block A — cost/selling */}
               {tab === 'details' && (<>
 
-              {/* v1.13.101 â€” Multi-Unit (Packagings) section hidden for
+              {/* v1.13.101 — Multi-Unit (Packagings) section hidden for
                   ZRA UAT (2026-07-29). Red Sea sells every product in
                   one unit (Box), so the multi-unit picker adds no value
-                  and risks tester confusion. Backend + DB are intact â€”
+                  and risks tester confusion. Backend + DB are intact —
                   flip the `false &&` guard back on to restore. */}
               {false && (
               <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, marginTop: 4 }}>
@@ -1492,7 +1492,7 @@ const ItemDetails = () => {
 
                 {(form.packagings || []).length === 0 ? (
                   <div style={{ padding: '12px 14px', background: '#fff', border: '1px dashed #d1d5db', borderRadius: 8, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
-                    No extra packagings yet â€” this product is only sold in <strong>{form.unit || 'pcs'}</strong>.
+                    No extra packagings yet — this product is only sold in <strong>{form.unit || 'pcs'}</strong>.
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gap: 8 }}>
@@ -1521,7 +1521,7 @@ const ItemDetails = () => {
                                   disabled={lockConv}
                                   onChange={e => setForm(f => ({ ...f, packagings: f.packagings.map((q, i) => i === idx ? { ...q, name: e.target.value } : q) }))}
                                   style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: lockConv ? '#f3f4f6' : '#fff' }}>
-                                  <option value="">â€” Select a unit â€”</option>
+                                  <option value="">— Select a unit —</option>
                                   {options.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                                   {/* Preserve a custom name typed in older data so it doesn't silently blank out */}
                                   {p.name && !(dbUnits || []).some(u => u.name === p.name) && (
@@ -1539,7 +1539,7 @@ const ItemDetails = () => {
                               placeholder="e.g. 6" />
                           </div>
                           <div className="form-group" style={{ margin: 0 }}>
-                            <label style={{ fontSize: 11 }}>Order Price ({curSym} / {p.name || 'unit'}) â€” derived</label>
+                            <label style={{ fontSize: 11 }}>Order Price ({curSym} / {p.name || 'unit'}) — derived</label>
                             <div style={{ padding: '8px 10px', background: '#f3f4f6', borderRadius: 6, fontSize: 13, color: '#6b7280', minHeight: 18 }}>
                               {curSym}{(parseFloat(((parseFloat(form.cost_price) || 0) * (parseFloat(p.conv) || 0)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                             </div>
@@ -1551,7 +1551,7 @@ const ItemDetails = () => {
                                 const v = e.target.value;
                                 // If this row IS the default unit, editing its
                                 // price propagates: base = v / this.conv, other
-                                // packagings = base Ã— their conv. Otherwise just
+                                // packagings = base × their conv. Otherwise just
                                 // set this row's price (keeps unequal pricing possible).
                                 const isDefault = (form.default_unit || '').trim() === (p.name || '').trim();
                                 if (isDefault) {
@@ -1580,15 +1580,15 @@ const ItemDetails = () => {
                               onClick={() => setPendingUnlockPack(idx)}
                               title="Unlock with admin password to edit conversion or remove"
                               style={{ height: 36, width: 36, background: '#fffbeb', color: '#92400e', border: '1px solid #fde68a', borderRadius: 6, cursor: 'pointer', fontSize: 14 }}>
-                              ðŸ”’
+                              🔒
                             </button>
                           )}
                           <button type="button"
                             disabled={lockConv}
                             onClick={() => setForm(f => ({ ...f, packagings: f.packagings.filter((_, i) => i !== idx) }))}
-                            title={lockConv ? 'Saved packagings cannot be removed (history depends on them) â€” click the ðŸ”’ to unlock' : 'Remove this packaging'}
+                            title={lockConv ? 'Saved packagings cannot be removed (history depends on them) — click the 🔒 to unlock' : 'Remove this packaging'}
                             style={{ height: 36, width: 36, background: lockConv ? '#f3f4f6' : '#fee2e2', color: lockConv ? '#9ca3af' : '#dc2626', border: 'none', borderRadius: 6, cursor: lockConv ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
-                            Ã—
+                            ×
                           </button>
                         </div>
                       );
@@ -1598,7 +1598,7 @@ const ItemDetails = () => {
               </div>
               )}
 
-              {/* Default unit â€” auto-selected on GRN/SIV/POS lines (instead of always defaulting to base). */}
+              {/* Default unit — auto-selected on GRN/SIV/POS lines (instead of always defaulting to base). */}
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: 14, marginTop: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#1e40af', marginBottom: 6 }}>Default unit (auto-selected on GRN, SIV, POS)</div>
                 <div style={{ fontSize: 11, color: '#1d4ed8', marginBottom: 10 }}>
@@ -1611,7 +1611,7 @@ const ItemDetails = () => {
                   onChange={e => setForm({ ...form, default_unit: e.target.value })}
                   style={{ width: '100%', maxWidth: 320, padding: '9px 10px', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 14, background: hqLocked ? '#f1f5f9' : '#fff' }}
                 >
-                  <option value="">â€” Use base unit ({form.unit || 'pcs'}) â€”</option>
+                  <option value="">— Use base unit ({form.unit || 'pcs'}) —</option>
                   <option value={form.unit || 'pcs'}>{form.unit || 'pcs'} (base)</option>
                   {(form.packagings || []).filter(p => (p.name || '').trim()).map((p, idx) => (
                     <option key={idx} value={p.name}>{p.name} (1 = {p.conv} {form.unit || 'pcs'})</option>
@@ -1619,7 +1619,7 @@ const ItemDetails = () => {
                 </select>
               </div>
 
-              {/* Returnable container link â€” used by GRN to record empties returned / new crates received. */}
+              {/* Returnable container link — used by GRN to record empties returned / new crates received. */}
               <div style={{ background: '#fefce8', border: '1px solid #fde68a', borderRadius: 10, padding: 14, marginTop: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#78350f', marginBottom: 6 }}>Returnable Container (Crate / Empties)</div>
                 <div style={{ fontSize: 11, color: '#92400e', marginBottom: 10 }}>
@@ -1632,14 +1632,14 @@ const ItemDetails = () => {
                     <select value={form.container_product_sync_id || ''}
                       disabled={hqLocked}
                       onChange={e => setForm({ ...form, container_product_sync_id: e.target.value })}>
-                      <option value="">â€” No linked container â€”</option>
+                      <option value="">— No linked container —</option>
                       {items
                         .filter(p => !editItem || p.sync_id !== editItem.sync_id)
-                        // Only items in the "Crates" category â€” keeps non-container
+                        // Only items in the "Crates" category — keeps non-container
                         // products (beers, drinks, etc.) out of this list.
                         .filter(p => (p.category_name || '').toLowerCase() === 'crates')
                         .map(p => (
-                          <option key={p.sync_id} value={p.sync_id}>{p.code ? `${p.code} Â· ` : ''}{p.name}</option>
+                          <option key={p.sync_id} value={p.sync_id}>{p.code ? `${p.code} · ` : ''}{p.name}</option>
                         ))}
                     </select>
                     <small style={{ color: '#92400e', fontSize: 11 }}>Pick the empty-crate product from the <strong>Crates</strong> category (create it as a normal item first, with a cost = deposit price).</small>
@@ -1654,7 +1654,7 @@ const ItemDetails = () => {
                   </div>
                 </div>
               </div>
-              </>)}{/* end tab===details block B â€” packagings/default/container */}
+              </>)}{/* end tab===details block B — packagings/default/container */}
               {tab === 'pricing' && (<>
               {/* v1.7.2 (Grocery pattern): one Opening input per unit (base + each
                   packaging). User types "46 Box + 10 Bottle"; save collapses to
@@ -1688,7 +1688,7 @@ const ItemDetails = () => {
                           </span>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, alignItems: 'end' }}>
-                          {/* v1.8.71 â€” when this packaging is the DEFAULT unit (Box, Crate, etc.),
+                          {/* v1.8.71 — when this packaging is the DEFAULT unit (Box, Crate, etc.),
                               editing its price drives the base unit price + cascades to siblings.
                               Non-default packagings still allow per-packaging override. */}
                           <div className="form-group" style={{ margin: 0 }}>
@@ -1702,10 +1702,10 @@ const ItemDetails = () => {
                                   : null;
                               })()}
                             </label>
-                            {/* v1.10.11 â€” mirror Selling behaviour: store what
+                            {/* v1.10.11 — mirror Selling behaviour: store what
                                 the user typed in packagings[idx].cost so the
                                 input shows their exact value (not the rounded
-                                baseÃ—conv re-render). Base cost_price still gets
+                                base×conv re-render). Base cost_price still gets
                                 updated so it drives siblings + saves correctly. */}
                             <input type="number" min="0" step="0.01"
                               value={(() => {
@@ -1743,9 +1743,9 @@ const ItemDetails = () => {
                             <input type="number" min="0" step="0.01"
                               value={(() => {
                                 // v1.7.7: if user hasn't set a per-packaging price yet,
-                                // display the derived base Ã— conv as a hint. Do NOT back-
-                                // solve to selling_price on edit â€” that truncation lost
-                                // precision (e.g. 29.30/24 â†’ 1.2208 â†’ Ã—24 â†’ 29.2992).
+                                // display the derived base × conv as a hint. Do NOT back-
+                                // solve to selling_price on edit — that truncation lost
+                                // precision (e.g. 29.30/24 → 1.2208 → ×24 → 29.2992).
                                 // Just store the typed value in packagings[idx].price.
                                 const stored = parseFloat(p.price);
                                 if (stored > 0) return p.price;
@@ -1755,7 +1755,7 @@ const ItemDetails = () => {
                                 return (base * conv).toFixed(2);
                               })()}
                               onChange={e => {
-                                // v1.8.71 â€” when editing the DEFAULT packaging's selling price,
+                                // v1.8.71 — when editing the DEFAULT packaging's selling price,
                                 // derive base selling_price = entered/conv AND cascade to all
                                 // other packagings (clearing their per-row override). For non-
                                 // default packagings, keep the existing override behavior.
@@ -1769,7 +1769,7 @@ const ItemDetails = () => {
                                   setForm(f => ({
                                     ...f,
                                     selling_price: base === '' ? '' : base.toFixed(4),
-                                    // Clear stored overrides â€” siblings now derive from base Ã— conv.
+                                    // Clear stored overrides — siblings now derive from base × conv.
                                     packagings: f.packagings.map((q, i) => ({ ...q, price: i === idx ? e.target.value : '' })),
                                   }));
                                 } else {
@@ -1814,7 +1814,7 @@ const ItemDetails = () => {
                 return (
                   <div style={{ background: 'linear-gradient(135deg, #1F213F 0%, #494D6F 100%)', borderRadius: 12, padding: 16, marginTop: 12, color: '#fff' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                      <span style={{ fontSize: 18 }}>ðŸ“¦</span>
+                      <span style={{ fontSize: 18 }}>📦</span>
                       <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', color: '#F6C96B' }}>Total Opening Balance</div>
                     </div>
                     <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1 }}>
@@ -1857,7 +1857,7 @@ const ItemDetails = () => {
                   </div>
                 );
               })()}
-              </>)}{/* end tab===pricing block B â€” opening stock + packagings + total */}
+              </>)}{/* end tab===pricing block B — opening stock + packagings + total */}
               {tab === 'details' && (<>
               <div className="form-group" style={{ marginTop: 4 }}>
                 <label>Product Photo</label>
@@ -1884,13 +1884,13 @@ const ItemDetails = () => {
                           <FiCamera size={14} /> {imagePreview ? 'Change Photo' : 'Upload Photo'}
                         </label>
                         <input id="product-image-input" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-                        <p style={{ margin: '6px 0 0', fontSize: 11, color: '#9ca3af' }}>JPG, PNG, WEBP Â· Max 5MB</p>
+                        <p style={{ margin: '6px 0 0', fontSize: 11, color: '#9ca3af' }}>JPG, PNG, WEBP · Max 5MB</p>
                       </>
                     )}
                   </div>
                 </div>
               </div>
-              </>)}{/* end tab===details block C â€” photo */}
+              </>)}{/* end tab===details block C — photo */}
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={closeModal}>{t('cancel')}</button>
@@ -1902,7 +1902,7 @@ const ItemDetails = () => {
         );
       })()}
 
-      {/* â”€â”€ Barcode Settings Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Barcode Settings Modal ────────────────────────────────── */}
       {showBarcodeModal && barcodeItem && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -1915,7 +1915,7 @@ const ItemDetails = () => {
                 </div>
                 <p style={{ margin: 0, fontSize: 12, color: '#6b7280' }}>{barcodeItem.name} ({barcodeItem.code})</p>
               </div>
-              <button onClick={() => setShowBarcodeModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#6b7280', padding: 0, lineHeight: 1 }}>Ã—</button>
+              <button onClick={() => setShowBarcodeModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#6b7280', padding: 0, lineHeight: 1 }}>×</button>
             </div>
             <div style={{ padding: '20px 24px' }}>
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#1e40af', marginBottom: 20 }}>
@@ -1923,24 +1923,24 @@ const ItemDetails = () => {
               </div>
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#1d4ed8', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ background: '#dbeafe', color: '#1d4ed8', padding: '2px 8px', borderRadius: 4 }}>â– </span> Product Code Position
+                  <span style={{ background: '#dbeafe', color: '#1d4ed8', padding: '2px 8px', borderRadius: 4 }}>■</span> Product Code Position
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
                     <label style={labelSt}>Start Position (0-indexed)</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_number_start} onChange={setBF('ub_number_start')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 1 â†’ skip first digit</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 1 → skip first digit</div>
                   </div>
                   <div>
                     <label style={labelSt}>Code Length (digits)</label>
                     <input style={inputSt} type="number" min="1" value={barcodeForm.ub_number_length} onChange={setBF('ub_number_length')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 6 â†’ read 6 digits</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 6 → read 6 digits</div>
                   </div>
                 </div>
               </div>
               <div style={{ marginBottom: 20 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#15803d', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 4 }}>â– </span> Weight / Quantity Position
+                  <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: 4 }}>■</span> Weight / Quantity Position
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                   <div>
@@ -1956,7 +1956,7 @@ const ItemDetails = () => {
                   <div>
                     <label style={labelSt}>Decimal At</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_decimal_start} onChange={setBF('ub_decimal_start')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 2 â†’ XX.XXX</div>
+                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 2 → XX.XXX</div>
                   </div>
                 </div>
               </div>
@@ -1973,7 +1973,7 @@ const ItemDetails = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print Preview ─────────────────────────────────────────── */}
       {false && (
         <div
           className="print-preview-overlay"
@@ -1987,7 +1987,7 @@ const ItemDetails = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
               <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
-                Print Preview â€” Items List ({items.length} items)
+                Print Preview — Items List ({items.length} items)
               </span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -2076,7 +2076,7 @@ const ItemDetails = () => {
                           <td style={{ padding: '8px 12px', fontWeight: 700, color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>{item.code}</td>
                           <td style={{ padding: '8px 12px', fontWeight: 500, color: '#1e293b' }}>{item.name}</td>
                           <td style={{ padding: '8px 12px' }}>
-                            <span style={catBadgeStyle(item.category_name)}>{item.category_name || 'â€”'}</span>
+                            <span style={catBadgeStyle(item.category_name)}>{item.category_name || '—'}</span>
                           </td>
                           <td style={{ padding: '8px 12px', color: '#374151' }}>{item.unit}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>
@@ -2089,7 +2089,7 @@ const ItemDetails = () => {
                             {(parseFloat(parseFloat(item.min_stock || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
                           <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: isLow ? '#dc2626' : '#16a34a' }}>
-                            {isLow ? 'âš  ' : ''}{(parseFloat(parseFloat(item.store_balance || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {item.unit}
+                            {isLow ? '⚠ ' : ''}{(parseFloat(parseFloat(item.store_balance || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {item.unit}
                           </td>
                         </tr>
                       );
@@ -2098,16 +2098,16 @@ const ItemDetails = () => {
                   <tfoot>
                     <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0' }}>
                       <td colSpan={5} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11, color: '#374151' }}>
-                        Total â€” {items.length} items
+                        Total — {items.length} items
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', fontSize: 11 }}>
-                        â€”
+                        —
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#1d4ed8', fontSize: 11 }}>
                         Avg ${items.length > 0 ? (items.reduce((s, i) => s + parseFloat(i.selling_price || 0), 0) / items.length).toFixed(2) : '0.00'}
                       </td>
                       <td colSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, color: lowStockItems.length > 0 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
-                        {lowStockItems.length > 0 ? `âš  ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} low on stock` : 'âœ“ All stock levels OK'}
+                        {lowStockItems.length > 0 ? `⚠ ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} low on stock` : '✓ All stock levels OK'}
                       </td>
                     </tr>
                   </tfoot>
@@ -2117,11 +2117,11 @@ const ItemDetails = () => {
               {/* Low stock notice */}
               {lowStockItems.length > 0 && (
                 <div style={{ border: '1px solid #fca5a5', borderRadius: 8, padding: '10px 16px', background: '#fff5f5', marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-                  <span style={{ fontSize: 14, color: '#dc2626', flexShrink: 0 }}>âš </span>
+                  <span style={{ fontSize: 14, color: '#dc2626', flexShrink: 0 }}>⚠</span>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 11, color: '#dc2626', marginBottom: 3 }}>Low Stock Alert</div>
                     <div style={{ fontSize: 11, color: '#7f1d1d' }}>
-                      {lowStockItems.map(i => i.name).join(', ')} â€” stock at or below minimum threshold
+                      {lowStockItems.map(i => i.name).join(', ')} — stock at or below minimum threshold
                     </div>
                   </div>
                 </div>
@@ -2134,7 +2134,7 @@ const ItemDetails = () => {
                   <span style={{ color: '#6b7280' }}>Low / zero stock row</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ color: '#dc2626', fontWeight: 700 }}>âš </span>
+                  <span style={{ color: '#dc2626', fontWeight: 700 }}>⚠</span>
                   <span style={{ color: '#6b7280' }}>Balance at or below minimum</span>
                 </div>
               </div>
@@ -2142,7 +2142,7 @@ const ItemDetails = () => {
               {/* Footer */}
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>
-                  {businessInfo.business_name || 'Business'} â€” Confidential
+                  {businessInfo.business_name || 'Business'} — Confidential
                 </span>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>
                   Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -2153,7 +2153,7 @@ const ItemDetails = () => {
         </div>
       )}
 
-      {/* â”€â”€ Print styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print styles ──────────────────────────────────────────── */}
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -2210,7 +2210,7 @@ const ItemDetails = () => {
         onCancel={() => setPendingUnlockPack(null)}
       />
 
-      {/* Fix A â€” bulk "Push Prices to All Branches" confirmation modal. */}
+      {/* Fix A — bulk "Push Prices to All Branches" confirmation modal. */}
       {showBulkPushConfirm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
           <div style={{ background: '#fff', borderRadius: 10, padding: 22, width: 'min(520px, 92vw)', boxShadow: '0 10px 40px rgba(0,0,0,0.25)' }}>
@@ -2242,7 +2242,7 @@ const ItemDetails = () => {
                       .flatMap(b => b.products?.errors || []).length;
                     setShowBulkPushConfirm(false);
                     fetchItems();
-                    alert(`Pushed ${items} product price(s) to ${branches} branch(es).${errs ? ` ${errs} error(s) â€” check server logs.` : ''}`);
+                    alert(`Pushed ${items} product price(s) to ${branches} branch(es).${errs ? ` ${errs} error(s) — check server logs.` : ''}`);
                   } catch (e) {
                     alert('Failed to push prices: ' + (e.response?.data?.error || e.message));
                   } finally {
@@ -2251,7 +2251,7 @@ const ItemDetails = () => {
                 }}
                 disabled={bulkPushing}
                 style={{ padding: '9px 16px', background: bulkPushing ? '#fbbf24' : 'linear-gradient(135deg,#d97706,#f59e0b)', color: '#fff', border: 'none', borderRadius: 8, cursor: bulkPushing ? 'default' : 'pointer', fontSize: 13, fontWeight: 600 }}>
-                {bulkPushing ? 'Pushingâ€¦' : 'Yes, push prices to all branches'}
+                {bulkPushing ? 'Pushing…' : 'Yes, push prices to all branches'}
               </button>
             </div>
           </div>
@@ -2261,7 +2261,7 @@ const ItemDetails = () => {
   );
 };
 
-// v1.13.42 â€” Searchable UNSPSC picker. Loads the current name for the
+// v1.13.42 — Searchable UNSPSC picker. Loads the current name for the
 // stored code on mount, then debounces free-text search against the
 // /zra/item-classes endpoint. Prevents cashiers from having to memorise
 // 8-digit codes and keeps them from typing anything invalid.
@@ -2271,10 +2271,10 @@ function UnspscPicker({ value, onChange, disabled = false }) {
   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [selectedName, setSelectedName] = React.useState('');
-  // v1.13.146 â€” was permanently ambiguous: the label said "(loading
-  // nameâ€¦)" whether the lookup was still in flight OR had finished and
+  // v1.13.146 — was permanently ambiguous: the label said "(loading
+  // name…)" whether the lookup was still in flight OR had finished and
   // genuinely found nothing (code not present in the local
-  // zra_item_classes cache â€” e.g. only a partial UNSPSC sync has run).
+  // zra_item_classes cache — e.g. only a partial UNSPSC sync has run).
   // Sirak flagged this during UAT-2 T02A walkthrough on PEPSI PET
   // 330mls (code 50202303, cache only had 1,000 of ~40k rows). Track
   // whether the lookup has settled so we can show an honest message.
@@ -2282,7 +2282,7 @@ function UnspscPicker({ value, onChange, disabled = false }) {
   const wrapRef = React.useRef(null);
   const debounceRef = React.useRef(null);
 
-  // Resolve the stored code â†’ its name for display when the modal opens.
+  // Resolve the stored code → its name for display when the modal opens.
   React.useEffect(() => {
     let cancelled = false;
     setNameLookupDone(false);
@@ -2348,11 +2348,11 @@ function UnspscPicker({ value, onChange, disabled = false }) {
           title={disabled ? 'HQ-managed classification' : 'Click to change'}>
           <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#166534' }}>{value}</span>
           <span style={{ fontSize: 13, color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {selectedName || (nameLookupDone ? '(name not in local cache â€” code is saved correctly)' : 'loadingâ€¦')}
+            {selectedName || (nameLookupDone ? '(name not in local cache — code is saved correctly)' : 'loading…')}
           </span>
           {!disabled && (
             <button type="button" onClick={clear} title="Clear"
-              style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 0, fontSize: 16 }}>Ã—</button>
+              style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 0, fontSize: 16 }}>×</button>
           )}
         </div>
       ) : (
@@ -2374,7 +2374,7 @@ function UnspscPicker({ value, onChange, disabled = false }) {
           maxHeight: 320, overflowY: 'auto',
         }}>
           {loading ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Searchingâ€¦</div>
+            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Searching…</div>
           ) : results.length === 0 ? (
             <div style={{ padding: 12, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
               {query ? 'No matches.' : 'Type to search 158,000+ UNSPSC codes.'}
@@ -2400,7 +2400,7 @@ function UnspscPicker({ value, onChange, disabled = false }) {
   );
 }
 
-// v1.13.138 â€” Reusable dropdown fed from /zra/codes?cls=XX. Replaces the
+// v1.13.138 — Reusable dropdown fed from /zra/codes?cls=XX. Replaces the
 // old free-text inputs for Packaging Unit / Quantity Unit / Origin Country
 // so typos ('KGS' instead of 'KG') can no longer sneak into saveSales and
 // fail at ZRA with 913 (code value error). Same UX as UnspscPicker.
@@ -2447,11 +2447,11 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
           title={disabled ? 'HQ-managed field' : 'Click to change'}>
           <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#166534' }}>{value}</span>
           <span style={{ fontSize: 13, color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {selected ? selected.cd_nm : (loading ? '(loadingâ€¦)' : '(unknown code)')}
+            {selected ? selected.cd_nm : (loading ? '(loading…)' : '(unknown code)')}
           </span>
           {!disabled && (
             <button type="button" onClick={clear} title="Clear"
-              style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 0, fontSize: 16 }}>Ã—</button>
+              style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 0, fontSize: 16 }}>×</button>
           )}
         </div>
       ) : (
@@ -2461,7 +2461,7 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
           disabled={disabled}
           onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder={placeholder || 'Type to searchâ€¦'}
+          placeholder={placeholder || 'Type to search…'}
           autoComplete="off"
         />
       )}
@@ -2473,7 +2473,7 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
           maxHeight: 320, overflowY: 'auto',
         }}>
           {loading ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Loadingâ€¦</div>
+            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Loading…</div>
           ) : filtered.length === 0 ? (
             <div style={{ padding: 12, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
               {options.length === 0 ? 'No codes cached. Sync from ZRA Smart Invoice page first.' : 'No matches.'}
@@ -2496,7 +2496,7 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
   );
 }
 
-// v1.13.138 â€” VAT Category dropdown backed by /zra/codes?cls=04. Falls
+// v1.13.138 — VAT Category dropdown backed by /zra/codes?cls=04. Falls
 // back to a spec-hardcoded list if the cache hasn't been synced yet so
 // product setup never blocks on ZRA connectivity.
 const VAT_FALLBACK = [
@@ -2525,16 +2525,16 @@ function ZraVatCategorySelect({ value, onChange, disabled = false }) {
   }, []);
   return (
     <select value={value || ''} disabled={disabled} onChange={e => onChange(e.target.value)}>
-      <option value="">â€” select â€”</option>
+      <option value="">— select —</option>
       {options.map(o => (
-        <option key={o.cd} value={o.cd}>{o.cd} â€” {o.cd_nm}</option>
+        <option key={o.cd} value={o.cd}>{o.cd} — {o.cd_nm}</option>
       ))}
     </select>
   );
 }
 
-// v1.13.138 â€” Item Type dropdown backed by /zra/codes?cls=24. Same
-// fallback pattern as VAT â€” spec-hardcoded list (4 types per Â§6.2) if
+// v1.13.138 — Item Type dropdown backed by /zra/codes?cls=24. Same
+// fallback pattern as VAT — spec-hardcoded list (4 types per §6.2) if
 // cache is empty. Note: prior hardcoded UI missed 'Rebate' (code 4).
 const ITEM_TYPE_FALLBACK = [
   { cd: '1', cd_nm: 'Raw Material' },
@@ -2557,9 +2557,9 @@ function ZraItemTypeSelect({ value, onChange, disabled = false }) {
   }, []);
   return (
     <select value={value || ''} disabled={disabled} onChange={e => onChange(e.target.value)}>
-      <option value="">â€” default (Finished Product) â€”</option>
+      <option value="">— default (Finished Product) —</option>
       {options.map(o => (
-        <option key={o.cd} value={o.cd}>{o.cd} â€” {o.cd_nm}</option>
+        <option key={o.cd} value={o.cd}>{o.cd} — {o.cd_nm}</option>
       ))}
     </select>
   );

@@ -1,12 +1,12 @@
-// printHtml â€” render a complete HTML document (the same string previously
+// printHtml — render a complete HTML document (the same string previously
 // passed to window.open + document.write) and route to one of three paths:
 //
-//   1. Desktop / Electron â€” hidden iframe + iframe.contentWindow.print().
+//   1. Desktop / Electron — hidden iframe + iframe.contentWindow.print().
 //      Native print dialog, no popup.
-//   2. Mobile browser (Chrome on Android, Safari on iOS) â€” generate a PDF
+//   2. Mobile browser (Chrome on Android, Safari on iOS) — generate a PDF
 //      via html2pdf and trigger the browser's download. User picks Open /
 //      Share / Print from the download notification.
-//   3. Capacitor APK â€” Android's WebView ignores <a download> clicks, so we
+//   3. Capacitor APK — Android's WebView ignores <a download> clicks, so we
 //      generate the PDF bytes, write them via @capacitor/filesystem to
 //      Documents/, then open the OS share sheet via @capacitor/share. From
 //      there the user can save, open in a viewer, or send to a printer.
@@ -24,11 +24,11 @@ export const MOBILE_PRINT_MODE_KEY = 'kelete.mobilePrintMode';
 const isPhone = () =>
   typeof window !== 'undefined' && window.innerWidth <= PHONE_BREAKPOINT;
 
-// 2026-09-23 â€” the APK defaults to the print dialog, not a PDF.
+// 2026-09-23 — the APK defaults to the print dialog, not a PDF.
 //
 // Same reason as getDeviceType() in receipt58.js: this is a per-device setting
 // nobody had touched on the handhelds that went out to the depots, so they all
-// took the 'pdf' default â€” downloading a file instead of driving the terminal's
+// took the 'pdf' default — downloading a file instead of driving the terminal's
 // built-in printer. A device that HAS been set keeps its choice, 'pdf'
 // included; only an untouched APK changes.
 export const readMobilePrintMode = () => {
@@ -52,11 +52,11 @@ const filenameFromHtml = (html) => {
   }
 };
 
-// â”€â”€ Shared helper: render the full HTML inside a hidden, off-screen iframe â”€â”€
+// ── Shared helper: render the full HTML inside a hidden, off-screen iframe ──
 // Returns the iframe + a cleanup function. The receipt's own <style> rules
-// (`body { width: 80mm; â€¦ }`) apply correctly inside the iframe's document,
+// (`body { width: 80mm; … }`) apply correctly inside the iframe's document,
 // which is what fixes the "blank PDF" bug from v1.4.89.
-// 2026-09-10 â€” a 58mm receipt (utils/receipt58.js, marked data-paper="58")
+// 2026-09-10 — a 58mm receipt (utils/receipt58.js, marked data-paper="58")
 // is laid out 48mm wide, the width a 58mm roll actually prints. Its PDF page
 // is made that width too, so it prints 1:1 instead of sitting in the corner of
 // an 80mm page and being shrunk to fit. Every other receipt keeps 80mm.
@@ -84,15 +84,15 @@ function renderInIframe(html, widthMm = 80) {
   return { iframe, doc, cleanup };
 }
 
-// â”€â”€ Silent printing: Kelete APK + POS small terminal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Silent printing: Kelete APK + POS small terminal ────────────────────────
 //
 // 2026-09-10. On the KI-POS the built-in printer is paired as the Bluetooth
 // device "vBtPrinter". The APK's KeletePrint plugin can write to it
 // directly, so there is no print window at all: the receipt is drawn here as
 // a 384-dot image (the width a 58mm head prints), turned into ESC/POS by
 // escposRaster.js, and handed to the plugin. The plugin reports the outcome
-// through window.__keletePrintDone; any failure â€” Bluetooth off, permission
-// refused, no printer, an older APK â€” falls back to the print window.
+// through window.__keletePrintDone; any failure — Bluetooth off, permission
+// refused, no printer, an older APK — falls back to the print window.
 let silentSeq = 0;
 const silentPending = {};
 if (typeof window !== 'undefined') {
@@ -157,7 +157,7 @@ async function printSilently(html) {
   });
 }
 
-// â”€â”€ PDF generation (returns a Blob) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PDF generation (returns a Blob) ─────────────────────────────────────────
 // Used by both the mobile-browser download path and the Capacitor share path.
 async function buildPdfBlob(html) {
   // Lazy-import so desktop bundles never pay the ~600 KB library cost.
@@ -170,12 +170,12 @@ async function buildPdfBlob(html) {
   await new Promise((r) => setTimeout(r, 250));
 
   // Measure the iframe body so the PDF page height matches the content
-  // (otherwise an 80Ã—297mm page wastes a lot of space for a 10-line receipt).
+  // (otherwise an 80×297mm page wastes a lot of space for a 10-line receipt).
   const body = doc.body;
-  // 80mm @ 96dpi â‰ˆ 302px. Compute height from the rendered body, capped to
+  // 80mm @ 96dpi ≈ 302px. Compute height from the rendered body, capped to
   // avoid pathological multi-page generation.
   const heightPx = Math.max(body.scrollHeight || 0, 200);
-  // Convert px â†’ mm (96 dpi â†’ 1mm = 3.7795px) and clamp to PDF max ~ 5000mm.
+  // Convert px → mm (96 dpi → 1mm = 3.7795px) and clamp to PDF max ~ 5000mm.
   const heightMm = Math.min(Math.max(heightPx / 3.7795, 60), 5000);
 
   try {
@@ -203,14 +203,14 @@ async function buildPdfBlob(html) {
   }
 }
 
-// Public â€” true when the device is a phone AND the Mobile Print Mode
+// Public — true when the device is a phone AND the Mobile Print Mode
 // setting is "PDF Download". UI surfaces (e.g. a "Download PDF" button
 // in the Sales Report view modal) gate themselves on this.
 export const shouldShowMobilePdfButton = () =>
   isPhone() && readMobilePrintMode() === 'pdf';
 
 // True only when we can actually call Capacitor plugins from this JS context.
-// isMobileApp() looks at user-agent â€” but the thin-shell APK redirects to the
+// isMobileApp() looks at user-agent — but the thin-shell APK redirects to the
 // live tenant URL, where window.Capacitor is undefined and any plugin call
 // throws "not implemented". So gate plugin paths on this stronger check.
 const isCapacitorBridgeReachable = () =>
@@ -220,7 +220,7 @@ const isCapacitorBridgeReachable = () =>
   window.Capacitor.isPluginAvailable('Filesystem') &&
   window.Capacitor.isPluginAvailable('Share');
 
-// Public â€” always run the PDF path regardless of platform/setting. Used by
+// Public — always run the PDF path regardless of platform/setting. Used by
 // the explicit "Download PDF" button. Tries Capacitor first when the bridge
 // is reachable, otherwise falls back to the browser <a download> path so
 // the user at least gets a downloadable file in mobile Chrome / Safari.
@@ -244,7 +244,7 @@ export async function downloadPdf(html) {
   }
 }
 
-// â”€â”€ Path 2: Mobile browser â€” download the PDF â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Path 2: Mobile browser — download the PDF ────────────────────────────
 async function downloadPdfInBrowser(html) {
   const blob = await buildPdfBlob(html);
   const url = URL.createObjectURL(blob);
@@ -259,7 +259,7 @@ async function downloadPdfInBrowser(html) {
   }, 1000);
 }
 
-// â”€â”€ Path 3: Capacitor APK â€” save to filesystem + share â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Path 3: Capacitor APK — save to filesystem + share ───────────────────
 async function sharePdfFromApk(html) {
   const blob = await buildPdfBlob(html);
   // Read the blob as base64 for Filesystem.writeFile.
@@ -292,13 +292,13 @@ async function sharePdfFromApk(html) {
       dialogTitle: 'Share receipt',
     });
   } catch (_) {
-    // User dismissed the share sheet â€” file is still saved at written.uri.
+    // User dismissed the share sheet — file is still saved at written.uri.
   }
 }
 
-// â”€â”€ Path 1b: phone in Print Dialog mode â€” print from the page itself â”€â”€â”€â”€â”€
+// ── Path 1b: phone in Print Dialog mode — print from the page itself ─────
 //
-// 2026-09-10 â€” the hidden-iframe print below froze Android Chrome on a KI-POS
+// 2026-09-10 — the hidden-iframe print below froze Android Chrome on a KI-POS
 // handheld, while the same receipt printed fine from laptop Chrome and the
 // Sales Report's Print Report (a normal page in a new tab) printed fine on
 // the handheld itself.
@@ -311,7 +311,7 @@ async function sharePdfFromApk(html) {
 //
 // So on a phone the receipt is printed from the page itself: its body goes
 // into a container that is hidden on screen and is the only thing shown in
-// print. Nothing is removed afterwards â€” the next print simply replaces it.
+// print. Nothing is removed afterwards — the next print simply replaces it.
 // No new tab either: a tab opened after a network call (a sale being saved
 // and signed) is blocked as a popup.
 function printInPage(html) {
@@ -351,7 +351,7 @@ function printInPage(html) {
   setTimeout(() => { try { window.print(); } catch (_) {} }, 250);
 }
 
-// â”€â”€ Path 1: Desktop / Electron â€” hidden iframe + print dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Path 1: Desktop / Electron — hidden iframe + print dialog ────────────
 function printViaIframe(html) {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
@@ -397,20 +397,20 @@ function printViaIframe(html) {
 export default function printHtml(html) {
   if (typeof document === 'undefined') return;
 
-  // 2026-08-30 â€” on an Electron till, print SILENTLY.
+  // 2026-08-30 — on an Electron till, print SILENTLY.
   //
   // printViaIframe ends in contentWindow.print(), which is the native print
-  // dialog â€” the header of this file says so plainly ("Native print dialog").
+  // dialog — the header of this file says so plainly ("Native print dialog").
   // So every receipt made the cashier pick a printer and press Print, on a
   // machine with one job and one printer.
   //
-  // The silent path already existed (main.js 'print-silent' â†’
+  // The silent path already existed (main.js 'print-silent' →
   // webContents.print({ silent: true, deviceName })) but only PrintPreview.js
   // ever called it; the receipts went through here and never reached it.
   // Fixing the deviceName it used (v1.13.163) therefore changed nothing
   // visible, because nothing was calling it.
   //
-  // Falls back to the dialog if the silent print fails â€” a cashier who cannot
+  // Falls back to the dialog if the silent print fails — a cashier who cannot
   // print at all is worse than one who has to click.
   if (typeof window !== 'undefined' && window.electronAPI?.printSilent) {
     try {
@@ -432,7 +432,7 @@ export default function printHtml(html) {
     return;
   }
 
-  // 2026-09-10 â€” inside the Kelete APK. The site runs in the app's built-in
+  // 2026-09-10 — inside the Kelete APK. The site runs in the app's built-in
   // browser, which has no print window of its own and ignores downloads, so
   // none of the paths below does anything there: pressing Print did nothing.
   // The APK's KeletePrint plugin (frontend/capacitor-plugins/kelete-print)
@@ -447,7 +447,7 @@ export default function printHtml(html) {
     } catch (_) { /* an older APK or a failed call: fall through */ }
   }
 
-  // Capacitor APK with reachable bridge â€” share via OS share sheet.
+  // Capacitor APK with reachable bridge — share via OS share sheet.
   // (The thin-shell APK loses the bridge on the redirected tenant URL,
   //  so we can only reach plugins from the bootstrap page itself.)
   if (isCapacitorBridgeReachable()) {

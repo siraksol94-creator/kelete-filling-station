@@ -1,4 +1,4 @@
-// HqConsolidatedProfit â€” group net profit rolled up across every Kelete
+// HqConsolidatedProfit — group net profit rolled up across every Kelete
 // branch. Kelete is K-only across every branch, so there's no fx
 // conversion (contrast Kelete, which needs Kassumbalesa's USD/K rate).
 // HQ overhead is SUM(payment_vouchers.amount); Kelete has no LCV
@@ -7,13 +7,13 @@
 // Only useful on the bare HQ host (keletezm.com). The
 // sidebar entry lives under the Accounting group next to Profit Report.
 //
-// v1.13.62 â€” new page (Kelete's HqConsolidatedProfit ported, K-only).
+// v1.13.62 — new page (Kelete's HqConsolidatedProfit ported, K-only).
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCw, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import { getHqConsolidatedProfit } from '../services/api';
 
 const fmtK       = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-const fmtSign    = (n) => (parseFloat(n || 0) < 0 ? 'âˆ’' : '');
+const fmtSign    = (n) => (parseFloat(n || 0) < 0 ? '−' : '');
 const firstOfMonthISO = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
@@ -55,7 +55,7 @@ export default function HqConsolidatedProfit() {
       <div className="page-header">
         <div>
           <h1>HQ Consolidated Profit</h1>
-          <p>Group net profit across every branch, in K Â· HQ overhead = payment vouchers</p>
+          <p>Group net profit across every branch, in K · HQ overhead = payment vouchers</p>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export default function HqConsolidatedProfit() {
           disabled={loading}
           style={{ padding: '9px 16px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          <FiRefreshCw /> {loading ? 'Loadingâ€¦' : 'Run'}
+          <FiRefreshCw /> {loading ? 'Loading…' : 'Run'}
         </button>
       </div>
 
@@ -91,11 +91,11 @@ export default function HqConsolidatedProfit() {
               <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.8, fontWeight: 700 }}>Group Net Profit</div>
               <div style={{ fontSize: 30, fontWeight: 800, marginTop: 2 }}>{fmtSign(groupNet)}{fmtK(Math.abs(groupNet))}</div>
               <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
-                Branch Net {fmtK(branchNetTotal)} âˆ’ HQ Overhead {fmtK(data.hq_overhead?.total)}
+                Branch Net {fmtK(branchNetTotal)} − HQ Overhead {fmtK(data.hq_overhead?.total)}
               </div>
             </div>
             <div style={{ textAlign: 'right', fontSize: 11, opacity: 0.85 }}>
-              <div>{data.from} â†’ {data.to}</div>
+              <div>{data.from} → {data.to}</div>
               <div style={{ marginTop: 4 }}>Reporting currency: {data.reporting_currency}</div>
             </div>
           </div>
@@ -163,7 +163,7 @@ export default function HqConsolidatedProfit() {
                     HQ Overhead <span style={{ fontWeight: 400, fontSize: 11, color: '#6b7280' }}>(Payment Vouchers)</span>
                   </td>
                   <td colSpan={4} />
-                  <td style={{ ...numTd, color: '#b91c1c', fontWeight: 700 }}>âˆ’{fmtK(data.hq_overhead?.total)}</td>
+                  <td style={{ ...numTd, color: '#b91c1c', fontWeight: 700 }}>−{fmtK(data.hq_overhead?.total)}</td>
                 </tr>
               </tbody>
               <tfoot>

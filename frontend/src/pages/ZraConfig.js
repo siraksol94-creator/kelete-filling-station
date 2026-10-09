@@ -1,4 +1,4 @@
-// ZRA Smart Invoice (VSDC) â€” Config + Initialize Device page.
+// ZRA Smart Invoice (VSDC) — Config + Initialize Device page.
 //
 // One-time setup screen: admin fills TPIN / BhfID / dvcSrlNo, points the
 // backend at the local VSDC URL, then clicks Initialize. On success VSDC
@@ -9,7 +9,7 @@ import {
   getZraSettings, saveZraSettings, initializeZra, getZraAuditLog,
   syncZraCodes, syncZraItemClasses, syncZraNotices, syncZraAll,
   getZraSyncState, importZraItemClassesXlsx, isHqHost,
-  // v1.13.128 â€” diagnostic + reconciliation endpoints.
+  // v1.13.128 — diagnostic + reconciliation endpoints.
   lookupZraInvoice, reconcileZraItems, syncZraRrp, reconcileZraStock, getZraBranches,
   getZraPendingFiscalisation,
   pullZraImports, getHqBranches,
@@ -29,19 +29,19 @@ const ZraConfig = () => {
     zra_bhf_id:      '',
     zra_dvc_srl_no:  '',
     zra_enabled:     0,
-    // v1.13.141 â€” T11A block-offline enforced ON by default for
-    // compliance (ZRA UAT Â§3.11 T11A: "Invoice should not be created on
+    // v1.13.141 — T11A block-offline enforced ON by default for
+    // compliance (ZRA UAT §3.11 T11A: "Invoice should not be created on
     // the CIS" when VSDC is offline). Toggle hidden from UI to prevent
     // users disabling it.
     zra_block_offline_sales: 1,
-    // v1.13.154 â€” HQ-device proxy branch (only meaningful on HQ's own
+    // v1.13.154 — HQ-device proxy branch (only meaningful on HQ's own
     // row; branches ignore it since they check their own device first).
     zra_proxy_branch_slug: '',
     zra_proxy_secret: '',
   });
   const [hqBranchList, setHqBranchList] = useState([]); // for the proxy-branch dropdown
 
-  // v1.13.175 â€” the backlog of sales rung before ZRA was connected.
+  // v1.13.175 — the backlog of sales rung before ZRA was connected.
   const [backlog, setBacklog] = useState(null);
   const [pushing, setPushing] = useState(false);
   const [pushDone, setPushDone] = useState(0);
@@ -56,10 +56,10 @@ const ZraConfig = () => {
   const [selectedAudit, setSelectedAudit] = useState(null); // v1.13.144 audit-row detail modal
   const [syncState, setSyncState] = useState({ state: [], counts: { codes: 0, itemClasses: 0, notices: 0 } });
   const [syncing, setSyncing]     = useState({ codes: false, itemClasses: false, notices: false, all: false });
-  // v1.13.37 â€” offline UNSPSC importer state. The Sync-tile is greyed
+  // v1.13.37 — offline UNSPSC importer state. The Sync-tile is greyed
   // out until the VSDC WAR is installed; the importer works standalone.
   const [importingXlsx, setImportingXlsx] = useState(false);
-  // v1.13.128 â€” Diagnostics card state. Each action has its own
+  // v1.13.128 — Diagnostics card state. Each action has its own
   // { loading, result, error } bucket so a slow reconcile doesn't block
   // the operator from clicking Sync RRP in a different tile.
   const [invcNoInput, setInvcNoInput] = useState('');
@@ -68,8 +68,8 @@ const ZraConfig = () => {
   const [diagRrp, setDiagRrp]         = useState({ loading: false, result: null, error: null });
   const [diagStock, setDiagStock]     = useState({ loading: false, result: null, error: null });
   const [diagBranches, setDiagBranches] = useState({ loading: false, result: null, error: null });
-  const [diagImports, setDiagImports] = useState({ loading: false, result: null, error: null }); // v1.13.151 â€” T05A GET IMPORTS
-  // 2026-08-27 â€” age of the oldest unfiscalised order. Polled on load so
+  const [diagImports, setDiagImports] = useState({ loading: false, result: null, error: null }); // v1.13.151 — T05A GET IMPORTS
+  // 2026-08-27 — age of the oldest unfiscalised order. Polled on load so
   // an ageing offline queue is visible without anyone going looking.
   const [pendingFisc, setPendingFisc] = useState(null);
 
@@ -93,13 +93,13 @@ const ZraConfig = () => {
         zra_proxy_branch_slug: cfg.zra_proxy_branch_slug || '',
         zra_proxy_secret: cfg.zra_proxy_secret || '',
       }));
-      // v1.13.154 â€” branch list for the proxy-branch dropdown. HQ-only;
+      // v1.13.154 — branch list for the proxy-branch dropdown. HQ-only;
       // branches never need this field so skip the extra fetch there.
       if (isHqHost()) {
         try {
           const { data } = await getHqBranches();
           setHqBranchList(Array.isArray(data?.branches) ? data.branches : []);
-        } catch { /* non-fatal â€” dropdown just stays empty */ }
+        } catch { /* non-fatal — dropdown just stays empty */ }
       }
       setInitState({
         zra_sdc_id:             cfg.zra_sdc_id,
@@ -114,14 +114,14 @@ const ZraConfig = () => {
         zra_last_copy_invc_no:  cfg.zra_last_copy_invc_no,
         zra_initialized_at:     cfg.zra_initialized_at,
       });
-      // v1.13.144 â€” audit-log endpoint now returns { rows, total, endpoints, ... }
+      // v1.13.144 — audit-log endpoint now returns { rows, total, endpoints, ... }
       // instead of a bare array. Accept either shape for backwards-compat.
       setAudit(Array.isArray(log) ? log : (Array.isArray(log?.rows) ? log.rows : []));
       setSyncState(st || { state: [], counts: { codes: 0, itemClasses: 0, notices: 0 } });
       try {
         const { data: pf } = await getZraPendingFiscalisation();
         setPendingFisc(pf);
-      } catch { /* non-fatal â€” the banner just stays hidden */ }
+      } catch { /* non-fatal — the banner just stays hidden */ }
     } catch (e) {
       setMessage({ type: 'err', text: e?.response?.data?.error || e.message });
     }
@@ -133,7 +133,7 @@ const ZraConfig = () => {
     setMessage(null);
     try {
       const { data } = await fn();
-      setMessage({ type: 'ok', text: `${label}: ${data.upserted ?? data.batches ?? 'done'}${data.note ? ' â€” ' + data.note : ''}` });
+      setMessage({ type: 'ok', text: `${label}: ${data.upserted ?? data.batches ?? 'done'}${data.note ? ' — ' + data.note : ''}` });
       load();
     } catch (e) {
       setMessage({ type: 'err', text: `${label} failed: ${e?.response?.data?.error || e.message}` });
@@ -143,8 +143,8 @@ const ZraConfig = () => {
   };
   const syncStateByEndpoint = Object.fromEntries((syncState.state || []).map(r => [r.endpoint, r]));
 
-  // v1.13.37 â€” file-picker handler for the offline UNSPSC importer.
-  // v1.13.41 â€” seed the itemClasses count from the import response's
+  // v1.13.37 — file-picker handler for the offline UNSPSC importer.
+  // v1.13.41 — seed the itemClasses count from the import response's
   //            final_count so the "rows cached" tile updates instantly
   //            even if the follow-up sync-state fetch lags.
   const handleImportUnspscXlsx = async (e) => {
@@ -157,9 +157,9 @@ const ZraConfig = () => {
       const finalCount = data.final_count ?? data.inserted;
       setMessage({
         type: 'ok',
-        text: `Imported ${data.inserted?.toLocaleString?.() || data.inserted} rows${data.skipped ? ` Â· skipped ${data.skipped}` : ''} from "${data.sheet}". ${finalCount?.toLocaleString?.() || finalCount} UNSPSC classes now cached.`,
+        text: `Imported ${data.inserted?.toLocaleString?.() || data.inserted} rows${data.skipped ? ` · skipped ${data.skipped}` : ''} from "${data.sheet}". ${finalCount?.toLocaleString?.() || finalCount} UNSPSC classes now cached.`,
       });
-      // Optimistic update â€” reflect the import in the counts tile right
+      // Optimistic update — reflect the import in the counts tile right
       // away without waiting for /sync-state.
       setSyncState(s => ({
         ...s,
@@ -177,7 +177,7 @@ const ZraConfig = () => {
   const handleSave = async () => {
     setSaving(true); setMessage(null);
     try {
-      // v1.13.93 â€” strip zra_enabled from the payload before send. The
+      // v1.13.93 — strip zra_enabled from the payload before send. The
       // backend rejects it anyway (compliance lock), but sending a stale
       // value from initial form state would surface a 400 to the user
       // for no useful reason.
@@ -197,11 +197,11 @@ const ZraConfig = () => {
     setIniting(true); setMessage(null);
     try {
       const { data } = await initializeZra();
-      setMessage({ type: 'ok', text: `Initialized. SDC ID: ${data.settings?.zra_sdc_id || 'â€”'}` });
+      setMessage({ type: 'ok', text: `Initialized. SDC ID: ${data.settings?.zra_sdc_id || '—'}` });
       load();
     } catch (e) {
       setMessage({ type: 'err', text: e?.response?.data?.error || e.message });
-      load(); // still reload â€” audit log will show the failure
+      load(); // still reload — audit log will show the failure
     }
     setIniting(false);
   };
@@ -209,10 +209,10 @@ const ZraConfig = () => {
   const isInitialized = !!initState.zra_initialized_at;
   const canInitialize = form.zra_vsdc_url && form.zra_tpin && form.zra_bhf_id && form.zra_dvc_srl_no;
 
-  // v1.13.128 â€” Diagnostics handlers. Each wraps the corresponding API
-  // helper with { loading â†’ result | error } state so the tile can show
+  // v1.13.128 — Diagnostics handlers. Each wraps the corresponding API
+  // helper with { loading → result | error } state so the tile can show
   // a spinner while pending and a coloured summary when done. Nothing
-  // reloads the whole page â€” these are side calls, not saves.
+  // reloads the whole page — these are side calls, not saves.
   const runInvcLookup = async () => {
     const n = String(invcNoInput || '').trim();
     if (!/^\d+$/.test(n)) {
@@ -263,10 +263,10 @@ const ZraConfig = () => {
       setDiagBranches({ loading: false, result: null, error: e?.response?.data?.error || e.message });
     }
   };
-  // v1.13.151 â€” T05A GET IMPORTS diagnostic. Red Sea sources 100%
-  // locally so this should always come back empty â€” that's the
+  // v1.13.151 — T05A GET IMPORTS diagnostic. Red Sea sources 100%
+  // locally so this should always come back empty — that's the
   // EXPECTED, correct result for this taxpayer, not a failure.
-  // 2026-08-26 â€” the inline approve/reject list that used to live in this
+  // 2026-08-26 — the inline approve/reject list that used to live in this
   // tile has moved to the dedicated HQ ZRA Import Queue page
   // (pages/ZraImports.js), which mirrors the Purchase Queue: destination
   // branch picker, editable quantity (T05A step 3), and status history.
@@ -330,7 +330,7 @@ const ZraConfig = () => {
 
   return (
     <div style={{ padding: 24, background: '#f8fafc', height: '100vh', overflowY: 'auto', boxSizing: 'border-box' }}>
-      {/* v1.13.175 â€” sales rung before ZRA was connected. Sits at the very
+      {/* v1.13.175 — sales rung before ZRA was connected. Sits at the very
           top because it is a one-off cutover job with a deadline: ZRA refuses
           anything more than 180 days old, and until this is empty those sales
           do not exist as far as the tax authority is concerned. Renders
@@ -357,7 +357,7 @@ const ZraConfig = () => {
             )}
             Each sale is sent with the date it actually happened, not today's.
             {backlog.reversed_excluded > 0 && (
-              <> <strong>{backlog.reversed_excluded} reversed sale(s) are NOT included</strong> â€” decide those separately.</>
+              <> <strong>{backlog.reversed_excluded} reversed sale(s) are NOT included</strong> — decide those separately.</>
             )}
             {!backlog.enabled && <> <strong>This branch is not connected to ZRA yet.</strong></>}
           </div>
@@ -371,7 +371,7 @@ const ZraConfig = () => {
               </div>
               <div style={{ fontSize: 12, color: '#92400e', marginTop: 5 }}>
                 {pushDone} of {pushTotal} accepted by ZRA
-                {pushing && ' â€” do not ring any sales until this finishes'}
+                {pushing && ' — do not ring any sales until this finishes'}
               </div>
             </div>
           )}
@@ -397,22 +397,22 @@ const ZraConfig = () => {
             Configure the local VSDC service, then initialize this device with ZRA once.
           </p>
         </div>
-        {/* v1.13.93 â€” pill promoted to authoritative reporting-status
+        {/* v1.13.93 — pill promoted to authoritative reporting-status
             indicator. Green = every sale routes to VSDC (compliant).
             Amber = device not initialised yet, sales still commit
             locally but land with zra_status='FAILED' pending retry.
 
-            2026-09-01 â€” the pill now names the ENVIRONMENT too. A green
+            2026-09-01 — the pill now names the ENVIRONMENT too. A green
             "ACTIVE" on sandbox read as compliant while nothing was reaching
             ZRA at all, and the only clue anywhere on this page was the word
             "sandbox" buried in the VSDC URL. Sandbox therefore gets its own
-            colour rather than borrowing production's green â€” the point of the
+            colour rather than borrowing production's green — the point of the
             pill is to be readable at a glance, and reassurance is exactly the
             wrong thing to show for a device filing nothing.
 
             The two sources are checked against each other. zra_env is stored
             as sent, while the environment is really decided by which URL the
-            calls go to, so the pair can disagree â€” and a device recorded as
+            calls go to, so the pair can disagree — and a device recorded as
             production while pointing at a sandbox URL is the dangerous case:
             it looks compliant and files nothing. That state gets red. */}
         {(() => {
@@ -436,14 +436,14 @@ const ZraConfig = () => {
           } else if (sandbox) {
             bg = '#e0f2fe'; fg = '#075985'; bd = '#bae6fd'; Icon = FiAlertTriangle;
             label = 'ZRA REPORTING: SANDBOX';
-            hint  = 'test only â€” nothing is filed with ZRA';
+            hint  = 'test only — nothing is filed with ZRA';
           } else if (urlKnown) {
             bg = '#dcfce7'; fg = '#166534'; bd = '#86efac'; Icon = FiCheckCircle;
-            label = 'ZRA REPORTING: ACTIVE Â· PRODUCTION';
+            label = 'ZRA REPORTING: ACTIVE · PRODUCTION';
           } else {
             // Neither the URL nor the stored value says what this device is.
             // Green is a claim of compliance and must never be reached by
-            // falling through â€” an empty URL with no stored environment used
+            // falling through — an empty URL with no stored environment used
             // to land here and print PRODUCTION.
             bg = '#fef3c7'; fg = '#a16207'; bd = '#fde68a'; Icon = FiAlertTriangle;
             label = 'ZRA REPORTING: ENVIRONMENT UNKNOWN';
@@ -460,7 +460,7 @@ const ZraConfig = () => {
               <Icon size={14} />
               {label}
               {hint && (
-                <span style={{ fontWeight: 500, opacity: 0.85 }}>â€” {hint}</span>
+                <span style={{ fontWeight: 500, opacity: 0.85 }}>— {hint}</span>
               )}
               {isInitialized && initState.zra_initialized_at && (
                 <span style={{ fontWeight: 500, opacity: 0.75 }}>
@@ -482,17 +482,17 @@ const ZraConfig = () => {
       )}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loadingâ€¦</div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
       ) : (
         <>
           {/* Editable config */}
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
             <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: '#111827' }}>Device Configuration</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-              {/* v1.13.145 â€” Environment dropdown HIDDEN per Sirak
+              {/* v1.13.145 — Environment dropdown HIDDEN per Sirak
                   2026-08-25. A cashier/admin flipping this from
-                  Production â†’ Sandbox while live would silently divert
-                  every fiscal call to sandbox â€” tax evasion by
+                  Production → Sandbox while live would silently divert
+                  every fiscal call to sandbox — tax evasion by
                   accident. Environment is now inferred from the VSDC
                   URL alone; back-end still stores zra_env for the
                   logs. Unhide by removing the false-guard if a
@@ -529,17 +529,17 @@ const ZraConfig = () => {
                   onChange={e => setForm({ ...form, zra_dvc_srl_no: e.target.value })}
                   placeholder="KELETE-POS-001" style={inputStyle} />
               </div>
-              {/* 2026-08-27 â€” VSDC proxy secret. Only needed when a till
+              {/* 2026-08-27 — VSDC proxy secret. Only needed when a till
                   has no local VSDC and reaches this branch's VSDC through
                   the VPS (Electron desktops). Copy this value into the
                   Electron install's ZRA page along with the proxy URL;
                   vsdcClient then sends it automatically on every call.
                   Shown as a normal field so it can be copied and rotated
-                  â€” it authenticates a machine, not a person. */}
+                  — it authenticates a machine, not a person. */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>
                   VSDC proxy secret
-                  <span style={{ fontWeight: 400, color: '#6b7280' }}> â€” only for tills with no local VSDC (Electron)</span>
+                  <span style={{ fontWeight: 400, color: '#6b7280' }}> — only for tills with no local VSDC (Electron)</span>
                 </label>
                 <input type="text" value={form.zra_proxy_secret || ''}
                   onChange={e => setForm({ ...form, zra_proxy_secret: e.target.value })}
@@ -547,26 +547,26 @@ const ZraConfig = () => {
                 <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, lineHeight: 1.6 }}>
                   On an Electron till set <strong>VSDC URL</strong> to
                   {' '}<code>https://&lt;branch&gt;.keletezm.com/api/zra/vsdc-proxy</code>{' '}
-                  and paste this secret here. The desktop then fiscalises through the VPS â€”
+                  and paste this secret here. The desktop then fiscalises through the VPS —
                   no Tomcat needed locally, and VSDC itself stays private.
                   <br />
-                  {/* 2026-08-27 â€” the BRANCH subdomain, not the bare host.
+                  {/* 2026-08-27 — the BRANCH subdomain, not the bare host.
                       The bare host is HQ and resolves to HQ's database, whose
-                      settings row holds a different secret â€” so a branch's
+                      settings row holds a different secret — so a branch's
                       secret is rejected there. Each branch has its own VSDC
                       device and its own secret, so a till must address its
                       own branch. Getting this wrong cost a debugging round. */}
                   <strong>Use the branch subdomain</strong> (e.g. <code>garden.</code>), not the bare
-                  domain â€” the bare domain is HQ and holds a different secret.
+                  domain — the bare domain is HQ and holds a different secret.
                 </div>
               </div>
-              {/* v1.13.154 â€” HQ-device proxy branch. HQ has no VSDC
-                  device of its own by default (Pattern A) â€” the T06A
+              {/* v1.13.154 — HQ-device proxy branch. HQ has no VSDC
+                  device of its own by default (Pattern A) — the T06A
                   Purchase Queue page needs SOME device to talk to ZRA,
                   so this picks which branch's device to route through.
                   HQ-only (isHqHost()): branches always use their own
-                  device and never read this column. "â€” use my own
-                  device â€”" clears it, for once HQ ever registers
+                  device and never read this column. "— use my own
+                  device —" clears it, for once HQ ever registers
                   directly. */}
               {isHqHost() && (
               <div>
@@ -574,38 +574,38 @@ const ZraConfig = () => {
                 <select value={form.zra_proxy_branch_slug}
                   onChange={e => setForm({ ...form, zra_proxy_branch_slug: e.target.value })}
                   style={inputStyle}>
-                  <option value="">â€” use my own device (once registered) â€”</option>
+                  <option value="">— use my own device (once registered) —</option>
                   {hqBranchList.map(b => <option key={b.slug} value={b.slug}>{b.name} ({b.slug})</option>)}
                 </select>
               </div>
               )}
-              {/* v1.13.93 â€” "Route sales through VSDC" checkbox removed.
-                  ZRA compliance means every sale MUST route through VSDC â€”
+              {/* v1.13.93 — "Route sales through VSDC" checkbox removed.
+                  ZRA compliance means every sale MUST route through VSDC —
                   the operator was never supposed to have an off switch.
                   Enabled auto-flips to 1 on successful Initialize Device;
                   reporting status is shown by the pill in the header
                   above. Backend PUT /zra/settings now rejects any
                   zra_enabled in the body. */}
-              {/* v1.13.141 â€” T11A offline-block toggle hidden from the UI.
+              {/* v1.13.141 — T11A offline-block toggle hidden from the UI.
                   Per Sirak 2026-08-25: T11A mandates strict blocking
                   ("Invoice should not be created on the CIS" when VSDC is
                   offline), so it is enforced ON and hidden from Cashier /
-                  Manager / Admin â€” nobody turns compliance off by
+                  Manager / Admin — nobody turns compliance off by
                   accident.
-                  2026-08-27 â€” now visible on ELECTRON TILLS ONLY.
+                  2026-08-27 — now visible on ELECTRON TILLS ONLY.
                   A desktop till has no local VSDC and reaches the VPS
                   through the proxy, so losing internet means losing
-                  fiscalisation â€” and ZRA has confirmed queuing is
+                  fiscalisation — and ZRA has confirmed queuing is
                   acceptable in that case. A till therefore needs the
                   choice; the web app (HQ and branch browsers) still
                   cannot see or change it, because there the VSDC sits on
                   the same server and an outage is an ops problem, not a
                   trading one. */}
-              {/* 2026-08-30 â€” visible everywhere, not just on a till.
+              {/* 2026-08-30 — visible everywhere, not just on a till.
                   Hidden behind isElectronUa() while the till was the only
                   place it mattered. The first go-live is web-only, so this
-                  switch â€” the one that decides whether a sale may proceed
-                  when VSDC cannot be reached â€” would have been unreachable
+                  switch — the one that decides whether a sale may proceed
+                  when VSDC cannot be reached — would have been unreachable
                   during a ZRA launch. */}
               {(
               <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', marginTop: 4, background: form.zra_block_offline_sales ? '#fef3c7' : '#f9fafb', border: `1.5px solid ${form.zra_block_offline_sales ? '#fbbf24' : '#e5e7eb'}`, borderRadius: 8 }}>
@@ -622,9 +622,9 @@ const ZraConfig = () => {
                     ? <span style={{ marginLeft: 8, padding: '1px 8px', background: '#f59e0b', color: '#fff', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>ON</span>
                     : <span style={{ marginLeft: 8, padding: '1px 8px', background: '#dc2626', color: '#fff', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>OFF</span>}
                   <div style={{ fontWeight: 400, fontSize: 11, color: '#6b7280', marginTop: 4 }}>
-                    <strong>ON</strong> â€” no sale is made without a fiscal receipt. Strictest reading of T11A.
+                    <strong>ON</strong> — no sale is made without a fiscal receipt. Strictest reading of T11A.
                     <br />
-                    <strong>OFF</strong> â€” the till keeps selling with a <em>provisional</em> receipt and the
+                    <strong>OFF</strong> — the till keeps selling with a <em>provisional</em> receipt and the
                     invoice is fiscalised once it reconnects. The customer leaves with no QR or signature
                     until then, so only use this where ZRA has agreed to queuing.
                   </div>
@@ -636,12 +636,12 @@ const ZraConfig = () => {
             <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
               <button onClick={handleSave} disabled={saving}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 8, border: 'none', background: saving ? '#9ca3af' : '#2563eb', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
-                <FiSave size={15} /> {saving ? 'Savingâ€¦' : 'Save Configuration'}
+                <FiSave size={15} /> {saving ? 'Saving…' : 'Save Configuration'}
               </button>
               <button onClick={handleInitialize} disabled={initing || !canInitialize}
                 title={!canInitialize ? 'Save configuration first' : 'Register this device with VSDC now'}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 8, border: 'none', background: (!canInitialize || initing) ? '#9ca3af' : '#16a34a', color: '#fff', cursor: (!canInitialize || initing) ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
-                <FiPlay size={15} /> {initing ? 'Initializingâ€¦' : 'Initialize Device'}
+                <FiPlay size={15} /> {initing ? 'Initializing…' : 'Initialize Device'}
               </button>
               <button onClick={load} disabled={loading}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
@@ -650,7 +650,7 @@ const ZraConfig = () => {
             </div>
           </div>
 
-          {/* Init state (read-only) â€” v1.13.145: counters HIDDEN per
+          {/* Init state (read-only) — v1.13.145: counters HIDDEN per
               Sirak 2026-08-25. ZRA T01A verification only requires
               device status = "Activated"; the counters (VAT Type
               Code, Last Invoice No, Last Sale Invoice No, Last
@@ -670,16 +670,16 @@ const ZraConfig = () => {
               ].map(([label, value]) => (
                 <div key={label} style={{ padding: 12, borderRadius: 8, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
                   <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: value ? '#111827' : '#cbd5e1', fontFamily: 'monospace' }}>{value ?? 'â€”'}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: value ? '#111827' : '#cbd5e1', fontFamily: 'monospace' }}>{value ?? '—'}</div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* v1.13.37 â€” Offline UNSPSC importer. Populates
+          {/* v1.13.37 — Offline UNSPSC importer. Populates
               zra_item_classes from ZRA's Excel file, so Item Details
               dropdowns work before the VSDC WAR is installed.
-              v1.13.98 â€” Hidden on branches. Classification is HQ-owned
+              v1.13.98 — Hidden on branches. Classification is HQ-owned
               (v1.13.86 locked the fields), branches only display
               read-only codes. The VSDC sync tile below populates the
               local table once VSDC WAR is live on that branch. */}
@@ -689,7 +689,7 @@ const ZraConfig = () => {
               <div style={{ flex: 1, minWidth: 260 }}>
                 <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Import UNSPSC from Excel</h3>
                 <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>
-                  Bulk-load the ZRA-published <strong>UNSPSC-Classification-Codes.xlsx</strong> straight into the local database. Use this to unblock Item Details before the VSDC WAR is installed â€” you can still re-sync from VSDC later.
+                  Bulk-load the ZRA-published <strong>UNSPSC-Classification-Codes.xlsx</strong> straight into the local database. Use this to unblock Item Details before the VSDC WAR is installed — you can still re-sync from VSDC later.
                 </p>
                 <p style={{ margin: '6px 0 0', fontSize: 11, color: '#9ca3af' }}>
                   Rows currently cached: <strong style={{ color: '#111827' }}>{syncState.counts.itemClasses.toLocaleString()}</strong>
@@ -697,7 +697,7 @@ const ZraConfig = () => {
               </div>
               <div>
                 <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1.5px solid #0ea5e9', background: importingXlsx ? '#f3f4f6' : '#fff', color: importingXlsx ? '#9ca3af' : '#0ea5e9', cursor: importingXlsx ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
-                  <FiDownloadCloud size={14} /> {importingXlsx ? 'Importingâ€¦' : 'Pick Excel file'}
+                  <FiDownloadCloud size={14} /> {importingXlsx ? 'Importing…' : 'Pick Excel file'}
                   <input type="file" accept=".xlsx,.xls" onChange={handleImportUnspscXlsx} disabled={importingXlsx} style={{ display: 'none' }} />
                 </label>
               </div>
@@ -705,7 +705,7 @@ const ZraConfig = () => {
           </div>
           )}
 
-          {/* Data Sync â€” Codes / UNSPSC / Notices */}
+          {/* Data Sync — Codes / UNSPSC / Notices */}
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Data Sync (from VSDC)</h3>
@@ -714,15 +714,15 @@ const ZraConfig = () => {
                   setSyncing(s => ({ ...s, all: true })); setMessage(null);
                   try {
                     const { data } = await syncZraAll();
-                    const parts = Object.entries(data).map(([k, v]) => `${k}: ${v?.error ? 'âŒ ' + v.error : (v?.upserted ?? v?.batches ?? 'ok')}`);
-                    setMessage({ type: 'ok', text: 'Sync All â†’ ' + parts.join(' Â· ') });
+                    const parts = Object.entries(data).map(([k, v]) => `${k}: ${v?.error ? '❌ ' + v.error : (v?.upserted ?? v?.batches ?? 'ok')}`);
+                    setMessage({ type: 'ok', text: 'Sync All → ' + parts.join(' · ') });
                   } catch (e) { setMessage({ type: 'err', text: e?.response?.data?.error || e.message }); }
                   setSyncing(s => ({ ...s, all: false })); load();
                 }}
                 disabled={syncing.all || !isInitialized}
                 title={!isInitialized ? 'Initialize the device first' : 'Run all three syncs in sequence'}
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 8, border: 'none', background: (syncing.all || !isInitialized) ? '#9ca3af' : '#7c3aed', color: '#fff', cursor: (syncing.all || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
-                <FiDownloadCloud size={14} /> {syncing.all ? 'Syncing allâ€¦' : 'Sync All'}
+                <FiDownloadCloud size={14} /> {syncing.all ? 'Syncing all…' : 'Sync All'}
               </button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
@@ -745,7 +745,7 @@ const ZraConfig = () => {
                     <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
                       Last pulled: {st.last_pulled_at
                         ? new Date(/[TZ]/.test(st.last_pulled_at) ? st.last_pulled_at : st.last_pulled_at.replace(' ', 'T') + 'Z').toLocaleString('en-GB', { hour12: false })
-                        : 'â€”'}
+                        : '—'}
                       {st.last_result_cd && (
                         <span style={{ marginLeft: 6, padding: '1px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: okBadge ? '#dcfce7' : '#fef2f2', color: okBadge ? '#166534' : '#b91c1c' }}>{st.last_result_cd}</span>
                       )}
@@ -758,7 +758,7 @@ const ZraConfig = () => {
                     <button onClick={card.run} disabled={syncing[card.key] || !isInitialized}
                       title={!isInitialized ? 'Initialize the device first' : 'Sync now'}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (syncing[card.key] || !isInitialized) ? '#f3f4f6' : '#fff', color: (syncing[card.key] || !isInitialized) ? '#9ca3af' : '#2563eb', cursor: (syncing[card.key] || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                      <FiDownloadCloud size={12} /> {syncing[card.key] ? 'Syncingâ€¦' : 'Sync Now'}
+                      <FiDownloadCloud size={12} /> {syncing[card.key] ? 'Syncing…' : 'Sync Now'}
                     </button>
                   </div>
                 );
@@ -766,9 +766,9 @@ const ZraConfig = () => {
             </div>
           </div>
 
-          {/* 2026-08-27 â€” Ageing unfiscalised queue.
+          {/* 2026-08-27 — Ageing unfiscalised queue.
               A provisional receipt is already in the customer's hand, and
-              ZRA rejects sales submitted too late (921/922) â€” so a queue
+              ZRA rejects sales submitted too late (921/922) — so a queue
               that quietly ages is a compliance risk, not just a backlog.
               Shown only when something is actually pending. */}
           {pendingFisc && pendingFisc.pending > 0 && (
@@ -780,7 +780,7 @@ const ZraConfig = () => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 14, color: pendingFisc.breached ? '#991b1b' : '#92400e' }}>
                 <FiAlertTriangle size={16} />
                 {pendingFisc.pending} invoice{pendingFisc.pending > 1 ? 's' : ''} awaiting fiscalisation
-                {pendingFisc.breached && ' â€” ACT NOW'}
+                {pendingFisc.breached && ' — ACT NOW'}
               </div>
               <div style={{ fontSize: 12, color: '#374151', marginTop: 6, lineHeight: 1.7 }}>
                 Oldest is <strong>{pendingFisc.oldest_age_hours} hours</strong> old
@@ -791,30 +791,30 @@ const ZraConfig = () => {
               </div>
               {(pendingFisc.orders || []).slice(0, 3).map(o => (
                 <div key={o.id} style={{ fontSize: 11, color: '#6b7280', marginTop: 4, fontFamily: 'monospace' }}>
-                  {o.order_number} Â· {o.age_hours}h Â· {o.retries} retries
-                  {o.zra_error_code ? ` Â· [${o.zra_error_code}]` : ''}
+                  {o.order_number} · {o.age_hours}h · {o.retries} retries
+                  {o.zra_error_code ? ` · [${o.zra_error_code}]` : ''}
                 </div>
               ))}
             </div>
           )}
 
-          {/* v1.13.128 â€” ZRA Diagnostics.
+          {/* v1.13.128 — ZRA Diagnostics.
               Five operator-facing tools that were previously endpoint-only:
-                â€¢ Invoice status lookup â€” "did ZRA get invoice N?"
-                â€¢ Item reconciliation    â€” local products vs ZRA registry drift
-                â€¢ Manufacturer RRP sync  â€” refresh MTV Category B pricing
-                â€¢ Stock drift            â€” local current_stock vs ZRA ledger
-                â€¢ Branch list            â€” ZRA's registered bhfIds for this TPIN
-              All disabled until the device is initialized (no cfg â†’ nothing
+                • Invoice status lookup — "did ZRA get invoice N?"
+                • Item reconciliation    — local products vs ZRA registry drift
+                • Manufacturer RRP sync  — refresh MTV Category B pricing
+                • Stock drift            — local current_stock vs ZRA ledger
+                • Branch list            — ZRA's registered bhfIds for this TPIN
+              All disabled until the device is initialized (no cfg → nothing
               to call). Each tile carries its own state so a slow reconcile
               doesn't block clicking another button.  */}
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
             <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#111827' }}>ZRA Diagnostics</h3>
             <p style={{ margin: '0 0 16px', fontSize: 12, color: '#6b7280' }}>
-              On-demand reconciliation + lookup tools. Nothing here changes fiscal state â€” reads and non-destructive updates only.
+              On-demand reconciliation + lookup tools. Nothing here changes fiscal state — reads and non-destructive updates only.
             </p>
 
-            {/* Invoice status lookup â€” text input + button + inline result */}
+            {/* Invoice status lookup — text input + button + inline result */}
             <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6', marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#374151' }}>
                 <FiSearch size={13} /> Invoice status on ZRA
@@ -831,7 +831,7 @@ const ZraConfig = () => {
                 <button onClick={runInvcLookup} disabled={diagInvc.loading || !isInitialized || !invcNoInput}
                   title={!isInitialized ? 'Initialize the device first' : 'Query ZRA for this invoice'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#f3f4f6' : '#2563eb', color: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#9ca3af' : '#fff', cursor: (diagInvc.loading || !isInitialized || !invcNoInput) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
-                  {diagInvc.loading ? 'Checkingâ€¦' : 'Look up'}
+                  {diagInvc.loading ? 'Checking…' : 'Look up'}
                 </button>
               </div>
               {diagInvc.error && (
@@ -841,19 +841,19 @@ const ZraConfig = () => {
                 <div style={{ marginTop: 10, padding: 10, borderRadius: 6, background: diagInvc.result.exists ? '#f0fdf4' : '#fef2f2', border: `1px solid ${diagInvc.result.exists ? '#86efac' : '#fecaca'}`, fontSize: 12 }}>
                   {diagInvc.result.exists ? (
                     <>
-                      <div style={{ fontWeight: 700, color: '#166534', marginBottom: 4 }}>âœ“ Invoice {diagInvc.result.invcNo} exists on ZRA</div>
+                      <div style={{ fontWeight: 700, color: '#166534', marginBottom: 4 }}>✓ Invoice {diagInvc.result.invcNo} exists on ZRA</div>
                       <div style={{ color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>
-                        Receipt: {diagInvc.result.data?.rcptNo ?? 'â€”'} Â· SDC: {diagInvc.result.data?.sdcId ?? 'â€”'} Â· Signed: {diagInvc.result.data?.vsdcRcptPbctDate ?? 'â€”'}
+                        Receipt: {diagInvc.result.data?.rcptNo ?? '—'} · SDC: {diagInvc.result.data?.sdcId ?? '—'} · Signed: {diagInvc.result.data?.vsdcRcptPbctDate ?? '—'}
                       </div>
                     </>
                   ) : (
-                    <div style={{ fontWeight: 700, color: '#b91c1c' }}>âœ— Invoice {diagInvc.result.invcNo} not found on ZRA</div>
+                    <div style={{ fontWeight: 700, color: '#b91c1c' }}>✗ Invoice {diagInvc.result.invcNo} not found on ZRA</div>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Four action tiles â€” reconcile items / sync RRP / stock drift / branches */}
+            {/* Four action tiles — reconcile items / sync RRP / stock drift / branches */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
               {/* Item reconciliation */}
               <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
@@ -866,12 +866,12 @@ const ZraConfig = () => {
                 <button onClick={runReconcileItems} disabled={diagItems.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Run reconciliation now'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagItems.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagItems.loading || !isInitialized) ? '#9ca3af' : '#2563eb', cursor: (diagItems.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  <FiRefreshCw size={12} /> {diagItems.loading ? 'Checkingâ€¦' : 'Reconcile'}
+                  <FiRefreshCw size={12} /> {diagItems.loading ? 'Checking…' : 'Reconcile'}
                 </button>
                 {diagItems.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagItems.error}</div>}
                 {diagItems.result && !diagItems.error && (
                   <div style={{ marginTop: 8, fontSize: 11, color: '#374151', lineHeight: 1.7 }}>
-                    <div>ZRA: <strong>{diagItems.result.total_on_zra}</strong> Â· Local: <strong>{diagItems.result.total_local}</strong></div>
+                    <div>ZRA: <strong>{diagItems.result.total_on_zra}</strong> · Local: <strong>{diagItems.result.total_local}</strong></div>
                     <div>Matched: <strong style={{ color: '#166534' }}>{diagItems.result.matched}</strong></div>
                     {diagItems.result.unregistered_locally > 0 && <div style={{ color: '#a16207' }}>Never pushed: <strong>{diagItems.result.unregistered_locally}</strong></div>}
                     {diagItems.result.missing_on_zra > 0     && <div style={{ color: '#b91c1c' }}>Missing on ZRA: <strong>{diagItems.result.missing_on_zra}</strong></div>}
@@ -892,7 +892,7 @@ const ZraConfig = () => {
                 <button onClick={runRrpSync} disabled={diagRrp.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Pull RRPs now'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #16a34a', background: (diagRrp.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagRrp.loading || !isInitialized) ? '#9ca3af' : '#16a34a', cursor: (diagRrp.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  <FiDownloadCloud size={12} /> {diagRrp.loading ? 'Syncingâ€¦' : 'Sync RRPs'}
+                  <FiDownloadCloud size={12} /> {diagRrp.loading ? 'Syncing…' : 'Sync RRPs'}
                 </button>
                 {diagRrp.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagRrp.error}</div>}
                 {diagRrp.result && !diagRrp.error && (
@@ -915,15 +915,15 @@ const ZraConfig = () => {
                 <button onClick={runStockReconcile} disabled={diagStock.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Check stock drift now'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #f59e0b', background: (diagStock.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagStock.loading || !isInitialized) ? '#9ca3af' : '#f59e0b', cursor: (diagStock.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  <FiRefreshCw size={12} /> {diagStock.loading ? 'Checkingâ€¦' : 'Check drift'}
+                  <FiRefreshCw size={12} /> {diagStock.loading ? 'Checking…' : 'Check drift'}
                 </button>
                 {diagStock.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagStock.error}</div>}
                 {diagStock.result && !diagStock.error && (
                   <div style={{ marginTop: 8, fontSize: 11, color: '#374151', lineHeight: 1.7 }}>
-                    <div>Items on ZRA: <strong>{diagStock.result.unique_items_on_zra ?? 0}</strong> Â· Matched local: <strong>{diagStock.result.matched_local ?? 0}</strong></div>
+                    <div>Items on ZRA: <strong>{diagStock.result.unique_items_on_zra ?? 0}</strong> · Matched local: <strong>{diagStock.result.matched_local ?? 0}</strong></div>
                     {diagStock.result.zra_result_note && (
                       <div style={{ color: '#b45309' }}>
-                        ZRA answered: <strong>{diagStock.result.zra_result_cd || 'â€”'} {diagStock.result.zra_result_note}</strong> â€” an empty list here is ZRA's own response, not a local filter.
+                        ZRA answered: <strong>{diagStock.result.zra_result_cd || '—'} {diagStock.result.zra_result_note}</strong> — an empty list here is ZRA's own response, not a local filter.
                       </div>
                     )}
                     <div style={{ color: diagStock.result.drift_count > 0 ? '#b91c1c' : '#166534' }}>
@@ -933,18 +933,18 @@ const ZraConfig = () => {
                       <div style={{ marginTop: 6, maxHeight: 120, overflowY: 'auto', fontSize: 10, fontFamily: 'monospace' }}>
                         {(diagStock.result.drifts || []).slice(0, 5).map(d => (
                           <div key={d.id} style={{ padding: '2px 0', color: '#6b7280' }}>
-                            {d.name}: local {d.local} Â· ZRA movements {d.zra_movement_qty ?? 'â€”'}
+                            {d.name}: local {d.local} · ZRA movements {d.zra_movement_qty ?? '—'}
                             {d.zra_movement_records ? ` (${d.zra_movement_records} rec)` : ''}
-                            {d.note ? ` â€” ${d.note}` : ''}
+                            {d.note ? ` — ${d.note}` : ''}
                           </div>
                         ))}
-                        {diagStock.result.drift_count > 5 && <div style={{ padding: '2px 0', color: '#9ca3af' }}>â€¦ and {diagStock.result.drift_count - 5} more</div>}
+                        {diagStock.result.drift_count > 5 && <div style={{ padding: '2px 0', color: '#9ca3af' }}>… and {diagStock.result.drift_count - 5} more</div>}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* 2026-08-26 â€” "Fix drift" button removed. It computed a
+                {/* 2026-08-26 — "Fix drift" button removed. It computed a
                     correction from an rsdQty (residual) field that
                     /stock/selectStockItems does not actually return, so its
                     delta treated ZRA as holding zero of everything. Backend
@@ -953,14 +953,14 @@ const ZraConfig = () => {
                     Stock Inventory page is the authoritative read. */}
                 <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed #e5e7eb', fontSize: 11, color: '#6b7280', lineHeight: 1.6 }}>
                   This endpoint returns ZRA's <strong>movement ledger</strong> (per-movement quantities), not residual
-                  stock levels â€” residual is push-only on VSDC. Compare residuals on the ZRA portal's
+                  stock levels — residual is push-only on VSDC. Compare residuals on the ZRA portal's
                   Stock Inventory page.
                 </div>
               </div>
 
-              {/* v1.13.151 â€” T05A Import declarations. Spec marks GET
+              {/* v1.13.151 — T05A Import declarations. Spec marks GET
                   IMPORTS mandatory even though Red Sea (100% local
-                  suppliers) will always get back an empty list â€” this
+                  suppliers) will always get back an empty list — this
                   tile demonstrates the CIS CAN make the call and
                   handles "no data" gracefully, which is the correct,
                   expected result for this taxpayer's business scope. */}
@@ -969,21 +969,21 @@ const ZraConfig = () => {
                   <FiDownloadCloud size={13} /> Import declarations (ASYCUDA)
                 </div>
                 <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
-                  Pull import declarations Smart Invoice has for our TPIN. Red Sea sources locally â€” an empty result here is expected and correct.
+                  Pull import declarations Smart Invoice has for our TPIN. Red Sea sources locally — an empty result here is expected and correct.
                 </div>
                 <button onClick={runImportsPull} disabled={diagImports.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Pull import declarations now'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #0ea5e9', background: (diagImports.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagImports.loading || !isInitialized) ? '#9ca3af' : '#0ea5e9', cursor: (diagImports.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  <FiDownloadCloud size={12} /> {diagImports.loading ? 'Pullingâ€¦' : 'Pull imports'}
+                  <FiDownloadCloud size={12} /> {diagImports.loading ? 'Pulling…' : 'Pull imports'}
                 </button>
                 {diagImports.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagImports.error}</div>}
                 {diagImports.result && !diagImports.error && (
                   <div style={{ marginTop: 8, fontSize: 11, color: '#374151' }}>
                     <div>Declaration lines pulled: <strong style={{ color: (diagImports.result.pulled || 0) === 0 ? '#166534' : '#111827' }}>{diagImports.result.pulled ?? 0}</strong>
-                      {diagImports.result.inserted != null && <span style={{ color: '#6b7280' }}> Â· {diagImports.result.inserted} new</span>}
+                      {diagImports.result.inserted != null && <span style={{ color: '#6b7280' }}> · {diagImports.result.inserted} new</span>}
                     </div>
                     {(diagImports.result.pulled || 0) === 0 ? (
-                      <div style={{ color: '#9ca3af', marginTop: 2 }}>âœ“ Expected â€” no ASYCUDA declarations for this TPIN.</div>
+                      <div style={{ color: '#9ca3af', marginTop: 2 }}>✓ Expected — no ASYCUDA declarations for this TPIN.</div>
                     ) : (
                       <div style={{ color: '#b45309', marginTop: 4 }}>
                         Review and decide them on the <strong>HQ ZRA Import Queue</strong> page.
@@ -1004,7 +1004,7 @@ const ZraConfig = () => {
                 <button onClick={runBranchesList} disabled={diagBranches.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Fetch ZRA branches'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #7c3aed', background: (diagBranches.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagBranches.loading || !isInitialized) ? '#9ca3af' : '#7c3aed', cursor: (diagBranches.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
-                  <FiPackage size={12} /> {diagBranches.loading ? 'Loadingâ€¦' : 'Show branches'}
+                  <FiPackage size={12} /> {diagBranches.loading ? 'Loading…' : 'Show branches'}
                 </button>
                 {diagBranches.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagBranches.error}</div>}
                 {diagBranches.result && !diagBranches.error && (
@@ -1013,8 +1013,8 @@ const ZraConfig = () => {
                     <div style={{ maxHeight: 140, overflowY: 'auto', fontSize: 10, fontFamily: 'monospace' }}>
                       {(diagBranches.result.branches || []).map((b, i) => (
                         <div key={i} style={{ padding: '3px 0', color: '#6b7280', borderTop: i > 0 ? '1px dashed #e5e7eb' : 'none' }}>
-                          <strong style={{ color: '#111827' }}>{b.bhfId || 'â€”'}</strong> Â· {b.bhfNm || 'â€”'}
-                          {b.locDesc && <span style={{ color: '#9ca3af' }}> Â· {b.locDesc}</span>}
+                          <strong style={{ color: '#111827' }}>{b.bhfId || '—'}</strong> · {b.bhfNm || '—'}
+                          {b.locDesc && <span style={{ color: '#9ca3af' }}> · {b.locDesc}</span>}
                         </div>
                       ))}
                     </div>
@@ -1024,13 +1024,13 @@ const ZraConfig = () => {
             </div>
           </div>
 
-          {/* Audit log â€” v1.13.144: rows clickable, opens detail modal with
+          {/* Audit log — v1.13.144: rows clickable, opens detail modal with
               full request_body + response_body. Reviewer can inspect every
               VSDC round-trip without SSHing to the VPS. */}
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Recent VSDC Calls</h3>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>{audit.length} entr{audit.length === 1 ? 'y' : 'ies'} Â· click a row for full request/response</span>
+              <span style={{ fontSize: 12, color: '#9ca3af' }}>{audit.length} entr{audit.length === 1 ? 'y' : 'ies'} · click a row for full request/response</span>
             </div>
             {audit.length === 0 ? (
               <div style={{ padding: 24, color: '#9ca3af', fontSize: 13, textAlign: 'center' }}>No VSDC calls yet. Click Initialize Device to make the first one.</div>
@@ -1056,18 +1056,18 @@ const ZraConfig = () => {
                             onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
                             onMouseLeave={e => e.currentTarget.style.background = ''}>
                           <td style={{ padding: '10px 12px', color: '#374151', whiteSpace: 'nowrap' }}>{(() => {
-                            const raw = r.created_at || r.created_at_local; if (!raw) return 'â€”';
+                            const raw = r.created_at || r.created_at_local; if (!raw) return '—';
                             const iso = /[TZ]/.test(raw) ? raw : raw.replace(' ', 'T') + 'Z';
                             return new Date(iso).toLocaleString('en-GB', { hour12: false });
                           })()}</td>
                           <td style={{ padding: '10px 12px', color: '#6b7280', fontFamily: 'monospace', fontSize: 12 }}>{r.endpoint}</td>
                           <td style={{ padding: '10px 12px' }}>
                             <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: ok ? '#dcfce7' : '#fef2f2', color: ok ? '#166534' : '#b91c1c' }}>
-                              {r.result_cd || 'â€”'}
+                              {r.result_cd || '—'}
                             </span>
                           </td>
-                          <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 12, maxWidth: 400, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.result_msg || 'â€”'}</td>
-                          <td style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontFamily: 'monospace' }}>{r.duration_ms ?? 'â€”'}</td>
+                          <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 12, maxWidth: 400, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.result_msg || '—'}</td>
+                          <td style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontFamily: 'monospace' }}>{r.duration_ms ?? '—'}</td>
                         </tr>
                       );
                     })}
@@ -1077,7 +1077,7 @@ const ZraConfig = () => {
             )}
           </div>
 
-          {/* v1.13.144 â€” Audit-row detail modal. Pretty-prints the JSON
+          {/* v1.13.144 — Audit-row detail modal. Pretty-prints the JSON
               request and response bodies so the ZRA reviewer sees exactly
               what left the CIS and what VSDC responded. */}
           {selectedAudit && (() => {
@@ -1097,18 +1097,18 @@ const ZraConfig = () => {
                     <div>
                       <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', fontFamily: 'monospace' }}>{selectedAudit.endpoint}</div>
                       <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{(() => {
-                        const raw = selectedAudit.created_at || selectedAudit.created_at_local; if (!raw) return 'â€”';
+                        const raw = selectedAudit.created_at || selectedAudit.created_at_local; if (!raw) return '—';
                         const iso = /[TZ]/.test(raw) ? raw : raw.replace(' ', 'T') + 'Z';
                         return new Date(iso).toLocaleString('en-GB', { hour12: false });
-                      })()} Â· {selectedAudit.duration_ms ?? 'â€”'} ms Â· HTTP {selectedAudit.http_status ?? 'â€”'}</div>
+                      })()} · {selectedAudit.duration_ms ?? '—'} ms · HTTP {selectedAudit.http_status ?? '—'}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <span style={{ display: 'inline-block', padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, background: ok ? '#dcfce7' : '#fef2f2', color: ok ? '#166534' : '#b91c1c' }}>
-                        {selectedAudit.result_cd || 'â€”'} {selectedAudit.result_msg ? 'Â· ' + selectedAudit.result_msg : ''}
+                        {selectedAudit.result_cd || '—'} {selectedAudit.result_msg ? '· ' + selectedAudit.result_msg : ''}
                       </span>
                       <button onClick={() => setSelectedAudit(null)}
                               style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b7280', lineHeight: 1 }}
-                              title="Close">Ã—</button>
+                              title="Close">×</button>
                     </div>
                   </div>
                   {/* Body panels */}
@@ -1123,7 +1123,7 @@ const ZraConfig = () => {
             );
           })()}
 
-          {/* v1.13.98 â€” "Onboarding steps" banner removed at user
+          {/* v1.13.98 — "Onboarding steps" banner removed at user
               request. One-time setup checklist that added no value once
               the device was initialised. Sandbox portal still reachable
               at https://sandboxportal.zra.org.zm/ if needed later. */}

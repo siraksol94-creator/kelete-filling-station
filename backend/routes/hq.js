@@ -1,13 +1,13 @@
 /**
- * hq.js â€” HQ (head-office) endpoints served at the bare keletezm.com domain.
+ * hq.js — HQ (head-office) endpoints served at the bare keletezm.com domain.
  *
  * Phase B v1 surfaces:
- *   GET /api/hq/branches  â€” public list of registered tenant slugs so the
+ *   GET /api/hq/branches  — public list of registered tenant slugs so the
  *                           HQ login page can render a branch picker. No
  *                           auth required; the response is just slugs +
  *                           display names, no secrets.
  *
- * Future endpoints (Phase D â€” consolidated reports) will live here too and
+ * Future endpoints (Phase D — consolidated reports) will live here too and
  * use the same X-Branch header pattern to read across all tenant DBs.
  *
  * Why a dedicated router instead of extending tenantAdmin: tenantAdmin is
@@ -27,7 +27,7 @@ const { requirePagePerm } = require('../middleware/auth');
 const { recalculateDailyProfit } = require('../config/profitHelper');
 const { buildVatLines } = require('../services/vatReport');
 
-// HQ admin auth â€” same JWT model the per-branch app uses. The token comes
+// HQ admin auth — same JWT model the per-branch app uses. The token comes
 // from whichever branch the user picked at login; we trust it as proof of
 // identity and don't enforce any per-branch role check here (the user
 // already has admin powers on the branch they're signed into, and HQ
@@ -43,23 +43,23 @@ function hqAuth(req, res, next) {
   }
 }
 
-// Safe-int helper â€” bails to 0 if the column is missing on an older DB.
+// Safe-int helper — bails to 0 if the column is missing on an older DB.
 function tryGet(db, sql, params = []) {
   try { return db.prepare(sql).get(...(Array.isArray(params) ? params : [params])); }
   catch { return null; }
 }
 
-// GET /api/hq/branches â€” list registered tenants for the HQ login picker.
+// GET /api/hq/branches — list registered tenants for the HQ login picker.
 // Returns at most slug + business_name + currency_mode. Anything that
 // would help an attacker target a specific branch (status counts,
-// license expiry, etc.) stays out â€” that's tenantAdmin territory.
-// v1.10.54 â€” currency_mode added so the HQ Purchase / Send Transfer
+// license expiry, etc.) stays out — that's tenantAdmin territory.
+// v1.10.54 — currency_mode added so the HQ Purchase / Send Transfer
 // modals can decide whether to prompt for an FX rate. K-only branches
 // (Mansa, Lusaka) get no prompt; tri-currency (Kassumbalesa) requires
 // one rate per whole PO / transfer. Read once per branch DB, cheap.
 router.get('/branches', (req, res) => {
   try {
-    // 2026-09-12 â€” switched-off branches are left out. The APK's first screen
+    // 2026-09-12 — switched-off branches are left out. The APK's first screen
     // now builds its branch list from this route, so a deactivated tenant would
     // otherwise be offered to every new phone.
     const rows = listTenants().filter(r => Number(r.is_active ?? 1) !== 0);
@@ -69,7 +69,7 @@ router.get('/branches', (req, res) => {
         const db = getTenantDb(r.slug);
         const s = db.prepare(`SELECT currency_mode FROM business_settings ORDER BY id ASC LIMIT 1`).get();
         if (s?.currency_mode) currencyMode = String(s.currency_mode).toUpperCase();
-      } catch { /* branch DB unavailable â€” default K */ }
+      } catch { /* branch DB unavailable — default K */ }
       return {
         slug: r.slug,
         name: r.business_name || r.slug,
@@ -82,16 +82,16 @@ router.get('/branches', (req, res) => {
   }
 });
 
-// GET /api/hq/overview â€” per-branch summary card data + roll-up totals.
+// GET /api/hq/overview — per-branch summary card data + roll-up totals.
 // Iterates each registered tenant, opens its DB (cached via getTenantDb),
 // and runs a handful of cheap aggregations. Designed to be the "front
 // page" of HQ so the operator gets a one-screen view of every branch's
 // day at a glance. Today = midnight to now in the server's local TZ.
-// 2026-08-30 â€” HQOverview permission enforced here, not just in the UI.
+// 2026-08-30 — HQOverview permission enforced here, not just in the UI.
 //
 // hqAuth only proves the token is valid, so ANY logged-in user could GET this
 // and read group revenue, stock value and AR outstanding. The sidebar link was
-// hidden and the route now guards too, but a hidden link is presentation â€” the
+// hidden and the route now guards too, but a hidden link is presentation — the
 // endpoint was the actual leak, and a browser tab is enough to reach it.
 //
 // requirePagePerm re-reads permissions from the tenant DB on every call, so
@@ -106,7 +106,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
       try {
         const db = getTenantDb(t.slug);
 
-        // Today's sales â€” completed orders only (status NULL = single_pos
+        // Today's sales — completed orders only (status NULL = single_pos
         // sale, status='DISPATCHED' = 3-station completed). PAID-but-not-
         // dispatched orders are revenue-realised at Cashier but not yet
         // fully closed; we count them too because Cashier collected cash.
@@ -133,7 +133,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
         const pendingPayment  = tryGet(db, `SELECT COUNT(*) AS n FROM orders WHERE deleted_at IS NULL AND status = 'PENDING_PAYMENT'`)?.n || 0;
         const awaitingDispatch= tryGet(db, `SELECT COUNT(*) AS n FROM orders WHERE deleted_at IS NULL AND status = 'PAID'`)?.n || 0;
 
-        // Stock value at sales floor â€” sum(current_stock * cost_price) on
+        // Stock value at sales floor — sum(current_stock * cost_price) on
         // products that aren't soft-deleted.
         const stockValue = tryGet(db, `
           SELECT COALESCE(SUM(current_stock * cost_price), 0) AS v
@@ -146,7 +146,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
            WHERE deleted_at IS NULL AND current_stock <= min_stock
         `)?.n || 0;
 
-        // Outstanding AR â€” credit sales that haven't been collected.
+        // Outstanding AR — credit sales that haven't been collected.
         const arOutstanding = tryGet(db, `
           SELECT COALESCE(
             (SELECT SUM(total_amount - COALESCE(amount_received,0)) FROM orders
@@ -157,7 +157,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
           ) AS ar
         `)?.ar || 0;
 
-        // Branch business settings â€” currency_mode / workflow_mode so the
+        // Branch business settings — currency_mode / workflow_mode so the
         // dashboard can flag dual-currency / 3-station branches at a glance.
         const settings = tryGet(db, `
           SELECT business_name, currency_mode, workflow_mode
@@ -183,7 +183,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
       }
     }
 
-    // Roll-up â€” sum across all branches (ignores ones that errored).
+    // Roll-up — sum across all branches (ignores ones that errored).
     const rollup = branches.reduce((acc, b) => {
       if (b.error) return acc;
       acc.today_revenue   += b.today.revenue;
@@ -210,10 +210,10 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
 // Sorted newest first; capped at 1000 rows so a busy multi-month query
 // can't blow up the response. Each row carries its branch slug + name so
 // the table can render origin without a second lookup.
-// 2026-09-15 â€” GET /api/hq/route-sales?from=&to=&branch=
+// 2026-09-15 — GET /api/hq/route-sales?from=&to=&branch=
 // Route selling per depot. A route seller is a depot user ticked "Route
-// seller" (Users â†’ Edit); every sale under their login is route selling. Stock
-// and cash stay with the depot â€” this only splits the depot's sales into its
+// seller" (Users → Edit); every sale under their login is route selling. Stock
+// and cash stay with the depot — this only splits the depot's sales into its
 // own and its route sellers'. Counted exactly like /sales-report: not deleted,
 // not Reversed, dated by paid_at (else created_at); cash sales = paid at the
 // till capped at the sale total, credit = the rest.
@@ -300,7 +300,7 @@ router.get('/sales-report', hqAuth, (req, res) => {
     const to     = (req.query.to     || from).toString();
     const branch = (req.query.branch || 'all').toString().toLowerCase();
     const LIMIT  = Math.min(parseInt(req.query.limit, 10) || 1000, 5000);
-    // 2026-09-13 â€” the order list is opt-in (orders=1). The HQ page shows the
+    // 2026-09-13 — the order list is opt-in (orders=1). The HQ page shows the
     // depot totals only, and the totals now come from COUNT/SUM in each
     // depot's own book. They used to be added up from the capped order rows,
     // so any range past 1,000 orders reported less than was sold (K2,746,258
@@ -330,7 +330,7 @@ router.get('/sales-report', hqAuth, (req, res) => {
           SELECT COUNT(*) AS orders,
                  COALESCE(SUM(o.total_amount), 0)    AS revenue,
                  COALESCE(SUM(o.amount_received), 0) AS received,
-                 -- 2026-09-13 â€” paid at the till, capped at the sale total (the
+                 -- 2026-09-13 — paid at the till, capped at the sale total (the
                  -- rest came back as change). Whatever is left unpaid is credit.
                  COALESCE(SUM(CASE WHEN COALESCE(o.amount_received, 0) > o.total_amount
                                    THEN o.total_amount
@@ -355,7 +355,7 @@ router.get('/sales-report', hqAuth, (req, res) => {
 
         if (!withOrders) continue;
 
-        // Every column from `orders` must be prefixed with `o.` â€” id, status,
+        // Every column from `orders` must be prefixed with `o.` — id, status,
         // and created_at all collide with users columns, and better-sqlite3
         // throws "ambiguous column name" on the unprefixed form (vanilla
         // sqlite CLI silently picks one, which is what hid this in dev).
@@ -383,7 +383,7 @@ router.get('/sales-report', hqAuth, (req, res) => {
           });
         }
       } catch (e) {
-        // Skip branches that error out â€” they'll show up missing rather
+        // Skip branches that error out — they'll show up missing rather
         // than failing the whole report.
         console.error(`[hq.sales-report] ${t.slug}:`, e.message);
       }
@@ -397,7 +397,7 @@ router.get('/sales-report', hqAuth, (req, res) => {
     });
     const capped = rows.slice(0, LIMIT);
 
-    // Totals are the depot sums above â€” every order in range, never capped.
+    // Totals are the depot sums above — every order in range, never capped.
     res.json({
       from, to, branch,
       total_rows: withOrders ? rows.length : totals.orders,
@@ -412,11 +412,11 @@ router.get('/sales-report', hqAuth, (req, res) => {
 });
 
 // GET /api/hq/inventory-report?branch=&low_only=&q=
-// Cross-branch stock list â€” one row per product per branch. Capped at
+// Cross-branch stock list — one row per product per branch. Capped at
 // 2000 rows so a catalog explosion can't blow up the JSON.
-//   branch    â€” slug or 'all' (default)
-//   low_only  â€” '1' = only rows where current_stock <= min_stock
-//   q         â€” substring match on product name (case-insensitive)
+//   branch    — slug or 'all' (default)
+//   low_only  — '1' = only rows where current_stock <= min_stock
+//   q         — substring match on product name (case-insensitive)
 // Returns: per-branch summary (count, value, low-count) + flat rows.
 router.get('/inventory-report', hqAuth, (req, res) => {
   try {
@@ -464,7 +464,7 @@ router.get('/inventory-report', hqAuth, (req, res) => {
             branch_name: branchName,
             product_id:  p.id,
             name:        p.name,
-            category:    p.category_name || 'â€”',
+            category:    p.category_name || '—',
             unit:        p.unit || '',
             current_stock: stock,
             min_stock:   min,
@@ -505,12 +505,12 @@ router.get('/inventory-report', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ 2026-09-12 â€” HQ: every depot's Payment Vouchers in one list â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── 2026-09-12 — HQ: every depot's Payment Vouchers in one list ────────
 //
 // GET /api/hq/payment-vouchers?from=&to=&slug=
 //
 // The "All Depots" tab on HQ's Payment Voucher page: every PV from every
-// depot's own book plus HQ's. 2026-09-17 â€” deleted vouchers are listed too,
+// depot's own book plus HQ's. 2026-09-17 — deleted vouchers are listed too,
 // flagged `deleted` (the page strikes them through), but count in no total.
 // An HQ Administrator can delete one here (DELETE below); it is deleted in
 // the depot's own book.
@@ -548,12 +548,12 @@ router.get('/payment-vouchers', hqAuth, (req, res) => {
     };
 
     // HQ's own book first, then every depot. The bare-domain tenant row is a
-    // stale empty mirror â€” HQ's real book is defaultDb.
+    // stale empty mirror — HQ's real book is defaultDb.
     const books = [{ slug: 'hq', name: 'Head Office', db: defaultDb }];
     for (const t of listTenants()) {
       if (/^(hq|keletedistributionzm)$/i.test(t.slug)) continue;
       try { books.push({ slug: t.slug, name: t.business_name || t.slug, db: getTenantDb(t.slug) }); }
-      catch { /* branch DB unavailable â€” skip it, the rest still report */ }
+      catch { /* branch DB unavailable — skip it, the rest still report */ }
     }
 
     const num = (v) => parseFloat(v || 0) || 0;
@@ -563,8 +563,8 @@ router.get('/payment-vouchers', hqAuth, (req, res) => {
     for (const b of books) {
       if (only && b.slug !== only) continue;
       for (const v of tryAll(b.db)) {
-        // On a Kwacha-only book the slots are methods: Cash â†’ usd_amount,
-        // Mobile Money â†’ fra_amount, Bank â†’ k_amount, legacy columns as
+        // On a Kwacha-only book the slots are methods: Cash → usd_amount,
+        // Mobile Money → fra_amount, Bank → k_amount, legacy columns as
         // the fallback (same mapping the depot's own PV page shows).
         const cash = num(v.usd_amount) || num(v.cash_amount);
         const momo = num(v.fra_amount) || num(v.momo_amount);
@@ -606,13 +606,13 @@ router.get('/payment-vouchers', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ 2026-09-18 â€” expense approvals (Payment Voucher â†’ Approvals tab) â”€â”€â”€â”€â”€â”€
+// ─── 2026-09-18 — expense approvals (Payment Voucher → Approvals tab) ──────
 //
 // A depot whose day's expenses would go over its limit sends the voucher here
 // instead of saving it. Each request lives in that depot's own book
 // (pv_expense_requests), so this reads every depot the same way the All Depots
 // list above does. Approving lets the depot save that one voucher.
-// 2026-09-22 â€” carry the voucher it became. A request that shows "Saved" said
+// 2026-09-22 — carry the voucher it became. A request that shows "Saved" said
 // nothing about WHICH voucher, so a K175 approved on the 21st and saved on the
 // 22nd looked missing: HQ showed the request under the 21st while the depot
 // filed the PV under the day it was actually saved. The number and that date
@@ -635,15 +635,15 @@ function depotBooks(onlySlug) {
     if (!slug || /^(hq|kelete|keletedistributionzm)$/.test(slug)) continue;
     if (onlySlug && slug !== onlySlug) continue;
     try { books.push({ slug, name: t.business_name || slug, db: getTenantDb(slug) }); }
-    catch { /* unreachable depot â€” skip */ }
+    catch { /* unreachable depot — skip */ }
   }
   return books;
 }
 
-// â”€â”€â”€ 2026-09-18 â€” each depot's daily expense limit, managed from HQ â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── 2026-09-18 — each depot's daily expense limit, managed from HQ ────────
 //
-// GET  /api/hq/expense-limits              â€” every depot and its limit
-// PUT  /api/hq/expense-limits/:slug        â€” { limit } (HQ Administrator)
+// GET  /api/hq/expense-limits              — every depot and its limit
+// PUT  /api/hq/expense-limits/:slug        — { limit } (HQ Administrator)
 // The limit lives in that depot's own business_settings, the same value its
 // System Settings page shows; this just saves HQ visiting each depot's site.
 router.get('/expense-limits', hqAuth, (req, res) => {
@@ -715,7 +715,7 @@ router.get('/expense-requests', hqAuth, (req, res) => {
   }
 });
 
-// GET /api/hq/expense-requests/pending-count â€” for the sidebar badge.
+// GET /api/hq/expense-requests/pending-count — for the sidebar badge.
 router.get('/expense-requests/pending-count', hqAuth, (req, res) => {
   let n = 0;
   for (const b of depotBooks()) {
@@ -748,7 +748,7 @@ function decideExpenseRequest(req, res, verdict) {
               rejection_reason = ?, updated_at = datetime('now')
         WHERE id = ?`
     ).run(verdict, who, verdict === 'rejected' ? reason : null, row.id);
-    // 2026-09-18 â€” tell the depot on their phone. The person waiting is the
+    // 2026-09-18 — tell the depot on their phone. The person waiting is the
     // one who raised it, and they are waiting to know whether they can pay.
     // Fire-and-forget: HQ's decision is saved either way.
     try {
@@ -773,7 +773,7 @@ router.post('/expense-requests/:slug/:syncId/reject',  hqAuth, (req, res) => dec
 
 // DELETE /api/hq/payment-vouchers/:slug/:id   { reason }
 //
-// 2026-09-17 â€” HQ Administrator deletes a depot's PV from All Depots. The PV
+// 2026-09-17 — HQ Administrator deletes a depot's PV from All Depots. The PV
 // lives in that depot's own book ('hq' = HQ's book), so it is deleted there:
 // the same soft delete as the depot's own Delete, plus who and why, and the
 // day's profit recalculated in that book. The depot's Cash Book goes up by
@@ -828,7 +828,7 @@ router.delete('/payment-vouchers/:slug/:id', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ 2026-09-12 â€” HQ consolidated VAT Transaction Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── 2026-09-12 — HQ consolidated VAT Transaction Report ────────────────
 //
 // GET /api/hq/vat-report?from=&to=&slug=&cats=A,B
 //
@@ -852,11 +852,11 @@ router.get('/vat-report', hqAuth, (req, res) => {
       if (/^(hq|keletedistributionzm)$/i.test(t.slug)) continue;
       if (Number(t.is_active ?? 1) === 0) continue;
       try { books.push({ slug: t.slug, name: t.business_name || t.slug, db: getTenantDb(t.slug) }); }
-      catch { /* branch DB unavailable â€” skip it, the rest still report */ }
+      catch { /* branch DB unavailable — skip it, the rest still report */ }
     }
     books.sort((a, b) => String(a.name).localeCompare(String(b.name)));
 
-    // 2026-09-13 â€” totals always, lines on request and a page at a time. All
+    // 2026-09-13 — totals always, lines on request and a page at a time. All
     // depots over a fortnight is ~24,000 lines; sending every one and drawing
     // them all froze the page, where HQ Sales Report (totals only) answers at
     // once. Each depot's totals (overall and per tax category) always come
@@ -910,11 +910,11 @@ router.get('/vat-report', hqAuth, (req, res) => {
 });
 
 // GET /api/hq/cash-position?to=YYYY-MM-DD
-// 2026-09-13 (v3) â€” HQ sees each depot's Cash Book EXACTLY as the depot does.
+// 2026-09-13 (v3) — HQ sees each depot's Cash Book EXACTLY as the depot does.
 // The figures come from computeCashBookStats, the same function behind the
 // depot's own /api/cash-book/stats, run against that depot's database, so the
 // two can never drift apart:
-//   balance  = Cash & Cash Equivalent (opening + CR âˆ’ PV âˆ’ AP âˆ’ confirmed
+//   balance  = Cash & Cash Equivalent (opening + CR − PV − AP − confirmed
 //              deposits; capital, loan and dividend moves included) at the
 //              end of `to`, or up to now when `to` is not given
 //   pending  = deposits sent to HQ and not confirmed yet. Shown beside the
@@ -930,7 +930,7 @@ router.get('/cash-position', hqAuth, (req, res) => {
     const { computeArStats } = require('./customers');
     const { depositTargetFor } = require('../services/depositTarget');
 
-    // 2026-09-13 â€” optional period. No `from` = from day one; no `to` = up to now.
+    // 2026-09-13 — optional period. No `from` = from day one; no `to` = up to now.
     const isDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || ''));
     const from = isDay(req.query.from) ? String(req.query.from) : null;
     let to = isDay(req.query.to) ? String(req.query.to) : null;
@@ -939,12 +939,12 @@ router.get('/cash-position', hqAuth, (req, res) => {
     const r2 = (v) => Math.round(num(v) * 100) / 100;
 
     // Deposits HQ has not confirmed yet, split around the period:
-    //   dated before `from` â†’ the cash left the depot before the period began,
+    //   dated before `from` → the cash left the depot before the period began,
     //                          so it comes off the opening
-    //   dated inside it     â†’ part of the period's "Deposited"
+    //   dated inside it     → part of the period's "Deposited"
     // The depot Cash Book itself only counts CONFIRMED deposits; these are the
     // HQ view's addition.
-    // 2026-09-15 â€” inDep: the part of inT sent to another depot, not HQ.
+    // 2026-09-15 — inDep: the part of inT sent to another depot, not HQ.
     const pending = {};
     try {
       const rows = mdb.prepare(`
@@ -966,8 +966,8 @@ router.get('/cash-position', hqAuth, (req, res) => {
       console.error('[hq/cash-position] pending deposits:', e.message);
     }
 
-    // 2026-09-15 â€” confirmed deposits between depots inside the period (System
-    // Settings â†’ Deposit to). The sender's part is inside its Cash Book
+    // 2026-09-15 — confirmed deposits between depots inside the period (System
+    // Settings → Deposit to). The sender's part is inside its Cash Book
     // deposits; the receiver's is inside its balance. Split out here so HQ's
     // "Deposited to HQ" counts only what reached HQ.
     const between = { out: {}, in: {}, inFrom: {} };
@@ -1012,18 +1012,18 @@ router.get('/cash-position', hqAuth, (req, res) => {
         const out = (cb.depositsByCcy && cb.depositsByCcy.out) || {};
         const deposits = num(out.usd) + num(out.fra) + num(out.k);
         // The depot Cash Book's own figures for the period. With `from`, its
-        // opening already carries everything before the period (CR âˆ’ PV âˆ’ AP âˆ’
+        // opening already carries everything before the period (CR − PV − AP −
         // confirmed deposits), exactly as the depot's Cash Book shows it.
         const bookOpening = num(cb.openingBalance);
         const receipts = num(cb.totalReceipts) + num(cb.totalCapIn) + num(cb.totalLoanIn);
         const payments = num(cb.totalPayments);
         const pd = pending[slug] || { before: 0, inT: 0, inN: 0, inDep: 0 };
         // The HQ card: every deposit counts the day it was sent, confirmed or not.
-        //   Opening   = book opening âˆ’ pending deposits sent before the period
+        //   Opening   = book opening − pending deposits sent before the period
         //   Deposited = confirmed + pending deposits inside the period
-        //   Balance   = Opening + In + Received âˆ’ Out âˆ’ Deposited
-        //             = the depot's Cash Book balance âˆ’ every pending deposit up to `to`
-        // 2026-09-15 â€” Deposited is split into to HQ and to other depots, and
+        //   Balance   = Opening + In + Received − Out − Deposited
+        //             = the depot's Cash Book balance − every pending deposit up to `to`
+        // 2026-09-15 — Deposited is split into to HQ and to other depots, and
         // Received is what other depots deposited here (confirmed).
         const opening = bookOpening - pd.before;
         const toDepotsConfirmed = num(between.out[slug]);
@@ -1070,7 +1070,7 @@ router.get('/cash-position', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ v1.8.65 â€” HQ Transit Variances â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── v1.8.65 — HQ Transit Variances ─────────────────────────────────────────
 // Unified list of variance rows from BOTH:
 //   - master.db.transfer_variances (Inter-Branch Transfers)
 //   - master.db.hq_purchase_items WHERE received_qty < dispatched_qty OR
@@ -1107,7 +1107,7 @@ router.get('/variances', hqAuth, (req, res) => {
       `).all(...params);
     }
 
-    // HQ purchase variances â€” items where the count doesn't match.
+    // HQ purchase variances — items where the count doesn't match.
     let purchaseRows = [];
     if (!source || source === 'HQ_PURCHASE') {
       const where = [
@@ -1117,7 +1117,7 @@ router.get('/variances', hqAuth, (req, res) => {
       const params = [];
       if (reason) { where.push('reason = ?'); params.push(reason); }
       if (slug)   { where.push('destination_slug = ?'); params.push(slug); }
-      // No resolved-tracking on purchase items yet â€” treat all as OPEN.
+      // No resolved-tracking on purchase items yet — treat all as OPEN.
       if (status === 'RESOLVED') where.push('1=0');
       purchaseRows = masterDb.prepare(`
         SELECT
@@ -1141,7 +1141,7 @@ router.get('/variances', hqAuth, (req, res) => {
           NULL                 AS resolved_at,
           NULL                 AS resolution
         FROM hq_purchase_items pi
-        -- 2026-08-28 â€” join on sync_id, NOT the integer id. purchase_id holds
+        -- 2026-08-28 — join on sync_id, NOT the integer id. purchase_id holds
         -- HQ's row number; on a synced mirror the local hq_purchases row has a
         -- DIFFERENT auto-number, so p.id = i.purchase_id matches the wrong
         -- purchase or none at all. Measured on a real till: of 20 items the
@@ -1175,8 +1175,8 @@ router.get('/variances', hqAuth, (req, res) => {
 });
 
 // PUT /api/hq/variances/transfer/:syncId/resolve
-// v1.13.47 â€” Option C: on WRITE_OFF, actually book the loss as a damage
-// on the chosen branch's daily profit (source or destination â€” HQ picks).
+// v1.13.47 — Option C: on WRITE_OFF, actually book the loss as a damage
+// on the chosen branch's daily profit (source or destination — HQ picks).
 // RECOVERED remains no-op on P&L (stock re-entry is done manually via
 // Stock Reconciliation at whichever branch got the physical goods back).
 //
@@ -1223,7 +1223,7 @@ router.put('/variances/transfer/:syncId/resolve', hqAuth, (req, res) => {
       // of location, so this row still hits daily_profit_summary.damages.
       const today = new Date().toISOString().split('T')[0];
       const varianceBaseQty = parseFloat(row.variance_qty) || 0;
-      const movementNotes = `Transit variance write-off Â· ${row.transfer_number} Â· ${row.reason}${row.notes ? ' Â· ' + row.notes : ''}${notes ? ' Â· HQ: ' + notes : ''}`;
+      const movementNotes = `Transit variance write-off · ${row.transfer_number} · ${row.reason}${row.notes ? ' · ' + row.notes : ''}${notes ? ' · HQ: ' + notes : ''}`;
       branchDb.prepare(`
         INSERT INTO stock_movements (product_id, product_sync_id, location, movement_type,
                                      quantity, reference_type, reference_sync_id, notes,
@@ -1231,7 +1231,7 @@ router.put('/variances/transfer/:syncId/resolve', hqAuth, (req, res) => {
                                      synced, created_at, updated_at)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
       `).run(
-        // v1.13.56 â€” created_by must reference a user on THIS branch's users
+        // v1.13.56 — created_by must reference a user on THIS branch's users
         // table. HQ users only exist in HQ auth, so req.user.id blows the
         // FK. row.received_by exists on the RECEIVER'S DB but not the
         // sender's, so it's not safe either when absorbed_by='source'.
@@ -1262,9 +1262,9 @@ router.put('/variances/transfer/:syncId/resolve', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ v1.9.0 â€” Layer 3: HQ admin Refresh button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── v1.9.0 — Layer 3: HQ admin Refresh button ──────────────────────────────
 // Manual on-demand mirror of every HQ-owned entity (main_categories,
-// categories, units, products) to every registered branch. Idempotent â€”
+// categories, units, products) to every registered branch. Idempotent —
 // safe to run any time, never overwrites branch-owned columns (prices /
 // stock / status / notes). Same helper feeds the boot heal (Layer 1) and
 // the on-register auto-mirror (Layer 2); the difference is just who
@@ -1293,13 +1293,13 @@ router.post('/mirror-all', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ v1.13.62 â€” HQ Consolidated Profit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Group Net = SUM(branch net_profit) âˆ’ HQ overhead (all K, no FX).
+// ─── v1.13.62 — HQ Consolidated Profit ─────────────────────────────────────
+// Group Net = SUM(branch net_profit) − HQ overhead (all K, no FX).
 // Kelete is K-only across every branch, so there's no per-day currency
 // conversion (contrast Kelete, which needs Kassumbalesa's USD/K rate). HQ
 // overhead = SUM(payment_vouchers.amount). Kelete has no LCV concept, so
 // no is_landed_cost exclusion is applied.
-// 2026-09-15 â€” HQConsolidatedProfit permission enforced here, not just in the menu.
+// 2026-09-15 — HQConsolidatedProfit permission enforced here, not just in the menu.
 router.get('/consolidated-profit', hqAuth, requirePagePerm('HQConsolidatedProfit'), (req, res) => {
   try {
     const from = (req.query.from || new Date().toISOString().slice(0, 10)).toString();
@@ -1356,7 +1356,7 @@ router.get('/consolidated-profit', hqAuth, requirePagePerm('HQConsolidatedProfit
       }
     }
 
-    // HQ Overhead â€” payment_vouchers on defaultDb. All K (no currency
+    // HQ Overhead — payment_vouchers on defaultDb. All K (no currency
     // split on Kelete). No LCV exclusion (Kelete has no LCVs).
     let hqDailyRows = [];
     try {

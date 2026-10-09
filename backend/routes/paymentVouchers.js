@@ -5,25 +5,25 @@ const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 const { recalculateDailyProfit } = require('../config/profitHelper');
 
-// 2026-09-11 â€” the Cash Book's per-method columns for a PV, from its three
+// 2026-09-11 — the Cash Book's per-method columns for a PV, from its three
 // slots. On a Kwacha-only book the slots ARE the methods (usd_amount = Cash,
 // fra_amount = Mobile Money, k_amount = Bank). Returned in column order:
 // cash_amount, bank_amount, momo_amount. These were always written as 0, so a
 // new PV was missing from the Cash Book until a restart's paid_from guess
-// booked it â€” as Cash, whatever it was paid with. On a multi-currency book
+// booked it — as Cash, whatever it was paid with. On a multi-currency book
 // the slots are currencies, so the columns stay 0 as before.
 function methodColumns(usd, fra, k) {
   try {
     const bs = db.prepare('SELECT currency_mode FROM business_settings LIMIT 1').get();
     if (bs && String(bs.currency_mode || 'K').toUpperCase() !== 'K') return [0, 0, 0];
-  } catch (_) { /* no settings row yet â€” a Kelete book is Kwacha */ }
+  } catch (_) { /* no settings row yet — a Kelete book is Kwacha */ }
   return [usd, k, fra];
 }
 
 // Derive per-method splits from the voucher's paid_from string. Substring match
-// (paid_from is free text like "Main cashier", "Bank â€” FNB", "MTN MoMo") so
+// (paid_from is free text like "Main cashier", "Bank — FNB", "MTN MoMo") so
 // we lower-case and look for any of the recognised keywords. Same rules the
-// migration backfill uses. Unknown / empty â†’ Cash bucket (most common case).
+// migration backfill uses. Unknown / empty → Cash bucket (most common case).
 function derivePVSplits(paid_from, amount) {
   const amt = parseFloat(amount) || 0;
   const pf  = (paid_from || '').toLowerCase();
@@ -32,9 +32,9 @@ function derivePVSplits(paid_from, amount) {
   return { cash: amt, bank: 0, momo: 0 }; // matches 'Main cashier', 'Cash', 'Drawer', empty, etc.
 }
 
-// â”€â”€â”€ 2026-09-18 â€” daily expense limit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── 2026-09-18 — daily expense limit ──────────────────────────────────────
 //
-// A depot may pay out only so much in expenses per day (System Settings â†’
+// A depot may pay out only so much in expenses per day (System Settings →
 // Maximum expenses per day, K5,000 by default). A voucher that would take the
 // day over it is refused; the depot sends it to HQ for approval instead
 // (pv_expense_requests below), and once HQ approves, that voucher saves once.
@@ -50,7 +50,7 @@ function dailyLimit() {
   try {
     const v = parseFloat(db.prepare('SELECT daily_expense_limit FROM business_settings LIMIT 1').get()?.daily_expense_limit);
     return isFinite(v) && v > 0 ? v : 0;
-  } catch (_) { return 0; }   // column not added yet â€” no limit
+  } catch (_) { return 0; }   // column not added yet — no limit
 }
 function expensesOn(date, tenantId, excludeId) {
   try {
@@ -111,7 +111,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     let q = 'SELECT * FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?';
     const params = [req.user.tenantId];
     if (date)      { params.push(date);      q += ' AND date = ?'; }
-    // 2026-09-21 â€” matched the same way Cash Report matches them, or the
+    // 2026-09-21 — matched the same way Cash Report matches them, or the
     // "Expenses paid" figure and the list behind it disagree. A voucher raised
     // on the Payment Voucher page saves "Cash drawer"; one raised from Cash
     // Report saves "Cash Drawer", and a voucher belonging to the drawer rather
@@ -129,7 +129,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
-    // v1.8.25 â€” per-currency totals. Prefer the new usd/fra/k columns and
+    // v1.8.25 — per-currency totals. Prefer the new usd/fra/k columns and
     // fall back to legacy cash/bank/momo only when the new ones are 0
     // (mirrors the cashReport.js v1.8.17 fix to avoid double-counting
     // transition rows where both columns happen to be populated).
@@ -150,7 +150,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
       thisMonth:     parseFloat(month.usd) || 0,
       totalVouchers: count.cnt,
       avgPayment:    count.cnt > 0 ? Math.round((parseFloat(all.usd) || 0) / count.cnt) : 0,
-      // v1.8.25 â€” per-currency breakdowns.
+      // v1.8.25 — per-currency breakdowns.
       today: { usd: parseFloat(today.usd) || 0, fra: parseFloat(today.fra) || 0, k: parseFloat(today.k) || 0 },
       month: { usd: parseFloat(month.usd) || 0, fra: parseFloat(month.fra) || 0, k: parseFloat(month.k) || 0 },
       total: { usd: parseFloat(all.usd)   || 0, fra: parseFloat(all.fra)   || 0, k: parseFloat(all.k)   || 0 },
@@ -170,7 +170,7 @@ router.post('/', auth, (req, res) => {
     const { branchId, deviceId } = syncConfig.getConfig();
     const cashierId = cashier_id !== undefined ? parseInt(cashier_id) : 0;
     const resolvedPaidFrom = paid_from || 'Main cashier';
-    // v1.8.5 â€” triple-currency. Each in its own currency. Legacy
+    // v1.8.5 — triple-currency. Each in its own currency. Legacy
     // cash/bank/momo still accepted but zeroed when usd/fra/k are sent.
     const usdAmt = parseFloat(usd_amount ?? cash_amount ?? 0) || 0;
     const fraAmt = parseFloat(fra_amount ?? bank_amount ?? 0) || 0;
@@ -180,7 +180,7 @@ router.post('/', auth, (req, res) => {
     // (the USD-equivalent header), falling back to USD-only if missing.
     const totalAmount = parseFloat(amount) > 0 ? parseFloat(amount) : (sumSplits > 0 ? usdAmt : 0);
     const pvDate = date || new Date().toISOString().split('T')[0];
-    // 2026-09-18 â€” the day's expense limit (and HQ's approval, if any).
+    // 2026-09-18 — the day's expense limit (and HQ's approval, if any).
     const gate = checkDailyLimit(req, { date: pvDate, newTotal: totalAmount, isEdit: false });
     if (gate.error) {
       const { status, ...body } = gate;
@@ -225,13 +225,13 @@ router.put('/:id', auth, (req, res) => {
             usd_amount, fra_amount, k_amount } = req.body;
     const pvDate = date || new Date().toISOString().split('T')[0];
     const resolvedPaidFrom = paid_from || 'Main cashier';
-    // v1.8.5 â€” triple-currency. Same merge as POST.
+    // v1.8.5 — triple-currency. Same merge as POST.
     const usdAmt = parseFloat(usd_amount ?? cash_amount ?? 0) || 0;
     const fraAmt = parseFloat(fra_amount ?? bank_amount ?? 0) || 0;
     const kAmt   = parseFloat(k_amount   ?? momo_amount ?? 0) || 0;
     const sumSplits = usdAmt + fraAmt + kAmt;
     const totalAmount = parseFloat(amount) > 0 ? parseFloat(amount) : (sumSplits > 0 ? usdAmt : 0);
-    // 2026-09-18 â€” an edit counts against the same daily limit, with this
+    // 2026-09-18 — an edit counts against the same daily limit, with this
     // voucher's old amount left out of the day's total.
     const gateEdit = checkDailyLimit(req, {
       date: pvDate, newTotal: totalAmount, excludeId: parseInt(req.params.id, 10), isEdit: true,
@@ -274,7 +274,7 @@ router.put('/:id', auth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ Expense approval requests (depot side) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Expense approval requests (depot side) ────────────────────────────────
 
 // GET /api/payment-vouchers/expense-requests?status=open|pending|approved|all
 // 'open' (the default) = what the depot still has to deal with: waiting,
@@ -295,7 +295,7 @@ router.get('/expense-requests', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// POST /api/payment-vouchers/expense-requests â€” the depot asks HQ to allow a
+// POST /api/payment-vouchers/expense-requests — the depot asks HQ to allow a
 // voucher that is over the day's limit. The voucher itself is NOT saved.
 router.post('/expense-requests', auth, (req, res) => {
   try {
@@ -330,7 +330,7 @@ router.post('/expense-requests', auth, (req, res) => {
       [req.user.firstName, req.user.lastName].filter(Boolean).join(' ') || req.user.name || req.user.email || 'user',
       req.user.tenantId
     );
-    // 2026-09-18 â€” wake HQ's Administrators. Until one of them answers, this
+    // 2026-09-18 — wake HQ's Administrators. Until one of them answers, this
     // depot cannot raise any expense at all, so a request sitting unseen stops
     // the depot working. Fire-and-forget: the request is saved either way.
     try {
@@ -339,7 +339,7 @@ router.post('/expense-requests', auth, (req, res) => {
       const money = `K${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       notifyHqRoles(['Administrator'], {
         title: 'Expense needs approval',
-        body: `${who.toUpperCase()} Â· ${money} Â· ${paid_to || description || 'expense'} â€” over the daily limit`,
+        body: `${who.toUpperCase()} · ${money} · ${paid_to || description || 'expense'} — over the daily limit`,
         data: { type: 'expense-request', slug: who, sync_id: syncId },
         channelId: 'kelete-approvals-v1',
       }).catch(() => {});
@@ -350,14 +350,14 @@ router.post('/expense-requests', auth, (req, res) => {
   }
 });
 
-// DELETE /api/payment-vouchers/expense-requests/:syncId â€” the depot withdraws
+// DELETE /api/payment-vouchers/expense-requests/:syncId — the depot withdraws
 // a waiting request, or clears a rejected one off its screen.
 router.delete('/expense-requests/:syncId', auth, (req, res) => {
   try {
     const row = db.prepare('SELECT * FROM pv_expense_requests WHERE sync_id = ? AND deleted_at IS NULL').get(req.params.syncId);
     if (!row) return res.status(404).json({ error: 'Request not found.' });
     if (row.status === 'approved') {
-      return res.status(400).json({ error: 'This voucher has been approved â€” save it, or ask HQ before removing it.' });
+      return res.status(400).json({ error: 'This voucher has been approved — save it, or ask HQ before removing it.' });
     }
     db.prepare("UPDATE pv_expense_requests SET deleted_at = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(row.id);
     res.json({ ok: true });

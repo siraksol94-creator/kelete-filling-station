@@ -7,7 +7,7 @@ const { randomUUID } = require('crypto');
 // Derive per-method splits (cash/bank/momo) from the receipt's payment_method.
 // Mirrors the migration backfill rules so on-startup backfills and live INSERTs
 // produce identical splits. Unknown / empty payment_method falls into the Cash
-// bucket â€” same catch-all the backfill uses, prevents money from going invisible.
+// bucket — same catch-all the backfill uses, prevents money from going invisible.
 function deriveCRSplits(payment_method, amount) {
   const amt = parseFloat(amount) || 0;
   if (['Bank Transfer', 'Bank', 'Cheque'].includes(payment_method)) return { cash: 0, bank: amt, momo: 0 };
@@ -27,7 +27,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
-    // v1.8.31 â€” per-currency totals. Same CASE-WHEN pattern as PV stats
+    // v1.8.31 — per-currency totals. Same CASE-WHEN pattern as PV stats
     // (v1.8.25): prefer new usd/fra/k columns, fall back to legacy
     // cash/bank/momo on rows where new columns are 0.
     const usdExpr = `COALESCE(SUM(CASE WHEN COALESCE(usd_amount,0) > 0 THEN usd_amount ELSE COALESCE(cash_amount,0) END), 0)`;
@@ -47,7 +47,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
       thisMonth:     parseFloat(month.usd) || 0,
       totalReceipts: count.cnt,
       avgReceipt:    count.cnt > 0 ? Math.round((parseFloat(all.usd) || 0) / count.cnt) : 0,
-      // v1.8.31 â€” per-currency breakdowns.
+      // v1.8.31 — per-currency breakdowns.
       today: { usd: parseFloat(today.usd) || 0, fra: parseFloat(today.fra) || 0, k: parseFloat(today.k) || 0 },
       month: { usd: parseFloat(month.usd) || 0, fra: parseFloat(month.fra) || 0, k: parseFloat(month.k) || 0 },
       total: { usd: parseFloat(all.usd)   || 0, fra: parseFloat(all.fra)   || 0, k: parseFloat(all.k)   || 0 },
@@ -88,7 +88,7 @@ router.post('/', auth, (req, res) => {
     const receiptNum = syncConfig.generateNumber('CR', 'cash_receipts');
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
-    // v1.8.32 â€” triple-currency split. Prefer client-sent usd/fra/k.
+    // v1.8.32 — triple-currency split. Prefer client-sent usd/fra/k.
     // Legacy cash/bank/momo accepted for back-compat with old clients.
     // amount column holds USD-equivalent (= usd_amount only) so legacy
     // reports keep working. Per-currency lives in the dedicated columns.
@@ -97,7 +97,7 @@ router.post('/', auth, (req, res) => {
     const kAmt   = parseFloat(k_amount)   || 0;
     const sumCcy = usdAmt + fraAmt + kAmt;
     const sumLegacy = (parseFloat(cash_amount) || 0) + (parseFloat(bank_amount) || 0) + (parseFloat(momo_amount) || 0);
-    // v1.10.69 â€” when the client sent per-currency columns (sumCcy > 0)
+    // v1.10.69 — when the client sent per-currency columns (sumCcy > 0)
     // but NOT legacy method columns (sumLegacy = 0), do NOT derive the
     // cash/bank/momo split from payment_method + amount. Doing so double-
     // stored the money: e.g. HQ K CR with amount=25000, payment_method='K'
@@ -110,7 +110,7 @@ router.post('/', auth, (req, res) => {
       : (sumCcy > 0
           ? { cash: 0, bank: 0, momo: 0 }
           : deriveCRSplits(payment_method, amount));
-    // v1.10.46 â€” trust client's amount when both column sets are populated
+    // v1.10.46 — trust client's amount when both column sets are populated
     // (Liquor Cash-Report auto-CR path from v1.10.44). Otherwise fall back
     // to the pre-v1.10.46 clamp so Kelete single-currency behaviour is
     // unchanged.
@@ -156,7 +156,7 @@ router.put('/:id', auth, (req, res) => {
     const kAmt   = parseFloat(k_amount)   || 0;
     const sumCcy = usdAmt + fraAmt + kAmt;
     const sumLegacy = (parseFloat(cash_amount) || 0) + (parseFloat(bank_amount) || 0) + (parseFloat(momo_amount) || 0);
-    // v1.10.69 â€” when the client sent per-currency columns (sumCcy > 0)
+    // v1.10.69 — when the client sent per-currency columns (sumCcy > 0)
     // but NOT legacy method columns (sumLegacy = 0), do NOT derive the
     // cash/bank/momo split from payment_method + amount. Doing so double-
     // stored the money: e.g. HQ K CR with amount=25000, payment_method='K'
@@ -169,7 +169,7 @@ router.put('/:id', auth, (req, res) => {
       : (sumCcy > 0
           ? { cash: 0, bank: 0, momo: 0 }
           : deriveCRSplits(payment_method, amount));
-    // v1.10.46 â€” when the client explicitly sends BOTH the currency columns
+    // v1.10.46 — when the client explicitly sends BOTH the currency columns
     // and the method-split columns (Liquor from v1.10.44), it means all
     // three slots are the same currency and the client's `amount` is the
     // real total across methods. Trust it instead of clamping to usd only,

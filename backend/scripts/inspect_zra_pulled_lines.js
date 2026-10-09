@@ -1,5 +1,5 @@
 /**
- * inspect_zra_pulled_lines.js â€” READ ONLY. Writes nothing.
+ * inspect_zra_pulled_lines.js — READ ONLY. Writes nothing.
  *
  * 2026-08-31. Ten ZRA-approved purchases were booked before the pulled line's
  * VAT and discount were read, so they were costed at BASE. Before deciding
@@ -26,7 +26,7 @@ const TENANT = process.env.DB_PATH || path.join(__dirname, '..', 'kelete.db');
 
 const master = new Database(MASTER, { readonly: true });
 
-// 2026-08-31 â€” find the database that actually holds the pulled invoices.
+// 2026-08-31 — find the database that actually holds the pulled invoices.
 //
 // The first run reported "NO raw_json" for all ten, which was the script being
 // imprecise: it said the same thing whether the row was missing or the column
@@ -53,12 +53,12 @@ for (const f of candidates) {
   try {
     const d = new Database(f, { readonly: true });
     const has = d.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='zra_pending_purchases'").get();
-    if (!has) { console.log(`  ${f}  â€” table absent`); d.close(); continue; }
+    if (!has) { console.log(`  ${f}  — table absent`); d.close(); continue; }
     const n   = d.prepare('SELECT COUNT(*) AS n FROM zra_pending_purchases').get().n;
     const raw = d.prepare("SELECT COUNT(*) AS n FROM zra_pending_purchases WHERE raw_json IS NOT NULL AND raw_json != ''").get().n;
-    console.log(`  ${f}  â€” ${n} row(s), ${raw} with raw_json`);
+    console.log(`  ${f}  — ${n} row(s), ${raw} with raw_json`);
     if (raw > 0 && !tenant) tenant = d; else d.close();
-  } catch (e) { console.log(`  ${f}  â€” unreadable: ${e.message}`); }
+  } catch (e) { console.log(`  ${f}  — unreadable: ${e.message}`); }
 }
 if (!tenant) {
   console.log('');
@@ -90,13 +90,13 @@ let totalVat = 0, totalDisc = 0, totalBase = 0, unreadable = 0;
 
 for (const p of affected) {
   const pend = tenant.prepare('SELECT id, raw_json FROM zra_pending_purchases WHERE id = ?').get(p.pending_id);
-  // Say WHICH of the two it is â€” the first version conflated them.
+  // Say WHICH of the two it is — the first version conflated them.
   if (!pend) {
-    console.log(`${p.purchase_number}  pending row ${p.pending_id} â€” row not in this DB`);
+    console.log(`${p.purchase_number}  pending row ${p.pending_id} — row not in this DB`);
     unreadable++; continue;
   }
   if (!pend.raw_json) {
-    console.log(`${p.purchase_number}  pending row ${p.pending_id} â€” row exists but raw_json is empty`);
+    console.log(`${p.purchase_number}  pending row ${p.pending_id} — row exists but raw_json is empty`);
     unreadable++; continue;
   }
   let items = [];
@@ -107,15 +107,15 @@ for (const p of affected) {
   // than assumed.
   if (items[0]) Object.keys(items[0]).forEach(k => keysSeen.add(k));
 
-  // 2026-08-31 â€” the money fields, in full, for the first line of each
+  // 2026-08-31 — the money fields, in full, for the first line of each
   // purchase.
   //
   // qty x prc matched neither VAT-exclusive nor VAT-inclusive on the first
   // run: for HQP-2026-00029, 16% of 62,200 is 9,952 and 16/116 of it is
   // 8,579.31, but the pull says 8,960.28. Beer carries excise and VAT is
   // charged on top of it, so the relationship cannot be guessed from prc and
-  // vatAmt alone. Whether the booked amount is already what we owe â€” and so
-  // whether adding vatAmt is a correction or a double-count â€” is decided by
+  // vatAmt alone. Whether the booked amount is already what we owe — and so
+  // whether adding vatAmt is a correction or a double-count — is decided by
   // these fields.
   if (process.env.DUMP !== '0' && items[0]) {
     const it0 = items[0];

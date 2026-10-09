@@ -19,7 +19,7 @@ function deriveMethodLabel(cash, bank, momo) {
 // Insert ONE cash_receipts row per AR payment, even when the customer split across
 // methods. The split is noted in the description and the payment_method is a derived
 // label (Cash / Bank Transfer / Mobile Money / Mixed). Cash Book shows one entry per
-// payment â€” matches "one payment = one voucher" mental model.
+// payment — matches "one payment = one voucher" mental model.
 function mintReceipt({ customerPaymentId, customer, cash, bank, momo, date, notes, createdBy, tenantId, branchId, deviceId }) {
   const total = cash + bank + momo;
   if (!(total > 0)) return null;
@@ -32,14 +32,14 @@ function mintReceipt({ customerPaymentId, customer, cash, bank, momo, date, note
   const isMixed = used.length > 1;
   const methodLabel = isMixed ? 'Mixed' : (cash > 0 ? 'Cash' : bank > 0 ? 'Bank Transfer' : 'Mobile Money');
 
-  // Description shows the breakdown when mixed, e.g. "AR Payment â€” Cash 50.00, Bank 30.00, MoMo 20.00 â€” invoice notes"
+  // Description shows the breakdown when mixed, e.g. "AR Payment — Cash 50.00, Bank 30.00, MoMo 20.00 — invoice notes"
   const breakdown = isMixed
     ? used.map(u => `${u.label} ${u.amount.toFixed(2)}`).join(', ')
     : null;
   const descParts = ['AR Payment'];
   if (breakdown) descParts.push(breakdown);
   if (notes)     descParts.push(notes);
-  const desc = descParts.join(' â€” ');
+  const desc = descParts.join(' — ');
 
   const crSyncId = randomUUID();
   const receiptNum = syncConfig.generateNumber('CR', 'cash_receipts');
@@ -72,7 +72,7 @@ function voidLinkedReceipts(customerPaymentId) {
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
     const { customer_id, from, to } = req.query;
-    // â”€â”€ Manual AR payments (rows entered in the Payments modal) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Manual AR payments (rows entered in the Payments modal) ────────────────
     let sql = `
       SELECT cp.id, cp.payment_date, cp.customer_id, c.name AS customer_name,
              cp.payment_method, cp.reference, cp.notes, cp.amount,
@@ -84,15 +84,15 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       LEFT JOIN users u     ON u.id = cp.created_by
       WHERE cp.deleted_at IS NULL AND cp.tenant_id = ?`;
     const params = [req.user.tenantId];
-    // Filter by sync_id derived from requested local id â€” drift-safe.
+    // Filter by sync_id derived from requested local id — drift-safe.
     if (customer_id) { sql += ' AND cp.customer_sync_id = (SELECT sync_id FROM customers WHERE id = ?)'; params.push(parseInt(customer_id)); }
     if (from)        { sql += ' AND cp.payment_date >= ?'; params.push(from); }
     if (to)          { sql += ' AND cp.payment_date <= ?'; params.push(to); }
     const manualRows = db.prepare(sql + ' ORDER BY cp.payment_date DESC, cp.id DESC').all(...params);
 
-    // â”€â”€ Cash collected at POS during a credit sale â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Cash collected at POS during a credit sale ─────────────────────────────
     // Synthesize a payment row per order where a registered customer paid something at the till.
-    // Amount is capped at the sale total â€” any over-tender came back as change, not revenue.
+    // Amount is capped at the sale total — any over-tender came back as change, not revenue.
     // Negative id keeps these distinct from manual rows (which use the AUTOINCREMENT positive ids).
     let posSql = `
       SELECT (-o.id) AS id,
@@ -142,7 +142,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// POST â€” record a customer payment (split across Cash / Bank / Mobile Money).
+// POST — record a customer payment (split across Cash / Bank / Mobile Money).
 // Mints one CR per non-zero method so the Cash Book reflects each cash event separately.
 router.post('/', auth, (req, res) => {
   try {
@@ -150,7 +150,7 @@ router.post('/', auth, (req, res) => {
       customer_id, payment_date, reference, notes,
       // legacy (still accepted from older clients / non-Kelete tenants)
       cash_amount, bank_amount, momo_amount,
-      // v1.8.55 â€” triple-currency AR receipts (Kelete)
+      // v1.8.55 — triple-currency AR receipts (Kelete)
       usd_amount, fra_amount, k_amount, selling_rate_used, selling_rate_k_used,
     } = req.body;
     if (!customer_id) return res.status(400).json({ error: 'customer_id required' });
@@ -177,7 +177,7 @@ router.post('/', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     const finalDate = payment_date || new Date().toISOString().slice(0, 10);
-    // cash_amount stays as the dollar VALUE of the receipt â€” Cash Book
+    // cash_amount stays as the dollar VALUE of the receipt — Cash Book
     // and other legacy aggregations still SUM(cash_amount). For triple-
     // currency, that's usd + fra-as-usd + k-as-usd.
     const cashForLegacy = isTripleCcy ? (usd + fraAsUsd + kAsUsd) : usd;
@@ -226,7 +226,7 @@ router.post('/', auth, (req, res) => {
   }
 });
 
-// PUT â€” update a split-method payment. CRs are voided + re-minted from the new amounts.
+// PUT — update a split-method payment. CRs are voided + re-minted from the new amounts.
 router.put('/:id', auth, (req, res) => {
   try {
     const {
@@ -298,7 +298,7 @@ router.put('/:id', auth, (req, res) => {
   }
 });
 
-// DELETE â€” soft-delete the payment AND every CR it minted.
+// DELETE — soft-delete the payment AND every CR it minted.
 router.delete('/:id', auth, (req, res) => {
   try {
     const prev = db.prepare('SELECT id FROM customer_payments WHERE id = ? AND tenant_id = ?')

@@ -1,4 +1,4 @@
-// Messages â€” in-app chat between HQ and the depots (2026-09-14).
+// Messages — in-app chat between HQ and the depots (2026-09-14).
 //
 // Desk: conversation list on the left, the open conversation on the right.
 // Phone: the list, or the open conversation with a back button.
@@ -8,7 +8,7 @@
 // every 8s. Backend: /api/chat (routes/chat.js).
 //
 // Layout uses class names in the <style> block below, not inline display
-// styles â€” the phone CSS rewrites inline flex/grid on every page.
+// styles — the phone CSS rewrites inline flex/grid on every page.
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
@@ -23,7 +23,7 @@ import {
 
 const DELETE_WINDOW_MS = 15 * 60 * 1000;
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
-// 2026-09-14 â€” voice notes: recorded in the browser with MediaRecorder,
+// 2026-09-14 — voice notes: recorded in the browser with MediaRecorder,
 // sent through the same file route as photos.
 const MAX_VOICE_MS = 5 * 60 * 1000;
 const MIN_VOICE_MS = 800;
@@ -41,7 +41,7 @@ const utc = (s) => {
   const str = String(s || '');
   return new Date(/Z$|[+-]\d\d:?\d\d$/.test(str) ? str : `${str.replace(' ', 'T')}Z`);
 };
-// "Kelete Distribution - BANKERS (KABWE)" â†’ "Bankers (Kabwe)"; "HQ" stays.
+// "Kelete Distribution - BANKERS (KABWE)" → "Bankers (Kabwe)"; "HQ" stays.
 const shortPlace = (name) => (String(name || '') === 'HQ' ? 'HQ' : String(name || '')
   .split(/\s+-\s+/).pop().replace(/\s+Depo$/i, '')
   .toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()));
@@ -90,7 +90,7 @@ export default function Messages() {
 
   useEffect(() => { getChatMe().then((r) => setMe(r.data)).catch(() => {}); }, []);
 
-  // 2026-09-14 â€” opened from a notification or pop-up: /messages?c=<conversation id>.
+  // 2026-09-14 — opened from a notification or pop-up: /messages?c=<conversation id>.
   const location = useLocation();
   useEffect(() => {
     const c = parseInt(new URLSearchParams(location.search).get('c'), 10);
@@ -190,7 +190,7 @@ export default function Messages() {
     setSending(false);
   };
 
-  // â”€â”€ Voice notes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Voice notes ─────────────────────────────────────────────────────────
   const stopTracks = (r) => { try { r?.stream?.getTracks().forEach((t) => t.stop()); } catch (_) { /* already stopped */ } };
 
   const startRecording = async () => {
@@ -227,7 +227,7 @@ export default function Messages() {
     }
     stopTracks(r);
     if (!sendIt) return;
-    if (Date.now() - r.startedAt < MIN_VOICE_MS || !r.chunks.length) { setError('That voice note was too short â€” tap the microphone and speak.'); return; }
+    if (Date.now() - r.startedAt < MIN_VOICE_MS || !r.chunks.length) { setError('That voice note was too short — tap the microphone and speak.'); return; }
     const baseType = String(r.recorder.mimeType || r.chunks[0].type || 'audio/webm').split(';')[0];
     const type = baseType.startsWith('audio/') ? baseType : 'audio/webm';
     const ext = /mp4|m4a|aac/.test(type) ? '.m4a' : /ogg/.test(type) ? '.ogg' : '.webm';
@@ -297,7 +297,7 @@ export default function Messages() {
     <div className="page-content msg-page">
       <style>{CSS}</style>
       <div className={`msg-shell${activeId ? ' has-thread' : ''}`}>
-        {/* â”€â”€ Conversation list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Conversation list ─────────────────────────────────────── */}
         <aside className="msg-list">
           <div className="msg-list-head">
             <h2>Messages</h2>
@@ -324,7 +324,7 @@ export default function Messages() {
           </label>
           <div className="msg-convos">
             {convs === null ? (
-              <p className="msg-empty">Loadingâ€¦</p>
+              <p className="msg-empty">Loading…</p>
             ) : filtered.length === 0 ? (
               <p className="msg-empty">{convs.length ? 'No conversation matches that search.' : 'No conversations yet. Tap New chat to start one.'}</p>
             ) : filtered.map((c) => (
@@ -347,7 +347,7 @@ export default function Messages() {
           </div>
         </aside>
 
-        {/* â”€â”€ Open conversation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Open conversation ─────────────────────────────────────── */}
         <section className="msg-thread">
           {!activeId ? (
             <div className="msg-placeholder">
@@ -361,7 +361,7 @@ export default function Messages() {
                   <FiArrowLeft />
                 </button>
                 <div className="msg-thread-title">
-                  <b>{conv?.title || 'â€¦'}</b>
+                  <b>{conv?.title || '…'}</b>
                   {subtitle && <small>{subtitle}</small>}
                 </div>
                 {conv?.kind === 'group' && (
@@ -373,7 +373,7 @@ export default function Messages() {
 
               <div className="msg-body" ref={bodyRef}>
                 {loadingThread && !thread.messages.length ? (
-                  <p className="msg-empty">Loadingâ€¦</p>
+                  <p className="msg-empty">Loading…</p>
                 ) : thread.messages.length === 0 ? (
                   <p className="msg-empty">No messages yet. Say hello.</p>
                 ) : thread.messages.map((m, i) => {
@@ -387,7 +387,7 @@ export default function Messages() {
                       {newDay && <div className="msg-day"><span>{dayLabel(d)}</span></div>}
                       <div className={`msg-line${m.mine ? ' mine' : ''}`}>
                         <div className="msg-stack">
-                          {showSender && <span className="msg-sender">{m.sender_name} Â· {shortPlace(m.sender_place)}</span>}
+                          {showSender && <span className="msg-sender">{m.sender_name} · {shortPlace(m.sender_place)}</span>}
                           <div className={`msg-bubble${m.deleted ? ' deleted' : ''}`}>
                             {m.deleted ? (
                               <i>Message deleted</i>
@@ -455,7 +455,7 @@ export default function Messages() {
                   rows={1}
                   value={text}
                   maxLength={4000}
-                  placeholder="Write a messageâ€¦"
+                  placeholder="Write a message…"
                   onChange={(e) => setText(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
                 />
@@ -493,7 +493,7 @@ export default function Messages() {
   );
 }
 
-// â”€â”€ A message's file: photos inline, everything else as a download â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── A message's file: photos inline, everything else as a download ──────────
 function Attachment({ message }) {
   const { file } = message;
   const showable = isShowableImage(file.mime);
@@ -536,7 +536,7 @@ function Attachment({ message }) {
         <FiMic className="msg-voice-icon" />
         {url
           ? <audio controls preload="metadata" src={url}>Voice note</audio>
-          : <span className="msg-voice-loading">Loading voice noteâ€¦</span>}
+          : <span className="msg-voice-loading">Loading voice note…</span>}
       </div>
     );
   }
@@ -552,14 +552,14 @@ function Attachment({ message }) {
       <span className="msg-doc-icon"><FiFileText /></span>
       <span className="msg-doc-text">
         <b>{file.name}</b>
-        <small>{failed ? 'Could not open â€” try again' : `${fmtSize(file.size)} Â· ${busy ? 'Downloadingâ€¦' : 'Download'}`}</small>
+        <small>{failed ? 'Could not open — try again' : `${fmtSize(file.size)} · ${busy ? 'Downloading…' : 'Download'}`}</small>
       </span>
       <FiDownload />
     </button>
   );
 }
 
-// â”€â”€ Modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Modals ───────────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children, footer }) {
   return (
     <Portal>
@@ -658,7 +658,7 @@ function PeoplePicker({ title, onClose, onPick }) {
     <Modal title={title} onClose={onClose}>
       <label className="msg-search"><FiSearch /><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or depot" /></label>
       {(error || err) && <div className="msg-error">{error || err}</div>}
-      {!people ? <p className="msg-empty">Loadingâ€¦</p> : groupByPlace(people, query).map(([place, list]) => (
+      {!people ? <p className="msg-empty">Loading…</p> : groupByPlace(people, query).map(([place, list]) => (
         <div key={place} className="msg-people-group">
           <div className="msg-people-place">{place}</div>
           {list.map((p) => (
@@ -692,7 +692,7 @@ function GroupCreator({ onClose, onCreate }) {
       footer={(
         <>
           <span className="msg-muted">{chosen.length} chosen</span>
-          <button type="button" className="msg-primary-btn" disabled={busy} onClick={create}>{busy ? 'Creatingâ€¦' : 'Create group'}</button>
+          <button type="button" className="msg-primary-btn" disabled={busy} onClick={create}>{busy ? 'Creating…' : 'Create group'}</button>
         </>
       )}>
       <label className="msg-field">Group name
@@ -700,7 +700,7 @@ function GroupCreator({ onClose, onCreate }) {
       </label>
       <label className="msg-search"><FiSearch /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search people" /></label>
       {(error || err) && <div className="msg-error">{error || err}</div>}
-      {!people ? <p className="msg-empty">Loadingâ€¦</p> : <PeopleChecklist people={people} query={query} chosen={chosen} setChosen={setChosen} />}
+      {!people ? <p className="msg-empty">Loading…</p> : <PeopleChecklist people={people} query={query} chosen={chosen} setChosen={setChosen} />}
     </Modal>
   );
 }
@@ -728,7 +728,7 @@ function MembersPanel({ conv, members, me, onClose, onChanged }) {
     );
   }
   return (
-    <Modal title={`${conv.title} Â· ${members.length} members`} onClose={onClose}
+    <Modal title={`${conv.title} · ${members.length} members`} onClose={onClose}
       footer={conv.can_manage ? (
         <button type="button" className="msg-primary-btn" onClick={() => setAdding(true)}><FiPlus /> Add people</button>
       ) : null}>
@@ -763,13 +763,13 @@ function AddMembers({ existing, busy, err, onClose, onAdd }) {
         <>
           <span className="msg-muted">{chosen.length} chosen</span>
           <button type="button" className="msg-primary-btn" disabled={busy || !chosen.length} onClick={() => onAdd(chosen)}>
-            {busy ? 'Addingâ€¦' : 'Add to group'}
+            {busy ? 'Adding…' : 'Add to group'}
           </button>
         </>
       )}>
       <label className="msg-search"><FiSearch /><input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search people" /></label>
       {(error || err) && <div className="msg-error">{error || err}</div>}
-      {!people ? <p className="msg-empty">Loadingâ€¦</p>
+      {!people ? <p className="msg-empty">Loading…</p>
         : available.length === 0 ? <p className="msg-empty">Everyone is already in this group.</p>
         : <PeopleChecklist people={available} query={query} chosen={chosen} setChosen={setChosen} />}
     </Modal>
@@ -786,7 +786,7 @@ const CSS = `
 .msg-list { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); background: #fbfcfe; }
 .msg-list-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 14px 14px 8px; }
 .msg-list-head h2 { margin: 0; font-size: 18px; color: var(--ink); }
-/* 2026-09-14 â€” HQ has two buttons; when they do not fit beside the title they
+/* 2026-09-14 — HQ has two buttons; when they do not fit beside the title they
    drop under it instead of pushing "New chat" out of the column. */
 .msg-row-gap { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
 .msg-search { display: flex; align-items: center; gap: 8px; margin: 4px 14px 10px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: #94a3b8; }

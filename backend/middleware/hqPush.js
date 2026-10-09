@@ -1,5 +1,5 @@
 /**
- * hqPush.js â€” helpers for pushing HQ-owned rows to every registered branch.
+ * hqPush.js — helpers for pushing HQ-owned rows to every registered branch.
  *
  * v1.6.0 extends the HQ-owned set beyond Products: Categories, Main
  * Categories and Units are now also HQ-managed. When a write hits one of
@@ -31,7 +31,7 @@ function isHqRequest(req) {
 //
 // Returns a JSON string (matches the column shape). When the branch has no
 // existing row for a given unit name, falls back to HQ's price (initial
-// state on first push â€” usually 0, branch sets the real number locally).
+// state on first push — usually 0, branch sets the real number locally).
 function mergeUnitsJsonPreservingBranchPrices(hqJson, branchJson) {
   let hqUnits = [];
   let branchUnits = [];
@@ -58,7 +58,7 @@ function mergeUnitsJsonPreservingBranchPrices(hqJson, branchJson) {
   return JSON.stringify(merged);
 }
 
-// SKIP_SLUGS only routes â€” true HQ, not a per-branch tenant. We push on
+// SKIP_SLUGS only routes — true HQ, not a per-branch tenant. We push on
 // these because middleware/tenant.js routes them to the default DB.
 function isHqOrSkip(req) {
   const slug = getHostSlug(req);
@@ -67,7 +67,7 @@ function isHqOrSkip(req) {
 
 // Push a category row to every registered branch. Matches on sync_id;
 // updates the name / color / main_category_sync_id / is_hq_owned on
-// existing rows, inserts new ones. Soft-deleted on HQ â†’ soft-deleted at
+// existing rows, inserts new ones. Soft-deleted on HQ → soft-deleted at
 // every branch.
 function pushCategoryToBranches(catRow, { listTenants, getTenantDb }) {
   const out = { pushed: 0, updated: 0, errors: [] };
@@ -87,8 +87,8 @@ function pushCategoryToBranches(catRow, { listTenants, getTenantDb }) {
         continue;
       }
 
-      // v1.10.22 â€” resolve main_category_id (local FK) from the incoming
-      // main_category_sync_id so UPDATE re-links Crates â†’ Beverage when HQ
+      // v1.10.22 — resolve main_category_id (local FK) from the incoming
+      // main_category_sync_id so UPDATE re-links Crates → Beverage when HQ
       // reassigns the parent. Previously UPDATE only refreshed the sync_id
       // pointer, leaving the FK stale and items grouped under Uncategorized.
       let mainCatId = null;
@@ -258,7 +258,7 @@ function readSyncTenantId(db, slug = null) {
 //   cost_price, selling_price, alt_price, min_stock, status,
 //   current_stock, notes.
 //
-// NEW â€” Fix A (UAT-2 gap): HQ now owns the INITIAL cost/selling price on
+// NEW — Fix A (UAT-2 gap): HQ now owns the INITIAL cost/selling price on
 // create. First-time branch INSERT inherits prodRow.cost_price /
 // selling_price / alt_price / current_stock instead of hard-zeroing.
 // Routine UPDATEs still leave prices alone (branch-owned) UNLESS the
@@ -272,7 +272,7 @@ function readSyncTenantId(db, slug = null) {
 // setImmediate. Fire-and-forget so the HTTP push response is never
 // blocked by VSDC's round-trip. saveItem() writes zra_registered_at /
 // zra_last_error itself (using the ALS-scoped db proxy), so we just
-// need to run it inside runWithDb(branchDb, â€¦).
+// need to run it inside runWithDb(branchDb, …).
 function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices = false }) {
   const out = { pushed: 0, updated: 0, errors: [] };
   for (const t of listTenants()) {
@@ -289,9 +289,9 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
         `).run(prodRow.sync_id);
         if (info.changes > 0) out.updated += 1;
 
-        // v1.13.144 â€” Fix A part 3: cascade the soft-delete to ZRA via
+        // v1.13.144 — Fix A part 3: cascade the soft-delete to ZRA via
         // updateItem with useYn='N'. ZRA has no dedicated deleteItem
-        // endpoint per spec Â§5.7 â€” deactivation is done by re-sending
+        // endpoint per spec §5.7 — deactivation is done by re-sending
         // the item with useYn='N'. Skip if branch is ZRA-off or the
         // branch mirror was never registered (nothing to deactivate).
         try {
@@ -310,7 +310,7 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
                 dbProxy.runWithDb(db, async () => {
                   try {
                     // Override useYn to 'N' by decorating the product
-                    // object â€” vsdcClient reads product.zra_use_yn || 'Y'
+                    // object — vsdcClient reads product.zra_use_yn || 'Y'
                     // when building the saveItem/updateItem body.
                     await vsdc.saveItem(
                       branchTenantId,
@@ -328,7 +328,7 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
               });
             }
           }
-        } catch (_) { /* best-effort â€” never break soft-delete on ZRA plumbing */ }
+        } catch (_) { /* best-effort — never break soft-delete on ZRA plumbing */ }
 
         continue;
       }
@@ -342,12 +342,12 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
       }
 
       // v1.6.8: alt_unit / conversion_factor are HQ-owned (they describe
-      // the packaging structure HQ defines). alt_price is NOT â€” that's
+      // the packaging structure HQ defines). alt_price is NOT — that's
       // the branch's per-packaging selling price. So we push the structural
       // alt_unit + conversion_factor but leave alt_price alone (only set
       // it on the initial INSERT when the row doesn't exist yet).
       const existing = db.prepare('SELECT id, units_json FROM products WHERE sync_id = ? AND deleted_at IS NULL').get(prodRow.sync_id);
-      // v1.13.144 â€” Snapshot the branch's ZRA-relevant fields BEFORE we
+      // v1.13.144 — Snapshot the branch's ZRA-relevant fields BEFORE we
       // overwrite them, so the post-UPDATE cascade can decide whether
       // to fire vsdc.saveItem (isUpdate:true). If any of these changed
       // we push updateItem; if nothing changed we skip (saves API calls
@@ -364,7 +364,7 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
         // owns price. Merge so re-pushes from HQ don't wipe local prices.
         //
         // Fix A: when pushPrices=true, HQ's units_json (prices included)
-        // wins outright â€” no merge. Also extend the SET list with
+        // wins outright — no merge. Also extend the SET list with
         // cost_price/selling_price/alt_price so branch overrides get wiped.
         const mergedUnitsJson = pushPrices
           ? (prodRow.units_json || null)
@@ -406,8 +406,8 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
           prodRow.ub_quantity_start ?? 7, prodRow.ub_quantity_length ?? 0,
           prodRow.ub_decimal_start ?? 2,
           prodRow.alt_unit || null, prodRow.conversion_factor || null,
-          // v1.13.73 â€” ZRA classification pushed as HQ-owned. Any of these
-          // being NULL on HQ side wipes them on the branch too â€” that's
+          // v1.13.73 — ZRA classification pushed as HQ-owned. Any of these
+          // being NULL on HQ side wipes them on the branch too — that's
           // intended: HQ is the master of truth for ZRA metadata.
           prodRow.hs_code           || null,
           prodRow.tax_label         || null,
@@ -458,7 +458,7 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
           prodRow.ub_decimal_start ?? 2,
           prodRow.alt_unit || null, prodRow.conversion_factor || null,
           prodRow.alt_price     == null ? null : prodRow.alt_price,
-          // v1.13.73 â€” same ZRA field push as UPDATE branch above; seeds
+          // v1.13.73 — same ZRA field push as UPDATE branch above; seeds
           // brand-new branch rows with HQ's classification so first sale
           // there doesn't blow up saveSales for missing tax category.
           prodRow.hs_code           || null,
@@ -476,16 +476,16 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
         out.pushed += 1;
       }
 
-      // Fix A â€” ZRA cascade. HQ has no VSDC device, so saveItem() at HQ
+      // Fix A — ZRA cascade. HQ has no VSDC device, so saveItem() at HQ
       // returns { skipped: true } and the branch mirror stays unregistered
       // forever. Fire saveItem in the branch's DB context now, so the item
       // lands in ZRA under the branch's SDC. Skip when branch ZRA is off or
       // the mirror row is already registered.
       //
-      // Fire-and-forget via setImmediate â€” VSDC round-trip must not block
+      // Fire-and-forget via setImmediate — VSDC round-trip must not block
       // the HTTP push response. saveItem() writes zra_registered_at /
       // zra_last_error itself via the ALS-scoped `db` proxy; we run it
-      // inside runWithDb(branchDb, â€¦) so those writes hit the branch DB.
+      // inside runWithDb(branchDb, …) so those writes hit the branch DB.
       try {
         const bs = db.prepare(
           "SELECT zra_enabled, zra_sdc_id FROM business_settings WHERE tenant_id = ? LIMIT 1"
@@ -506,7 +506,7 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
                     actor:    'hq-cascade',
                   });
                   // vsdc.saveItem writes zra_registered_at + zra_last_error
-                  // itself on success/failure â€” no extra UPDATE needed here.
+                  // itself on success/failure — no extra UPDATE needed here.
                 } catch (e) {
                   try {
                     db.prepare(
@@ -517,21 +517,21 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
               });
             });
           } else if (branchProduct?.zra_registered_at && preUpdateZraSnap) {
-            // v1.13.144 â€” Fix A part 2: product is ALREADY registered with
+            // v1.13.144 — Fix A part 2: product is ALREADY registered with
             // ZRA. If HQ changed any ZRA-relevant field (name, UNSPSC, VAT
             // cat, packaging, quantity unit, origin, item type, RRP), fire
             // vsdc.saveItem with isUpdate:true so ZRA's copy stays in sync
-            // with HQ's. Skip when only price changed â€” price isn't sent
+            // with HQ's. Skip when only price changed — price isn't sent
             // to ZRA as an updatable field. Curl-verified 2026-08-14 that
             // /items/updateItem needs vatCatCd non-null; saveItem already
             // sends it, so isUpdate:true reuses the same payload.
             const norm = v => (v == null || v === '') ? null : String(v);
             // Price check compares the branch's OLD price vs the branch's
             // POST-UPDATE price (branchProduct.selling_price), NOT vs HQ's
-            // prodRow.selling_price â€” because the sticky-branch rule means
+            // prodRow.selling_price — because the sticky-branch rule means
             // HQ's price only lands on the branch when pushPrices=true. If
             // HQ raised its own price with the checkbox unticked, branch
-            // stays put â†’ no ZRA update needed. Only when the branch's
+            // stays put → no ZRA update needed. Only when the branch's
             // ACTUAL price changed (checkbox tick / bulk push) do we push.
             const priceChanged =
               Number(preUpdateZraSnap.selling_price || 0) !== Number(branchProduct.selling_price || 0);
@@ -567,7 +567,7 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
             }
           }
         }
-      } catch (_) { /* best-effort â€” never break push on ZRA plumbing */ }
+      } catch (_) { /* best-effort — never break push on ZRA plumbing */ }
     } catch (e) {
       out.errors.push({ slug: t.slug, error: e.message });
     }
@@ -575,20 +575,20 @@ function pushProductToBranches(prodRow, { listTenants, getTenantDb, pushPrices =
   return out;
 }
 
-// v1.9.0 â€” bulk sweep helper. Reads every HQ-owned row (main categories,
+// v1.9.0 — bulk sweep helper. Reads every HQ-owned row (main categories,
 // categories, units, products) from the default DB and pushes each one to
 // every branch via the per-row helpers above. Branch-owned columns
 // (selling_price, cost_price, current_stock, min_stock, status, notes,
-// alt_price, units_json.price) stay untouched â€” see pushProductToBranches
+// alt_price, units_json.price) stay untouched — see pushProductToBranches
 // for the per-column rules.
 //
 // Use cases (the "3 layers"):
-//   Layer 1 â€” boot heal:     called once at server start, targetSlug=null
-//   Layer 2 â€” on-register:   called once when a tenant DB is created,
+//   Layer 1 — boot heal:     called once at server start, targetSlug=null
+//   Layer 2 — on-register:   called once when a tenant DB is created,
 //                            targetSlug=<that slug>
-//   Layer 3 â€” manual refresh: called from HQ admin button, targetSlug=null
+//   Layer 3 — manual refresh: called from HQ admin button, targetSlug=null
 //
-// Returns: { entities: {â€¦counts}, per_branch: { slug: { products: {â€¦} â€¦ } } }
+// Returns: { entities: {…counts}, per_branch: { slug: { products: {…} … } } }
 function mirrorAllHqToBranches(defaultDb, { listTenants, getTenantDb, targetSlug = null, pushPrices = false, itemClassesIfMissing = false } = {}) {
   if (!defaultDb || typeof defaultDb.prepare !== 'function') {
     throw new Error('mirrorAllHqToBranches: defaultDb is required');
@@ -611,21 +611,21 @@ function mirrorAllHqToBranches(defaultDb, { listTenants, getTenantDb, targetSlug
   const categories = safeAll(`SELECT * FROM categories       WHERE deleted_at IS NULL`);
   const units      = safeAll(`SELECT * FROM units            WHERE deleted_at IS NULL`);
   const products   = safeAll(`SELECT * FROM products         WHERE deleted_at IS NULL`);
-  // v1.13.147 â€” HQ's zra_item_classes (UNSPSC catalog) gets mirrored to
+  // v1.13.147 — HQ's zra_item_classes (UNSPSC catalog) gets mirrored to
   // every branch too. HQ bulk-imports the full ~40k-158k row official
   // ZRA UNSPSC-Classification-Codes.xlsx (T03A spec explicitly allows
   // Excel upload as an alternative to the VSDC pull); branches otherwise
   // only accumulate whatever their own /itemClass/selectItemsClass VSDC
   // sync has pulled, which can lag far behind (observed: Garden had 1,000
-  // rows vs HQ's 158,448 â€” real product codes existed at HQ but showed
-  // "(loading nameâ€¦)" at the branch because the LOCAL cache, not the
-  // fiscal record, was incomplete). Bulk INSERT OR REPLACE per branch â€”
+  // rows vs HQ's 158,448 — real product codes existed at HQ but showed
+  // "(loading name…)" at the branch because the LOCAL cache, not the
+  // fiscal record, was incomplete). Bulk INSERT OR REPLACE per branch —
   // this is reference data, not per-branch fiscal state, so a full
   // overwrite is always safe and idempotent.
   //
-  // 2026-09-13 â€” itemClassesIfMissing (the boot sweep passes it). The catalogue
+  // 2026-09-13 — itemClassesIfMissing (the boot sweep passes it). The catalogue
   // is ~158k rows, and upserting it into every branch on every restart held
-  // the whole server â€” every till and every report â€” for minutes after each
+  // the whole server — every till and every report — for minutes after each
   // deploy. It is reference data that only changes when HQ imports a new list,
   // so the boot sweep copies it only into a branch holding fewer rows than HQ,
   // and reads HQ's rows only if one does. Sync Products to All and a new
@@ -657,7 +657,7 @@ function mirrorAllHqToBranches(defaultDb, { listTenants, getTenantDb, targetSlug
       acc[key].updated += r.updated || 0;
       if (r.errors && r.errors.length) acc[key].errors.push(...r.errors);
     };
-    // Order matters: main_categories â†’ categories â†’ units â†’ products
+    // Order matters: main_categories → categories → units → products
     // (products resolve category_id by sync_id; that sync_id must already
     //  exist at the branch when the product push runs).
     for (const mc of mainCats)   merge('main_categories', pushMainCategoryToBranches(mc, singleCtx));

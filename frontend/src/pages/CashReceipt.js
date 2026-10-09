@@ -19,19 +19,19 @@ const todayStr = new Date().toISOString().split('T')[0];
 const CashReceipt = () => {
   const { hasPermission } = useAuth();
   const { symbol: curSym, isLiquorStyle: rawLiquorStyle, methodShown } = useCurrency();
-  // v1.10.68 â€” HQ is Kelete's Head Office, not a Liquor branch. Regardless
+  // v1.10.68 — HQ is Kelete's Head Office, not a Liquor branch. Regardless
   // of how its tenant settings evaluate (currency_mode='K' +
   // payment_methods='cash_momo_bank' would flip rawLiquorStyle to true),
-  // the CR modal here must offer a K / USD / FRA choice with K default â€”
+  // the CR modal here must offer a K / USD / FRA choice with K default —
   // HQ collects K by default (branch deposits, transport, etc.) but also
   // needs USD and FRA lanes for cross-currency inflows.
   const onHq = isHqHost();
-  // v1.13.46 â€” Kelete HQ is K-only (no tri-currency branches), so drop
+  // v1.13.46 — Kelete HQ is K-only (no tri-currency branches), so drop
   // the Kelete-era `&& !onHq` override that forced multi-currency lanes
   // on the HQ host. Business settings drive isLiquorStyle correctly.
   const isLiquorStyle = rawLiquorStyle;
   const { t } = useLanguage();
-  // v1.8.32 â€” per-currency totals. Backend returns today/month/total
+  // v1.8.32 — per-currency totals. Backend returns today/month/total
   // breakdowns alongside the legacy USD-only fields.
   const [stats, setStats]     = useState({
     todayReceipts: 0, thisMonth: 0, totalReceipts: 0,
@@ -44,7 +44,7 @@ const CashReceipt = () => {
   const [saving, setSaving]   = useState(false);
   const [formError, setFormError] = useState('');
 
-  // Date filter â€” default to today
+  // Date filter — default to today
   const [filterFrom, setFilterFrom] = useState(todayStr);
   const [filterTo,   setFilterTo]   = useState(todayStr);
 
@@ -68,9 +68,9 @@ const CashReceipt = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  // v1.8.32 â€” triple-currency form. usd/fra/k each in own currency
+  // v1.8.32 — triple-currency form. usd/fra/k each in own currency
   // (same shape as PV modal). Legacy cash/bank/momo dropped from the
-  // form state â€” backend still accepts them for old API callers.
+  // form state — backend still accepts them for old API callers.
   const [form, setForm] = useState({
     received_from: '', description: '',
     usd_amount: '', fra_amount: '', k_amount: '',
@@ -111,7 +111,7 @@ const CashReceipt = () => {
   const openEdit = (r) => {
     setEditMode(true);
     setEditId(r.id);
-    // v1.8.32 â€” prefer usd/fra/k columns; fall back to legacy
+    // v1.8.32 — prefer usd/fra/k columns; fall back to legacy
     // cash/bank/momo (treated as USD/FRA/K respectively for old rows
     // that pre-date the triple-currency split), then to legacy amount
     // as a USD bucket so the form is always editable.
@@ -145,20 +145,20 @@ const CashReceipt = () => {
     }
     setSaving(true);
     try {
-      // v1.8.32 â€” payment_method label = the currency used (since CR
+      // v1.8.32 — payment_method label = the currency used (since CR
       // is one-currency-per-receipt on Kelete). Backend doesn't care
       // about the label; this is just for the list-view badge.
-      // v1.10.44 â€” on Liquor branches all three slots are the same
+      // v1.10.44 — on Liquor branches all three slots are the same
       // currency (K), so a single CR can span Cash + MoMo + Bank at
       // once. Label the receipt with whichever slot is largest so the
       // badge is meaningful; the payload sums for amount + splits.
       const paymentMethod = isLiquorStyle
         ? (usd >= fra && usd >= k ? 'Cash' : fra >= k ? 'Mobile Money' : 'Bank Transfer')
         : (k > 0 && onHq ? 'K' : usd > 0 ? 'USD' : fra > 0 ? 'FRA' : k > 0 ? 'K' : 'Cash');
-      // v1.10.44 â€” on Liquor amount = usd+fra+k so the Cash Book ledger
+      // v1.10.44 — on Liquor amount = usd+fra+k so the Cash Book ledger
       // sums the full receipt total (not just Cash). Kelete Kassumbalesa
       // keeps amount=usd only (dual-currency receipts book in USD).
-      // v1.10.68 â€” At HQ the receipt is single-currency (lock enforced) but
+      // v1.10.68 — At HQ the receipt is single-currency (lock enforced) but
       // could be K, USD, or FRA. Sum works out to the one filled slot,
       // giving the Cash Book stat cards the correct headline number in
       // whatever currency was received.
@@ -222,7 +222,7 @@ const CashReceipt = () => {
   const handlePrint = () => {
     const biz = businessInfo;
     const dateRange = filterFrom || filterTo
-      ? `${filterFrom ? formatDate(filterFrom) : 'All'} â€” ${filterTo ? formatDate(filterTo) : 'All'}`
+      ? `${filterFrom ? formatDate(filterFrom) : 'All'} — ${filterTo ? formatDate(filterTo) : 'All'}`
       : 'All Dates';
     const printed = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const chips = [
@@ -231,8 +231,8 @@ const CashReceipt = () => {
       { label: 'Receipts',     value: String(filteredReceipts.length),              bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
       { label: 'Total Amount', value: '$' + fmt2(filteredTotal),                   bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
     ].map(c => `<div style="padding:12px 16px;border-radius:10px;background:${c.bg};border:1.5px solid ${c.border};text-align:center"><div style="font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px">${c.label}</div><div style="font-size:16px;font-weight:800;color:${c.color}">${c.value}</div></div>`).join('');
-    const rows = filteredReceipts.map((r, idx) => `<tr style="border-bottom:1px solid #f1f5f9;background:${idx % 2 === 1 ? '#fafafa' : '#fff'}"><td style="padding:8px 12px;color:#9ca3af;font-size:10.5px">${idx + 1}</td><td style="padding:8px 12px;font-weight:700;font-family:monospace;font-size:11px;color:#16a34a">${r.receipt_number}</td><td style="padding:8px 12px;color:#374151">${formatDate(r.date)}</td><td style="padding:8px 12px;font-weight:500">${r.received_from}</td><td style="padding:8px 12px;color:#6b7280">${r.description || 'â€”'}</td><td style="padding:8px 12px;color:#374151">${r.payment_method}</td><td style="padding:8px 12px;text-align:right;font-weight:700;font-family:monospace;color:#16a34a">$${fmt2(r.amount)}</td></tr>`).join('');
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipts</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:794px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#16a34a 100%);padding:28px 44px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:21px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:11px;opacity:0.75">${[biz.business_address, biz.business_phone].filter(Boolean).join('  |  ')}</div></div><div style="text-align:right"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.65;margin-bottom:6px">Cash Receipts</div><div style="font-size:15px;font-weight:700">${dateRange}</div><div style="font-size:10px;opacity:0.6;margin-top:4px">Printed: ${printed}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#16a34a,#2563eb,#a855f7)"></div><div style="padding:26px 44px 36px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">${chips}</div><div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#f0fdf4"><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">#</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Receipt No.</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Date</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Received From</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Description</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Method</th><th style="padding:8px 12px;text-align:right;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Amount</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:#f0fdf4;border-top:2px solid #86efac"><td colspan="6" style="padding:10px 12px;font-weight:700;font-size:11.5px;color:#16a34a">TOTAL â€” ${filteredReceipts.length} Receipt${filteredReceipts.length !== 1 ? 's' : ''}</td><td style="padding:10px 12px;text-align:right;font-weight:800;font-size:13px;font-family:monospace;color:#16a34a">$${fmt2(filteredTotal)}</td></tr></tfoot></table></div><div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between"><span style="font-size:9.5px;color:#cbd5e1">${biz.business_name || 'Business'} â€” Confidential</span><span style="font-size:9.5px;color:#cbd5e1">Printed: ${printed}</span></div></div></div></body></html>`;
+    const rows = filteredReceipts.map((r, idx) => `<tr style="border-bottom:1px solid #f1f5f9;background:${idx % 2 === 1 ? '#fafafa' : '#fff'}"><td style="padding:8px 12px;color:#9ca3af;font-size:10.5px">${idx + 1}</td><td style="padding:8px 12px;font-weight:700;font-family:monospace;font-size:11px;color:#16a34a">${r.receipt_number}</td><td style="padding:8px 12px;color:#374151">${formatDate(r.date)}</td><td style="padding:8px 12px;font-weight:500">${r.received_from}</td><td style="padding:8px 12px;color:#6b7280">${r.description || '—'}</td><td style="padding:8px 12px;color:#374151">${r.payment_method}</td><td style="padding:8px 12px;text-align:right;font-weight:700;font-family:monospace;color:#16a34a">$${fmt2(r.amount)}</td></tr>`).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipts</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:794px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#16a34a 100%);padding:28px 44px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:21px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:11px;opacity:0.75">${[biz.business_address, biz.business_phone].filter(Boolean).join('  |  ')}</div></div><div style="text-align:right"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.65;margin-bottom:6px">Cash Receipts</div><div style="font-size:15px;font-weight:700">${dateRange}</div><div style="font-size:10px;opacity:0.6;margin-top:4px">Printed: ${printed}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#16a34a,#2563eb,#a855f7)"></div><div style="padding:26px 44px 36px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">${chips}</div><div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#f0fdf4"><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">#</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Receipt No.</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Date</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Received From</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Description</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Method</th><th style="padding:8px 12px;text-align:right;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Amount</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:#f0fdf4;border-top:2px solid #86efac"><td colspan="6" style="padding:10px 12px;font-weight:700;font-size:11.5px;color:#16a34a">TOTAL — ${filteredReceipts.length} Receipt${filteredReceipts.length !== 1 ? 's' : ''}</td><td style="padding:10px 12px;text-align:right;font-weight:800;font-size:13px;font-family:monospace;color:#16a34a">$${fmt2(filteredTotal)}</td></tr></tfoot></table></div><div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between"><span style="font-size:9.5px;color:#cbd5e1">${biz.business_name || 'Business'} — Confidential</span><span style="font-size:9.5px;color:#cbd5e1">Printed: ${printed}</span></div></div></div></body></html>`;
     const w = window.open('', '_blank');
     w.document.write(html);
     w.document.close();
@@ -250,7 +250,7 @@ const CashReceipt = () => {
     ].map(c => `<div style="padding:14px 18px;border-radius:10px;background:${c.bg};border:1.5px solid ${c.border}"><div style="font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px">${c.label}</div><div style="font-size:15px;font-weight:700;color:${c.color}">${c.value}</div></div>`).join('');
     const descHtml = r.description ? `<div style="padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#78350f;margin-bottom:24px"><span style="font-weight:700;text-transform:uppercase;font-size:9.5px;letter-spacing:0.8px;margin-right:8px;color:#92400e">Description</span>${r.description}</div>` : '';
     const sigs = ['Received By', 'Authorized By'].map(label => `<div style="text-align:center"><div style="height:36px;border-bottom:1.5px solid #cbd5e1;margin-bottom:6px"></div><div style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#6b7280">${label}</div><div style="font-size:9px;color:#9ca3af;margin-top:2px">Name / Signature / Date</div></div>`).join('');
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipt ${r.receipt_number}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:600px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#166534 50%,#16a34a 100%);padding:28px 40px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:8px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:8px">Cash Receipt</div><div style="font-size:20px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:10px;opacity:0.7;line-height:1.8">${[biz.business_address, biz.business_phone, biz.business_email].filter(Boolean).join('  Â·  ')}</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.55;margin-bottom:8px">Receipt No.</div><div style="font-size:20px;font-weight:900;letter-spacing:1px;font-family:monospace">${r.receipt_number}</div><div style="margin-top:8px;font-size:11px;opacity:0.8">${formatDate(r.date)}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#22c55e,#2563eb,#a855f7)"></div><div style="padding:28px 40px 36px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px">${cards}</div><div style="border:2px solid #86efac;border-radius:12px;padding:18px 24px;background:#f0fdf4;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#15803d;font-weight:700;margin-bottom:4px">Total Amount Received</div><div style="font-size:11px;color:#6b7280">${r.payment_method} Â· ${r.received_from}</div></div><div style="font-size:28px;font-weight:900;color:#15803d;font-family:monospace">$${fmt2(r.amount)}</div></div>${descHtml}<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px">${sigs}</div></div><div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 40px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#94a3b8">${biz.business_name || 'Business'} â€” Confidential Document</span><span style="font-size:9px;color:#94a3b8">Printed: ${printed}</span></div></div></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipt ${r.receipt_number}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:600px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#166534 50%,#16a34a 100%);padding:28px 40px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:8px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:8px">Cash Receipt</div><div style="font-size:20px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:10px;opacity:0.7;line-height:1.8">${[biz.business_address, biz.business_phone, biz.business_email].filter(Boolean).join('  ·  ')}</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.55;margin-bottom:8px">Receipt No.</div><div style="font-size:20px;font-weight:900;letter-spacing:1px;font-family:monospace">${r.receipt_number}</div><div style="margin-top:8px;font-size:11px;opacity:0.8">${formatDate(r.date)}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#22c55e,#2563eb,#a855f7)"></div><div style="padding:28px 40px 36px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px">${cards}</div><div style="border:2px solid #86efac;border-radius:12px;padding:18px 24px;background:#f0fdf4;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#15803d;font-weight:700;margin-bottom:4px">Total Amount Received</div><div style="font-size:11px;color:#6b7280">${r.payment_method} · ${r.received_from}</div></div><div style="font-size:28px;font-weight:900;color:#15803d;font-family:monospace">$${fmt2(r.amount)}</div></div>${descHtml}<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px">${sigs}</div></div><div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 40px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#94a3b8">${biz.business_name || 'Business'} — Confidential Document</span><span style="font-size:9px;color:#94a3b8">Printed: ${printed}</span></div></div></body></html>`;
     const w = window.open('', '_blank');
     w.document.write(html);
     w.document.close();
@@ -274,7 +274,7 @@ const CashReceipt = () => {
         </div>
       </div>
 
-      {/* v1.8.32 â€” per-currency stat cards. Today / This Month / Total
+      {/* v1.8.32 — per-currency stat cards. Today / This Month / Total
           render USD/FRA/K. Total Receipts stays as a count. Same shape
           as the PV page (v1.8.25). */}
       {(() => {
@@ -286,7 +286,7 @@ const CashReceipt = () => {
             <span style={{ opacity: 0.85 }}>{label}</span><strong>{val}</strong>
           </div>
         );
-        // v1.9.27 â€” Liquor-style branches (Mansa/Lusaka) collapse to one
+        // v1.9.27 — Liquor-style branches (Mansa/Lusaka) collapse to one
         // single-amount card; Kelete multi-currency branches keep the three
         // USD/FRA/K rows.
         const Card = ({ label, ccyData, bg, icon }) => {
@@ -330,7 +330,7 @@ const CashReceipt = () => {
         );
       })()}
 
-      {/* â”€â”€ Date Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Date Filter Bar ─────────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
@@ -366,11 +366,11 @@ const CashReceipt = () => {
 
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
           {filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''}
-          <> &nbsp;Â·&nbsp; Total: <strong style={{ color: '#16a34a' }}>{curSym}{fmt2(filteredTotal)}</strong></>
+          <> &nbsp;·&nbsp; Total: <strong style={{ color: '#16a34a' }}>{curSym}{fmt2(filteredTotal)}</strong></>
         </span>
       </div>
 
-      {/* â”€â”€ Receipts Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Receipts Table ──────────────────────────────────────────── */}
       <div className="data-table-container">
         {filteredReceipts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
@@ -381,8 +381,8 @@ const CashReceipt = () => {
             <thead>
               <tr>
                 <th>{t('receiptNumber')}</th><th>{t('date')}</th><th>{t('receivedFrom')}</th><th>{t('description')}</th><th>{t('paymentMethod')}</th>
-                {/* v1.8.32 â€” single Amount column split into 3 per-currency.
-                    v1.10.45 â€” on Liquor branches all three slots are the
+                {/* v1.8.32 — single Amount column split into 3 per-currency.
+                    v1.10.45 — on Liquor branches all three slots are the
                     same currency, so collapse back to a single AMOUNT
                     column that reads the receipt total. Matches the old
                     Liquor system (Alaskal) layout the user shared. */}
@@ -400,34 +400,34 @@ const CashReceipt = () => {
             </thead>
             <tbody>
               {filteredReceipts.map(r => {
-                // v1.10.46 â€” on Liquor branches read the currency columns
+                // v1.10.46 — on Liquor branches read the currency columns
                 // directly (usd/fra/k). Since v1.10.44 we ALSO mirror to the
                 // legacy cash/bank/momo columns for the Cash Book tile
                 // aggregator, so the old legacy-fallback ternary here would
-                // count MoMo twice â€” once as `fra_amount`, once as
-                // `momo_amount` â€” turning a K33,105 receipt into K59,510.
-                // v1.10.74 â€” on Liquor, an AR-payment CR (minted by
+                // count MoMo twice — once as `fra_amount`, once as
+                // `momo_amount` — turning a K33,105 receipt into K59,510.
+                // v1.10.74 — on Liquor, an AR-payment CR (minted by
                 // customerPayments.js) populates only legacy cash/bank/momo,
-                // not the usd/fra/k mirror â€” so the row would render blank
+                // not the usd/fra/k mirror — so the row would render blank
                 // if we read usd_amount alone. Fall back to the legacy
                 // columns when the mirror is empty. Manual Liquor CRs
                 // (from CashReceipt POST) fill BOTH sets, so this fallback
-                // is a no-op for them â€” the Cash Book aggregator's
+                // is a no-op for them — the Cash Book aggregator's
                 // double-count fear from v1.10.46 no longer applies because
                 // we prefer the mirror when it's non-zero.
                 const pf = (v) => parseFloat(v || 0) || 0;
                 const ru = pf(r.usd_amount) > 0 ? pf(r.usd_amount) : pf(r.cash_amount);
                 const rf = pf(r.fra_amount) > 0 ? pf(r.fra_amount) : pf(isLiquorStyle ? r.momo_amount : r.bank_amount);
                 const rk = pf(r.k_amount)   > 0 ? pf(r.k_amount)   : pf(isLiquorStyle ? r.bank_amount : r.momo_amount);
-                const dash = <span style={{ color: '#cbd5e1' }}>â€”</span>;
-                // v1.10.45 â€” Liquor total = sum of the three slots (all K).
+                const dash = <span style={{ color: '#cbd5e1' }}>—</span>;
+                // v1.10.45 — Liquor total = sum of the three slots (all K).
                 const liquorTotal = ru + rf + rk;
                 return (
                 <tr key={r.id}>
                   <td style={{ fontWeight: 500 }}>{r.receipt_number}</td>
                   <td>{formatDate(r.date)}</td>
                   <td>{r.received_from}</td>
-                  <td style={{ color: '#6b7280' }}>{r.description || 'â€”'}</td>
+                  <td style={{ color: '#6b7280' }}>{r.description || '—'}</td>
                   <td><span className={`badge ${getPaymentColor(r.payment_method)}`}>{r.payment_method}</span></td>
                   {isLiquorStyle ? (
                     <td style={{ textAlign: 'right', color: liquorTotal > 0 ? '#16a34a' : '', fontWeight: liquorTotal > 0 ? 700 : 400 }}>
@@ -476,16 +476,16 @@ const CashReceipt = () => {
               })}
             </tbody>
             <tfoot>
-              {/* v1.8.32 â€” per-currency footer totals. */}
+              {/* v1.8.32 — per-currency footer totals. */}
               <tr style={{ fontWeight: 700, borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
                 <td colSpan={5} style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontSize: 13 }}>
                   Total ({filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''})
                 </td>
                 {(() => {
-                  // v1.10.46 â€” same currency-column-direct read as the row
+                  // v1.10.46 — same currency-column-direct read as the row
                   // cell above. Without this the footer would triple-count
-                  // on Liquor (double-count per row Ã— N rows).
-                  // v1.10.74 â€” same fallback shape as the row cells above:
+                  // on Liquor (double-count per row × N rows).
+                  // v1.10.74 — same fallback shape as the row cells above:
                   // prefer usd/fra/k when populated, else fall back to the
                   // legacy cash/bank/momo columns (which is what
                   // customerPayments.js's mintReceipt fills on Liquor AR).
@@ -496,7 +496,7 @@ const CashReceipt = () => {
                   const tu = filteredReceipts.reduce((s, r) => s + pickU(r), 0);
                   const tf = filteredReceipts.reduce((s, r) => s + pickF(r), 0);
                   const tk = filteredReceipts.reduce((s, r) => s + pickK(r), 0);
-                  // v1.10.45 â€” Liquor total = sum across all three slots.
+                  // v1.10.45 — Liquor total = sum across all three slots.
                   if (isLiquorStyle) {
                     return (<>
                       <td style={{ padding: '10px 14px', textAlign: 'right', color: '#16a34a', fontWeight: 700, fontSize: 13 }}>{curSym}{fmt2(tu + tf + tk)}</td>
@@ -516,7 +516,7 @@ const CashReceipt = () => {
         )}
       </div>
 
-      {/* â”€â”€ View Receipt Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── View Receipt Modal ──────────────────────────────────────── */}
       {viewReceipt && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -560,11 +560,11 @@ const CashReceipt = () => {
                 ))}
               </div>
 
-              {/* Payment Breakdown â€” show only when the receipt actually has
+              {/* Payment Breakdown — show only when the receipt actually has
                   per-method splits (Mixed receipts, or single-method receipts
                   whose splits were filled in). For single-method legacy
                   receipts where Amount lives only on `amount`, this card is
-                  hidden â€” the Method+Amount tiles already say everything. */}
+                  hidden — the Method+Amount tiles already say everything. */}
               {(() => {
                 const cash = parseFloat(viewReceipt.cash_amount || 0);
                 const bank = parseFloat(viewReceipt.bank_amount || 0);
@@ -572,7 +572,7 @@ const CashReceipt = () => {
                 const splitSum = cash + bank + momo;
                 const hasSplits = splitSum > 0;
                 const nonZeroCount = [cash, bank, momo].filter(v => v > 0.001).length;
-                // Single-method receipts don't need a breakdown â€” the headline
+                // Single-method receipts don't need a breakdown — the headline
                 // payment-method pill + amount tile already convey it.
                 if (!hasSplits || nonZeroCount < 2) return null;
                 const amount = parseFloat(viewReceipt.amount || 0);
@@ -601,13 +601,13 @@ const CashReceipt = () => {
                       Payment Breakdown
                     </div>
                     <div style={{ display: 'flex', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-                      {cell('Cash', 'ðŸ’µ', cash, '#16a34a')}
-                      {/* 2026-09-11 â€” a hidden method shows only if this receipt has money on it. */}
-                      {(methodShown('bank') || bank > 0.001) && cell('Bank', 'ðŸ¦', bank, '#2563eb')}
+                      {cell('Cash', '💵', cash, '#16a34a')}
+                      {/* 2026-09-11 — a hidden method shows only if this receipt has money on it. */}
+                      {(methodShown('bank') || bank > 0.001) && cell('Bank', '🏦', bank, '#2563eb')}
                       {(methodShown('momo') || momo > 0.001) && (
                       <div style={{ flex: 1, padding: '10px 12px', background: momo > 0.001 ? '#fff' : '#fafafa', opacity: momo > 0.001 ? 1 : 0.4 }}>
                         <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                          ðŸ“± MoMo
+                          📱 MoMo
                         </div>
                         <div style={{ fontSize: 14, fontWeight: 800, color: momo > 0.001 ? '#f59e0b' : '#9ca3af', fontFamily: 'monospace' }}>
                           ${fmt2(momo)}
@@ -618,10 +618,10 @@ const CashReceipt = () => {
                     <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginTop: 6, fontSize: 11 }}>
                       {splitMismatch && (
                         <span style={{ padding: '2px 8px', background: '#fee2e2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 999, fontWeight: 700 }}>
-                          âš  Splits don't match amount
+                          ⚠ Splits don't match amount
                         </span>
                       )}
-                      <span style={{ color: '#6b7280' }}>Total: <strong style={{ color: '#111827' }}>${fmt2(splitSum)}</strong> {!splitMismatch && <span style={{ color: '#16a34a' }}>âœ“</span>}</span>
+                      <span style={{ color: '#6b7280' }}>Total: <strong style={{ color: '#111827' }}>${fmt2(splitSum)}</strong> {!splitMismatch && <span style={{ color: '#16a34a' }}>✓</span>}</span>
                     </div>
                   </div>
                 );
@@ -674,15 +674,15 @@ const CashReceipt = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ New / Edit Receipt Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── New / Edit Receipt Modal ────────────────────────────────── */}
       {showForm && (
         <Portal>
-        {/* v1.8.32 â€” click-outside does NOT close (mirrors PV modal v1.8.24). */}
+        {/* v1.8.32 — click-outside does NOT close (mirrors PV modal v1.8.24). */}
         <div className="modal-overlay">
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>{editMode ? 'Edit Cash Receipt' : 'New Cash Receipt'}</h3>
-              <button className="modal-close" onClick={() => setShowForm(false)}>Ã—</button>
+              <button className="modal-close" onClick={() => setShowForm(false)}>×</button>
             </div>
             <div className="modal-body">
               {formError && <div style={{ color: '#dc2626', marginBottom: 12, fontSize: 13 }}>{formError}</div>}
@@ -697,20 +697,20 @@ const CashReceipt = () => {
                 </div>
               </div>
 
-              {/* v1.8.32 â€” triple-currency. One CR = one currency. Disable
+              {/* v1.8.32 — triple-currency. One CR = one currency. Disable
                   the other two inputs once any one has a value > 0; clear
                   the active one to switch. Mirrors PV modal v1.8.24.
-                  v1.10.45 â€” on Liquor branches all three slots are the
+                  v1.10.45 — on Liquor branches all three slots are the
                   same currency (K), so a receipt can legitimately span
                   Cash + MoMo + Bank at once. No lock. Labels reflect the
                   physical method the amount landed in; storage columns
-                  unchanged (Cashâ†’usd_amount, MoMoâ†’fra_amount,
-                  Bankâ†’k_amount). */}
+                  unchanged (Cash→usd_amount, MoMo→fra_amount,
+                  Bank→k_amount). */}
               <div className="form-group">
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                   Amount Received{isLiquorStyle ? ' (split across methods)' : ''}
                 </label>
-                {/* 2026-09-11 â€” MoMo / Bank follow System Settings â†’ Payment
+                {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment
                     methods shown, unless this CR already has money on them. */}
                 <div style={{ display: 'grid', gridTemplateColumns: isLiquorStyle
                     ? `repeat(${1 + ((methodShown('momo') || parseFloat(form.fra_amount || 0) > 0) ? 1 : 0) + ((methodShown('bank') || parseFloat(form.k_amount || 0) > 0) ? 1 : 0)}, 1fr)`
@@ -722,7 +722,7 @@ const CashReceipt = () => {
                         { key: 'k_amount',   label: 'Bank',         color: '#2563eb', step: '0.01', placeholder: '0.00', prefix: curSym },
                       ]
                     : onHq
-                      /* v1.10.68 â€” HQ order: K default (leftmost), then USD, then FRA. */
+                      /* v1.10.68 — HQ order: K default (leftmost), then USD, then FRA. */
                       ? [
                           { key: 'k_amount',   label: 'K',       color: '#ea580c', step: '1',    placeholder: '0',    prefix: ''  },
                           { key: 'usd_amount', label: 'USD ($)', color: '#16a34a', step: '0.01', placeholder: '0.00', prefix: '$' },
@@ -736,11 +736,11 @@ const CashReceipt = () => {
                   ).filter(f => !isLiquorStyle || methodShown(f.label) || parseFloat(form[f.key] || 0) > 0).map((f) => {
                     const otherKeys = ['usd_amount', 'fra_amount', 'k_amount'].filter(k => k !== f.key);
                     // Kelete keeps the one-currency-per-CR lock. Liquor drops it.
-                    // v1.10.70 â€” only lock EMPTY fields when another is filled;
+                    // v1.10.70 — only lock EMPTY fields when another is filled;
                     // fields that already carry a value stay editable. Without
                     // this, a CR that landed with values in two slots (e.g.
                     // v1.10.68's double-store bug) opened in Edit mode with
-                    // every slot locked â€” nothing could be corrected.
+                    // every slot locked — nothing could be corrected.
                     const selfHasValue = parseFloat(form[f.key] || 0) > 0;
                     const locked = !isLiquorStyle && !selfHasValue && otherKeys.some(k => parseFloat(form[k] || 0) > 0);
                     return (
@@ -751,7 +751,7 @@ const CashReceipt = () => {
                           value={form[f.key]}
                           onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                           placeholder={f.placeholder}
-                          title={locked ? 'Clear the other currency to switch â€” one CR = one currency.' : ''}
+                          title={locked ? 'Clear the other currency to switch — one CR = one currency.' : ''}
                           style={{
                             width: '100%', padding: '8px 10px',
                             border: `2px solid ${locked ? '#e5e7eb' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#d1d5db')}`,
@@ -765,7 +765,7 @@ const CashReceipt = () => {
                     );
                   })}
                 </div>
-                {/* v1.10.45 â€” Liquor total row (all K). Kelete keeps the
+                {/* v1.10.45 — Liquor total row (all K). Kelete keeps the
                     one-currency-per-CR model so no total row is needed. */}
                 {isLiquorStyle && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
@@ -797,7 +797,7 @@ const CashReceipt = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ Single CR Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Single CR Print Preview ─────────────────────────────────── */}
       {false && viewReceipt && showCRPrint && (
         <div
           className="print-preview-overlay"
@@ -811,7 +811,7 @@ const CashReceipt = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={15} style={{ color: '#64748b' }} />
               <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
-                Print Preview â€” {viewReceipt.receipt_number}
+                Print Preview — {viewReceipt.receipt_number}
               </span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -837,7 +837,7 @@ const CashReceipt = () => {
                   {businessInfo.business_name || 'Business Name'}
                 </div>
                 <div style={{ fontSize: 10, opacity: 0.7, lineHeight: 1.8 }}>
-                  {[businessInfo.business_address, businessInfo.business_phone, businessInfo.business_email].filter(Boolean).join('  Â·  ')}
+                  {[businessInfo.business_address, businessInfo.business_phone, businessInfo.business_email].filter(Boolean).join('  ·  ')}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -872,7 +872,7 @@ const CashReceipt = () => {
               <div style={{ border: '2px solid #86efac', borderRadius: 12, padding: '18px 24px', background: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
                 <div>
                   <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#15803d', fontWeight: 700, marginBottom: 4 }}>Total Amount Received</div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>{viewReceipt.payment_method} Â· {viewReceipt.received_from}</div>
+                  <div style={{ fontSize: 11, color: '#6b7280' }}>{viewReceipt.payment_method} · {viewReceipt.received_from}</div>
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 900, color: '#15803d', fontFamily: 'monospace' }}>
                   ${fmt2(viewReceipt.amount)}
@@ -901,7 +901,7 @@ const CashReceipt = () => {
 
             {/* Footer bar */}
             <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '10px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} â€” Confidential Document</span>
+              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
               <span style={{ fontSize: 9, color: '#94a3b8' }}>
                 Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -910,13 +910,13 @@ const CashReceipt = () => {
         </div>
       )}
 
-      {/* â”€â”€ CR List Print Overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── CR List Print Overlay ───────────────────────────────────── */}
       {false && showListPrint && (
         <div className="pv-print-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.85)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', paddingTop: 60, paddingBottom: 40 }}>
           <div className="no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 52, background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 1001, borderBottom: '1px solid #1e293b' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview â€” Cash Receipts ({filteredReceipts.length} records)</span>
+              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview — Cash Receipts ({filteredReceipts.length} records)</span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}><FiPrinter size={14} /> Print</button>
@@ -933,7 +933,7 @@ const CashReceipt = () => {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.65, marginBottom: 6 }}>Cash Receipts</div>
-                <div style={{ fontSize: 15, fontWeight: 700 }}>{filterFrom || filterTo ? `${filterFrom ? formatDate(filterFrom) : 'All'} â€” ${filterTo ? formatDate(filterTo) : 'All'}` : 'All Dates'}</div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{filterFrom || filterTo ? `${filterFrom ? formatDate(filterFrom) : 'All'} — ${filterTo ? formatDate(filterTo) : 'All'}` : 'All Dates'}</div>
                 <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>Printed: {new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
               </div>
             </div>
@@ -973,7 +973,7 @@ const CashReceipt = () => {
                         <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#16a34a' }}>{r.receipt_number}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(r.date)}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 500 }}>{r.received_from}</td>
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{r.description || 'â€”'}</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{r.description || '—'}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{r.payment_method}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#16a34a' }}>{curSym}{fmt2(r.amount)}</td>
                       </tr>
@@ -981,7 +981,7 @@ const CashReceipt = () => {
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
-                      <td colSpan={6} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#16a34a' }}>TOTAL â€” {filteredReceipts.length} Receipt{filteredReceipts.length !== 1 ? 's' : ''}</td>
+                      <td colSpan={6} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#16a34a' }}>TOTAL — {filteredReceipts.length} Receipt{filteredReceipts.length !== 1 ? 's' : ''}</td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#16a34a' }}>{curSym}{fmt2(filteredTotal)}</td>
                     </tr>
                   </tfoot>
@@ -990,7 +990,7 @@ const CashReceipt = () => {
 
               {/* Signatures */}
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || 'Business'} â€” Confidential</span>
+                <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || 'Business'} — Confidential</span>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>Printed: {new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
               </div>
             </div>
@@ -998,7 +998,7 @@ const CashReceipt = () => {
         </div>
       )}
 
-      {/* â”€â”€ Print styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print styles ─────────────────────────────────────────────── */}
       <style>{`
         @media print {
           .no-print { display: none !important; }

@@ -7,13 +7,13 @@ const path = require('path');
 const Database = require('better-sqlite3');
 const fs = require('fs');
 
-// 2026-08-28 â€” Electron gets its own local master.db mirror in the userData
+// 2026-08-28 — Electron gets its own local master.db mirror in the userData
 // directory, the same folder as the tenant DB.
 //
 // The old default resolved to __dirname/../.. which, in a packaged Electron
 // app, is the install tree (resources/). electron-builder REPLACES that
 // directory on every update, so the file was silently deleted each time the
-// app was upgraded â€” verified live on 2026-08-28: master.db existed at
+// app was upgraded — verified live on 2026-08-28: master.db existed at
 // 12:22, an update installed at 15:28, the file was gone. Nothing was lost
 // only because it was still empty.
 //
@@ -27,7 +27,7 @@ const masterDbPath = process.env.MASTER_DB_PATH
 // One-time rescue: an install that already ran under the old path has its
 // master.db sitting in the doomed folder. Move it across before we open
 // anything, so upgrading does not read as "all the HQ data vanished".
-// Copies the -wal/-shm sidecars too â€” without them any writes still parked
+// Copies the -wal/-shm sidecars too — without them any writes still parked
 // in the write-ahead log would be dropped.
 try {
   const legacyPath = path.join(__dirname, '..', '..', 'master.db');
@@ -56,7 +56,7 @@ try {
   masterDb.pragma('journal_mode = WAL');
   masterDb.pragma('foreign_keys = ON');
 
-  // â”€â”€ Schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Schema ──────────────────────────────────────────────────────────────────
   masterDb.exec(`
     CREATE TABLE IF NOT EXISTS tenants (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -89,15 +89,15 @@ try {
       created_at  TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- â”€â”€ Phase C: cross-branch stock transfers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── Phase C: cross-branch stock transfers ───────────────────────────
     -- Lives in master.db (not in per-branch DBs) so source and destination
     -- both read/write the same row without cross-DB queries. The items
     -- payload is a JSON array on the row itself:
     --   [{ product_sync_id, product_name, unit, quantity, cost_price }, ...]
     -- status state machine:
-    --   PENDING   â€” source created + decremented its stock; in transit
-    --   RECEIVED  â€” destination confirmed + incremented its stock
-    --   CANCELLED â€” source aborted before destination received
+    --   PENDING   — source created + decremented its stock; in transit
+    --   RECEIVED  — destination confirmed + incremented its stock
+    --   CANCELLED — source aborted before destination received
     CREATE TABLE IF NOT EXISTS stock_transfers (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       transfer_number TEXT NOT NULL UNIQUE,
@@ -121,7 +121,7 @@ try {
     CREATE INDEX IF NOT EXISTS idx_transfers_to_status   ON stock_transfers (to_slug, status);
     CREATE INDEX IF NOT EXISTS idx_transfers_from_status ON stock_transfers (from_slug, status);
 
-    -- v1.8.64 â€” per-line variance on inter-branch transfer RECEIVE.
+    -- v1.8.64 — per-line variance on inter-branch transfer RECEIVE.
     -- When the receiving branch counts a shortage / damage / loss vs what
     -- the sender shipped, we record one variance row per affected line so
     -- HQ can investigate. The receiver's stock movement only counts the
@@ -149,14 +149,14 @@ try {
     );
     CREATE INDEX IF NOT EXISTS idx_transfer_variances_xfer ON transfer_variances (transfer_sync_id);
 
-    -- â”€â”€ v1.8.57 â€” Branch â†’ HQ Cash Deposits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── v1.8.57 — Branch → HQ Cash Deposits ─────────────────────────────
     -- Branch records a physical cash deposit being sent to HQ. HQ
     -- inbox sees PENDING rows and confirms when the cash arrives.
     -- On HQ confirm: branch Cash Book gets a PV (cash out), HQ Cash
     -- Book gets a CR (cash in). On reject: no money moves.
     --
     -- Lives in master.db so branch (records it) and HQ (confirms it)
-    -- read the same row â€” same pattern as stock_transfers.
+    -- read the same row — same pattern as stock_transfers.
     CREATE TABLE IF NOT EXISTS cash_deposits (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       deposit_number  TEXT NOT NULL UNIQUE,
@@ -181,7 +181,7 @@ try {
     CREATE INDEX IF NOT EXISTS idx_cash_deposits_from     ON cash_deposits (from_slug, status);
   `);
 
-  // v1.8.60 â€” additional fields on cash_deposits: user-pickable deposit
+  // v1.8.60 — additional fields on cash_deposits: user-pickable deposit
   // date (so we can record cash that left earlier but arrived later)
   // and an attachment (deposit slip photo / bank receipt PDF).
   // Added via ALTER so existing master.db's don't error on re-create.
@@ -191,27 +191,27 @@ try {
       if (!cols.includes(col)) {
         masterDb.prepare(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`).run();
       }
-    } catch (_) { /* table doesn't exist yet â€” schema CREATE above will include it next boot */ }
+    } catch (_) { /* table doesn't exist yet — schema CREATE above will include it next boot */ }
   };
   addMasterCol('cash_deposits', 'deposit_date', 'TEXT');
   addMasterCol('cash_deposits', 'attachment',   'TEXT');
-  // v1.10.48 â€” from_method: which physical drawer the cash left on a Liquor
+  // v1.10.48 — from_method: which physical drawer the cash left on a Liquor
   // branch (Cash / Mobile Money / Bank). NULL for Kelete tri-currency
   // deposits (they're currency-anchored, not method-anchored) and for
   // legacy Liquor rows written before this column existed.
   addMasterCol('cash_deposits', 'from_method', 'TEXT');
-  // v1.13.47 â€” Option C: which branch absorbed a transit-variance write-off.
-  // NULL until HQ resolves as WRITE_OFF (or if resolved as RECOVERED â€” no
+  // v1.13.47 — Option C: which branch absorbed a transit-variance write-off.
+  // NULL until HQ resolves as WRITE_OFF (or if resolved as RECOVERED — no
   // absorbing branch in that case). Stored so the HQ list can show who took
   // the hit at a glance.
   addMasterCol('transfer_variances', 'absorbed_by_slug', 'TEXT');
 
-  // 2026-08-28 â€” cash_deposits never had deleted_at, but every Cash Book
+  // 2026-08-28 — cash_deposits never had deleted_at, but every Cash Book
   // query filters on it (`AND deleted_at IS NULL`, 8 sites in cashBook.js).
   // SQLite threw "no such column" and a `catch (_) { /* non-fatal */ }`
   // swallowed it, so a CONFIRMED deposit simply never appeared: not deducted
   // from the branch, not added to HQ, no error anywhere. The row was there
-  // and correct the whole time â€” the same query without that one clause
+  // and correct the whole time — the same query without that one clause
   // returns it.
   //
   // Adding the column rather than editing eight queries: it is one line, it
@@ -221,22 +221,22 @@ try {
   addMasterCol('cash_deposits', 'deleted_by',      'INTEGER');
   addMasterCol('cash_deposits', 'deleted_by_name', 'TEXT');
   addMasterCol('cash_deposits', 'delete_reason',   'TEXT');
-  // 2026-09-11 â€” the Cash Report an auto deposit came from
+  // 2026-09-11 — the Cash Report an auto deposit came from
   // (services/autoDeposit.js), so an edit or delete finds exactly its own.
   addMasterCol('cash_deposits', 'cash_report_sync_id', 'TEXT');
-  // 2026-09-15 â€” where the deposit was sent. NULL = HQ; a depot slug = that
-  // depot (the sender's System Settings â†’ Deposit to), which confirms it and
+  // 2026-09-15 — where the deposit was sent. NULL = HQ; a depot slug = that
+  // depot (the sender's System Settings → Deposit to), which confirms it and
   // books it as money received (services/depositTarget.js).
   addMasterCol('cash_deposits', 'to_slug', 'TEXT');
   addMasterCol('cash_deposits', 'to_name', 'TEXT');
   try {
     masterDb.exec('CREATE INDEX IF NOT EXISTS idx_cash_deposits_report ON cash_deposits (cash_report_sync_id)');
-  } catch (_) { /* column not there yet on a fresh file â€” next boot */ }
+  } catch (_) { /* column not there yet on a fresh file — next boot */ }
 
   masterDb.exec(`
 
-    -- â”€â”€ Phase C: HQ Purchase Receipts (no warehouse, drop-ship to branch) â”€â”€
-    -- HQ has no physical stock â€” every supplier purchase is logged here
+    -- ── Phase C: HQ Purchase Receipts (no warehouse, drop-ship to branch) ──
+    -- HQ has no physical stock — every supplier purchase is logged here
     -- with PER-LINE destination_slug. Branches see lines targeted at them
     -- in their "Incoming Stock" queue and confirm with actual_received_qty.
     -- On confirm, the branch's tenant DB gets a stock_movement (+) and a
@@ -289,7 +289,7 @@ try {
     CREATE INDEX IF NOT EXISTS idx_hq_pi_dest_status ON hq_purchase_items (destination_slug, status);
     CREATE INDEX IF NOT EXISTS idx_hq_pi_purchase   ON hq_purchase_items (purchase_id);
 
-    -- â”€â”€ HQ Suppliers + AP â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    -- ── HQ Suppliers + AP ───────────────────────────────────────────────
     -- Master supplier list lives at HQ. Each hq_purchases.supplier_name is
     -- denormalised text (for human readability + so older rows don't break
     -- when a supplier is renamed). AP per supplier is computed from joins,
@@ -333,7 +333,7 @@ try {
     CREATE INDEX IF NOT EXISTS idx_hq_pay_date     ON hq_supplier_payments (payment_date);
   `);
 
-  // Add supplier_id to hq_purchases (nullable â€” older rows stay name-only).
+  // Add supplier_id to hq_purchases (nullable — older rows stay name-only).
   // Run as a separate ALTER so re-running the schema on existing master.dbs
   // doesn't trip CREATE TABLE.
   try {
@@ -341,9 +341,9 @@ try {
     if (!cols.find(c => c.name === 'supplier_id')) {
       masterDb.prepare(`ALTER TABLE hq_purchases ADD COLUMN supplier_id INTEGER`).run();
     }
-  } catch (_) { /* fresh DB â€” table created above */ }
+  } catch (_) { /* fresh DB — table created above */ }
 
-  // â”€â”€ Phase 2 (Â§5.11): ZRA cross-reference columns on HQ Purchase rows.
+  // ── Phase 2 (§5.11): ZRA cross-reference columns on HQ Purchase rows.
   // When a purchase originates from /api/zra/purchases/:id/approve (i.e.
   // pulled from ZRA and converted to a Flow-A PO), we stamp the ZRA
   // supplier identity + registration type + originating pending-row id
@@ -364,7 +364,7 @@ try {
   addHqCol('hq_purchases',      'zra_reg_ty_cd',           'TEXT');
   addHqCol('hq_purchases',      'zra_pchs_invc_no',        'INTEGER');
   addHqCol('hq_purchases',      'zra_status',              'TEXT');
-  // 2026-08-30 â€” record a supplier invoice the way it is printed.
+  // 2026-08-30 — record a supplier invoice the way it is printed.
   //
   // A purchase line carried one number, cost_price, so entering a ZBDC invoice
   // meant working out (base + VAT - discount) / qty by hand for every line and
@@ -372,10 +372,10 @@ try {
   // rounding to 2 decimals left AP a few kwacha off the amount due.
   //
   // These three hold the invoice's own figures. cost_price keeps its exact
-  // meaning â€” the effective unit cost â€” but is now DERIVED from them, so
+  // meaning — the effective unit cost — but is now DERIVED from them, so
   // stock, WAC, GRN, AP and the ZRA chain read it unchanged and never know
   // the difference.
-  // 2026-08-30 â€” a supplier's credit note carries a per-line discount and its
+  // 2026-08-30 — a supplier's credit note carries a per-line discount and its
   // own VAT, the same way its invoice does. Without these the amount could
   // only be recomputed as qty x unit_value, which silently dropped both: a
   // ZBL note of K66,621.54 would have been booked as K66,322.83.
@@ -383,11 +383,11 @@ try {
   // unit_value stays the price BEFORE discount, so returned stock is valued
   // exactly as the purchase valued it; the discount rides alongside and only
   // affects the money credited.
-  // 2026-08-30 â€” carry the supplier's figures onto the GRN line.
+  // 2026-08-30 — carry the supplier's figures onto the GRN line.
   //
   // hq_grn_items held quantity, unit_price and total_price only, so the
   // moment a purchase became a GRN the invoice breakdown was dropped. Every
-  // GRN-based screen â€” AP Approvals, GRN Archive â€” could then only ever show
+  // GRN-based screen — AP Approvals, GRN Archive — could then only ever show
   // the derived cost, and whoever approves a payment had no way to see why
   // the cost was K574.01 rather than the K504.56 printed on the paper.
   addHqCol('hq_grn_items', 'base_price',      'REAL NOT NULL DEFAULT 0');
@@ -445,7 +445,7 @@ try {
   addHqCol('hq_supplier_credit_note_items', 'discount',   'REAL NOT NULL DEFAULT 0');
   addHqCol('hq_purchase_items', 'base_price',       'REAL NOT NULL DEFAULT 0');  // unit, ex-VAT, pre-discount
   addHqCol('hq_purchase_items', 'vat_amount',       'REAL NOT NULL DEFAULT 0');  // per line, off the invoice
-  // 2026-09-04 â€” the RRP this line was billed on. Suppliers charge VAT on the
+  // 2026-09-04 — the RRP this line was billed on. Suppliers charge VAT on the
   // RRP, not on what they bill us (minimum taxable value), so the figure has to
   // travel with the line: a product's RRP will change, and this invoice must
   // still show what it was computed from. 0 on every historic row, which is
@@ -460,7 +460,7 @@ try {
   addHqCol('hq_purchase_items', 'zra_excise_ty_cd',        'TEXT');
   addHqCol('hq_purchase_items', 'zra_rrp',                 'REAL');
 
-  // â”€â”€ v1.3.3 â€” HQ Product Master â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── v1.3.3 — HQ Product Master ────────────────────────────────────────
   // HQ owns the canonical catalogue. When HQ creates a product we INSERT
   // a copy into every registered branch's `products` table using the
   // SAME sync_id so the linkage is automatic + survives renames. Per-
@@ -497,7 +497,7 @@ try {
     console.warn('[masterDb] v1.3.3 hq_products migration:', e.message);
   }
 
-  // â”€â”€ v1.5.0 â€” HQ-owned vs branch-owned split â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── v1.5.0 — HQ-owned vs branch-owned split ──────────────────────────
   // HQ now owns: code, name, category, base unit, packagings, default unit,
   // photo, returnable container, UB barcode. Each branch owns: prices,
   // min stock, status, opening stock, notes.
@@ -525,18 +525,18 @@ try {
     console.warn('[masterDb] v1.5.0 hq_products column migration:', e.message);
   }
 
-  // â”€â”€ v1.3.0 â€” New procurement state machine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Old model: PENDING (HQ-created) â†’ RECEIVED (branch one-click, AP locked).
-  // New model: AWAITING_GRN (HQ-created) â†’ GRN_SUBMITTED (branch enters
-  //            actual qty, no stock change yet) â†’ CONFIRMED (HQ approves,
+  // ── v1.3.0 — New procurement state machine ────────────────────────────
+  // Old model: PENDING (HQ-created) → RECEIVED (branch one-click, AP locked).
+  // New model: AWAITING_GRN (HQ-created) → GRN_SUBMITTED (branch enters
+  //            actual qty, no stock change yet) → CONFIRMED (HQ approves,
   //            now stock decrements at branch + supplier AP locks in).
   // Reasoning: HQ can't release a GRN because only the branch knows what
   // physically arrived; HQ then audits + confirms what branch reports.
   //
   // Add: confirmed_by / confirmed_by_name / confirmed_at / confirm_notes.
-  // Backfill: any existing 'PENDING' rows â†’ 'AWAITING_GRN'; 'RECEIVED' â†’
+  // Backfill: any existing 'PENDING' rows → 'AWAITING_GRN'; 'RECEIVED' →
   // 'CONFIRMED' with confirmed_at stamped from received_at so AP reports
-  // don't lose the date. Idempotent â€” guarded by column-existence check.
+  // don't lose the date. Idempotent — guarded by column-existence check.
   try {
     const piCols = masterDb.prepare(`PRAGMA table_info(hq_purchase_items)`).all().map(c => c.name);
     const addCol = (col, def) => {
@@ -549,10 +549,10 @@ try {
     addCol('confirmed_by_name', 'TEXT');
     addCol('confirmed_at',      'TEXT');
     addCol('confirm_notes',     'TEXT');
-    // v1.8.65 â€” reason vocabulary aligned with transfer_variances:
+    // v1.8.65 — reason vocabulary aligned with transfer_variances:
     // OK / Short / Damaged / Lost. Existing rows default to OK on read.
     addCol('reason',            'TEXT');
-    // v1.9.7 â€” branch-side rejection. Branch can decline an incoming PO
+    // v1.9.7 — branch-side rejection. Branch can decline an incoming PO
     // line (wrong branch, wrong supplier, qty looks off, etc.) instead
     // of being forced to generate a GRN for it. status becomes
     // BRANCH_REJECTED (terminal); reason + actor stamp captured for
@@ -561,13 +561,13 @@ try {
     addCol('branch_rejected_by_name', 'TEXT');
     addCol('branch_rejected_at',      'TEXT');
     addCol('branch_reject_reason',    'TEXT');
-    // v1.9.7 â€” link the PO line to the branch GRN that fulfilled it.
+    // v1.9.7 — link the PO line to the branch GRN that fulfilled it.
     // When branch creates a GRN with linked_purchase_sync_id pointing
     // at this PO, the GRN's sync_id is written here so HQ Confirm GRN
     // can pull the full GRN doc + credit notes by sync_id (no need to
     // join across tenant DBs).
     addCol('linked_grn_sync_id',  'TEXT');
-    // v1.9.21 â€” denormalised GRN# for display on the branch's Incoming
+    // v1.9.21 — denormalised GRN# for display on the branch's Incoming
     // Stock page (the "WAITING HQ" rows). Avoids a cross-tenant lookup
     // just to render a human-readable reference.
     addCol('linked_grn_number',   'TEXT');
@@ -575,13 +575,13 @@ try {
     console.warn('[masterDb] v1.3.0 hq_purchase_items migration:', e.message);
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.9.14 â€” HQ snapshot of every confirmed branch GRN.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.9.14 — HQ snapshot of every confirmed branch GRN.
+  // ─────────────────────────────────────────────────────────────────────────
   // Each confirmed GRN writes one row here. Lets HQ aggregate AP / per-
   // supplier statements / PO reconciliation in a single SQL query without
   // scanning every branch tenant DB. Full GRN line items + credit notes
-  // stay at the branch â€” HQ pulls them on-demand via the existing
+  // stay at the branch — HQ pulls them on-demand via the existing
   // GET /api/hq/grns/:slug/:syncId endpoint when the user clicks
   // "See Details". Small (~200 bytes per GRN) so the duplication cost is
   // negligible vs the speed + offline-resilience win.
@@ -619,7 +619,7 @@ try {
   }
 
   try {
-    // Status rename â€” only on rows that still carry the legacy labels.
+    // Status rename — only on rows that still carry the legacy labels.
     masterDb.prepare(`
       UPDATE hq_purchase_items SET status = 'AWAITING_GRN'
        WHERE status = 'PENDING'
@@ -636,13 +636,13 @@ try {
     console.warn('[masterDb] v1.3.0 hq_purchase_items migration:', e.message);
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.10.0 â€” procurement rearchitecture.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────────
+  // v1.10.0 — procurement rearchitecture.
+  // ─────────────────────────────────────────────────────────────────────────
   // The GRN-paperwork ownership shifts from branch to HQ. Branch's role
   // collapses to "confirm what physically arrived"; HQ does invoice + CN
   // paperwork and generates the GRN. New state machine on hq_purchase_items:
-  //   AWAITING_CONFIRMATION â†’ RECEIPT_REPORTED â†’ CONFIRMED
+  //   AWAITING_CONFIRMATION → RECEIPT_REPORTED → CONFIRMED
   // (BRANCH_REJECTED unchanged; legacy AWAITING_GRN/GRN_SUBMITTED rows
   // continue to work through the old endpoints for back-compat.)
   try {
@@ -791,29 +791,29 @@ try {
     console.warn('[masterDb] v1.10.0 hq_supplier_credit_notes:', e.message);
   }
 
-  // v1.10.53 â€” WAC redesign schema additions.
+  // v1.10.53 — WAC redesign schema additions.
   //
   // Every HQ PO carries ONE FX rate for its whole batch (per user's
-  // 2026-07-03 decision â€” one rate per PO, not per line). Rate is
+  // 2026-07-03 decision — one rate per PO, not per line). Rate is
   // captured at PO Create time (HQ side), not at Confirm Receipt.
   // Currency label lets tri-currency branches (Kassumbalesa) declare
   // the supplier billed in K vs USD; K-only branches leave it NULL and
   // the code path skips the FX prompt entirely.
-  addMasterCol('hq_purchases', 'cost_currency', 'TEXT');   // 'USD' | 'FRA' | 'K' â€” nullable, only set when the destination is a tri-currency branch
-  addMasterCol('hq_purchases', 'fx_rate_used', 'REAL');    // e.g. 25 when 1 USD = 25 K on this PO â€” nullable for K-only destinations
+  addMasterCol('hq_purchases', 'cost_currency', 'TEXT');   // 'USD' | 'FRA' | 'K' — nullable, only set when the destination is a tri-currency branch
+  addMasterCol('hq_purchases', 'fx_rate_used', 'REAL');    // e.g. 25 when 1 USD = 25 K on this PO — nullable for K-only destinations
   addMasterCol('hq_purchase_items', 'cost_price_usd', 'REAL'); // derived at insert time = cost_price / fx_rate_used (or cost_price itself when currency=USD or rate=NULL)
 
-  // Same three fields on stock_transfers header â€” one rate per transfer.
+  // Same three fields on stock_transfers header — one rate per transfer.
   // Transfer items live inside stock_transfers.items_json so per-line
   // storage happens there, not in a separate table. Header rate applies
   // to every line uniformly.
   addMasterCol('stock_transfers', 'cost_currency', 'TEXT');
   addMasterCol('stock_transfers', 'fx_rate_used', 'REAL');
 
-  // v1.13.30 â€” AP approval chain columns on hq_confirmed_grn_totals.
-  // Kelete AP workflow: Store Manager Confirm â†’ Accounts Check â†’
-  // Finance Approve â†’ Cashier Pay. Each stage stamps who + when.
-  // ap_status transitions: PENDING â†’ CHECKED â†’ APPROVED â†’ PAID
+  // v1.13.30 — AP approval chain columns on hq_confirmed_grn_totals.
+  // Kelete AP workflow: Store Manager Confirm → Accounts Check →
+  // Finance Approve → Cashier Pay. Each stage stamps who + when.
+  // ap_status transitions: PENDING → CHECKED → APPROVED → PAID
   // Send-Back rolls status back to PENDING and stashes the reason.
   addMasterCol('hq_confirmed_grn_totals', 'ap_status',           "TEXT NOT NULL DEFAULT 'PENDING'");
   addMasterCol('hq_confirmed_grn_totals', 'checked_at',          'TEXT');
@@ -826,12 +826,12 @@ try {
   addMasterCol('hq_confirmed_grn_totals', 'sent_back_by_id',     'INTEGER');
   addMasterCol('hq_confirmed_grn_totals', 'sent_back_by_name',   'TEXT');
   addMasterCol('hq_confirmed_grn_totals', 'sent_back_reason',    'TEXT');
-  addMasterCol('hq_confirmed_grn_totals', 'sent_back_from_stage','TEXT'); // 'CHECKED' | 'APPROVED' â€” which stage rejected it
-  // 2026-09-06 â€” the delivery confirmation that now sits in FRONT of the AP
+  addMasterCol('hq_confirmed_grn_totals', 'sent_back_from_stage','TEXT'); // 'CHECKED' | 'APPROVED' — which stage rejected it
+  // 2026-09-06 — the delivery confirmation that now sits in FRONT of the AP
   // queue. Every GRN lands on UNCONFIRMED when it is generated and waits
   // there while the depot finishes offloading and raises whatever credits the
   // truck produced. The Store Manager confirms once, against the supplier's
-  // own invoice â€” which arrives by WhatsApp when offloading is done, and is
+  // own invoice — which arrives by WhatsApp when offloading is done, and is
   // why no "returns complete" button is needed.
   //
   // Existing rows are untouched: the column defaults to NULL and only new
@@ -844,7 +844,7 @@ try {
   addMasterCol('hq_confirmed_grn_totals', 'paid_by_id',          'INTEGER');
   addMasterCol('hq_confirmed_grn_totals', 'paid_by_name',        'TEXT');
 
-  // 2026-08-30 â€” payment batches. Several GRNs of ONE supplier approved in a
+  // 2026-08-30 — payment batches. Several GRNs of ONE supplier approved in a
   // single decision, so Ready for Payment shows one collapsible line instead
   // of one row per invoice.
   //
@@ -853,15 +853,15 @@ try {
   // category). Two PV series would wreck reconciliation.
   //
   // This is a GROUPING, never the unit of truth. PAID/PARTIAL stays derived
-  // per GRN from SUM(ap_payments.amount) â€” a part-paid batch cannot say which
+  // per GRN from SUM(ap_payments.amount) — a part-paid batch cannot say which
   // invoice is settled, and that per-GRN answer is what ties to the supplier
   // ledger. A GRN approved alone simply has no batch: a batch of one.
-  // 2026-08-31 â€” Finance's per-GRN review, before the batch approval.
+  // 2026-08-31 — Finance's per-GRN review, before the batch approval.
   //
   // Approve (single) and Approve as One Batch did the same job, and the
   // checkbox sat on the row, so a whole page could be approved without
   // opening any of it. Confirmation is recorded here and the approval itself
-  // stays a batch action â€” one button, and only reviewed rows can be in it.
+  // stays a batch action — one button, and only reviewed rows can be in it.
   //
   // Deliberately NOT another ap_status: the row is still CHECKED until it is
   // approved, so every downstream query, filter and tab is untouched. This is
@@ -871,7 +871,7 @@ try {
   addMasterCol('hq_confirmed_grn_totals', 'review_confirmed_by_name', 'TEXT');
   addMasterCol('hq_confirmed_grn_totals', 'ap_batch_ref',        'TEXT');
   addMasterCol('hq_confirmed_grn_totals', 'ap_batch_number',     'TEXT');
-  // 2026-09-17 â€” Void GRN (HQ Admin). The GRN stays on record, marked voided,
+  // 2026-09-17 — Void GRN (HQ Admin). The GRN stays on record, marked voided,
   // with who, when and why; ap_status becomes 'VOIDED', which no AP tab lists.
   addMasterCol('hq_confirmed_grn_totals', 'voided_at',       'TEXT');
   addMasterCol('hq_confirmed_grn_totals', 'voided_by_id',    'INTEGER');
@@ -886,7 +886,7 @@ try {
     masterDb.exec('CREATE INDEX IF NOT EXISTS idx_hq_grn_totals_batch ON hq_confirmed_grn_totals (ap_batch_ref)');
   } catch (_) { /* index is an optimisation, not a requirement */ }
 
-  // v1.13.35 â€” CN authoring moved to branch. Branch stashes CN drafts
+  // v1.13.35 — CN authoring moved to branch. Branch stashes CN drafts
   // against the PO when confirming receipt; HQ Generate GRN reads them
   // (read-only) and mints the real hq_supplier_credit_notes rows with
   // the newly generated grn_sync_id. Drafts are deleted on successful
@@ -925,7 +925,7 @@ try {
     console.warn('[masterDb] v1.13.35 hq_receipt_credit_notes:', e.message);
   }
 
-  // â•â•â• Master-DB sync bookkeeping â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ═══ Master-DB sync bookkeeping ══════════════════════════════════════════
   //
   // Ported from Kelete v1.10.248-254. These are the master.db tables a branch
   // needs a working copy of: deposits it made, transfers either end of, HQ
@@ -937,21 +937,21 @@ try {
   //   updated_at last-write time, used as the pull cursor and to settle
   //              conflicts (newest write wins).
   //
-  // â”€â”€ CONTRACT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── CONTRACT ─────────────────────────────────────────────────────────────
   // Route code MUST NOT set `updated_at` or `synced` on these tables. The
   // triggers below stamp both on every local write. The triggers deliberately
-  // SKIP when the caller already touched either column â€” that is how the sync
+  // SKIP when the caller already touched either column — that is how the sync
   // loop's own writes (which set synced=1 on ack) avoid re-flagging a row it
   // just acknowledged. So a route that ALSO sets updated_at makes the trigger
   // skip, synced stays 1, and the change is never pushed.
   //
   // Kelete shipped that exact bug in three routes and spent a version finding
-  // it â€” the symptom is a change that silently never reaches other devices.
+  // it — the symptom is a change that silently never reaches other devices.
   // Kelete had it in two (hqGrns.js, hqPurchases.js, both PO status writes);
   // removed alongside this block. If you catch yourself typing
   // `updated_at = datetime('now')` in a route touching one of these tables:
   // don't. The trigger has it.
-  // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ═════════════════════════════════════════════════════════════════════════
   const MASTER_SYNC_TABLES = [
     'cash_deposits',
     'stock_transfers',
@@ -978,10 +978,10 @@ try {
   }
 
   // SQLite runs with recursive_triggers OFF by default, so a trigger's own
-  // UPDATE cannot re-fire it â€” no loop risk. The WHEN guards exist purely to
+  // UPDATE cannot re-fire it — no loop risk. The WHEN guards exist purely to
   // let the sync loop's writes pass through untouched.
   //
-  // 2026-08-28 â€” MILLISECONDS, not datetime('now'). Kelete uses second
+  // 2026-08-28 — MILLISECONDS, not datetime('now'). Kelete uses second
   // resolution, and the push guard rejects incoming rows whose timestamp is
   // <= the server's. Two writes inside the same second are therefore
   // indistinguishable and the second one is thrown away as "stale". A branch
@@ -1012,11 +1012,11 @@ try {
     }
   }
 
-  // â•â•â• Schema-change guard for the master pull â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+  // ═══ Schema-change guard for the master pull ═════════════════════════════
   //
-  // 2026-08-30 â€” the pull copies only columns the RECEIVING database already
+  // 2026-08-30 — the pull copies only columns the RECEIVING database already
   // has:
-  //     const cols = PRAGMA table_info(<table>)          // â† local columns
+  //     const cols = PRAGMA table_info(<table>)          // ← local columns
   //     updateCols = cols.filter(c => row[c] !== undefined)
   //
   // So a column that arrives AFTER the data is silently dropped, and the
@@ -1026,7 +1026,7 @@ try {
   // pulled the row moments later and took updated_at (a column it had) but
   // NOT deleted_at (a column that only arrived with the next build). The
   // deposit stayed alive on that till, still counted in its Cash Book, and
-  // no later pull would ever mention it again â€” its timestamp was already
+  // no later pull would ever mention it again — its timestamp was already
   // behind the cursor.
   //
   // Fingerprint the synced tables' columns. When the shape changes, clear the
@@ -1052,10 +1052,10 @@ try {
          ON CONFLICT(key) DO UPDATE SET value = excluded.value`
       ).run(fingerprint);
       if (prev) {
-        // Only on a CHANGE, not on first run â€” a fresh install pulls
+        // Only on a CHANGE, not on first run — a fresh install pulls
         // everything anyway.
         defaultDb.prepare("DELETE FROM sync_config WHERE key = 'last_master_pull_time'").run();
-        console.log('[master] synced-table columns changed â€” next pull will be a full one');
+        console.log('[master] synced-table columns changed — next pull will be a full one');
       }
     }
   } catch (e) {
@@ -1064,11 +1064,11 @@ try {
 
   console.log('[master] Master DB ready:', masterDbPath);
 } catch (e) {
-  console.warn('[master] Could not open master DB (Electron mode â€” VPS-only features disabled):', e.message);
+  console.warn('[master] Could not open master DB (Electron mode — VPS-only features disabled):', e.message);
   masterDb = null;
 }
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function isRegistered(slug) {
   if (!masterDb) return false;
@@ -1102,7 +1102,7 @@ function deactivateTenant(slug) {
   masterDb.prepare('UPDATE tenants SET is_active = 0 WHERE slug = ?').run(slug);
 }
 
-// â”€â”€ License helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── License helpers ───────────────────────────────────────────────────────────
 
 function getLicense(key) {
   if (!masterDb) return null;
@@ -1161,7 +1161,7 @@ function getLicenseStats() {
   };
 }
 
-// â”€â”€ Branch helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Branch helpers ────────────────────────────────────────────────────────────
 
 function registerBranch(tenantId, branchId, branchName, slug) {
   if (!masterDb) return;

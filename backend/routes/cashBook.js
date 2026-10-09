@@ -4,15 +4,15 @@ const { auth, readOnlyGuard } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 const bcrypt = require('bcrypt');
-// v1.8.61 â€” Cash Book also surfaces HQ Deposits (master.db) so the
+// v1.8.61 — Cash Book also surfaces HQ Deposits (master.db) so the
 // branch's ledger reflects cash leaving its drawer, and HQ's ledger
-// reflects cash arriving. Neutral entries â€” no P&L impact.
+// reflects cash arriving. Neutral entries — no P&L impact.
 let masterDb = null;
 try { masterDb = require('../config/masterDb').masterDb; } catch (_) { /* offline mode */ }
 
 const HQ_INBOX_SLUGS = new Set(['hq', 'kelete', 'keletedistributionzm']);
 
-// v1.13.22 (port from Kelete v1.10.171) â€” belt-and-suspenders check: if
+// v1.13.22 (port from Kelete v1.10.171) — belt-and-suspenders check: if
 // the request is for an HQ host, force isLiquorK=false regardless of
 // what business_settings.currency_mode says. Prevents an HQ instance
 // mis-shipped with currency_mode='K' from silently dropping K amounts.
@@ -25,12 +25,12 @@ function isHqRequest(req) {
     return false;
   } catch (_) { return false; }
 }
-// 2026-08-29 â€” Kelete trades in Kwacha only. Every branch is K, and so is HQ
-// ("Kelete is a single-currency system â€” every branch operates in Kwacha").
+// 2026-08-29 — Kelete trades in Kwacha only. Every branch is K, and so is HQ
+// ("Kelete is a single-currency system — every branch operates in Kwacha").
 //
 // The three drawer columns (cash_amount / bank_amount / momo_amount) were
 // being repurposed to carry USD / K / FRA whenever this returned false, which
-// it ALWAYS did on an HQ host. That is Kelete's design and correct there â€” HQ
+// it ALWAYS did on an HQ host. That is Kelete's design and correct there — HQ
 // is tri-currency and has no drawers, so it borrows the three columns to show
 // three currencies. On Kelete it meant the Cash Book tiles labelled Cash on
 // Hand / Mobile Money / Bank were actually showing USD / FRA / Kwacha: two
@@ -38,18 +38,18 @@ function isHqRequest(req) {
 // regardless of how it was really paid.
 //
 // So: K-only unless the tenant explicitly says otherwise, HQ included. The
-// default matters â€” an unset currency_mode at HQ must mean Kwacha here, not
+// default matters — an unset currency_mode at HQ must mean Kwacha here, not
 // "fall back to the three-currency layout".
 const MULTI_CCY_MODES = new Set(['USD+FRA', 'USD+FRA+K']);
 function isKOnly(db) {
   try {
     const bs = db.prepare(`SELECT currency_mode FROM business_settings ORDER BY id ASC LIMIT 1`).get();
     return !MULTI_CCY_MODES.has(String(bs?.currency_mode || '').toUpperCase());
-  } catch (_) { return true; }   // pre-migration DB â€” Kelete is K
+  } catch (_) { return true; }   // pre-migration DB — Kelete is K
 }
 
 function detectLiquorK(db, req) {
-  // The HQ short-circuit that used to live here is gone â€” see isKOnly above.
+  // The HQ short-circuit that used to live here is gone — see isKOnly above.
   return isKOnly(db);
 }
 
@@ -66,19 +66,19 @@ function getOpeningByMethod(tenantId) {
     if (ref === 'OB-BANK') out.bank += parseFloat(r.amount);
     else if (ref === 'OB-MOMO') out.momo += parseFloat(r.amount);
     else if (ref === 'OB-CASH' || ref === 'OB') out.cash += parseFloat(r.amount);
-    // v1.10.25 â€” OB-USD / OB-FRA / OB-K are Kelete per-currency openings.
+    // v1.10.25 — OB-USD / OB-FRA / OB-K are Kelete per-currency openings.
     // They belong to openingByCcy only. The previous fallback lumped them
     // all into `cash`, so on Kelete the "opening balance" became a raw
     // USD+FRA+K sum (e.g. 23,775 + 196,000 + 3,980 = 223,755) which the
-    // ledger's Balance column then showed as a $-amount â€” nonsense.
+    // ledger's Balance column then showed as a $-amount — nonsense.
   }
   return out;
 }
 
-// v1.8.62 â€” per-currency opening balance for Kelete (USD / FRA / K).
+// v1.8.62 — per-currency opening balance for Kelete (USD / FRA / K).
 // New references: 'OB-USD', 'OB-FRA', 'OB-K'. Legacy 'OB' / 'OB-CASH' rows
 // fall through as USD so existing tenants don't lose their opening cash.
-// 'OB-BANK' and 'OB-MOMO' (Liquor/Butchery) are ignored here â€” Kelete's
+// 'OB-BANK' and 'OB-MOMO' (Liquor/Butchery) are ignored here — Kelete's
 // drawers are physical USD/FRA/K, not method buckets.
 function getOpeningByCurrency(tenantId) {
   const rows = db.prepare(
@@ -94,37 +94,37 @@ function getOpeningByCurrency(tenantId) {
   return out;
 }
 
-// v1.10.25 â€” Per-currency receipts + payments for an arbitrary date clause.
+// v1.10.25 — Per-currency receipts + payments for an arbitrary date clause.
 // Used to fold pre-period activity into openingByCcy so opening on day N
 // equals closing on day N-1.
 //
-// SOURCES MUST MATCH THE LEDGER UNION in GET / â€” the ledger only shows
+// SOURCES MUST MATCH THE LEDGER UNION in GET / — the ledger only shows
 // cash_receipts (CR), payment_vouchers (PV), ap_payments (AP) and HQ
 // deposits. It does NOT show orders.cash_received. So opening = ledger
 // closing requires this helper to skip orders too.
 //
-// v1.10.27 â€” Removed orders. On Kelete every POS sale creates BOTH an
+// v1.10.27 — Removed orders. On Kelete every POS sale creates BOTH an
 // orders row (with cash_received/fra_received/k_received) and a cash_receipt
 // row that appears in the ledger. /stats accidentally avoids double-counting
 // because its `date <= to` clause on orders' paid_at (a datetime, not date)
 // fails to match same-day rows with a time component. My earlier
-// `date < from` clause matched both â†’ every fold double-counted every POS
+// `date < from` clause matched both → every fold double-counted every POS
 // sale, so Jul 2 opening = Jul 1 opening + Jul 1 receipts (twice) instead of
 // Jul 1 closing.
-// v1.10.98 â€” reverted the isLiquorTenant() helper introduced in v1.10.91.
+// v1.10.98 — reverted the isLiquorTenant() helper introduced in v1.10.91.
 // The Liquor-specific column swaps in ccyReceiptsPayments / sumMethod /
 // /ledger UNION produced doubled stats (Payments (PV) K120 vs actual K60)
 // and mis-anchored per-currency balances (ledger jump K78,360 on a
 // K36,395 DEP-OUT). Pre-v1.10.91 behaviour was correct because Liquor
 // writes drawer amounts to usd_amount, and the single-column reads
 // captured them cleanly. Keeping the frontend PaymentVoucher.js v1.10.91
-// column-header fix (that one is safe â€” it only affects display).
+// column-header fix (that one is safe — it only affects display).
 
 function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
   const receipts = { usd: 0, fra: 0, k: 0 };
   const payments = { usd: 0, fra: 0, k: 0 };
   const num = (v) => parseFloat(v || 0) || 0;
-  // v1.13.22 (port from Kelete v1.10.156â†’v1.10.163): on Liquor branches
+  // v1.13.22 (port from Kelete v1.10.156→v1.10.163): on Liquor branches
   // Cash Receipts store K amounts in cash_amount / bank_amount / momo_amount
   // (all three are K on Liquor). Sum ALL THREE for K; force USD/FRA to 0 so
   // mirror columns don't double-count. HQ override protects HQ instances
@@ -136,15 +136,15 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
   const kExprCR = isLiquorK
     ? `COALESCE(cash_amount,0) + COALESCE(bank_amount,0) + COALESCE(momo_amount,0)`
     : `COALESCE(k_amount, 0)`;
-  // CR â€” cash_receipts.
+  // CR — cash_receipts.
   receipts.usd += num(db.prepare(`SELECT COALESCE(SUM(${usdExprCR}), 0) AS t FROM cash_receipts WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
   receipts.fra += num(db.prepare(`SELECT COALESCE(SUM(${isLiquorK ? '0' : 'fra_amount'}), 0) AS t FROM cash_receipts WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
   receipts.k   += num(db.prepare(`SELECT COALESCE(SUM(${kExprCR}), 0) AS t FROM cash_receipts WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
-  // PV â€” payment_vouchers.
+  // PV — payment_vouchers.
   payments.usd += num(db.prepare(`SELECT COALESCE(SUM(${usdExprCR}), 0) AS t FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
   payments.fra += num(db.prepare(`SELECT COALESCE(SUM(${isLiquorK ? '0' : 'fra_amount'}), 0) AS t FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
   payments.k   += num(db.prepare(`SELECT COALESCE(SUM(${kExprCR}), 0) AS t FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
-  // v1.10.78 â€” AP payments now support triple-currency (usd/fra/k) on HQ
+  // v1.10.78 — AP payments now support triple-currency (usd/fra/k) on HQ
   // via the ap_payments columns added in the same version. Route each
   // currency to its own bucket; rows that pre-date v1.10.78 (only
   // amount populated, usd/fra/k = 0) fall back to k_out (legacy K-only
@@ -160,8 +160,8 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
       FROM ap_payments
      WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}
   `).get(tenantId, ...dateParams).t);
-  // v1.10.42 â€” book-scope currency exchanges. Same shape as the ledger
-  // UNION addition: from_currency â†’ payments, to_currency â†’ receipts.
+  // v1.10.42 — book-scope currency exchanges. Same shape as the ledger
+  // UNION addition: from_currency → payments, to_currency → receipts.
   // Append-only, no deleted_at filter.
   const exchRows = db.prepare(`
     SELECT from_currency, from_amount, to_currency, to_amount
@@ -174,7 +174,7 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
     payments[fromKey] += num(r.from_amount);
     receipts[toKey]   += num(r.to_amount);
   }
-  // HQ deposits (master.db). Branches: outgoing â†’ payment. HQ: incoming â†’ receipt.
+  // HQ deposits (master.db). Branches: outgoing → payment. HQ: incoming → receipt.
   if (masterDb && slug) {
     try {
       const datePred = `date(COALESCE(deposit_date, confirmed_at, created_at))`;
@@ -189,8 +189,8 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
         const key = r.currency === 'USD' ? 'usd' : r.currency === 'FRA' ? 'fra' : 'k';
         payments[key] += num(r.t);
       }
-      // 2026-09-15 â€” incoming. HQ receives the deposits sent to HQ (no to_slug);
-      // a depot receives the ones other depots sent to it (System Settings â†’
+      // 2026-09-15 — incoming. HQ receives the deposits sent to HQ (no to_slug);
+      // a depot receives the ones other depots sent to it (System Settings →
       // Deposit to). HQ used to count every confirmed deposit.
       {
         const isHqBook = HQ_INBOX_SLUGS.has(slug);
@@ -207,7 +207,7 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
         }
       }
     } catch (e) {
-    // 2026-08-28 â€” log it. This used to swallow silently, and a single
+    // 2026-08-28 — log it. This used to swallow silently, and a single
     // missing column meant deposits vanished from the Cash Book on BOTH
     // sides with nothing to show anyone was wrong.
     console.error('[cashBook] deposit rollup failed:', e.message);
@@ -217,26 +217,26 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
 }
 
 // Sum a money column across all inflow/outflow tables with optional date filter.
-// Capital Injection + Loan Disbursement â†’ inflow (like CR).
-// Capital Drawing + Dividend + Loan Principal + Loan Interest â†’ outflow (like PV).
+// Capital Injection + Loan Disbursement → inflow (like CR).
+// Capital Drawing + Dividend + Loan Principal + Loan Interest → outflow (like PV).
 // Also computes net transfer effect for this method (in - out).
 function sumMethod(tenantId, methodCol, dateClause, dateParams, hqSlug) {
-  // v1.10.99 â€” CR / PV / AP tables carry BOTH currency columns
+  // v1.10.99 — CR / PV / AP tables carry BOTH currency columns
   // (usd/fra/k) and method columns (cash/bank/momo). On Liquor, the
   // modal writes drawer amounts into the currency column and leaves the
-  // method column at 0 â€” pre-v1.10.99 sumMethod summed only the method
+  // method column at 0 — pre-v1.10.99 sumMethod summed only the method
   // column, so any modern-modal Liquor PV/CR silently missed the stats
   // card even though it appeared in the ledger. Use the same CASE
   // fallback the ledger UNION uses so both eras count once.
   //
-  // v1.10.165 (ported v1.13.22) â€” on Liquor branches the mirror
+  // v1.10.165 (ported v1.13.22) — on Liquor branches the mirror
   // OR-fallback double-counts corrupted rows (row with both fra_amount
   // mirror AND cash_amount legacy showed as MoMo AND Cash for the same
   // payment). Trust ONLY the legacy method columns on Liquor: manual
   // Liquor PVs/CRs fill both sets identically so this reads the same
   // number for a clean row, but silently ignores the redundant mirror.
   //
-  // v1.10.171 (ported) â€” HQ override: if the caller passed an HQ slug,
+  // v1.10.171 (ported) — HQ override: if the caller passed an HQ slug,
   // force isLiquorK=false regardless of currency_mode. Prevents HQ
   // ever falling into the Liquor code path.
   const isLiquorK = isKOnly(db);
@@ -271,7 +271,7 @@ function sumMethod(tenantId, methodCol, dateClause, dateParams, hqSlug) {
   };
 }
 
-// Get cash book â€” derived from CR + PV + AP with per-method opening balance
+// Get cash book — derived from CR + PV + AP with per-method opening balance
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
@@ -282,7 +282,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     const dateFilter = (from ? ' AND date >= ?' : '') + (to ? ' AND date <= ?' : '');
     const dParams = [...(from ? [from] : []), ...(to ? [to] : [])];
 
-    // v1.13.22 (port from Kelete v1.10.156â†’v1.10.164â†’v1.10.171) â€” on Liquor
+    // v1.13.22 (port from Kelete v1.10.156→v1.10.164→v1.10.171) — on Liquor
     // K-only branches, ledger UNION reads CR/PV K amounts from cash+bank+
     // momo instead of k_amount alone (Liquor stores drawer amounts in the
     // method columns). USD_in / FRA_in forced to 0 so mirror columns don't
@@ -316,21 +316,21 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       openingBalance = openingByMethod.cash + openingByMethod.bank + openingByMethod.momo;
     }
 
-    // v1.8.61 â€” per-currency in/out columns alongside the legacy
+    // v1.8.61 — per-currency in/out columns alongside the legacy
     // receipt_amount/payment_amount (USD-equivalent for running balance).
     // CR / PV / customer_payments tables have usd_amount/fra_amount/k_amount;
     // legacy cash_amount falls back to USD. Sources without per-currency
     // columns (AP / capital / dividend / loan) bucket their amount into USD.
     //
-    // v1.10.98 â€” reverted the v1.10.91â†’97 Liquor SQL branching. Same code
+    // v1.10.98 — reverted the v1.10.91→97 Liquor SQL branching. Same code
     // path for every tenant now, matching pre-v1.10.91 behaviour that
     // worked cleanly on both Kelete and Liquor.
     const entries = db.prepare(`
       SELECT date, 'CR' AS type, receipt_number AS reference,
-        -- v1.10.49 â€” no trailing " - " when description is empty.
+        -- v1.10.49 — no trailing " - " when description is empty.
         CASE
           WHEN COALESCE(description, '') != ''
-            THEN COALESCE(received_from, '') || ' â€” ' || description
+            THEN COALESCE(received_from, '') || ' — ' || description
           ELSE COALESCE(received_from, '')
         END AS description,
         amount AS receipt_amount, 0 AS payment_amount,
@@ -342,20 +342,20 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       WHERE deleted_at IS NULL AND tenant_id = ?${dateFilter}
       UNION ALL
       SELECT date, 'PV' AS type, voucher_number AS reference,
-        -- v1.10.49 â€” PV description now folds in the Type (category)
+        -- v1.10.49 — PV description now folds in the Type (category)
         -- from the PV modal. Priority: description > category > (empty).
         -- Bare " - " suffix removed. Example results:
-        --   paid_to='Edron', category='Salaries', desc='' â†’ 'Edron Â· Salaries'
-        --   paid_to='Edron', desc='for July'              â†’ 'Edron â€” for July'
+        --   paid_to='Edron', category='Salaries', desc='' → 'Edron · Salaries'
+        --   paid_to='Edron', desc='for July'              → 'Edron — for July'
         --   paid_to='Edron', category='Salaries', desc='for July'
-        --     â†’ 'Edron Â· Salaries â€” for July'
+        --     → 'Edron · Salaries — for July'
         CASE
           WHEN COALESCE(description, '') != '' AND COALESCE(category, '') != ''
-            THEN COALESCE(paid_to, '') || ' Â· ' || category || ' â€” ' || description
+            THEN COALESCE(paid_to, '') || ' · ' || category || ' — ' || description
           WHEN COALESCE(description, '') != ''
-            THEN COALESCE(paid_to, '') || ' â€” ' || description
+            THEN COALESCE(paid_to, '') || ' — ' || description
           WHEN COALESCE(category, '') != ''
-            THEN COALESCE(paid_to, '') || ' Â· ' || category
+            THEN COALESCE(paid_to, '') || ' · ' || category
           ELSE COALESCE(paid_to, '')
         END AS description,
         0 AS receipt_amount, amount AS payment_amount,
@@ -367,15 +367,15 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       WHERE deleted_at IS NULL AND tenant_id = ?${dateFilter}
       UNION ALL
       SELECT date, 'AP' AS type, payment_number AS reference,
-        -- v1.10.49 â€” same tidy-up for AP. "Supplier Payment" only kicks
+        -- v1.10.49 — same tidy-up for AP. "Supplier Payment" only kicks
         -- in when description is genuinely blank.
         CASE
           WHEN COALESCE(description, '') != ''
-            THEN COALESCE(supplier_name, '') || ' â€” ' || description
+            THEN COALESCE(supplier_name, '') || ' — ' || description
           ELSE COALESCE(supplier_name, 'Supplier Payment')
         END AS description,
         0 AS receipt_amount,
-        -- v1.10.79 â€” payment_amount is the LEGACY USD-equivalent running-
+        -- v1.10.79 — payment_amount is the LEGACY USD-equivalent running-
         -- balance driver. When the triple-currency split is present, use
         -- usd_amount only. Prior to this the whole amount column
         -- (K32,000 for a K-only supplier payment) got subtracted from
@@ -385,7 +385,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
           THEN COALESCE(usd_amount, 0)
           ELSE amount END AS payment_amount,
         0 AS usd_in, 0 AS fra_in, 0 AS k_in,
-        -- v1.10.78 â€” split by currency when the triple-ccy columns are
+        -- v1.10.78 — split by currency when the triple-ccy columns are
         -- populated (HQ from v1.10.78). Legacy rows fall back to k_out
         -- per the v1.10.77 K-primary default for supplier payments.
         COALESCE(usd_amount, 0) AS usd_out,
@@ -446,7 +446,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       LEFT JOIN loans l ON l.sync_id = lt.loan_sync_id
       WHERE lt.deleted_at IS NULL AND lt.tenant_id = ?${dateFilter.replace(/date/g, 'lt.date')}
       UNION ALL
-      -- v1.10.42 â€” book-scope currency exchanges. Design memo in
+      -- v1.10.42 — book-scope currency exchanges. Design memo in
       -- currencyExchanges.js:6-7 says they "affect the Cash Book running
       -- balance per currency directly", but this UNION never queried
       -- them. Each exchange decrements the from_currency and increments
@@ -457,7 +457,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
         'EXCH' AS type,
         'EXCH-' || id AS reference,
         'Exchange ' || from_currency || ' ' || CAST(from_amount AS INTEGER) ||
-          ' â†’ ' || to_currency || ' ' || CAST(to_amount AS INTEGER) ||
+          ' → ' || to_currency || ' ' || CAST(to_amount AS INTEGER) ||
           COALESCE(' (' || NULLIF(notes,'') || ')', '') AS description,
         0 AS receipt_amount,
         0 AS payment_amount,
@@ -472,9 +472,9 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       ORDER BY date ASC, reference ASC
     `).all(tenantId, ...dParams, tenantId, ...dParams, tenantId, ...dParams, tenantId, ...dParams, tenantId, ...dParams, tenantId, ...dParams, tenantId, ...dParams, tenantId, ...dParams);
 
-    // v1.8.61 â€” HQ Deposit entries from master.db (cross-tenant).
-    //   Branch ledger (from_slug = caller's slug)  â†’ cash OUT  (payment_amount = amount)
-    //   HQ ledger     (caller is HQ_INBOX_SLUGS)   â†’ cash IN   (receipt_amount = amount)
+    // v1.8.61 — HQ Deposit entries from master.db (cross-tenant).
+    //   Branch ledger (from_slug = caller's slug)  → cash OUT  (payment_amount = amount)
+    //   HQ ledger     (caller is HQ_INBOX_SLUGS)   → cash IN   (receipt_amount = amount)
     // Date uses COALESCE(deposit_date, confirmed_at, created_at) so
     // backdated entries land on the right line in the ledger.
     let depEntries = [];
@@ -488,8 +488,8 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
         const depParams = (from && to) ? [from, to]
                         : from         ? [from]
                         : to           ? [to] : [];
-        // Outgoing â€” this branch's own deposits.
-        // v1.10.48 â€” also pull from_method so the ledger row description
+        // Outgoing — this branch's own deposits.
+        // v1.10.48 — also pull from_method so the ledger row description
         // labels which physical drawer the cash left (Liquor-only; NULL on
         // Kelete is harmless).
         const out = masterDb.prepare(`
@@ -505,13 +505,13 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
             date: r.date,
             type: 'DEP-OUT',
             reference: r.deposit_number,
-            description: `Deposit to ${r.to_name || 'HQ'} â€” ${r.currency} ${Math.round(amt).toLocaleString()}${r.from_method ? ` from ${r.from_method}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
+            description: `Deposit to ${r.to_name || 'HQ'} — ${r.currency} ${Math.round(amt).toLocaleString()}${r.from_method ? ` from ${r.from_method}` : ''}${r.notes ? ` (${r.notes})` : ''}`,
             // Legacy fields kept for backwards-compat (USD-equivalent
-            // not computed â€” only the native currency moves).
+            // not computed — only the native currency moves).
             receipt_amount: 0,
             payment_amount: r.currency === 'USD' ? amt : 0,
             currency: r.currency,
-            // Per-currency split â€” populates the right column on the
+            // Per-currency split — populates the right column on the
             // new Cash Book table.
             usd_in: 0, fra_in: 0, k_in: 0,
             usd_out: r.currency === 'USD' ? amt : 0,
@@ -519,8 +519,8 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
             k_out:   r.currency === 'K'   ? amt : 0,
           });
         }
-        // Incoming â€” HQ gets the deposits sent to HQ; a depot gets the ones
-        // other depots sent to it (2026-09-15, System Settings â†’ Deposit to).
+        // Incoming — HQ gets the deposits sent to HQ; a depot gets the ones
+        // other depots sent to it (2026-09-15, System Settings → Deposit to).
         {
           const isHqBook = HQ_INBOX_SLUGS.has(slug);
           const incoming = masterDb.prepare(`
@@ -533,7 +533,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
           `).all(...(isHqBook ? [] : [slug]), ...depParams);
           for (const r of incoming) {
             const amt = parseFloat(r.amount);
-            // v1.10.80 â€” Option A: slug in parens after the trading name.
+            // v1.10.80 — Option A: slug in parens after the trading name.
             // Skip the paren when name is missing or already equals the
             // slug (avoids "lusaka1 (lusaka1)" noise).
             const nameLbl = r.from_name && r.from_name.toLowerCase() !== String(r.from_slug || '').toLowerCase()
@@ -543,7 +543,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
               date: r.date,
               type: 'DEP-IN',
               reference: r.deposit_number,
-              description: `Deposit from ${nameLbl} â€” ${r.currency} ${Math.round(amt).toLocaleString()}${r.notes ? ` (${r.notes})` : ''}`,
+              description: `Deposit from ${nameLbl} — ${r.currency} ${Math.round(amt).toLocaleString()}${r.notes ? ` (${r.notes})` : ''}`,
               receipt_amount: r.currency === 'USD' ? amt : 0,
               payment_amount: 0,
               currency: r.currency,
@@ -565,14 +565,14 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       return String(a.reference || '').localeCompare(String(b.reference || ''));
     });
 
-    // v1.8.62 â€” per-currency running balance. Each row carries its
+    // v1.8.62 — per-currency running balance. Each row carries its
     // closing USD / FRA / K balance after the row applied. The legacy
     // single-$ `balance` field stays for backwards compat (sums the
     // USD-equivalent legacy receipt/payment columns).
-    // v1.10.25 â€” fold pre-period activity into openingByCcy so opening on
+    // v1.10.25 — fold pre-period activity into openingByCcy so opening on
     // day N = closing on day N-1. Previously we only folded openingByMethod,
     // so per-currency opening stayed at the install-time seed regardless of
-    // date filter â†’ Jul 2 showed Jul 1's opening instead of Jul 1's closing.
+    // date filter → Jul 2 showed Jul 1's opening instead of Jul 1's closing.
     let openingByCcy = getOpeningByCurrency(tenantId);
     if (from) {
       const before = ccyReceiptsPayments(tenantId, slug, ' AND date < ?', [from]);
@@ -604,8 +604,8 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// Stats â€” per-method receipts, payments, and balances (the cards on the page)
-// 2026-09-13 â€” the body of GET /stats, lifted out so HQ Cash Position can run
+// Stats — per-method receipts, payments, and balances (the cards on the page)
+// 2026-09-13 — the body of GET /stats, lifted out so HQ Cash Position can run
 // the SAME calculation against each depot's database (db.runWithDb). The
 // route below passes in exactly what it used to read off the request.
 function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = false }) {
@@ -613,7 +613,7 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
     const opening = getOpeningByMethod(tenantId);
     const df = (from ? ' AND date >= ?' : '') + (to ? ' AND date <= ?' : '');
     const dp = [...(from ? [from] : []), ...(to ? [to] : [])];
-    // v1.13.22 (port from Kelete v1.10.171) â€” HQ safety net + Liquor detection
+    // v1.13.22 (port from Kelete v1.10.171) — HQ safety net + Liquor detection
     // for the per-currency stats. Passed to sumMethod so it picks the right
     // cxMap and never falls into Liquor code on HQ hosts.
     const isLiquorKStats = detectLiquorK(db, null);
@@ -635,10 +635,10 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
           - b.pv - b.ap - b.capOut - b.div - b.loanPrin - b.loanInt
           + b.transferNet;
       });
-      // v1.10.49 â€” subtract pre-period deposits per drawer so Jul-2's
+      // v1.10.49 — subtract pre-period deposits per drawer so Jul-2's
       // opening tiles reflect Jul-1's closing. Same shape as v1.10.48's
       // current-day adjustment, applied to the fold instead. Needs
-      // masterDb + slug â€” read them out of the enclosing /stats scope.
+      // masterDb + slug — read them out of the enclosing /stats scope.
       const slugForFold = String(slugIn || '').toLowerCase();
       if (masterDb && slugForFold) {
         try {
@@ -655,8 +655,8 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
             openingByMethod[key] -= parseFloat(r.t);
           }
           // Add what arrived before the period, as the outgoing side is taken
-          // off above. 2026-09-15 â€” a depot other depots deposit to.
-          // 2026-09-16 â€” and HQ, which never had this: with a From date its
+          // off above. 2026-09-15 — a depot other depots deposit to.
+          // 2026-09-16 — and HQ, which never had this: with a From date its
           // tiles opened without every deposit received before that date
           // (15 Sep opened at K-64,660 while the ledger ran to K5,688,108).
           {
@@ -675,7 +675,7 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
             }
           }
         } catch (e) {
-    // 2026-08-28 â€” log it. This used to swallow silently, and a single
+    // 2026-08-28 — log it. This used to swallow silently, and a single
     // missing column meant deposits vanished from the Cash Book on BOTH
     // sides with nothing to show anyone was wrong.
     console.error('[cashBook] deposit rollup failed:', e.message);
@@ -701,14 +701,14 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
     const openingBalance = openingByMethod.cash + openingByMethod.bank + openingByMethod.momo;
     const currentBalance = currentByMethod.cash + currentByMethod.bank + currentByMethod.momo;
 
-    // v1.8.62 â€” per-currency stats (USD/FRA/K) for the dashboard cards.
+    // v1.8.62 — per-currency stats (USD/FRA/K) for the dashboard cards.
     // Reads usd_amount / fra_amount / k_amount with fallback to legacy
     // cash_amount (= USD) so single-currency tenants still total correctly.
     // Also pulls today's confirmed HQ Deposits from master.db (subtract
     // outgoing from branch / add incoming for HQ) so the cards stay in
     // sync with the ledger entries endpoint.
     const slug = String(slugIn || '').toLowerCase();
-    // v1.13.22 (port from Kelete v1.10.163â†’164) â€” on Liquor branches, K
+    // v1.13.22 (port from Kelete v1.10.163→164) — on Liquor branches, K
     // amounts live in cash_amount + bank_amount + momo_amount (all three
     // are K on K-only). Force USD/FRA to 0 so mirror columns don't
     // double-count. HQ short-circuits.
@@ -727,7 +727,7 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
     };
     const crByCcy = sumCcy('cash_receipts',    'date');
     const pvByCcy = sumCcy('payment_vouchers', 'date');
-    // v1.10.79 â€” AP now splits by currency, matching CR/PV. Previous code
+    // v1.10.79 — AP now splits by currency, matching CR/PV. Previous code
     // lumped every ap_payments.amount into apUsd (subtracting from the USD
     // balance card) AND never touched the K balance card. Now:
     //   apByCcy.usd += usd_amount (or amount for legacy rows w/ no split)
@@ -751,7 +751,7 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
         k:   parseFloat(row.k_ccy) + parseFloat(row.legacy_amount),
       };
     })();
-    // POS sales â€” orders.cash_received / fra_received / k_received.
+    // POS sales — orders.cash_received / fra_received / k_received.
     const ordersUsd = db.prepare(`SELECT COALESCE(SUM(cash_received), 0) AS t FROM orders WHERE deleted_at IS NULL AND tenant_id = ? AND (status IS NULL OR status IN ('PAID','DISPATCHED'))${df.replace(/date/g, 'paid_at')}`).get(tenantId, ...dp).t;
     const ordersFra = db.prepare(`SELECT COALESCE(SUM(fra_received), 0) AS t FROM orders WHERE deleted_at IS NULL AND tenant_id = ? AND (status IS NULL OR status IN ('PAID','DISPATCHED'))${df.replace(/date/g, 'paid_at')}`).get(tenantId, ...dp).t;
     const ordersK   = db.prepare(`SELECT COALESCE(SUM(k_received), 0)   AS t FROM orders WHERE deleted_at IS NULL AND tenant_id = ? AND (status IS NULL OR status IN ('PAID','DISPATCHED'))${df.replace(/date/g, 'paid_at')}`).get(tenantId, ...dp).t;
@@ -759,11 +759,11 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
     // HQ Deposits from master.db.
     let depInByCcy  = { usd: 0, fra: 0, k: 0 };
     let depOutByCcy = { usd: 0, fra: 0, k: 0 };
-    // v1.10.48 â€” per-method Liquor rollup: which physical drawer the
+    // v1.10.48 — per-method Liquor rollup: which physical drawer the
     // deposit came out of on a Liquor branch. Populated only for outgoing
-    // (branch â†’ HQ); incoming HQ deposits stay method-less.
+    // (branch → HQ); incoming HQ deposits stay method-less.
     let depOutByMethod = { cash: 0, momo: 0, bank: 0 };
-    // 2026-08-29 â€” the receiving half. depOutByMethod existed from day one;
+    // 2026-08-29 — the receiving half. depOutByMethod existed from day one;
     // there was never a depInByMethod, so money LEAVING a branch was taken off
     // a drawer tile while money ARRIVING at HQ was added to nothing. A
     // confirmed deposit showed in the HQ ledger and in none of the tiles above
@@ -786,7 +786,7 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
           const key = r.currency === 'USD' ? 'usd' : r.currency === 'FRA' ? 'fra' : 'k';
           depOutByCcy[key] += parseFloat(r.t);
         }
-        // v1.10.48 â€” also aggregate per-method for Liquor tile decrement.
+        // v1.10.48 — also aggregate per-method for Liquor tile decrement.
         // NULL from_method (legacy rows or Kelete deposits) falls back to
         // 'Cash' so nothing goes unaccounted for.
         const outByMethodRows = masterDb.prepare(`
@@ -799,8 +799,8 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
           const key = r.m === 'Mobile Money' ? 'momo' : r.m === 'Bank' ? 'bank' : 'cash';
           depOutByMethod[key] += parseFloat(r.t);
         }
-        // 2026-09-15 â€” incoming: HQ counts the deposits sent to HQ; a depot the
-        // ones other depots sent to it (System Settings â†’ Deposit to).
+        // 2026-09-15 — incoming: HQ counts the deposits sent to HQ; a depot the
+        // ones other depots sent to it (System Settings → Deposit to).
         {
           const isHqBook = HQ_INBOX_SLUGS.has(slug);
           const inWhere = isHqBook ? "COALESCE(to_slug, '') = ''" : 'to_slug = ?';
@@ -830,16 +830,16 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
           }
         }
       } catch (e) {
-    // 2026-08-28 â€” log it. This used to swallow silently, and a single
+    // 2026-08-28 — log it. This used to swallow silently, and a single
     // missing column meant deposits vanished from the Cash Book on BOTH
     // sides with nothing to show anyone was wrong.
     console.error('[cashBook] deposit rollup failed:', e.message);
   }
     }
 
-    // v1.10.42 â€” book-scope currency exchanges (in-range). Same convention
-    // as the ledger UNION and the fold helper: from_currency â†’ payments,
-    // to_currency â†’ receipts. Append-only table so no deleted_at filter.
+    // v1.10.42 — book-scope currency exchanges (in-range). Same convention
+    // as the ledger UNION and the fold helper: from_currency → payments,
+    // to_currency → receipts. Append-only table so no deleted_at filter.
     const exchInRange = db.prepare(`
       SELECT from_currency, from_amount, to_currency, to_amount
         FROM currency_exchanges
@@ -853,12 +853,12 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
       exchOut[fromKey] += parseFloat(r.from_amount || 0);
       exchIn[toKey]    += parseFloat(r.to_amount   || 0);
     }
-    // v1.10.48 â€” subtract Liquor-method deposits from the per-method tiles.
+    // v1.10.48 — subtract Liquor-method deposits from the per-method tiles.
     // currentByMethod was computed above from cash_receipts / PV / etc.
     // without any awareness of cash_deposits; now that we've fetched
     // depOutByMethod, apply it so the Cash on Hand / Mobile Money / Bank
     // tiles reflect real drawer state on Liquor branches. Kelete deposits
-    // land in 'cash' by our COALESCE default â€” harmless because Kelete's
+    // land in 'cash' by our COALESCE default — harmless because Kelete's
     // Cash Book doesn't render per-method tiles.
     currentByMethod.cash -= depOutByMethod.cash;
     currentByMethod.momo -= depOutByMethod.momo;
@@ -875,15 +875,15 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
       k:   ordersK   + crByCcy.k   + depInByCcy.k   + exchIn.k,
     };
     const paymentsByCcy = {
-      // v1.10.79 â€” AP now contributes per-currency (was apUsd â€” a single
+      // v1.10.79 — AP now contributes per-currency (was apUsd — a single
       // sum dumped into USD). apByCcy.k picks up the ALASKAL K32,000 so
       // the K balance card actually drops when a supplier is paid in K.
       usd: pvByCcy.usd + apByCcy.usd + depOutByCcy.usd + exchOut.usd,
       fra: pvByCcy.fra + apByCcy.fra + depOutByCcy.fra + exchOut.fra,
       k:   pvByCcy.k   + apByCcy.k   + depOutByCcy.k   + exchOut.k,
     };
-    // Per-currency closing balance = opening + receipts âˆ’ payments.
-    // v1.10.25 â€” fold pre-period activity into openingByCcy when `from`
+    // Per-currency closing balance = opening + receipts − payments.
+    // v1.10.25 — fold pre-period activity into openingByCcy when `from`
     // is set (mirrors what /stats already does for openingByMethod). Without
     // this, Jul 2's opening tile still reads Jul 1's opening seed, so
     // "Opening" and "Current" on day 2 don't reflect day 1's real close.
@@ -909,14 +909,14 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
       totalLoanIn, totalLoanPrin, totalLoanInt,
       currentBalance, currentByMethod,
       methodFlows: { cash, bank, momo },
-      // v1.8.62 â€” per-currency cards for the Kelete Cash Book dashboard.
+      // v1.8.62 — per-currency cards for the Kelete Cash Book dashboard.
       openingByCcy, receiptsByCcy, paymentsByCcy, currentByCcy,
       depositsByCcy: { in: depInByCcy, out: depOutByCcy },
     };
   }
 }
 
-// Stats â€” per-method receipts, payments, and balances (the cards on the page)
+// Stats — per-method receipts, payments, and balances (the cards on the page)
 router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     res.json(computeCashBookStats({
@@ -933,12 +933,12 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
 
 // Set opening balance(s).
 // Accepts:
-//   { usd, fra, k }                â€” v1.8.62 per-currency (Kelete)
-//   { cash, bank, momo }           â€” legacy per-method
-//   { amount }                     â€” legacy single Cash opening
+//   { usd, fra, k }                — v1.8.62 per-currency (Kelete)
+//   { cash, bank, momo }           — legacy per-method
+//   { amount }                     — legacy single Cash opening
 router.post('/opening-balance', auth, async (req, res) => {
   try {
-    // 2026-09-07 â€” an Administrator password, checked here.
+    // 2026-09-07 — an Administrator password, checked here.
     //
     // This one figure shifts every running balance in the Cash Book, and the
     // only thing in front of it was a confirm dialog in the browser - which
@@ -950,7 +950,7 @@ router.post('/opening-balance', auth, async (req, res) => {
     if (!password) {
       return res.status(400).json({ error: 'Administrator password is required to change the opening balance.' });
     }
-    // Everyone types it, administrators included â€” this is a confirmation
+    // Everyone types it, administrators included — this is a confirmation
     // gate on an irreversible figure, not a permission check.
     const admins = db.prepare(
       "SELECT password FROM users WHERE role = 'Administrator' AND deleted_at IS NULL"
@@ -1013,7 +1013,7 @@ router.post('/opening-balance', auth, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ Cash Transfers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Cash Transfers ──────────────────────────────────────────────────────────
 // Money moved between methods (Cash <-> Bank <-> Mobile Money). Total cash on
 // hand is unchanged; only the per-method breakdown shifts.
 

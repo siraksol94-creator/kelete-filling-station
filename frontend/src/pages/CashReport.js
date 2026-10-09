@@ -14,7 +14,7 @@ import useDepositTarget from '../utils/useDepositTarget';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5300/api';
 
-// v1.10.35 â€” mobile detection for the per-cashier reconciliation grid.
+// v1.10.35 — mobile detection for the per-cashier reconciliation grid.
 // Same shape as POS.js's local hook so behaviour matches other pages.
 const useIsMobile = (breakpoint = 768) => {
   const [isMobile, setIsMobile] = useState(
@@ -39,23 +39,23 @@ const getStatus = (diff) => {
 const CashReport = () => {
   const { user: authUser } = useAuth();
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown, autoDeposit } = useCurrency();
-  // 2026-09-11 â€” Auto deposit (System Settings): saving, editing or deleting
+  // 2026-09-11 — Auto deposit (System Settings): saving, editing or deleting
   // this report also moves deposits to HQ, so the page says so first. The
   // server only does it online, so a desktop till is not told it will.
   const autoDepositOn = !!autoDeposit && !(typeof navigator !== 'undefined' && /Electron/i.test(navigator.userAgent || ''));
-  // 2026-09-18 â€” where this depot's cash actually goes: HQ, or the depot named
-  // in System Settings â†’ Deposit to.
+  // 2026-09-18 — where this depot's cash actually goes: HQ, or the depot named
+  // in System Settings → Deposit to.
   const depositTo = useDepositTarget();
   const kFmt = (v) => `${curSym}${(parseFloat(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const depositLines = (u, f, k) => [['Cash', u], ['Mobile Money', f], ['Bank', k]]
     .filter(([, v]) => (parseFloat(v) || 0) > 0)
     .map(([m, v]) => `${m} ${kFmt(v)}`);
-  // 2026-09-11 â€” "Cash + MoMo + Bank", less what this branch hides.
+  // 2026-09-11 — "Cash + MoMo + Bank", less what this branch hides.
   const methodsLabel = ['Cash', methodShown('momo') && 'MoMo', methodShown('bank') && 'Bank'].filter(Boolean).join(' + ');
   const hasMoney = (...vals) => vals.some(v => Math.abs(parseFloat(v) || 0) > 0.004);
   const isMobile = useIsMobile();
-  // v1.9.26 â€” currency_mode gates per-currency panels.
-  // v1.9.30 â€” Cash Report method-axis lands: Liquor branches render
+  // v1.9.26 — currency_mode gates per-currency panels.
+  // v1.9.30 — Cash Report method-axis lands: Liquor branches render
   // Cash / MoMo / Bank counter panels reading the new cash_net /
   // momo_net / bank_net rollups from /cash-reports/daily. Currency
   // panels are hidden on Liquor branches (kept on Kelete).
@@ -63,9 +63,9 @@ const CashReport = () => {
   const showFRAccy = !isLiquorStyle && (currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K');
   const showKccy   = !isLiquorStyle && (currencyMode === 'USD+FRA+K' || currencyMode === 'K');
   const { t } = useLanguage();
-  // v1.10.43 â€” local-date, not UTC. Was defaulting Cash Report to UTC
+  // v1.10.43 — local-date, not UTC. Was defaulting Cash Report to UTC
   // "today", which at 00:16 Lusaka time on Jul 3 (= 22:16 UTC Jul 2) still
-  // showed "2026-07-02" while Sales Report â€” using local time â€” was
+  // showed "2026-07-02" while Sales Report — using local time — was
   // already on Jul 3. Same builder Sales Report uses (SalesReport.js:12).
   const _t = new Date();
   const today = `${_t.getFullYear()}-${String(_t.getMonth()+1).padStart(2,'0')}-${String(_t.getDate()).padStart(2,'0')}`;
@@ -74,7 +74,7 @@ const CashReport = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [editMode, setEditMode] = useState(false);
-  // v1.10.9 â€” admin-gated delete of the saved cash report for the selected day.
+  // v1.10.9 — admin-gated delete of the saved cash report for the selected day.
   const [savedReportId, setSavedReportId] = useState(null);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -86,12 +86,12 @@ const CashReport = () => {
   const [allSalesCashiers, setAllSalesCashiers] = useState([]); // all users who ever made sales (for history filter)
 
   // History filter
-  const [filterMonth, setFilterMonth] = useState(new Date().getMonth() + 1); // 1â€“12, 0 = all
+  const [filterMonth, setFilterMonth] = useState(new Date().getMonth() + 1); // 1–12, 0 = all
   const [filterYear, setFilterYear]   = useState(new Date().getFullYear());   // 0 = all
   const [filterUser, setFilterUser] = useState('all');
   const [availableUsers, setAvailableUsers] = useState([]); // [{ cashier_id, full_name }]
 
-  // v1.8.1 â€” triple-currency Cash Report. usd_received / fra_received /
+  // v1.8.1 — triple-currency Cash Report. usd_received / fra_received /
   // k_received each hold NET cash in that currency (received minus change
   // given), in that currency's own units. Legacy keys cash/mobile_money/bank
   // are still echoed in saves for backwards compat (zeroed on the server).
@@ -105,7 +105,7 @@ const CashReport = () => {
 
   const [dailyRevenue, setDailyRevenue] = useState(0);
   const [daySummary, setDaySummary] = useState({ totalExpected: 0, totalCash: 0 });
-  // v1.8.22 â€” per-currency totals across ALL cashiers for the selected date.
+  // v1.8.22 — per-currency totals across ALL cashiers for the selected date.
   // Drives the top KPI bar above the form (Liquor-style summary but split
   // into USD/FRA/K instead of a single $ figure).
   const [daySummaryByCcy, setDaySummaryByCcy] = useState({
@@ -113,38 +113,38 @@ const CashReport = () => {
     fra: { expected: 0, received: 0 },
     k:   { expected: 0, received: 0 },
   });
-  // v1.8.6 â€” net per-currency impact of drawer exchanges for this date+cashier.
+  // v1.8.6 — net per-currency impact of drawer exchanges for this date+cashier.
   // Bump exchangeRefreshKey to force the CurrencyExchangePanel to re-load
   // (after every save) without remounting the whole report.
   const [exchangeNet, setExchangeNet] = useState({ usd_net: 0, fra_net: 0, k_net: 0 });
-  // v1.8.84 â€” all-cashier exchange net for the day, used by the top KPI bar
+  // v1.8.84 — all-cashier exchange net for the day, used by the top KPI bar
   // (Total cash in needs to subtract exchange inflow across the whole team).
   const [exchangeNetAll, setExchangeNetAll] = useState({ usd_net: 0, fra_net: 0, k_net: 0 });
   const [exchangeRefreshKey, setExchangeRefreshKey] = useState(0);
-  // v1.8.10 â€” current FX rates so Total can convert FRA/K into USD before
+  // v1.8.10 — current FX rates so Total can convert FRA/K into USD before
   // comparing against Expected (which is the order total_amount sum in USD).
   const [fxRate, setFxRate] = useState({ sell: 0, sellK: 0 });
-  // v1.8.11 â€” per-currency Expected. Snapshot of what the POS says was
+  // v1.8.11 — per-currency Expected. Snapshot of what the POS says was
   // received per currency (net of change), independent of what the cashier
-  // typed into the form. Difference per currency = counted âˆ’ expected.
+  // typed into the form. Difference per currency = counted − expected.
   const [expectedByCcy, setExpectedByCcy] = useState({ usd: 0, fra: 0, k: 0 });
-  // v1.9.30 â€” method-axis expected for Liquor-style branches (Mansa/Lusaka).
+  // v1.9.30 — method-axis expected for Liquor-style branches (Mansa/Lusaka).
   // Read from the new cash_net / momo_net / bank_net fields the backend
   // returns alongside the per-currency ones.
   const [expectedByMethod, setExpectedByMethod] = useState({ cash: 0, momo: 0, bank: 0 });
-  // v1.8.68 â€” over-collections kept by cashier (per source currency + per-order rows).
-  // v1.8.76 â€” also tracks under-payments (walk-in tolerance shortages, USD-equivalent).
+  // v1.8.68 — over-collections kept by cashier (per source currency + per-order rows).
+  // v1.8.76 — also tracks under-payments (walk-in tolerance shortages, USD-equivalent).
   const [overpaidByCcy,  setOverpaidByCcy]  = useState({ usd: 0, fra: 0, k: 0 });
   const [underpaidByCcy, setUnderpaidByCcy] = useState({ usd: 0, fra: 0, k: 0 });
   const [overpaidRows,   setOverpaidRows]   = useState([]); // mixed OVER + UNDER rows
-  // v1.8.14 â€” per-currency expenses paid out of the cash drawer today.
+  // v1.8.14 — per-currency expenses paid out of the cash drawer today.
   // Subtracted from each currency's Expected so the diff stays accurate
   // (USD expenses don't deplete FRA drawer, etc.).
   const [expensesByCcy, setExpensesByCcy] = useState({ usd: 0, fra: 0, k: 0 });
-  // v1.8.20 â€” POS-snapshot of today's credit (issued unpaid balance).
+  // v1.8.20 — POS-snapshot of today's credit (issued unpaid balance).
   // Independent of form.pending which is editable by the cashier.
   const [creditExpected, setCreditExpected] = useState(0);
-  // v1.8.23 â€” stale-fetch guard. Each loadDate call bumps this counter and
+  // v1.8.23 — stale-fetch guard. Each loadDate call bumps this counter and
   // captures its own number; the call only commits state if its number is
   // still the latest. Without this, an earlier loadDate (cid='' on mount)
   // would lose its race with the later one (cid='Nahom') and overwrite
@@ -160,9 +160,9 @@ const CashReport = () => {
   const [printExpenses, setPrintExpenses] = useState([]);
   const [businessInfo, setBusinessInfo] = useState({});
 
-  // Voucher modal state â€” form lives inside the shared PaymentVoucherFormModal.
+  // Voucher modal state — form lives inside the shared PaymentVoucherFormModal.
   const [showVoucher, setShowVoucher] = useState(false);
-  // 2026-09-21 â€” opened from the green "Approved â€” save the voucher" card,
+  // 2026-09-21 — opened from the green "Approved — save the voucher" card,
   // for an expense that was raised HERE. It used to land on the Payment
   // Voucher page instead, which is not where the cashier was working and not
   // where the voucher belongs, so her own expense never came back to her
@@ -184,7 +184,7 @@ const CashReport = () => {
       .catch(() => {});
   // eslint-disable-next-line
   }, []);
-  // v1.8.18 â€” currency hint for the PV modal so the right amount input
+  // v1.8.18 — currency hint for the PV modal so the right amount input
   // gets focused when the user clicks + on a specific currency card.
   const [voucherDefaultCcy, setVoucherDefaultCcy] = useState(null);
 
@@ -210,13 +210,13 @@ const CashReport = () => {
 
   const fetchUsers = async () => {
     try {
-      // For filter dropdown â€” who has submitted cash reports
+      // For filter dropdown — who has submitted cash reports
       const res = await fetch(`${API_BASE}/cash-reports/users`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
       const data = await res.json();
       setAvailableUsers(Array.isArray(data) ? data : []);
-      // For form dropdown â€” all system users
+      // For form dropdown — all system users
       const usersRes = await fetch(`${API_BASE}/users`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
@@ -236,8 +236,8 @@ const CashReport = () => {
       const endLocal   = new Date(`${d}T23:59:59`);
       const fromUtc = toSqliteUTC(startLocal);
       const toUtc   = toSqliteUTC(endLocal);
-      // v1.8.67 â€” HQ Deposit math removed from Cash Report (cashier till)
-      // because deposits flow cashier â†’ manager â†’ HQ in real ops. Cash
+      // v1.8.67 — HQ Deposit math removed from Cash Report (cashier till)
+      // because deposits flow cashier → manager → HQ in real ops. Cash
       // Book still surfaces deposit movements at the accounting level.
       const qs = `date=${d}&cashier_id=${cid}&from_utc=${encodeURIComponent(fromUtc)}&to_utc=${encodeURIComponent(toUtc)}`;
       const res = await fetch(`${API_BASE}/cash-reports/daily?${qs}`, {
@@ -250,7 +250,7 @@ const CashReport = () => {
 
   const fetchSalesCashiers = async (d) => {
     try {
-      // v1.10.43 â€” pass the same LOCAL-day â†’ UTC bounds we use for /daily
+      // v1.10.43 — pass the same LOCAL-day → UTC bounds we use for /daily
       // so a cashier whose sale time crossed local midnight (e.g. 12:47 AM
       // local Lusaka = 22:47 UTC previous day) still appears in the
       // dropdown for their local day. Without this the /sales-cashiers
@@ -274,7 +274,7 @@ const CashReport = () => {
   };
 
   const loadDate = async (d, cashierId) => {
-    // v1.8.23 â€” claim a sequence number for this call. Any setState below
+    // v1.8.23 — claim a sequence number for this call. Any setState below
     // is guarded by a check that this is still the latest call. Stale
     // results (e.g. the pre-Nahom load that lost the race) get dropped.
     const seq = ++loadSeq.current;
@@ -287,7 +287,7 @@ const CashReport = () => {
     const daily = await fetchDaily(d, cid);
     if (!isLatest()) return; // stale: a newer loadDate has already started
 
-    // v1.8.68 â€” per-order over-collection rows for the panel.
+    // v1.8.68 — per-order over-collection rows for the panel.
     try {
       const startLocal = `${d} 00:00:00`;
       const endLocal   = `${d} 23:59:59`;
@@ -305,7 +305,7 @@ const CashReport = () => {
 
     if (daily) {
       setDailyRevenue(parseFloat(daily.total_revenue || 0));
-      // v1.8.11 â€” snapshot per-currency expected from POS (orders).
+      // v1.8.11 — snapshot per-currency expected from POS (orders).
       // On Liquor style, read from cash_net/momo_net/bank_net so the snapshot
       // subtracts change_amount (matches the top card). Legacy usd_received
       // only subtracts usd_change_given, which is 0 on K-only branches, so
@@ -315,32 +315,32 @@ const CashReport = () => {
         fra: parseFloat((isLiquorStyle ? daily.momo_net : daily.fra_received) || 0) || 0,
         k:   parseFloat((isLiquorStyle ? daily.bank_net : daily.k_received)   || 0) || 0,
       });
-      // v1.9.30 â€” method-axis expected (Cash / MoMo / Bank) for Liquor branches.
+      // v1.9.30 — method-axis expected (Cash / MoMo / Bank) for Liquor branches.
       setExpectedByMethod({
         cash: parseFloat(daily.cash_net || 0) || 0,
         momo: parseFloat(daily.momo_net || 0) || 0,
         bank: parseFloat(daily.bank_net || 0) || 0,
       });
-      // v1.8.14 â€” per-currency expenses for that date+cashier.
+      // v1.8.14 — per-currency expenses for that date+cashier.
       setExpensesByCcy({
         usd: parseFloat(daily.usd_expenses || 0) || 0,
         fra: parseFloat(daily.fra_expenses || 0) || 0,
         k:   parseFloat(daily.k_expenses   || 0) || 0,
       });
-      // v1.8.68 â€” over-collections snapshot for the "Over-Collections" panel.
+      // v1.8.68 — over-collections snapshot for the "Over-Collections" panel.
       setOverpaidByCcy({
         usd: parseFloat(daily.usd_overpaid_kept || 0) || 0,
         fra: parseFloat(daily.fra_overpaid_kept || 0) || 0,
         k:   parseFloat(daily.k_overpaid_kept   || 0) || 0,
       });
-      // v1.8.76 â€” under-payments (walk-in tolerance shortages).
-      // v1.8.77 â€” per-currency attribution (source-currency, same as over-payments).
+      // v1.8.76 — under-payments (walk-in tolerance shortages).
+      // v1.8.77 — per-currency attribution (source-currency, same as over-payments).
       setUnderpaidByCcy({
         usd: parseFloat(daily.usd_underpaid || 0) || 0,
         fra: parseFloat(daily.fra_underpaid || 0) || 0,
         k:   parseFloat(daily.k_underpaid   || 0) || 0,
       });
-      // v1.8.20 â€” POS snapshot of credit issued today (so the card can show
+      // v1.8.20 — POS snapshot of credit issued today (so the card can show
       // Counted vs Expected the same way the cash cards do).
       setCreditExpected(parseFloat(daily.credit_sales || 0) + parseFloat(daily.pending || 0));
     }
@@ -348,7 +348,7 @@ const CashReport = () => {
     const saved = reports.find(r => r.date && r.date.split('T')[0] === d && String(r.cashier_id ?? 0) === String(cid));
     setSavedReportId(saved?.id || null);
     if (saved) {
-      // v1.8.13 â€” restore the per-currency Expected snapshot stored at save
+      // v1.8.13 — restore the per-currency Expected snapshot stored at save
       // time. Falls back to current /daily figure for legacy rows.
       // Same Liquor-style fallback as the un-saved branch above.
       setExpectedByCcy({
@@ -356,7 +356,7 @@ const CashReport = () => {
         fra: parseFloat(saved.fra_expected || (isLiquorStyle ? daily?.momo_net : daily?.fra_received) || 0) || 0,
         k:   parseFloat(saved.k_expected   || (isLiquorStyle ? daily?.bank_net : daily?.k_received)   || 0) || 0,
       });
-      // v1.9.30 â€” method-axis expected for Liquor branches.
+      // v1.9.30 — method-axis expected for Liquor branches.
       setExpectedByMethod({
         cash: parseFloat(daily?.cash_net || 0) || 0,
         momo: parseFloat(daily?.momo_net || 0) || 0,
@@ -383,7 +383,7 @@ const CashReport = () => {
     } else {
       if (daily) {
         const issuedToday = parseFloat(daily.credit_sales || 0) + parseFloat(daily.pending || 0);
-        // v1.8.21 â€” Counted auto-fill = POS net âˆ’ expenses + exchange net
+        // v1.8.21 — Counted auto-fill = POS net − expenses + exchange net
         // (the actual drawer balance per currency). Fetch exchanges inline so
         // the initial fill reflects them right away (no race with the
         // exchangeRefreshKey useEffect).
@@ -394,7 +394,7 @@ const CashReport = () => {
           exNet = r.data || exNet;
         } catch { /* keep zeros */ }
         if (!isLatest()) return; // stale: a newer loadDate has already started
-        // v1.9.32 â€” on Liquor branches, auto-fill the three counter inputs
+        // v1.9.32 — on Liquor branches, auto-fill the three counter inputs
         // from the method-axis rollups (cash_net / momo_net / bank_net).
         // The legacy fra_received / k_received columns are always 0 on
         // Mansa/Lusaka because the walk-in modal writes to momo_received /
@@ -432,7 +432,7 @@ const CashReport = () => {
     fetchSalesCashiers(today);
     getSalesCashiers().then(r => setAllSalesCashiers(r.data || [])).catch(() => {});
     getSettings().then(r => setBusinessInfo(r.data?.business || {})).catch(() => {});
-    // v1.8.10 â€” load current FX so Total computes in USD-equivalent.
+    // v1.8.10 — load current FX so Total computes in USD-equivalent.
     getCurrentFxRate()
       .then(r => setFxRate({
         sell:  parseFloat(r.data?.sell_rate)   > 0 ? parseFloat(r.data.sell_rate)   : 0,
@@ -440,7 +440,7 @@ const CashReport = () => {
       }))
       .catch(() => {});
   }, []);
-  // v1.8.6 â€” refetch the net drawer-exchange impact for this date+cashier.
+  // v1.8.6 — refetch the net drawer-exchange impact for this date+cashier.
   // Bumped by the panel after every save; also re-runs on date/cashier change.
   useEffect(() => {
     if (!date) return;
@@ -449,17 +449,17 @@ const CashReport = () => {
       .then(r => setExchangeNet(r.data || { usd_net: 0, fra_net: 0, k_net: 0 }))
       .catch(() => setExchangeNet({ usd_net: 0, fra_net: 0, k_net: 0 }));
   }, [date, selectedCashier, exchangeRefreshKey]);
-  // v1.8.84 â€” all-cashier exchange net for the top KPI bar (no cashier_id filter).
+  // v1.8.84 — all-cashier exchange net for the top KPI bar (no cashier_id filter).
   useEffect(() => {
     if (!date) return;
     getCurrencyExchangesNet({ scope: 'drawer', date })
       .then(r => setExchangeNetAll(r.data || { usd_net: 0, fra_net: 0, k_net: 0 }))
       .catch(() => setExchangeNetAll({ usd_net: 0, fra_net: 0, k_net: 0 }));
   }, [date, exchangeRefreshKey]);
-  // v1.8.18 â€” re-run loadDate whenever the auto-selected cashier resolves.
+  // v1.8.18 — re-run loadDate whenever the auto-selected cashier resolves.
   // fetchSalesCashiers(today) is async; on first mount it eventually fires
   // setSelectedCashier(firstId). Before that, loadDate would run with cid=''
-  // which the backend treats as 'all cashiers' â€” so the form initially
+  // which the backend treats as 'all cashiers' — so the form initially
   // showed everyone's totals while the dropdown read 'Nahom'. Adding
   // selectedCashier to deps + passing it explicitly fixes the race.
   useEffect(() => { if (reports.length >= 0) loadDate(date, selectedCashier); }, [reports, selectedCashier]); // eslint-disable-line
@@ -474,23 +474,23 @@ const CashReport = () => {
         .filter(r => r.date && r.date.split('T')[0] === date)
         .reduce((s, r) => s + parseFloat(r.total || 0), 0);
       setDaySummary({ totalExpected, totalCash });
-      // v1.8.22 â€” per-currency aggregate across ALL cashiers for the day.
+      // v1.8.22 — per-currency aggregate across ALL cashiers for the day.
       // Expected = POS net per currency for the whole team (from /daily
       // with cashier_id=0). Received = sum of saved cash reports'
       // per-currency counted values for this date.
       const reportsForDay = reports.filter(r => r.date && r.date.split('T')[0] === date);
       const sumCol = (col) => reportsForDay.reduce((s, r) => s + (parseFloat(r[col] || 0) || 0), 0);
-      // v1.8.84 â€” also surface counted + expenses per currency so the top KPI
-      // bar can compute Total cash in = counted + expenses âˆ’ exchange_net.
+      // v1.8.84 — also surface counted + expenses per currency so the top KPI
+      // bar can compute Total cash in = counted + expenses − exchange_net.
       setDaySummaryByCcy({
         usd: { expected: parseFloat(all?.usd_received || 0) || 0, counted: sumCol('usd_received'), expenses: parseFloat(all?.usd_expenses || 0) || 0 },
         fra: { expected: parseFloat(all?.fra_received || 0) || 0, counted: sumCol('fra_received'), expenses: parseFloat(all?.fra_expenses || 0) || 0 },
         k:   { expected: parseFloat(all?.k_received   || 0) || 0, counted: sumCol('k_received'),   expenses: parseFloat(all?.k_expenses   || 0) || 0 },
-        // v1.9.30 â€” method-axis rollups for Liquor branches.
-        // v1.10.32 â€” counted now sums the per-method columns the save
+        // v1.9.30 — method-axis rollups for Liquor branches.
+        // v1.10.32 — counted now sums the per-method columns the save
         // handler writes (cash / mobile_money / bank). Expenses reuse
-        // the currency columns via the Liquor mapping: Cash â†’ usd_amount
-        // (usd_expenses), MoMo â†’ fra_amount, Bank â†’ k_amount.
+        // the currency columns via the Liquor mapping: Cash → usd_amount
+        // (usd_expenses), MoMo → fra_amount, Bank → k_amount.
         cash: { expected: parseFloat(all?.cash_net || 0) || 0, counted: sumCol('cash'),         expenses: parseFloat(all?.usd_expenses || 0) || 0 },
         momo: { expected: parseFloat(all?.momo_net || 0) || 0, counted: sumCol('mobile_money'), expenses: parseFloat(all?.fra_expenses || 0) || 0 },
         bank: { expected: parseFloat(all?.bank_net || 0) || 0, counted: sumCol('bank'),         expenses: parseFloat(all?.k_expenses   || 0) || 0 },
@@ -498,8 +498,8 @@ const CashReport = () => {
     }).catch(() => {});
   }, [date, reports]); // eslint-disable-line
 
-  // v1.8.11 â€” no more USD-equivalent total. Each currency reconciles
-  // independently: counted âˆ’ expected, status per currency. The single
+  // v1.8.11 — no more USD-equivalent total. Each currency reconciles
+  // independently: counted − expected, status per currency. The single
   // total/after_change/difference/status fields stay in form state for
   // backwards compatibility with the POST handler + history table.
   // total = sum of counted in their own units (purely informational).
@@ -520,15 +520,15 @@ const CashReport = () => {
 
   const handleSave = async () => {
     if (!selectedCashier) { setMessage('Please select a cashier before saving.'); return; }
-    // 2026-09-11 â€” with Auto deposit on, saving is not only saving: say what
+    // 2026-09-11 — with Auto deposit on, saving is not only saving: say what
     // goes to HQ (or how this report's deposits change) and let them stop.
     if (autoDepositOn) {
       const lines = depositLines(form.usd_received, form.fra_received, form.k_received);
       const isUpdate = !!savedReportId;
       if (lines.length || isUpdate) {
-        const body = lines.length ? lines.map(l => `   â€¢ ${l}`).join('\n') : '   â€¢ nothing counted';
-        // 2026-09-18 â€” a depot that deposits to another depot (System Settings
-        // â†’ Deposit to) must not be told its money is going to HQ.
+        const body = lines.length ? lines.map(l => `   • ${l}`).join('\n') : '   • nothing counted';
+        // 2026-09-18 — a depot that deposits to another depot (System Settings
+        // → Deposit to) must not be told its money is going to HQ.
         const to = depositTo.label;
         const msg = isUpdate
           ? `Auto deposit is on for this depot.\n\nSaving will also UPDATE this report's deposits to ${to} to:\n${body}\n\nA method with nothing counted has its deposit removed. ${to} still has to confirm them.\n\nSave and update the deposits?`
@@ -544,11 +544,11 @@ const CashReport = () => {
       const fra  = parseFloat(form.fra_received)   || 0;
       const kAmt = parseFloat(form.k_received)     || 0;
       const exp  = parseFloat(form.expenses)       || 0;
-      // v1.8.54 â€” credit is no longer counted manually; force pending to
+      // v1.8.54 — credit is no longer counted manually; force pending to
       // mirror the system's creditExpected so the saved snapshot matches
       // the on-screen card (which always reads Counted = Expected).
       const pend = parseFloat(creditExpected || 0)  || 0;
-      // v1.8.10 â€” convert FRA/K to USD before summing (same as auto-calc).
+      // v1.8.10 — convert FRA/K to USD before summing (same as auto-calc).
       const fraAsUsd = fxRate.sell  > 0 ? fra / fxRate.sell  : 0;
       const kAsUsd   = fxRate.sellK > 0 ? kAmt / fxRate.sellK : 0;
       const total       = usd + fraAsUsd + kAsUsd + pend + exp;
@@ -566,20 +566,20 @@ const CashReport = () => {
           usd_received: usd,
           fra_received: fra,
           k_received:   kAmt,
-          // v1.8.13 â€” snapshot per-currency Expected so the saved row carries
+          // v1.8.13 — snapshot per-currency Expected so the saved row carries
           // its own reconciliation (no need to re-derive from orders later).
           usd_expected: parseFloat(expectedByCcy.usd) || 0,
           fra_expected: parseFloat(expectedByCcy.fra) || 0,
           k_expected:   parseFloat(expectedByCcy.k)   || 0,
-          // v1.8.26 â€” snapshot per-currency expenses paid out of drawer.
+          // v1.8.26 — snapshot per-currency expenses paid out of drawer.
           usd_expenses: parseFloat(expensesByCcy.usd) || 0,
           fra_expenses: parseFloat(expensesByCcy.fra) || 0,
           k_expenses:   parseFloat(expensesByCcy.k)   || 0,
-          // v1.10.32 â€” on Liquor-style branches, ALSO write the per-method
+          // v1.10.32 — on Liquor-style branches, ALSO write the per-method
           // counted values into cash_reports.cash / mobile_money / bank so
           // the "ALL CASHIERS" top bar can sum them across cashiers. Same
-          // mapping used everywhere else on Liquor: Cashâ†’usd_received,
-          // MoMoâ†’fra_received, Bankâ†’k_received. Kelete branches send 0s
+          // mapping used everywhere else on Liquor: Cash→usd_received,
+          // MoMo→fra_received, Bank→k_received. Kelete branches send 0s
           // (no method concept there).
           ...(isLiquorStyle ? { cash: usd, mobile_money: fra, bank: kAmt } : { cash: 0, mobile_money: 0, bank: 0 }),
           expenses: exp,
@@ -593,19 +593,19 @@ const CashReport = () => {
         })
       });
       if (res.ok) {
-        // 2026-09-11 â€” what the auto deposit did, if this depot has it on.
+        // 2026-09-11 — what the auto deposit did, if this depot has it on.
         const savedRow = await res.json().catch(() => null);
         const dep = savedRow?.auto_deposits || null;
         setMessage('Report saved successfully!');
         setEditMode(false);
         await fetchReports();
 
-        // v1.8.84 â€” CR books "Total cash in" per currency, not "Counted".
-        //   Total cash in = Counted + Expenses âˆ’ exch_net   (sales-only inflow)
+        // v1.8.84 — CR books "Total cash in" per currency, not "Counted".
+        //   Total cash in = Counted + Expenses − exch_net   (sales-only inflow)
         // Counted is after expenses have left the drawer, so booking Counted
         // would double-deduct the PVs when Cash Book later subtracts them.
-        // The Difference (Total cash in âˆ’ Expected sales) stays on the Cash
-        // Report only â€” never written to any ledger.
+        // The Difference (Total cash in − Expected sales) stays on the Cash
+        // Report only — never written to any ledger.
         const usdCounted = parseFloat(form.usd_received) || 0;
         const fraCounted = parseFloat(form.fra_received) || 0;
         const kCounted   = parseFloat(form.k_received)   || 0;
@@ -616,8 +616,8 @@ const CashReport = () => {
         const status = form.status || computedStatus;
         const cashier = selectedCashier !== '0' ? allUsers.find(u => String(u.id) === String(selectedCashier)) : null;
         const receivedFrom = cashier ? `Sales / ${cashier.first_name}` : 'Sales';
-        // v1.10.44 â€” on Liquor branches all three amount slots are the same
-        // currency (Cash â†’ usd_amount, MoMo â†’ fra_amount, Bank â†’ k_amount, all
+        // v1.10.44 — on Liquor branches all three amount slots are the same
+        // currency (Cash → usd_amount, MoMo → fra_amount, Bank → k_amount, all
         // in K). `amount` and the legacy method columns must reflect the
         // FULL total, not just the Cash portion, or the Cash Book ledger
         // shows only the Cash slice (e.g. K6,700 instead of K33,105) and
@@ -636,7 +636,7 @@ const CashReport = () => {
           // Liquor: send explicit method splits so backend deriveCRSplits
           // doesn't collapse everything into Cash based on payment_method.
           ...(isLiquorStyle ? { cash_amount: usdAmt, momo_amount: fraAmt, bank_amount: kAmt2 } : {}),
-          description:  form.comment ? `${status} â€” ${form.comment}` : status,
+          description:  form.comment ? `${status} — ${form.comment}` : status,
         };
 
         // Auto-upsert the Cash Book entry (no more "Update?" modal). User
@@ -661,10 +661,10 @@ const CashReport = () => {
         if (dep?.error) {
           setMessage(m => `${m} Deposit to ${depositTo.label} was NOT written: ${dep.error}`);
         } else if (dep) {
-          // "Deposit to Kabwe: Cash K56,383.00 sent Â· Mobile Money removed"
+          // "Deposit to Kabwe: Cash K56,383.00 sent · Mobile Money removed"
           const said = (Array.isArray(dep.items) ? dep.items : []).map(i =>
             i.action === 'removed' ? `${i.method} removed` : `${i.method} ${kFmt(i.amount)} ${i.action}`);
-          if (said.length) setMessage(m => `${m} Deposit to ${depositTo.label}: ${said.join(' Â· ')} â€” waiting for ${depositTo.label} to confirm.`);
+          if (said.length) setMessage(m => `${m} Deposit to ${depositTo.label}: ${said.join(' · ')} — waiting for ${depositTo.label} to confirm.`);
         }
       } else {
         const err = await res.json();
@@ -698,8 +698,8 @@ const CashReport = () => {
     setPendingCRData(null);
   };
 
-  // â”€â”€ Expenses list helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // v1.8.18 â€” optional currencyFilter ('USD'|'FRA'|'K') filters the
+  // ── Expenses list helper ───────────────────────────────────────────
+  // v1.8.18 — optional currencyFilter ('USD'|'FRA'|'K') filters the
   // modal client-side to PVs that paid out of that currency's drawer.
   // No backend filter param; we just slice the response.
   const [expensesFilterCcy, setExpensesFilterCcy] = useState(null);
@@ -712,7 +712,7 @@ const CashReport = () => {
     setShowExpenses(true);
   };
 
-  // â”€â”€ Print preview helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Print preview helper ───────────────────────────────────────────
   const openPrintPreview = async () => {
     let expenses = [];
     try {
@@ -726,23 +726,23 @@ const CashReport = () => {
     const biz = businessInfo;
     const bizName = biz.business_name || 'Business Name';
     const addr = [biz.business_address,biz.business_phone,biz.business_email].filter(Boolean).join('  |  ');
-    const printedBy = [authUser?.firstName, authUser?.lastName].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.firstName, authUser?.lastName].filter(Boolean).join(' ') || '—';
     const cashierName = salesCashiers.find(c => String(c.id) === String(selectedCashier));
-    const preparedBy = cashierName ? `${cashierName.first_name} ${cashierName.last_name}` : 'â€”';
+    const preparedBy = cashierName ? `${cashierName.first_name} ${cashierName.last_name}` : '—';
     const diff = parseFloat(form.difference)||0;
     const status = computedStatus;
     const expenseRows = expenses.map((v,i)=>`<tr style="border-bottom:1px solid #ddd;background:${i%2===1?'#f9f9f9':'#fff'}">
       <td style="padding:7px 14px;font-family:monospace;font-size:11px">${v.voucher_number}</td>
       <td style="padding:7px 14px">${v.category}</td>
       <td style="padding:7px 14px;font-weight:500">${v.paid_to}</td>
-      <td style="padding:7px 14px">${v.description||'â€”'}</td>
+      <td style="padding:7px 14px">${v.description||'—'}</td>
       <td style="padding:7px 14px;text-align:right;font-weight:700;font-family:monospace">${curSym}${fmtV(v.amount)}</td>
     </tr>`).join('');
     const expTotal = expenses.reduce((s,v)=>s+parseFloat(v.amount||0),0);
     const expenseSection = expenses.length>0 ? `
       <div style="border:1.5px solid #000;margin-bottom:20px">
         <div style="background:#000;padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#fff">Expenses â€” Cash Drawer</span>
+          <span style="font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#fff">Expenses — Cash Drawer</span>
           <span style="font-size:10px;color:#fff;font-weight:600">${expenses.length} voucher${expenses.length>1?'s':''}</span>
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px">
@@ -783,7 +783,7 @@ const CashReport = () => {
         <div style="text-align:right">
           <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Daily Cash Report</div>
           <div style="font-size:15px;font-weight:700">${formatDateLong(date)}</div>
-          ${preparedBy !== 'â€”' ? `<div style="font-size:10px;margin-top:4px">Cashier: <strong>${preparedBy}</strong></div>` : ''}
+          ${preparedBy !== '—' ? `<div style="font-size:10px;margin-top:4px">Cashier: <strong>${preparedBy}</strong></div>` : ''}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
@@ -795,14 +795,14 @@ const CashReport = () => {
             <tbody>
               ${[['Initial Change (Float)',form.initial_change,false],
                  ['Cash',form.usd_received,false],
-                 // 2026-09-11 â€” a hidden method prints only if money sits on it.
+                 // 2026-09-11 — a hidden method prints only if money sits on it.
                  ...((methodShown('momo') || hasMoney(form.fra_received)) ? [['Mobile Money',form.fra_received,false]] : []),
                  ...((methodShown('bank') || hasMoney(form.k_received)) ? [['Bank',form.k_received,false]] : []),
                  ['Credit Sales',form.pending,false],
                  ['Expenses (Cash Drawer)',form.expenses,true]
               ].map(([label,val,italic],i,arr)=>`<tr style="border-bottom:${i<arr.length-1?'1px solid #ddd':'2px solid #000'}">
                 <td style="padding:9px 14px;font-size:12px;font-style:${italic?'italic':'normal'}">${label}</td>
-                <td style="padding:9px 14px;text-align:right;font-weight:500;font-family:monospace;font-size:12px">${italic?'âˆ’':''}${curSym}${fmtV(val)}</td>
+                <td style="padding:9px 14px;text-align:right;font-weight:500;font-family:monospace;font-size:12px">${italic?'−':''}${curSym}${fmtV(val)}</td>
               </tr>`).join('')}
             </tbody>
             <tfoot>
@@ -823,7 +823,7 @@ const CashReport = () => {
               </tbody>
               <tfoot><tr style="background:#f0f0f0">
                 <td style="padding:10px 14px;font-weight:700;font-size:13px">Difference</td>
-                <td style="padding:10px 14px;text-align:right;font-weight:800;font-size:14px;font-family:monospace">${diff>=0?'+':'âˆ’'}${curSym}${fmtV(Math.abs(diff))}</td>
+                <td style="padding:10px 14px;text-align:right;font-weight:800;font-size:14px;font-family:monospace">${diff>=0?'+':'−'}${curSym}${fmtV(Math.abs(diff))}</td>
               </tr></tfoot>
             </table>
           </div>
@@ -846,7 +846,7 @@ const CashReport = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;margin-top:16px;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:9px">${bizName} â€” Confidential</span>
+        <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
     </body></html>`;
@@ -854,13 +854,13 @@ const CashReport = () => {
     if (w) { w.document.write(html); w.document.close(); w.focus(); setTimeout(()=>{ w.print(); w.close(); },300); }
   };
 
-  // â”€â”€ Voucher modal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Voucher modal helpers ──────────────────────────────────────────
   const openVoucherForm = (currency = null) => { setVoucherDefaultCcy(currency); setShowVoucher(true); };
 
   // Called by PaymentVoucherFormModal after a successful save.
-  // v1.8.20 â€” refresh ALL daily-derived state so the new expense flows into
+  // v1.8.20 — refresh ALL daily-derived state so the new expense flows into
   // every per-currency card immediately (not just the legacy single field).
-  // v1.8.21 â€” also refresh the Counted auto-fill since adding an expense
+  // v1.8.21 — also refresh the Counted auto-fill since adding an expense
   // changes the expected drawer balance.
   const handleVoucherSaved = async () => {
     const daily = await fetchDaily(date);
@@ -896,12 +896,12 @@ const CashReport = () => {
     }
     setEditMode(true);
   };
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ──────────────────────────────────────────────────────────────────
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   const formatDateLong = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-  // Always derive status from the live difference â€” never trust the saved status field
+  // Always derive status from the live difference — never trust the saved status field
   const computedDiff = parseFloat(form.difference) || 0;
   const computedStatus = getStatus(computedDiff);
 
@@ -960,7 +960,7 @@ const CashReport = () => {
 
   return (
     <div className="page-content">
-      {/* â”€â”€ Page Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Page Header ─────────────────────────────────────────── */}
       <div className="page-header no-print">
         <div>
           <h1>{t('cashReport')}</h1>
@@ -1001,12 +1001,12 @@ const CashReport = () => {
         </div>
       </div>
 
-      {/* v1.8.22 â€” Top KPI bar: 3 cards (USD / FRA / K) showing today's
+      {/* v1.8.22 — Top KPI bar: 3 cards (USD / FRA / K) showing today's
           totals across ALL cashiers. Liquor-style summary but per-currency
           instead of a single $ figure. Drives off daySummaryByCcy which
           aggregates POS net (expected) + sum of saved cash report counted
           per currency.
-          v1.10.38 â€” Liquor branches (Lusaka, Mansa) collapse the three
+          v1.10.38 — Liquor branches (Lusaka, Mansa) collapse the three
           per-method tiles into three roll-up totals (Total Expected /
           Total Cash Received / Difference), matching the legacy Liquor
           Cash Report top strip. Per-method reconciliation cards below
@@ -1021,7 +1021,7 @@ const CashReport = () => {
           const totalReceived = methods.reduce((s, m) => s + totalIn(m), 0);
           const diff          = totalReceived - totalExpected;
           const isOk          = Math.abs(diff) < 0.01;
-          const status        = isOk ? 'âœ“ Balanced' : diff > 0 ? 'Over' : 'Short';
+          const status        = isOk ? '✓ Balanced' : diff > 0 ? 'Over' : 'Short';
           const fmt           = (n) => `${curSym}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           // Difference tile colour swaps with sign so the state reads at a glance.
           const diffBg = isOk
@@ -1056,18 +1056,18 @@ const CashReport = () => {
             const counted  = parseFloat(daySummaryByCcy[key]?.counted  || 0) || 0;
             const expenses = parseFloat(daySummaryByCcy[key]?.expenses || 0) || 0;
             const exch     = parseFloat(exchangeNetAll[`${key}_net`] || 0) || 0;
-            // v1.8.84 â€” Total cash in = Counted + Expenses âˆ’ exch_net (sales-only inflow).
+            // v1.8.84 — Total cash in = Counted + Expenses − exch_net (sales-only inflow).
             const totalIn  = counted + expenses - exch;
             const diff     = totalIn - expected;
             const eps      = c.dec === 2 ? 0.01 : 1;
             const isOk     = Math.abs(diff) < eps;
-            const status   = isOk ? 'âœ“ Balanced' : diff > 0 ? 'Over' : 'Short';
+            const status   = isOk ? '✓ Balanced' : diff > 0 ? 'Over' : 'Short';
             const fmt      = (n) => `${c.symbol}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: c.dec, maximumFractionDigits: c.dec })}`;
             return (
               <div key={c.ccy} style={{ borderRadius: 12, padding: '14px 18px', background: c.bg, color: '#fff', boxShadow: `0 4px 16px ${c.color}40`, position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', right: -10, top: -10, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
                 <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-                  {c.label} â€” All Cashiers
+                  {c.label} — All Cashiers
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
@@ -1090,7 +1090,7 @@ const CashReport = () => {
         )}
       </div>
 
-      {/* v1.8.11 â€” old single-currency Top bar disabled. */}
+      {/* v1.8.11 — old single-currency Top bar disabled. */}
       {false && (() => {
         const diff = daySummary.totalCash - daySummary.totalExpected;
         const diffColor = diff === 0 ? '#6b7280' : diff > 0 ? '#16a34a' : '#dc2626';
@@ -1104,7 +1104,7 @@ const CashReport = () => {
             {[
               { label: t('totalExpectedAll'), value: `${curSym}${fmtS(daySummary.totalExpected)}`, color: '#374151', bg: '#f9fafb' },
               { label: t('totalCashReceived'), value: `${curSym}${fmtS(daySummary.totalCash)}`, color: '#374151', bg: '#f9fafb' },
-              { label: t('difference'), value: `${diff >= 0 ? '+' : 'âˆ’'}${curSym}${fmtS(diff)}`, color: diffColor, bg: diff === 0 ? '#f9fafb' : diff > 0 ? '#f0fdf4' : '#fef2f2' },
+              { label: t('difference'), value: `${diff >= 0 ? '+' : '−'}${curSym}${fmtS(diff)}`, color: diffColor, bg: diff === 0 ? '#f9fafb' : diff > 0 ? '#f0fdf4' : '#fef2f2' },
             ].map((item, i, arr) => (
               <div key={item.label} style={{
                 flex: 1, padding: '8px 16px',
@@ -1119,7 +1119,7 @@ const CashReport = () => {
         );
       })()}
 
-      {/* â”€â”€ Cash Report Form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Cash Report Form ─────────────────────────────────────── */}
       <div className="card" id="cash-report-print" style={{ marginBottom: 24 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600 }}>{t('reportFor')} {formatDate(date)}</h3>
@@ -1129,18 +1129,18 @@ const CashReport = () => {
                 <FiEdit2 /> {t('edit')}
               </button>
             )}
-            {/* v1.10.9 â€” Admin-only delete of the saved snapshot. After delete,
+            {/* v1.10.9 — Admin-only delete of the saved snapshot. After delete,
                 the bottom per-currency cards fall back to live daily figures. */}
             {!editMode && savedReportId && (
               <button
                 className="btn"
                 onClick={() => setPendingDelete({
                   id: savedReportId,
-                  subject: `saved cash report for ${formatDate(date)}${autoDepositOn ? ` â€” its deposits to ${depositTo.label} that are still waiting are removed too` : ''}`,
+                  subject: `saved cash report for ${formatDate(date)}${autoDepositOn ? ` — its deposits to ${depositTo.label} that are still waiting are removed too` : ''}`,
                   actionLabel: 'Delete saved report',
                 })}
                 style={{ background: '#fff', color: '#dc2626', border: '1px solid #fecaca' }}
-                title="Delete the saved snapshot â€” requires admin password"
+                title="Delete the saved snapshot — requires admin password"
               >
                 <FiTrash2 /> Delete saved
               </button>
@@ -1159,14 +1159,14 @@ const CashReport = () => {
           </div>
         )}
 
-        {/* v1.9.33 â€” lowered min-width from 320px to 240px so all four
+        {/* v1.9.33 — lowered min-width from 320px to 240px so all four
             cards (3 method + Credit Sales) sit on one row on a normal
             laptop viewport. Below ~1000px content width the grid
             gracefully falls back to 2 columns.
-            v1.10.35 â€” force a single full-width column on mobile so
+            v1.10.35 — force a single full-width column on mobile so
             USD + K stop getting clipped off-screen on tri-currency
             Kelete phones (only FRA was visibly rendering before).
-            v1.10.36 â€” v1.10.35's JS-only breakpoint wasn't enough: some
+            v1.10.36 — v1.10.35's JS-only breakpoint wasn't enough: some
             ancestor was letting the grid container inherit a width
             wider than the viewport (from horizontal-overflow content
             elsewhere on the page), so auto-fit still committed to
@@ -1175,12 +1175,12 @@ const CashReport = () => {
             style forces `grid-template-columns: 1fr` at <=767px, and
             `min-width: 0` on the grid + children breaks intrinsic
             width propagation from any wide descendant. */}
-        {/* v1.10.37 â€” real diagnosis (finally):
+        {/* v1.10.37 — real diagnosis (finally):
             Report History table below has 13 columns, no mobile scroll
             wrapper, forces .page-content wider than the viewport. My grid
             inherits that oversized parent width, and `max-width: 100%`
             from index.css:1885 caps to the OVERSIZED parent, not the
-            viewport â€” so auto-fit still commits to 3 columns and USD + K
+            viewport — so auto-fit still commits to 3 columns and USD + K
             sit off-screen inside the horizontal overflow. FRA (middle) is
             what a phone screen happens to land on.
             Fix: 100vw is VIEWPORT-relative, not parent-relative. It caps
@@ -1201,34 +1201,34 @@ const CashReport = () => {
           }
         `}</style>
         <div className="cash-report-cards-grid" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: 16, marginBottom: 16, minWidth: 0 }}>
-          {/* v1.8.18 â€” per-currency reconciliation cards with view/+ icons
+          {/* v1.8.18 — per-currency reconciliation cards with view/+ icons
               for that currency's expenses inside the card. No more shared
-              'Expenses Paid From Drawer' row below â€” each card owns its
+              'Expenses Paid From Drawer' row below — each card owns its
               own currency's PV view + add. */}
-          {/* v1.9.30 â€” Liquor branches show 3 method counter cards
+          {/* v1.9.30 — Liquor branches show 3 method counter cards
               (Cash / MoMo / Bank); Kelete branches keep the per-currency
               cards (gated by currency_mode). Counter form keys still
-              re-use the legacy *_received columns â€” backend repurposes
+              re-use the legacy *_received columns — backend repurposes
               them as method buckets on Liquor branches. */}
           {[
             { key: 'usd_received', label: 'USD Cash ($)',  ccy: 'USD',  symbol: '$',     dec: 2, posExp: expectedByCcy.usd,    exp: expensesByCcy.usd, exch: exchangeNet.usd_net, step: '0.01', color: '#16a34a', bg: '#f0fdf4', show: showUSDccy },
             { key: 'fra_received', label: 'FRA Cash',      ccy: 'FRA',  symbol: '',      dec: 0, posExp: expectedByCcy.fra,    exp: expensesByCcy.fra, exch: exchangeNet.fra_net, step: '1',    color: '#7c3aed', bg: '#faf5ff', show: showFRAccy },
             { key: 'k_received',   label: 'K Cash',        ccy: 'K',    symbol: '',      dec: 0, posExp: expectedByCcy.k,      exp: expensesByCcy.k,   exch: exchangeNet.k_net,   step: '1',    color: '#ea580c', bg: '#fff7ed', show: showKccy   },
-            // v1.10.31 â€” Liquor cards now surface expenses. Storage mapping
-            // (matches PaymentVoucherFormModal): Cash â†’ usd_amount, MoMo â†’
-            // fra_amount, Bank â†’ k_amount. Previously `exp: 0` hid every PV
+            // v1.10.31 — Liquor cards now surface expenses. Storage mapping
+            // (matches PaymentVoucherFormModal): Cash → usd_amount, MoMo →
+            // fra_amount, Bank → k_amount. Previously `exp: 0` hid every PV
             // saved from this page from the "+ Expenses paid" line, so a
             // cashier who registered a K5,000 expense saw nothing move.
             { key: 'usd_received', label: 'Cash',          ccy: 'CASH', symbol: curSym,  dec: 2, posExp: expectedByMethod.cash, exp: expensesByCcy.usd, exch: 0, step: '0.01', color: '#16a34a', bg: '#f0fdf4', show: isLiquorStyle },
-            // 2026-09-11 â€” a hidden method's card shows only if money sits on it.
+            // 2026-09-11 — a hidden method's card shows only if money sits on it.
             { key: 'fra_received', label: 'Mobile Money',  ccy: 'MOMO', symbol: curSym,  dec: 2, posExp: expectedByMethod.momo, exp: expensesByCcy.fra, exch: 0, step: '0.01', color: '#ea580c', bg: '#fff7ed', show: isLiquorStyle && (methodShown('momo') || hasMoney(expectedByMethod.momo, expensesByCcy.fra, form.fra_received)) },
             { key: 'k_received',   label: 'Bank',          ccy: 'BANK', symbol: curSym,  dec: 2, posExp: expectedByMethod.bank, exp: expensesByCcy.k,   exch: 0, step: '0.01', color: '#2563eb', bg: '#eff6ff', show: isLiquorStyle && (methodShown('bank') || hasMoney(expectedByMethod.bank, expensesByCcy.k, form.k_received)) },
           ].filter(c => c.show).map(c => {
             const counted     = parseFloat(form[c.key] || 0) || 0;
             const exch        = parseFloat(c.exch || 0) || 0;
-            // v1.8.84 â€” new model: Total cash in = Counted + Expenses âˆ’ exch_net.
+            // v1.8.84 — new model: Total cash in = Counted + Expenses − exch_net.
             // (Reverses the drawer-side exchange to recover sales-only inflow.)
-            // Diff = Total cash in âˆ’ Expected sales (POS net). Same numerical
+            // Diff = Total cash in − Expected sales (POS net). Same numerical
             // diff as before, just framed as "what we reconstructed from cash"
             // vs "what POS says we sold".
             const totalCashIn = counted + c.exp - exch;
@@ -1237,7 +1237,7 @@ const CashReport = () => {
             const isOk        = Math.abs(diff) < eps;
             const status      = isOk ? 'OK' : diff > 0 ? 'Over' : 'Short';
             const fmt         = (n) => `${c.symbol}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: c.dec, maximumFractionDigits: c.dec })}`;
-            const exchAdj     = -exch; // sign flipped for display: drawer +exch â†’ âˆ’exchAdj on sales side
+            const exchAdj     = -exch; // sign flipped for display: drawer +exch → −exchAdj on sales side
             const footerBg    = isOk ? '#dcfce7' : diff > 0 ? '#fef3c7' : '#fee2e2';
             const footerBorder= isOk ? '#86efac' : diff > 0 ? '#fde68a' : '#fecaca';
             const footerColor = isOk ? '#15803d' : diff > 0 ? '#a16207' : '#991b1b';
@@ -1251,7 +1251,7 @@ const CashReport = () => {
                 flexDirection: 'column',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               }}>
-                {/* Header strip â€” solid currency color */}
+                {/* Header strip — solid currency color */}
                 <div style={{
                   background: c.color, color: '#fff',
                   padding: '10px 14px',
@@ -1279,7 +1279,7 @@ const CashReport = () => {
 
                 {/* Body */}
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* Counted input â€” the only editable field */}
+                  {/* Counted input — the only editable field */}
                   <div>
                     <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cashier counted</label>
                     <input type="number" value={form[c.key]}
@@ -1288,8 +1288,8 @@ const CashReport = () => {
                       style={{ ...inputStyle(editMode), marginTop: 4, fontSize: 18, fontWeight: 700, color: '#111827' }} />
                   </div>
 
-                  {/* Breakdown â†’ Total cash in (bookable to CR).
-                      v1.8.86 â€” 2-col grid pulled left (maxWidth 260) so the
+                  {/* Breakdown → Total cash in (bookable to CR).
+                      v1.8.86 — 2-col grid pulled left (maxWidth 260) so the
                       number sits closer to the label instead of stuck at the
                       card's right edge. Dead space on right is intentional. */}
                   <div style={{
@@ -1303,7 +1303,7 @@ const CashReport = () => {
                     <span>+ Expenses paid</span>
                     <span style={{ color: c.exp > 0 ? '#374151' : '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(c.exp)}</span>
 
-                    <span>Â± Drawer exchanges</span>
+                    <span>± Drawer exchanges</span>
                     <span style={{ color: exch !== 0 ? '#7c3aed' : '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>
                       {exchAdj > 0 ? '+' : ''}{fmt(exchAdj)}
                     </span>
@@ -1318,8 +1318,8 @@ const CashReport = () => {
                   </div>
                 </div>
 
-                {/* Footer Diff strip â€” full-width rounded bottom.
-                    v1.8.86 â€” inner pair wrapped in maxWidth: 260 so status +
+                {/* Footer Diff strip — full-width rounded bottom.
+                    v1.8.86 — inner pair wrapped in maxWidth: 260 so status +
                     diff value pull left, matching the breakdown above. */}
                 <div style={{
                   background: footerBg,
@@ -1328,7 +1328,7 @@ const CashReport = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: 260 }}>
                     <span style={{ fontSize: 11, color: footerColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {isOk ? 'âœ“ Balanced' : status}
+                      {isOk ? '✓ Balanced' : status}
                     </span>
                     <span style={{ color: footerColor, fontWeight: 800, fontSize: 14, whiteSpace: 'nowrap' }}>
                       {diff > 0 ? '+' : ''}{fmt(diff)}
@@ -1339,18 +1339,18 @@ const CashReport = () => {
             );
           })}
 
-          {/* v1.8.18 â€” standalone Expenses row removed. Each currency's view/+
+          {/* v1.8.18 — standalone Expenses row removed. Each currency's view/+
               now lives INSIDE the per-currency card above for clearer linkage
-              (USD card â†’ USD expenses, FRA card â†’ FRA expenses, etc.). */}
+              (USD card → USD expenses, FRA card → FRA expenses, etc.). */}
 
-          {/* v1.8.85 â€” Credit Sales card, redesigned to match the cash-card
+          {/* v1.8.85 — Credit Sales card, redesigned to match the cash-card
               template. Read-only mirror of POS credit issued today; no diff
               (always balances by definition); no expenses/exchanges (not
               physical cash). Red across the board to signal "owed, not held". */}
           {(() => {
             const counted = creditExpected;
-            // v1.9.32 â€” use the branch's primary currency symbol so the
-            // Credit Sales card reads Kâ€¦ on Mansa/Lusaka and $â€¦ on
+            // v1.9.32 — use the branch's primary currency symbol so the
+            // Credit Sales card reads K… on Mansa/Lusaka and $… on
             // Kassumbalesa instead of always hardcoding $.
             const fmt     = (n) => `${curSym}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             return (
@@ -1363,7 +1363,7 @@ const CashReport = () => {
                 flexDirection: 'column',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
               }}>
-                {/* Header strip â€” red */}
+                {/* Header strip — red */}
                 <div style={{
                   background: '#dc2626', color: '#fff',
                   padding: '10px 14px',
@@ -1373,7 +1373,7 @@ const CashReport = () => {
                     Credit Sales ({curSym})
                   </span>
                   <span style={{ fontSize: 9, opacity: 0.95, background: 'rgba(255,255,255,0.2)', padding: '3px 8px', borderRadius: 4, fontWeight: 700, letterSpacing: 0.4 }}>
-                    AUTO Â· READ-ONLY
+                    AUTO · READ-ONLY
                   </span>
                 </div>
 
@@ -1392,7 +1392,7 @@ const CashReport = () => {
                     </div>
                   </div>
 
-                  {/* v1.8.86 â€” pulled-left layout to match cash cards (Option C). */}
+                  {/* v1.8.86 — pulled-left layout to match cash cards (Option C). */}
                   <div>
                     <div style={{
                       fontSize: 12, color: '#475569',
@@ -1408,12 +1408,12 @@ const CashReport = () => {
                       <span style={{ fontWeight: 800, fontSize: 17, color: '#dc2626', whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(counted)}</span>
                     </div>
                     <div style={{ marginTop: 10, fontSize: 11, color: '#9ca3af', lineHeight: 1.45 }}>
-                      Credit owed by customers from today's sales. Not cash â€” does not affect any drawer.
+                      Credit owed by customers from today's sales. Not cash — does not affect any drawer.
                     </div>
                   </div>
                 </div>
 
-                {/* Footer â€” red strip, mirrors cash card pulled-left layout */}
+                {/* Footer — red strip, mirrors cash card pulled-left layout */}
                 <div style={{
                   background: '#fef2f2',
                   borderTop: '1px solid #fecaca',
@@ -1421,7 +1421,7 @@ const CashReport = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: 260 }}>
                     <span style={{ fontSize: 11, color: '#991b1b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      ðŸ“‹ Receivable (AR)
+                      📋 Receivable (AR)
                     </span>
                     <span style={{ color: '#991b1b', fontWeight: 800, fontSize: 14, whiteSpace: 'nowrap' }}>
                       {fmt(counted)}
@@ -1431,11 +1431,11 @@ const CashReport = () => {
               </div>
             );
           })()}
-          {/* v1.8.11 â€” single Total/Expected/Difference/Status fields removed.
+          {/* v1.8.11 — single Total/Expected/Difference/Status fields removed.
               Reconciliation lives under each currency card above. The form
               still saves total/expected/difference/status for backwards
               compat (USD-only bucket; FRA/K reconcile per-currency only). */}
-          {/* 2026-09-15 â€” the whole row, not "span 2". On a phone the grid is one
+          {/* 2026-09-15 — the whole row, not "span 2". On a phone the grid is one
               column; span 2 made the browser add a second one, so Cash and Bank
               were squeezed into a thin left column beside Mobile Money and Credit. */}
           <div className="form-group" style={{ gridColumn: '1 / -1' }}>
@@ -1448,27 +1448,27 @@ const CashReport = () => {
         </div>
       </div>
 
-      {/* v1.8.76 â€” Customer Over / Under Payments (drawer net). Combines:
-          â€¢ Over-Collections kept in drawer (per source currency, native amount)
-          â€¢ Under-Payments silently absorbed (walk-in tolerance shortages, USD-attributed)
+      {/* v1.8.76 — Customer Over / Under Payments (drawer net). Combines:
+          • Over-Collections kept in drawer (per source currency, native amount)
+          • Under-Payments silently absorbed (walk-in tolerance shortages, USD-attributed)
           Shows NET drift per currency so the shop sees daily gain/loss explicitly.
-          v1.10.81 â€” HIDDEN on Liquor tenants. The panel was designed for
+          v1.10.81 — HIDDEN on Liquor tenants. The panel was designed for
           Kassumbalesa's 3-station flow where the cashier explicitly types
           "Change USD / Change FRA" and any leftover is the real drawer surplus.
-          Liquor POS's Pay modal is a single read-only "Change" line â€” the
+          Liquor POS's Pay modal is a single read-only "Change" line — the
           cashier hands cash to the customer, nothing is kept. Rendering the
           panel there would show fabricated "shop gain" from the backend's
-          fallback (given_* fields never sent â†’ whole change counted as
+          fallback (given_* fields never sent → whole change counted as
           kept). Reference Liquor project doesn't have the panel at all. */}
       {!isLiquorStyle && (overpaidRows.length > 0
         || overpaidByCcy.usd > 0 || overpaidByCcy.fra > 0 || overpaidByCcy.k > 0
         || underpaidByCcy.usd > 0 || underpaidByCcy.fra > 0 || underpaidByCcy.k > 0
        ) && (() => {
-        // v1.8.77 â€” net per currency = over âˆ’ under (both per source currency)
+        // v1.8.77 — net per currency = over − under (both per source currency)
         const netUSD = (overpaidByCcy.usd || 0) - (underpaidByCcy.usd || 0);
         const netFRA = (overpaidByCcy.fra || 0) - (underpaidByCcy.fra || 0);
         const netK   = (overpaidByCcy.k   || 0) - (underpaidByCcy.k   || 0);
-        // â‰ˆ USD equivalent of net drift (FRA/K converted at sell rate from the latest row that has one)
+        // ≈ USD equivalent of net drift (FRA/K converted at sell rate from the latest row that has one)
         const sampleRow = overpaidRows.find(r => parseFloat(r.selling_rate_used) > 0);
         const sampleK   = overpaidRows.find(r => parseFloat(r.selling_rate_k_used) > 0);
         const sellRate  = sampleRow ? parseFloat(sampleRow.selling_rate_used)   : 0;
@@ -1477,7 +1477,7 @@ const CashReport = () => {
                       + (sellRate  > 0 ? netFRA / sellRate  : 0)
                       + (sellRateK > 0 ? netK   / sellRateK : 0);
         const fmtN = (n, dec, sym) => {
-          const s = n >= 0 ? '+' : 'âˆ’';
+          const s = n >= 0 ? '+' : '−';
           const a = Math.abs(n);
           return `${s}${sym}${a.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
         };
@@ -1485,7 +1485,7 @@ const CashReport = () => {
         return (
           <div style={{ marginTop: 16, padding: '14px 18px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e', marginBottom: 8 }}>
-              ðŸ’° Customer Over / Under Payments (drawer net)
+              💰 Customer Over / Under Payments (drawer net)
             </div>
             {/* Summary lines */}
             <div style={{ fontSize: 12, color: '#78350f', display: 'grid', gap: 4, marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #fde68a' }}>
@@ -1493,27 +1493,27 @@ const CashReport = () => {
                 <span>Over-Collections (kept in drawer):</span>
                 <span>
                   USD <strong>+${(overpaidByCcy.usd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                  {' Â· '}FRA <strong>+{(overpaidByCcy.fra || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
-                  {' Â· '}K <strong>+{(overpaidByCcy.k || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
+                  {' · '}FRA <strong>+{(overpaidByCcy.fra || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
+                  {' · '}K <strong>+{(overpaidByCcy.k || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span>Under-Payments (absorbed):</span>
                 <span>
-                  USD <strong style={{ color: underpaidByCcy.usd > 0 ? '#dc2626' : '#78350f' }}>âˆ’${(underpaidByCcy.usd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-                  {' Â· '}FRA <strong style={{ color: underpaidByCcy.fra > 0.5 ? '#dc2626' : '#78350f' }}>âˆ’{(underpaidByCcy.fra || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
-                  {' Â· '}K <strong style={{ color: underpaidByCcy.k > 0.5 ? '#dc2626' : '#78350f' }}>âˆ’{(underpaidByCcy.k || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
+                  USD <strong style={{ color: underpaidByCcy.usd > 0 ? '#dc2626' : '#78350f' }}>−${(underpaidByCcy.usd || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                  {' · '}FRA <strong style={{ color: underpaidByCcy.fra > 0.5 ? '#dc2626' : '#78350f' }}>−{(underpaidByCcy.fra || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
+                  {' · '}K <strong style={{ color: underpaidByCcy.k > 0.5 ? '#dc2626' : '#78350f' }}>−{(underpaidByCcy.k || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>
                 </span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, paddingTop: 4, borderTop: '1px dashed #fde68a' }}>
                 <span>NET drift today:</span>
                 <span>
                   USD <span style={{ color: colorFor(netUSD) }}>{fmtN(netUSD, 2, '$')}</span>
-                  {' Â· '}FRA <span style={{ color: colorFor(netFRA) }}>{fmtN(netFRA, 0, '')}</span>
-                  {' Â· '}K <span style={{ color: colorFor(netK) }}>{fmtN(netK, 0, '')}</span>
+                  {' · '}FRA <span style={{ color: colorFor(netFRA) }}>{fmtN(netFRA, 0, '')}</span>
+                  {' · '}K <span style={{ color: colorFor(netK) }}>{fmtN(netK, 0, '')}</span>
                   {Math.abs(netUSDeq) > 0.005 && (
                     <span style={{ marginLeft: 10, color: colorFor(netUSDeq), fontStyle: 'italic' }}>
-                      â‰ˆ {fmtN(netUSDeq, 2, '$')} {netUSDeq > 0 ? 'shop gain' : 'shop loss'}
+                      ≈ {fmtN(netUSDeq, 2, '$')} {netUSDeq > 0 ? 'shop gain' : 'shop loss'}
                     </span>
                   )}
                 </span>
@@ -1535,18 +1535,18 @@ const CashReport = () => {
                   <tbody>
                     {overpaidRows.map(r => {
                       const amt = parseFloat(r.amt || 0);
-                      const ccy = r.ccy || 'â€”';
+                      const ccy = r.ccy || '—';
                       const sym = ccy === 'USD' ? '$' : '';
                       const dec = ccy === 'USD' ? 2 : 0;
                       const isOver = r.direction === 'OVER';
-                      const sign  = isOver ? '+' : 'âˆ’';
-                      const arrow = isOver ? 'â†‘' : 'â†“';
+                      const sign  = isOver ? '+' : '−';
+                      const arrow = isOver ? '↑' : '↓';
                       const colour = isOver ? '#16a34a' : '#dc2626';
                       return (
                         <tr key={`${r.direction}-${r.id}`} style={{ borderTop: '1px solid #fde68a' }}>
                           <td style={{ padding: '6px 8px', color: '#374151' }}>{fmtInvoiceNo(r.order_number)}</td>
-                          <td style={{ padding: '6px 8px', color: '#374151' }}>{r.customer_name || 'â€”'}</td>
-                          <td style={{ padding: '6px 8px', color: '#374151' }}>{r.cashier_name || 'â€”'}</td>
+                          <td style={{ padding: '6px 8px', color: '#374151' }}>{r.customer_name || '—'}</td>
+                          <td style={{ padding: '6px 8px', color: '#374151' }}>{r.cashier_name || '—'}</td>
                           <td style={{ padding: '6px 8px', textAlign: 'right', color: '#6b7280' }}>${parseFloat(r.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                           <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 700, color: colour }}>{ccy} {sign}{sym}{amt.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })} {arrow}</td>
                         </tr>
@@ -1560,9 +1560,9 @@ const CashReport = () => {
         );
       })()}
 
-      {/* v1.8.6 â€” Currency Exchanges for this date+cashier (drawer scope).
-          v1.9.32 â€” Hidden on Liquor branches (Mansa/Lusaka) â€” K-only
-          branches have no USDâ†”FRA exchanges to track. */}
+      {/* v1.8.6 — Currency Exchanges for this date+cashier (drawer scope).
+          v1.9.32 — Hidden on Liquor branches (Mansa/Lusaka) — K-only
+          branches have no USD↔FRA exchanges to track. */}
       {!isLiquorStyle && (
         <CurrencyExchangePanel
           scope="drawer"
@@ -1584,21 +1584,21 @@ const CashReport = () => {
           USD <span style={{ fontWeight: 700, color: exchangeNet.usd_net >= 0 ? '#16a34a' : '#dc2626' }}>
             {exchangeNet.usd_net >= 0 ? '+' : ''}${parseFloat(exchangeNet.usd_net).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
-          {' Â· '}
+          {' · '}
           FRA <span style={{ fontWeight: 700, color: exchangeNet.fra_net >= 0 ? '#16a34a' : '#dc2626' }}>
             {exchangeNet.fra_net >= 0 ? '+' : ''}{parseFloat(exchangeNet.fra_net).toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </span>
-          {' Â· '}
+          {' · '}
           K <span style={{ fontWeight: 700, color: exchangeNet.k_net >= 0 ? '#16a34a' : '#dc2626' }}>
             {exchangeNet.k_net >= 0 ? '+' : ''}{parseFloat(exchangeNet.k_net).toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </span>
           <span style={{ color: '#7c3aed', marginLeft: 8 }}>
-            (v1.8.21 â€” now correctly factored into each currency card's Expected line)
+            (v1.8.21 — now correctly factored into each currency card's Expected line)
           </span>
         </div>
       )}
 
-      {/* â”€â”€ History Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── History Filter Bar ───────────────────────────────────── */}
       <div className="no-print" style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
@@ -1666,18 +1666,18 @@ const CashReport = () => {
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
           {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
           {(filterMonth !== 0 || filterYear !== 0) && (
-            <> â€” {filterMonth !== 0 ? MONTHS[filterMonth - 1] : ''}{filterMonth !== 0 && filterYear !== 0 ? ' ' : ''}{filterYear !== 0 ? filterYear : ''}</>
+            <> — {filterMonth !== 0 ? MONTHS[filterMonth - 1] : ''}{filterMonth !== 0 && filterYear !== 0 ? ' ' : ''}{filterYear !== 0 ? filterYear : ''}</>
           )}
         </span>
       </div>
 
-      {/* â”€â”€ Summary Strip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Summary Strip ────────────────────────────────────────── */}
       {/* On Liquor style: 3 flat tiles (Total Expected / Total Cash on Hand /
           Total Difference), matching the reference Liquor project. On
           Kelete tri-ccy style: keep the 3 gradient per-currency cards. */}
       {filteredReports.length > 0 && isLiquorStyle && (() => {
         const totalExpected    = filteredReports.reduce((s, r) => s + parseFloat(r.expected || 0), 0);
-        // v1.13.20 â€” same live-compute as the row-level rowTotal below so
+        // v1.13.20 — same live-compute as the row-level rowTotal below so
         // the tile matches the sum of the Total column in Report History.
         // The stored r.total is buggy on legacy rows (drops MoMo + Bank).
         const totalAfterChange = filteredReports.reduce((s, r) => {
@@ -1724,7 +1724,7 @@ const CashReport = () => {
                 </div>
                 {card.label === 'Total Difference' && totalDifference !== 0 && (
                   <div style={{ fontSize: 11, color: card.color, marginTop: 4 }}>
-                    {totalDifference < 0 ? 'â–¼ Short' : 'â–² Surplus'} by {curSym}{Math.abs(totalDifference).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {totalDifference < 0 ? '▼ Short' : '▲ Surplus'} by {curSym}{Math.abs(totalDifference).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </div>
                 )}
               </div>
@@ -1746,7 +1746,7 @@ const CashReport = () => {
         const fmtU = (n) => `$${Math.abs(parseFloat(n || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const fmtN = (n) => Math.abs(Math.round(parseFloat(n || 0))).toLocaleString('en-US');
         const diffBadge = (d, eps) => Math.abs(d) < eps ? 'OK' : (d < 0 ? 'Short' : 'Surplus');
-        const signed = (d, fmt) => `${d > 0 ? '+' : d < 0 ? 'âˆ’' : ''}${fmt(d)}`;
+        const signed = (d, fmt) => `${d > 0 ? '+' : d < 0 ? '−' : ''}${fmt(d)}`;
         const Line = ({ label, val }) => (
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, lineHeight: 1.7 }}>
             <span style={{ opacity: 0.9 }}>{label}</span><strong>{val}</strong>
@@ -1755,7 +1755,7 @@ const CashReport = () => {
         const Card = ({ ccy, bg, expected, received, diff, fmt, eps }) => (
           <div style={{ borderRadius: 14, padding: '14px 18px', background: bg, color: '#fff', boxShadow: '0 4px 16px rgba(0,0,0,0.1)', position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', right: -10, top: -10, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-            <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{ccy} â€” PERIOD TOTALS</div>
+            <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>{ccy} — PERIOD TOTALS</div>
             <Line label="Expected" val={fmt(expected)} />
             <Line label="On Hand"  val={fmt(received)} />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, lineHeight: 1.7, marginTop: 4, paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.2)' }}>
@@ -1781,14 +1781,14 @@ const CashReport = () => {
         <table className="data-table">
           <thead>
             {/* Report History columns.
-                Liquor style â†’ Bank | MoMo | Cash | Expenses | Credit |
+                Liquor style → Bank | MoMo | Cash | Expenses | Credit |
                                Total | Expected | Diff | Status  (like reference Liquor).
-                Kelete style  â†’ per-currency columns (unchanged). */}
+                Kelete style  → per-currency columns (unchanged). */}
             <tr>
               <th>Date</th><th>Cashier</th>
               {isLiquorStyle ? (
                 <>
-                  {/* 2026-09-11 â€” a hidden method's column shows only if a row has money on it. */}
+                  {/* 2026-09-11 — a hidden method's column shows only if a row has money on it. */}
                   {(methodShown('bank') || filteredReports.some(x => hasMoney(x.k_received || x.bank))) && <th style={{ color: '#2563eb' }}>Bank ({curSym})</th>}
                   {(methodShown('momo') || filteredReports.some(x => hasMoney(x.fra_received || x.mobile_money))) && <th style={{ color: '#ea580c' }}>MoMo ({curSym})</th>}
                   <th style={{ color: '#16a34a' }}>Cash ({curSym})</th>
@@ -1827,17 +1827,17 @@ const CashReport = () => {
               const usdD = usdR - usdE;
               const fraD = fraR - fraE;
               const kD   = kR   - kE;
-              // v1.8.26 â€” per-currency expense from new columns; fall back to
+              // v1.8.26 — per-currency expense from new columns; fall back to
               // legacy single `expenses` for the USD bucket on old rows.
               const usdEx = parseFloat(r.usd_expenses || r.expenses || 0) || 0;
               const fraEx = parseFloat(r.fra_expenses || 0) || 0;
               const kEx   = parseFloat(r.k_expenses   || 0) || 0;
               const diffColor = (d, eps) => Math.abs(d) < eps ? '#16a34a' : d > 0 ? '#d97706' : '#dc2626';
               const sign = (d) => d > 0 ? '+' : '';
-              const dash = <span style={{ color: '#cbd5e1' }}>â€”</span>;
+              const dash = <span style={{ color: '#cbd5e1' }}>—</span>;
               const fmtK = (n) => `${curSym}${parseFloat(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
               const totalExp = usdEx + fraEx + kEx;
-              // v1.13.20 â€” compute rowTotal live using the reference Liquor
+              // v1.13.20 — compute rowTotal live using the reference Liquor
               // formula (Cash + MoMo + Bank + Credit Sales + Expenses).
               // The stored r.total is populated by an auto-calc effect that
               // uses the drop-MoMo/Bank formula (`usd + pend + exp`), so
@@ -1852,7 +1852,7 @@ const CashReport = () => {
               return (
                 <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => { const cid = r.cashier_id ? String(r.cashier_id) : ''; setSelectedCashier(cid); loadDate(r.date.split('T')[0], cid); }}>
                   <td style={{ fontWeight: 500 }}>{formatDate(r.date)}</td>
-                  <td style={{ fontSize: 12, color: '#6b7280' }}>{r.cashier_name || 'â€”'}</td>
+                  <td style={{ fontSize: 12, color: '#6b7280' }}>{r.cashier_name || '—'}</td>
                   {isLiquorStyle ? (
                     <>
                       {(methodShown('bank') || filteredReports.some(x => hasMoney(x.k_received || x.bank))) && <td>{fmtK(kR)}</td>}
@@ -1864,7 +1864,7 @@ const CashReport = () => {
                       <td style={{ fontWeight: 500 }}>{fmtK(rowExpected)}</td>
                       <td style={{ fontWeight: 600, color: statusColor(rowStatus) }}>{sign(rowDiff)}{fmtK(rowDiff)}</td>
                       <td><span className={`badge ${statusBadge(rowStatus)}`}>{rowStatus}</span></td>
-                      <td style={{ color: '#6b7280', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || 'â€”'}</td>
+                      <td style={{ color: '#6b7280', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || '—'}</td>
                     </>
                   ) : (
                     <>
@@ -1878,7 +1878,7 @@ const CashReport = () => {
                       <td style={{ color: fraEx > 0 ? '#dc2626' : '' }}>{fraEx > 0 ? fraEx.toLocaleString(undefined, { maximumFractionDigits: 0 }) : dash}</td>
                       <td style={{ color: kEx > 0 ? '#dc2626' : '' }}>{kEx > 0 ? kEx.toLocaleString(undefined, { maximumFractionDigits: 0 }) : dash}</td>
                       <td>{curSym}{parseFloat(r.pending || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td style={{ color: '#6b7280', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || 'â€”'}</td>
+                      <td style={{ color: '#6b7280', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || '—'}</td>
                     </>
                   )}
                 </tr>
@@ -1888,11 +1888,11 @@ const CashReport = () => {
         </table>
       </div>
 
-      {/* â”€â”€ New Payment Voucher Modal (shared component) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ── New Payment Voucher Modal (shared component) ───────────────
            Paid From is locked to "Cash Drawer" since this modal is the
            cashier's end-of-day expense entry. Cashier ID is attached so
            the voucher is correctly tagged to this shift. */}
-      {/* v1.8.24 â€” defaultPaidTo pre-fills with the currently selected
+      {/* v1.8.24 — defaultPaidTo pre-fills with the currently selected
           cashier's name. Cashier is editable in the modal if the actual
           payee is someone else. */}
       <PaymentVoucherFormModal
@@ -1902,9 +1902,9 @@ const CashReport = () => {
         // the paid-from it was raised with.
         prefill={voucherPrefill}
         onSaved={handleVoucherSaved}
-        // 2026-09-18 â€” over the depot's daily expense limit: the voucher goes
+        // 2026-09-18 — over the depot's daily expense limit: the voucher goes
         // to HQ instead, and the corner card tracks it.
-        onRequested={() => { setMessage('Sent to HQ for approval â€” the voucher is not saved yet.'); window.dispatchEvent(new Event('pv:refresh')); }}
+        onRequested={() => { setMessage('Sent to HQ for approval — the voucher is not saved yet.'); window.dispatchEvent(new Event('pv:refresh')); }}
         defaultPaidFrom="Cash Drawer"
         lockPaidFrom
         defaultDate={date}
@@ -1917,9 +1917,9 @@ const CashReport = () => {
       />
 
 
-      {/* â”€â”€ Expenses List Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Expenses List Modal ──────────────────────────────────── */}
       {showExpenses && (() => {
-        // v1.8.18 â€” currency filter. When opened from a USD card, show only
+        // v1.8.18 — currency filter. When opened from a USD card, show only
         // PVs that hit the USD drawer (usd_amount > 0 OR legacy cash_amount).
         // Pick the column matching the active currency; row total displayed
         // is THAT currency's amount (not the legacy USD-converted `amount`).
@@ -1946,8 +1946,8 @@ const CashReport = () => {
         <div className="modal-overlay" onClick={() => setShowExpenses(false)}>
           <div className="modal" style={{ maxWidth: 620 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Cash Drawer Expenses â€” {ccyLabel} â€” {formatDate(date)}</h3>
-              <button className="modal-close" onClick={() => setShowExpenses(false)}>Ã—</button>
+              <h3>Cash Drawer Expenses — {ccyLabel} — {formatDate(date)}</h3>
+              <button className="modal-close" onClick={() => setShowExpenses(false)}>×</button>
             </div>
             <div className="modal-body" style={{ padding: 0 }}>
               {filtered.length === 0 ? (
@@ -1967,7 +1967,7 @@ const CashReport = () => {
                         <td style={{ fontWeight: 500 }}>{v.voucher_number}</td>
                         <td><span className="badge badge-gray">{v.category}</span></td>
                         <td>{v.paid_to}</td>
-                        <td style={{ color: '#6b7280' }}>{v.description || 'â€”'}</td>
+                        <td style={{ color: '#6b7280' }}>{v.description || '—'}</td>
                         <td style={{ textAlign: 'right', color: '#dc2626', fontWeight: 600 }}>
                           {expensesFilterCcy ? fmtA(valFor(v, expensesFilterCcy)) : `$${parseFloat(v.amount).toLocaleString()}`}
                         </td>
@@ -1994,7 +1994,7 @@ const CashReport = () => {
         );
       })()}
 
-      {/* â”€â”€ Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print Preview ─────────────────────────────────────────── */}
       {false && showPrintPreview && (
         <div
           className="print-preview-overlay"
@@ -2006,7 +2006,7 @@ const CashReport = () => {
             paddingTop: 60, paddingBottom: 40,
           }}
         >
-          {/* â”€â”€ Preview Toolbar â”€â”€ */}
+          {/* ── Preview Toolbar ── */}
           <div
             className="no-print"
             style={{
@@ -2019,7 +2019,7 @@ const CashReport = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
               <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
-                Print Preview â€” Cash Report for {formatDateLong(date)}
+                Print Preview — Cash Report for {formatDateLong(date)}
               </span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -2049,7 +2049,7 @@ const CashReport = () => {
             </div>
           </div>
 
-          {/* â”€â”€ A4 Print Document â”€â”€ */}
+          {/* ── A4 Print Document ── */}
           <div
             id="print-document"
             style={{
@@ -2063,7 +2063,7 @@ const CashReport = () => {
               flexShrink: 0,
             }}
           >
-            {/* â”€â”€ Document Header â”€â”€ */}
+            {/* ── Document Header ── */}
             <div style={{
               background: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%)',
               padding: '30px 44px 24px',
@@ -2092,16 +2092,16 @@ const CashReport = () => {
               </div>
             </div>
 
-            {/* â”€â”€ Thin accent bar â”€â”€ */}
+            {/* ── Thin accent bar ── */}
             <div style={{ height: 4, background: 'linear-gradient(90deg, #f59e0b, #ef4444, #8b5cf6)' }} />
 
-            {/* â”€â”€ Body â”€â”€ */}
+            {/* ── Body ── */}
             <div style={{ padding: '30px 44px 36px' }}>
 
-              {/* â”€â”€ Two-column: Breakdown + Reconciliation â”€â”€ */}
+              {/* ── Two-column: Breakdown + Reconciliation ── */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
 
-                {/* Left â€” Cash Breakdown */}
+                {/* Left — Cash Breakdown */}
                 <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
                   <div style={{
                     background: '#f8fafc', padding: '10px 18px',
@@ -2121,7 +2121,7 @@ const CashReport = () => {
                       {[
                         { label: 'Initial Change (Float)', value: form.initial_change, color: '#374151' },
                         { label: 'Cash', value: form.usd_received, color: '#374151' },
-                        // 2026-09-11 â€” a hidden method shows only if money sits on it.
+                        // 2026-09-11 — a hidden method shows only if money sits on it.
                         ...((methodShown('momo') || hasMoney(form.fra_received)) ? [{ label: 'Mobile Money', value: form.fra_received, color: '#374151' }] : []),
                         ...((methodShown('bank') || hasMoney(form.k_received)) ? [{ label: 'Bank', value: form.k_received, color: '#374151' }] : []),
                         { label: 'Credit Sales (On Account)', value: form.pending, color: '#374151' },
@@ -2132,7 +2132,7 @@ const CashReport = () => {
                             {row.label}
                           </td>
                           <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 500, color: row.color, fontFamily: 'monospace', fontSize: 12 }}>
-                            {row.color === '#dc2626' ? 'âˆ’' : ''}${fmt(row.value)}
+                            {row.color === '#dc2626' ? '−' : ''}${fmt(row.value)}
                           </td>
                         </tr>
                       ))}
@@ -2156,7 +2156,7 @@ const CashReport = () => {
                   </table>
                 </div>
 
-                {/* Right â€” Reconciliation + Status */}
+                {/* Right — Reconciliation + Status */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* Reconciliation table */}
                   <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
@@ -2199,7 +2199,7 @@ const CashReport = () => {
                             color: statusColor(computedStatus),
                             fontFamily: 'monospace',
                           }}>
-                            {computedDiff >= 0 ? '+' : 'âˆ’'}{curSym}{fmt(Math.abs(computedDiff))}
+                            {computedDiff >= 0 ? '+' : '−'}{curSym}{fmt(Math.abs(computedDiff))}
                           </td>
                         </tr>
                       </tfoot>
@@ -2237,7 +2237,7 @@ const CashReport = () => {
                 </div>
               </div>
 
-              {/* â”€â”€ Expenses Breakdown â”€â”€ */}
+              {/* ── Expenses Breakdown ── */}
               {printExpenses.length > 0 && (
                 <div style={{ border: '1px solid #fed7aa', borderRadius: 10, overflow: 'hidden', marginBottom: 22 }}>
                   <div style={{
@@ -2251,7 +2251,7 @@ const CashReport = () => {
                         background: '#f97316', display: 'inline-block',
                       }} />
                       <span style={{ fontWeight: 700, fontSize: 10.5, letterSpacing: 0.8, textTransform: 'uppercase', color: '#c2410c' }}>
-                        Expenses Breakdown â€” Cash Drawer
+                        Expenses Breakdown — Cash Drawer
                       </span>
                     </div>
                     <span style={{ fontSize: 10.5, color: '#c2410c', fontWeight: 600 }}>
@@ -2273,7 +2273,7 @@ const CashReport = () => {
                           <td style={{ padding: '8px 18px', fontWeight: 600, color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>{v.voucher_number}</td>
                           <td style={{ padding: '8px 18px', color: '#374151' }}>{v.category}</td>
                           <td style={{ padding: '8px 18px', fontWeight: 500 }}>{v.paid_to}</td>
-                          <td style={{ padding: '8px 18px', color: '#9ca3af' }}>{v.description || 'â€”'}</td>
+                          <td style={{ padding: '8px 18px', color: '#9ca3af' }}>{v.description || '—'}</td>
                           <td style={{ padding: '8px 18px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>
                             ${fmt(v.amount)}
                           </td>
@@ -2294,7 +2294,7 @@ const CashReport = () => {
                 </div>
               )}
 
-              {/* â”€â”€ Comments â”€â”€ */}
+              {/* ── Comments ── */}
               {form.comment ? (
                 <div style={{
                   border: '1px solid #e2e8f0', borderRadius: 10,
@@ -2314,7 +2314,7 @@ const CashReport = () => {
                 </div>
               )}
 
-              {/* â”€â”€ Signatures â”€â”€ */}
+              {/* ── Signatures ── */}
               <div style={{
                 display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48,
                 paddingTop: 20, borderTop: '1.5px solid #e2e8f0',
@@ -2334,13 +2334,13 @@ const CashReport = () => {
                 ))}
               </div>
 
-              {/* â”€â”€ Document Footer â”€â”€ */}
+              {/* ── Document Footer ── */}
               <div style={{
                 borderTop: '1px solid #f1f5f9', marginTop: 20, paddingTop: 12,
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>
-                  {businessInfo.business_name || 'Business'} â€” Confidential
+                  {businessInfo.business_name || 'Business'} — Confidential
                 </span>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>
                   Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
@@ -2351,7 +2351,7 @@ const CashReport = () => {
         </div>
       )}
 
-      {/* â”€â”€ CR Duplicate Confirmation Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── CR Duplicate Confirmation Modal ─────────────────────── */}
       {showCRConfirm && existingCR && pendingCRData && (
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
@@ -2360,7 +2360,7 @@ const CashReport = () => {
             {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%)', padding: '18px 24px', display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                âš 
+                ⚠
               </div>
               <div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Cash Receipt Already Exists</div>
@@ -2373,12 +2373,12 @@ const CashReport = () => {
               <p style={{ margin: '0 0 16px', fontSize: 13.5, color: '#374151', lineHeight: 1.6 }}>
                 A Cash Receipt from <strong>Sales</strong> already exists for <strong>{formatDate(date)}</strong>:
               </p>
-              {/* v1.8.86 â€” triple-currency breakdown so the user sees what's
+              {/* v1.8.86 — triple-currency breakdown so the user sees what's
                   actually being replaced per drawer, not just USD-equivalent.
-                  v1.10.33 â€” on Liquor-style branches (Lusaka, Mansa) the three
+                  v1.10.33 — on Liquor-style branches (Lusaka, Mansa) the three
                   columns are physical METHODS (Cash / Mobile Money / Bank)
                   all in the branch currency, not USD/FRA/K. Storage still
-                  uses the usd/fra/k columns â€” same mapping as the PV modal
+                  uses the usd/fra/k columns — same mapping as the PV modal
                   and the Cash Report cards. */}
               {(() => {
                 const fmtUSD = (n) => `$${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -2445,7 +2445,7 @@ const CashReport = () => {
                 disabled={crSaving}
                 style={{ padding: '9px 22px', borderRadius: 8, border: 'none', background: crSaving ? '#9ca3af' : '#1d4ed8', color: '#fff', cursor: crSaving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
               >
-                {crSaving ? 'Updatingâ€¦' : 'Yes, Update'}
+                {crSaving ? 'Updating…' : 'Yes, Update'}
               </button>
             </div>
           </div>
@@ -2453,7 +2453,7 @@ const CashReport = () => {
         </Portal>
       )}
 
-      {/* â”€â”€ Print styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print styles ─────────────────────────────────────────── */}
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -2476,7 +2476,7 @@ const CashReport = () => {
         }
       `}</style>
 
-      {/* v1.10.9 â€” Admin password gate for deleting a saved cash report. */}
+      {/* v1.10.9 — Admin password gate for deleting a saved cash report. */}
       <AdminPasswordPrompt
         open={!!pendingDelete}
         subject={pendingDelete?.subject || ''}
@@ -2489,7 +2489,7 @@ const CashReport = () => {
             setPendingDelete(null);
             await fetchReports();
             await loadDate(date, selectedCashier);
-            setMessage(`Saved cash report deleted â€” Expected values are now live from POS.${autoDepositOn ? ` Its deposits to ${depositTo.label} that were still waiting were removed too.` : ''}`);
+            setMessage(`Saved cash report deleted — Expected values are now live from POS.${autoDepositOn ? ` Its deposits to ${depositTo.label} that were still waiting were removed too.` : ''}`);
             setTimeout(() => setMessage(''), 4000);
           } catch (err) {
             setMessage(err?.response?.data?.error || 'Delete failed.');

@@ -1,12 +1,12 @@
 /**
- * notifications.js â€” sidebar badge counts for the currently-selected
+ * notifications.js — sidebar badge counts for the currently-selected
  * branch. One round-trip returns:
  *   - cashier_pending      (orders status='PENDING_PAYMENT' in that branch)
  *   - dispatch_pending     (orders status='PAID' in that branch)
  *   - incoming_stock       (hq_purchase_items pending for that branch
- *                           â€” lives in master.db, joined on destination_slug)
+ *                           — lives in master.db, joined on destination_slug)
  *   - incoming_transfers   (stock_transfers PENDING with to_slug=this branch
- *                           â€” also in master.db, for the inter-branch flow)
+ *                           — also in master.db, for the inter-branch flow)
  *
  * Designed to be cheap + polled every 30s from the sidebar. Each count is
  * a single COUNT(*) with an index already in place. Errors per source are
@@ -40,7 +40,7 @@ router.get('/badges', hqAuth, (req, res) => {
     const hqPendingGrn = safeCount(() => masterDb.prepare(
       `SELECT COUNT(*) AS n FROM hq_purchase_items WHERE status = 'GRN_SUBMITTED'`
     ).get()?.n);
-    // Damages live per-branch â€” sum PENDING rows across every registered
+    // Damages live per-branch — sum PENDING rows across every registered
     // tenant. Cheap (1 COUNT per branch, 3 branches today).
     let hqPendingDamages = 0;
     try {
@@ -52,7 +52,7 @@ router.get('/badges', hqAuth, (req, res) => {
           ).get()?.n);
         } catch (_) { /* skip broken branch */ }
       }
-    } catch (_) { /* listTenants failure â†’ 0 */ }
+    } catch (_) { /* listTenants failure → 0 */ }
 
     if (!slug || !isRegistered(slug)) {
       return res.json({
@@ -95,21 +95,21 @@ router.get('/badges', hqAuth, (req, res) => {
   }
 });
 
-// 2026-09-15 â€” what is waiting for this depot to receive, with enough detail
+// 2026-09-15 — what is waiting for this depot to receive, with enough detail
 // for the on-screen notice: HQ deliveries (one row per purchase, lines still
 // AWAITING_GRN) and inter-branch transfers still PENDING. Polled every 10s.
 router.get('/incoming', hqAuth, (req, res) => {
   try {
     const slug = String(req.query.slug || '').toLowerCase();
 
-    // 2026-09-19 â€” HQ's own version of the same notice. A depot confirming a
+    // 2026-09-19 — HQ's own version of the same notice. A depot confirming a
     // delivery puts it in HQ's Generate GRN queue, and until someone there
     // generates it there is no GRN and no payable: the supplier's invoice is
     // sitting in a drawer with nothing in the system to match it to. HQ had
     // neither a notice nor a working badge for that (the badge was asked for
     // with an empty slug and skipped), so it was only ever found by chance.
     //
-    // One row per purchase, like the depot's â€” a delivery, not a line.
+    // One row per purchase, like the depot's — a delivery, not a line.
     if (String(req.query.scope || '').toLowerCase() === 'hq') {
       let grns = [];
       try {
@@ -158,14 +158,14 @@ router.get('/incoming', hqAuth, (req, res) => {
   }
 });
 
-// â”€â”€â”€ Push registration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Push registration ───────────────────────────────────────────────────────
 //
 // 2026-09-18. The phone says where to reach it. Called on every login in the
 // APK, not once at install: Firebase reissues a token whenever it feels like
 // it, and a stale one silently delivers nothing. So this is an upsert.
 //
 // The token is written to the book the user belongs to, which is the one this
-// request is already on â€” a depot's users live in that depot's database, HQ's
+// request is already on — a depot's users live in that depot's database, HQ's
 // in HQ's own. See services/push.js.
 router.post('/push-token', hqAuth, (req, res) => {
   try {

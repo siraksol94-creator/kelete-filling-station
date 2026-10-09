@@ -1,5 +1,5 @@
 /**
- * v1.10.79 â€” one-off backfill: SET grn.cost_currency = 'K' on every
+ * v1.10.79 — one-off backfill: SET grn.cost_currency = 'K' on every
  * existing HQ GRN row that still has NULL / empty cost_currency.
  *
  * WHY:

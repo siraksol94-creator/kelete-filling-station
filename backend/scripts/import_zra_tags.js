@@ -1,5 +1,5 @@
 /**
- * import_zra_tags.js â€” v1.13.74
+ * import_zra_tags.js — v1.13.74
  *
  * One-shot: reads RED SEA STOCK PRICES 2 (2).xlsx and stamps
  *   products.tax_label
@@ -12,16 +12,16 @@
  *
  * Match rule: case-insensitive, whitespace-collapsed comparison on
  *   products.name  ==  Excel 'PRODUCT NAME'
- * Anything without a clean 1:1 match is REPORTED and skipped â€” never
+ * Anything without a clean 1:1 match is REPORTED and skipped — never
  * silently guessed.
  *
- * Excel tax label â†’ DB VAT cat mapping (1:1):
- *   A   â†’ tax_label='A', zra_vat_cat_cd='A', zra_rrp=NULL
- *   B   â†’ tax_label='B', zra_vat_cat_cd='B', zra_rrp=<Excel Selling PRICE>
- *   D   â†’ tax_label='D', zra_vat_cat_cd='D', zra_rrp=NULL
- *   ''  â†’ SKIP (flagged for manual review)
+ * Excel tax label → DB VAT cat mapping (1:1):
+ *   A   → tax_label='A', zra_vat_cat_cd='A', zra_rrp=NULL
+ *   B   → tax_label='B', zra_vat_cat_cd='B', zra_rrp=<Excel Selling PRICE>
+ *   D   → tax_label='D', zra_vat_cat_cd='D', zra_rrp=NULL
+ *   ''  → SKIP (flagged for manual review)
  *
- * Idempotent â€” running twice does not change anything after the first pass
+ * Idempotent — running twice does not change anything after the first pass
  * (compares each field before writing).
  *
  * Usage on VPS:
@@ -34,13 +34,13 @@ const path = require('path');
 process.chdir(path.join(__dirname, '..'));
 
 const XLSX = require('xlsx');
-const db = require('../config/database');           // ALS-scoped proxy; CLI â†’ defaultDb (HQ kelete.db)
+const db = require('../config/database');           // ALS-scoped proxy; CLI → defaultDb (HQ kelete.db)
 const { listTenants }  = require('../config/masterDb');
 const { getTenantDb }  = require('../config/tenantDb');
 const pushHelpers      = require('../middleware/hqPush');
 const pushProductToBranches = pushHelpers.pushProductToBranches;
 
-// â”€â”€ args â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── args ────────────────────────────────────────────────────────────
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
 const skipPush = args.includes('--no-push');
@@ -50,16 +50,16 @@ if (!xlsxPath) {
   process.exit(1);
 }
 
-// â”€â”€ read Excel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── read Excel ──────────────────────────────────────────────────────
 console.log(`[import] reading ${xlsxPath}`);
 const wb = XLSX.readFile(xlsxPath);
 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
 console.log(`[import] ${rows.length} rows in Excel\n`);
 
-// â”€â”€ normalise helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── normalise helper ────────────────────────────────────────────────
 const norm = (s) => String(s || '').trim().toUpperCase().replace(/\s+/g, ' ');
 
-// â”€â”€ build DB product map â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── build DB product map ────────────────────────────────────────────
 const dbRows = db.prepare(
   `SELECT id, name, tax_label, zra_vat_cat_cd, zra_rrp
      FROM products
@@ -69,7 +69,7 @@ const byName = new Map();
 for (const r of dbRows) byName.set(norm(r.name), r);
 console.log(`[import] ${dbRows.length} active products in HQ kelete.db\n`);
 
-// â”€â”€ plan updates â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── plan updates ────────────────────────────────────────────────────
 const updates = [];
 const skipped = [];
 const noMatch = [];
@@ -94,7 +94,7 @@ for (const row of rows) {
   const newVatCatCd   = label;                          // 1:1 for A/B/D
   const newRrp        = label === 'B' && price > 0 ? price : null;
 
-  // Idempotency guard â€” only update fields that actually changed.
+  // Idempotency guard — only update fields that actually changed.
   const changes = {};
   if (dbRow.tax_label !== newTaxLabel)         changes.tax_label       = newTaxLabel;
   if (dbRow.zra_vat_cat_cd !== newVatCatCd)    changes.zra_vat_cat_cd  = newVatCatCd;
@@ -102,17 +102,17 @@ for (const row of rows) {
   if (curRrp !== newRrp)                       changes.zra_rrp         = newRrp;
 
   if (Object.keys(changes).length === 0) {
-    // already tagged â€” no work
+    // already tagged — no work
     continue;
   }
   updates.push({ id: dbRow.id, name: dbRow.name, xName, changes });
 }
 
-// â”€â”€ report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── report ──────────────────────────────────────────────────────────
 console.log(`[import] will update ${updates.length} rows`);
 if (skipped.length) {
   console.log(`[import] skipped ${skipped.length} rows (no valid tax label):`);
-  for (const s of skipped) console.log(`  ~ ${s.name}   â€” ${s.reason}`);
+  for (const s of skipped) console.log(`  ~ ${s.name}   — ${s.reason}`);
 }
 if (noMatch.length) {
   console.log(`[import] ${noMatch.length} Excel rows have NO matching product in HQ DB:`);
@@ -121,7 +121,7 @@ if (noMatch.length) {
 console.log();
 
 if (dryRun) {
-  console.log('[import] --dry-run â€” showing first 10 planned updates then exiting:');
+  console.log('[import] --dry-run — showing first 10 planned updates then exiting:');
   for (const u of updates.slice(0, 10)) {
     console.log(`  #${u.id}  ${u.name}`);
     for (const [k, v] of Object.entries(u.changes)) console.log(`      ${k}: ${v ?? 'NULL'}`);
@@ -129,7 +129,7 @@ if (dryRun) {
   process.exit(0);
 }
 
-// â”€â”€ apply â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── apply ───────────────────────────────────────────────────────────
 const applyOne = db.transaction((upd) => {
   const sets = [];
   const vals = [];
@@ -148,13 +148,13 @@ for (const u of updates) {
 }
 console.log(`[import] HQ kelete.db: ${hqUpdated} products updated`);
 
-// â”€â”€ mirror to branches â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── mirror to branches ──────────────────────────────────────────────
 if (skipPush) {
-  console.log('[import] --no-push â€” skipping branch mirror. Run mirrorHqToAllBranches later.');
+  console.log('[import] --no-push — skipping branch mirror. Run mirrorHqToAllBranches later.');
   process.exit(0);
 }
 
-console.log(`[import] mirroring to branchesâ€¦`);
+console.log(`[import] mirroring to branches…`);
 const rowsForPush = db.prepare(
   `SELECT id, sync_id, name, code, category_id, category_sync_id, unit, units_json,
           default_unit, image_url, container_product_sync_id, units_per_container,

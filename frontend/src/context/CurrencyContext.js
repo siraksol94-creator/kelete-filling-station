@@ -3,13 +3,13 @@
 // primary symbol without round-tripping to the server.
 //
 //   const { symbol, primary, currencies, money } = useCurrency();
-//   money(12.5)  // â†’ "$12.50"  (uses primary symbol + 2 decimals)
+//   money(12.5)  // → "$12.50"  (uses primary symbol + 2 decimals)
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { getSettings } from '../services/api';
 
 const DEFAULTS = [{ code: 'ZMW', symbol: 'K', is_primary: true }];
 
-// 2026-09-11 â€” the payment methods a branch SHOWS (System Settings â†’ Payment
+// 2026-09-11 — the payment methods a branch SHOWS (System Settings → Payment
 // methods shown). Hiding only: records keep their method and every total
 // stays the same. Keys are 'cash' | 'momo' | 'bank'.
 export const ALL_METHODS = ['cash', 'momo', 'bank'];
@@ -34,19 +34,19 @@ const CurrencyContext = createContext({
   symbol: 'K',
   money: (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
   // Per-branch feature gates loaded from business_settings:
-  //   workflowMode â€” 'single_pos' | 'three_station' (drives Cashier/Dispatch sidebar)
-  //   currencyMode â€” 'K' | 'USD+FRA' (drives dual-currency UI)
-  //   legacyProcurementEnabled â€” re-exposes GRN + Suppliers on branch sidebar
+  //   workflowMode — 'single_pos' | 'three_station' (drives Cashier/Dispatch sidebar)
+  //   currencyMode — 'K' | 'USD+FRA' (drives dual-currency UI)
+  //   legacyProcurementEnabled — re-exposes GRN + Suppliers on branch sidebar
   //                              (off by default since v1.3.2 lockdown)
   workflowMode: 'single_pos',
   currencyMode: 'K',
-  // v1.9.26 â€” third dial. 'cash_only' (Kelete multi-currency cash) vs
+  // v1.9.26 — third dial. 'cash_only' (Kelete multi-currency cash) vs
   // 'cash_momo_bank' (Liquor-style). Used to gate the Pay modal columns
   // and the Cash Report cashier panels.
   paymentMethods: 'cash_momo_bank',
   shownMethods: ALL_METHODS,
   methodShown: () => true,
-  // 2026-09-11 â€” System Settings â†’ Auto deposit (Cash Report â†’ HQ deposits).
+  // 2026-09-11 — System Settings → Auto deposit (Cash Report → HQ deposits).
   autoDeposit: false,
   legacyProcurementEnabled: false,
   refresh: () => {},
@@ -71,7 +71,7 @@ export const CurrencyProvider = ({ children }) => {
   const [legacyProcurementEnabled, setLegacyProcurementEnabled] = useState(false);
 
   const refresh = useCallback(async () => {
-    // Skip the API call when the user isn't logged in â€” otherwise the 401 response
+    // Skip the API call when the user isn't logged in — otherwise the 401 response
     // triggers the auto-logout interceptor and we land in a redirect loop on /login.
     if (!localStorage.getItem('token')) return;
     try {
@@ -101,7 +101,7 @@ export const CurrencyProvider = ({ children }) => {
     <CurrencyContext.Provider value={{
       currencies, primary, symbol, money,
       workflowMode, currencyMode, paymentMethods,
-      // v1.9.27 â€” one switch every Liquor-vs-Kelete page reads. True for
+      // v1.9.27 — one switch every Liquor-vs-Kelete page reads. True for
       // K-only branches that accept Cash + MoMo + Bank (Mansa, Lusaka);
       // false for Kelete multi-currency cash branches (Kassumbalesa).
       isLiquorStyle: currencyMode === 'K' && paymentMethods === 'cash_momo_bank',

@@ -7,7 +7,7 @@ import { isMobileApp } from '../utils/platform';
 import keleteLogo from '../assets/kelete-logo.png';
 
 // v1.5.1: HQ login no longer forces a branch pick. On the bare HQ host
-// (keletezm.com) the user just types email + password â€” authenticated
+// (keletezm.com) the user just types email + password — authenticated
 // against the default DB users table. After login, the sidebar's
 // "Active Branch" dropdown still lets HQ admins drop into any branch's
 // data when they need to.
@@ -22,7 +22,7 @@ const Login = () => {
   const navigate = useNavigate();
   const hq = isHqHost();
 
-  // v1.13.4 â€” pull the branch's business_name from the public settings
+  // v1.13.4 — pull the branch's business_name from the public settings
   // endpoint so the login card shows "Buseko Depo" / "Garden Depo" /
   // "Kelete HQ" per branch instead of the hardcoded Kelete string.
   useEffect(() => {
@@ -38,7 +38,7 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      // Make sure no stale branch is attached to the login request â€” the
+      // Make sure no stale branch is attached to the login request — the
       // axios interceptor reads localStorage hq_branch and would otherwise
       // route auth/login into a per-branch DB.
       if (hq) setHqBranch('');
@@ -51,12 +51,12 @@ const Login = () => {
     }
   };
 
-  // 2026-09-11 â€” the compact login, in the Kelete APK only (phones and the POS
-  // small terminal). The website â€” any browser, whatever its width or Device
-  // Type â€” keeps the card below, as it was. Red Sea asked for the APK only.
+  // 2026-09-11 — the compact login, in the Kelete APK only (phones and the POS
+  // small terminal). The website — any browser, whatever its width or Device
+  // Type — keeps the card below, as it was. Red Sea asked for the APK only.
   const compact = isMobileApp();
   if (compact) {
-    // "Kelete Distribution - LIVINGSTONE" â†’ "LIVINGSTONE Depot". A name
+    // "Kelete Distribution - LIVINGSTONE" → "LIVINGSTONE Depot". A name
     // without the " - " part is shown as it is.
     const parts = String(businessName || '').split(/\s+-\s+/);
     const depot = parts.length > 1 ? `${parts[parts.length - 1]} Depot` : (businessName || 'Distribution Management');
@@ -83,7 +83,7 @@ const Login = () => {
             </span>
           </label>
           <button type="submit" className="lc-submit" disabled={loading}>
-            {loading ? 'Signing inâ€¦' : 'Sign in'}
+            {loading ? 'Signing in…' : 'Sign in'}
           </button>
         </form>
         <div className="lc-foot">Red Sea Import &amp; Export (Z) Ltd</div>

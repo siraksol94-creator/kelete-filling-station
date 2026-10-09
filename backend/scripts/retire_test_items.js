@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Retire the UAT/test products everywhere â€” HQ and every branch.
+// Retire the UAT/test products everywhere — HQ and every branch.
 // 2026-09-01
 //
 //   node backend/scripts/retire_test_items.js            # report only
@@ -7,7 +7,7 @@
 //
 // WHY THIS IS NEEDED. Three of these were soft-deleted at HQ in the
 // depot-items batch, by direct SQL. A direct database write fires no push, and
-// middleware/hqPush.js's sweep only re-pushes LIVING rows â€” it has no way to
+// middleware/hqPush.js's sweep only re-pushes LIVING rows — it has no way to
 // tell a branch to forget something. So the branches never heard, and all four
 // are still sellable at all fifteen. Branch product counts read 97 against
 // HQ's 93 for exactly this reason.
@@ -30,7 +30,7 @@ const CODES = ['SFT001', 'T04A-TEST-01', 'UAT7-001', 'UAT7-002'];
 const ROOT = path.join(__dirname, '..', '..');
 const targets = [];
 
-// HQ first â€” it is the source the branches mirror from.
+// HQ first — it is the source the branches mirror from.
 const hq = path.join(ROOT, 'backend', 'kelete.db');
 if (fs.existsSync(hq)) targets.push({ label: 'HQ (backend/kelete.db)', file: hq });
 
@@ -45,7 +45,7 @@ if (targets.length === 0) {
   process.exit(1);
 }
 
-console.log(`\n${APPLY ? 'MODE: APPLY' : 'MODE: dry run â€” nothing will be written'}`);
+console.log(`\n${APPLY ? 'MODE: APPLY' : 'MODE: dry run — nothing will be written'}`);
 console.log(`Codes: ${CODES.join(', ')}\n`);
 
 const q = CODES.map(() => '?').join(',');
@@ -79,7 +79,7 @@ for (const t of targets) {
   // Stock on a test item means someone counted it as real. Retiring it hides
   // that stock rather than resolving it, so say so loudly instead of burying it.
   for (const r of withStock)
-    console.log(`      *** ${r.code} holds ${r.stock} in stock â€” retiring it hides that stock`);
+    console.log(`      *** ${r.code} holds ${r.stock} in stock — retiring it hides that stock`);
 
   if (APPLY) {
     const info = db.prepare(
@@ -92,8 +92,8 @@ for (const t of targets) {
   db.close();
 }
 
-console.log(`\n  ${targets.length} database(s) checked Â· ${totalLive} live test item(s) found`);
-if (totalWithStock) console.log(`  ${totalWithStock} of them hold stock â€” read the warnings above`);
+console.log(`\n  ${targets.length} database(s) checked · ${totalLive} live test item(s) found`);
+if (totalWithStock) console.log(`  ${totalWithStock} of them hold stock — read the warnings above`);
 
 if (!APPLY) {
   console.log('\n  Dry run. Re-run with --apply to retire them.');

@@ -18,7 +18,7 @@ const syncConfig = require('../config/syncConfig');
 const { masterDb, listTenants, isRegistered } = require('../config/masterDb');
 const { retryOrder: zraRetryOrder } = require('../services/zraRetryQueue');
 
-// â”€â”€â”€ ZRA supplier â†’ local supplier â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── ZRA supplier → local supplier ────────────────────────────────────────
 //
 // 2026-08-30. A pulled purchase arrives with only the supplier's TPIN and
 // their ZRA-registered name. hqGrns.js resolves the supplier for a GRN by
@@ -27,7 +27,7 @@ const { retryOrder: zraRetryOrder } = require('../services/zraRetryQueue');
 //     SELECT id, sync_id FROM suppliers WHERE LOWER(name) = LOWER(?)
 //
 // so a ZRA name with no local counterpart produced a GRN with no supplier
-// link, which reached AP Approvals as an orphan â€” a name on screen with
+// link, which reached AP Approvals as an orphan — a name on screen with
 // nothing behind it to reconcile against the supplier ledger.
 //
 // Resolving it here, at approval, fixes the whole chain without touching it:
@@ -46,7 +46,7 @@ const { retryOrder: zraRetryOrder } = require('../services/zraRetryQueue');
 // require('../config/database').defaultDb. Using the proxy here would create
 // the supplier in a database the GRN step never looks at, and the orphan
 // would persist while appearing fixed.
-// `preview: true` answers the same question WITHOUT writing anything â€” no
+// `preview: true` answers the same question WITHOUT writing anything — no
 // supplier created, no mapping remembered. The purchase modal uses it to show
 // the operator what approval is going to do, since the supplier link used to
 // happen invisibly and there was no way to tell a match from a new record.
@@ -83,7 +83,7 @@ function resolveZraSupplier({ tpin, name, userId, preview }) {
     try {
       const m = defaultDb.prepare('SELECT supplier_id, supplier_sync_id, supplier_name FROM zra_supplier_map WHERE spplr_tpin = ?').get(cleanTpin);
       if (m && m.supplier_name) {
-        // Confirm it still exists â€” a supplier deleted since being mapped
+        // Confirm it still exists — a supplier deleted since being mapped
         // would otherwise re-orphan every future purchase silently.
         const still = defaultDb.prepare('SELECT id, sync_id, name FROM suppliers WHERE id = ? OR sync_id = ? LIMIT 1')
           .get(m.supplier_id || -1, m.supplier_sync_id || '');
@@ -100,7 +100,7 @@ function resolveZraSupplier({ tpin, name, userId, preview }) {
     } catch (_) { /* older schema without tpin or deleted_at */ }
   }
 
-  // 3. Same name â€” matching hqGrns.js exactly, so what links here links there.
+  // 3. Same name — matching hqGrns.js exactly, so what links here links there.
   if (cleanName) {
     try {
       const byName = defaultDb.prepare('SELECT id, sync_id, name FROM suppliers WHERE LOWER(name) = LOWER(?) LIMIT 1').get(cleanName);
@@ -130,7 +130,7 @@ function resolveZraSupplier({ tpin, name, userId, preview }) {
       const cfg = syncConfig.getConfig() || {};
       branchId = cfg.branchId || null;
       deviceId = cfg.deviceId || null;
-    } catch (_) { /* best effort â€” the row is still usable without them */ }
+    } catch (_) { /* best effort — the row is still usable without them */ }
 
     const cols = defaultDb.prepare('PRAGMA table_info(suppliers)').all().map(c => c.name);
     const has  = (c) => cols.includes(c);
@@ -162,8 +162,8 @@ function resolveZraSupplier({ tpin, name, userId, preview }) {
 
 const { getTenantDb } = require('../config/tenantDb');
 
-// v1.13.37 â€” 30 MB in-memory upload cap for the UNSPSC Excel importer.
-// The official ZRA sheet is ~17 MB Ã— 40 k rows.
+// v1.13.37 — 30 MB in-memory upload cap for the UNSPSC Excel importer.
+// The official ZRA sheet is ~17 MB × 40 k rows.
 const xlsxUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 30 * 1024 * 1024 } });
 
 // Which business_settings columns hold ZRA state. Kept in one place so
@@ -171,14 +171,14 @@ const xlsxUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize:
 const ZRA_CONFIG_COLS = [
   'zra_enabled', 'zra_env', 'zra_vsdc_url',
   'zra_tpin', 'zra_bhf_id', 'zra_dvc_srl_no',
-  // v1.13.102 â€” T11A offline-block toggle. Editable via PUT /settings
+  // v1.13.102 — T11A offline-block toggle. Editable via PUT /settings
   // (unlike zra_enabled, which is auto-set by Initialize Device).
   'zra_block_offline_sales',
-  // v1.13.154 â€” HQ-device proxy branch. Only meaningful on HQ's own
-  // row (HQ has no VSDC device by default â€” Pattern A); branches
+  // v1.13.154 — HQ-device proxy branch. Only meaningful on HQ's own
+  // row (HQ has no VSDC device by default — Pattern A); branches
   // ignore this since resolveHqZraProxy checks their OWN device first.
   'zra_proxy_branch_slug',
-  // 2026-08-27 â€” shared secret an Electron till presents to the VSDC
+  // 2026-08-27 — shared secret an Electron till presents to the VSDC
   // proxy. Editable so a compromised value can be rotated: change it
   // here and on the till. Auto-generated at migration time, so it is
   // never blank and never a shipped default.
@@ -193,15 +193,15 @@ const ZRA_INIT_COLS = [
 ];
 const ALL_ZRA_COLS = [...ZRA_CONFIG_COLS, ...ZRA_INIT_COLS];
 
-// â”€â”€â”€ Config / Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Config / Init ──────────────────────────────────────────────────────
 
 // Resolve a business_settings row from a presented proxy secret.
 //
-// 2026-08-27 â€” the proxy and device-identity endpoints have no logged-in
+// 2026-08-27 — the proxy and device-identity endpoints have no logged-in
 // user to scope by tenant, so they originally read `business_settings
 // LIMIT 1`. A tenant DB can hold MORE THAN ONE settings row (garden.db
 // has two), and LIMIT 1 without ORDER BY returns whichever SQLite feels
-// like â€” so a correctly-pasted secret was compared against a different
+// like — so a correctly-pasted secret was compared against a different
 // row's value and rejected as invalid.
 //
 // Match against EVERY row instead and return the one that owns the
@@ -231,15 +231,15 @@ function resolveBySecret(presented) {
   return null;
 }
 
-// â”€â”€â”€ VSDC proxy for Electron tills â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── VSDC proxy for Electron tills ─────────────────────────────────────
 //
 // POST /api/zra/vsdc-proxy/*
 //
-// 2026-08-27 â€” lets an Electron desktop obtain a SIGNED receipt without
+// 2026-08-27 — lets an Electron desktop obtain a SIGNED receipt without
 // installing Tomcat locally.
 //
 // Electron runs its own backend against its own SQLite, so a sale there
-// is created locally â€” for it to be fiscalised at the till, Electron must
+// is created locally — for it to be fiscalised at the till, Electron must
 // reach VSDC. But VSDC lives on the VPS at localhost:8080 and the spec is
 // explicit that the port stays firewalled so only the POS can reach it.
 // Exposing it publicly is not an option.
@@ -254,7 +254,7 @@ function resolveBySecret(presented) {
 // etc., which map 1:1 onto the real VSDC paths.
 //
 // Guard rails:
-//   * `auth` â€” same session/token as every other endpoint. No anonymous
+//   * `auth` — same session/token as every other endpoint. No anonymous
 //     access; this is not an open relay.
 //   * The destination is ALWAYS this tenant's configured zra_vsdc_url.
 //     The caller supplies only the VSDC sub-path, never a host, so it
@@ -262,7 +262,7 @@ function resolveBySecret(presented) {
 //   * Sub-path is whitelisted by shape (letters, digits, / and -) so a
 //     traversal like ../ cannot escape the VSDC context.
 // NOTE: deliberately NOT behind `auth`. vsdcClient is machine-to-machine
-// â€” it fires mid-sale and carries no user session â€” so a JWT-gated proxy
+// — it fires mid-sale and carries no user session — so a JWT-gated proxy
 // would 401 every call. It authenticates on the branch's shared secret
 // (business_settings.zra_proxy_secret) instead, sent as
 // X-VSDC-Proxy-Secret. Compared with a timing-safe equality check so the
@@ -274,7 +274,7 @@ router.post(/^\/vsdc-proxy\/(.+)$/, async (req, res) => {
       return res.status(400).json({ error: 'Invalid VSDC path' });
     }
 
-    // Resolve the branch from the secret itself â€” the caller is a till,
+    // Resolve the branch from the secret itself — the caller is a till,
     // not a logged-in user, so there is no req.user to trust. Only a
     // holder of this branch's secret can drive this branch's VSDC.
     const presented = String(req.get('X-VSDC-Proxy-Secret') || '');
@@ -287,10 +287,10 @@ router.post(/^\/vsdc-proxy\/(.+)$/, async (req, res) => {
     if (!cfg?.zra_vsdc_url) {
       return res.status(400).json({ error: 'No VSDC URL configured for this tenant' });
     }
-    // Refuse to forward to ourselves â€” a misconfigured install pointing
+    // Refuse to forward to ourselves — a misconfigured install pointing
     // its VSDC URL back at the proxy would otherwise loop.
     if (/\/vsdc-proxy(\/|$)/.test(String(cfg.zra_vsdc_url))) {
-      return res.status(400).json({ error: 'VSDC URL on this host points at the proxy itself â€” set it to the real local VSDC.' });
+      return res.status(400).json({ error: 'VSDC URL on this host points at the proxy itself — set it to the real local VSDC.' });
     }
     const base = String(cfg.zra_vsdc_url).replace(/\/+$/, '');
     const url  = `${base}/${subPath}`;
@@ -302,7 +302,7 @@ router.post(/^\/vsdc-proxy\/(.+)$/, async (req, res) => {
       signal: AbortSignal.timeout(25_000),
     });
     const text = await upstream.text();
-    // Pass the reply through untouched â€” the caller's own vsdcClient
+    // Pass the reply through untouched — the caller's own vsdcClient
     // parses resultCd and logs to its audit table exactly as it would
     // against a local VSDC.
     res.status(upstream.status).type('application/json').send(text);
@@ -314,12 +314,12 @@ router.post(/^\/vsdc-proxy\/(.+)$/, async (req, res) => {
   }
 });
 
-// GET /api/zra/device-identity â€” the device identity this branch already
+// GET /api/zra/device-identity — the device identity this branch already
 // holds, for a till that cannot register its own.
 //
-// 2026-08-27 â€” ZRA registers a device ONCE (spec 5.1: "only called once
+// 2026-08-27 — ZRA registers a device ONCE (spec 5.1: "only called once
 // for any new device registration"); a second selectInitInfo returns 902
-// "This device is installed". An Electron till is not a new device â€” it
+// "This device is installed". An Electron till is not a new device — it
 // is the SAME device as the VPS (same TPIN + bhfId + serial), reaching
 // the same VSDC through the proxy. So it must COPY the identity rather
 // than request one.
@@ -358,7 +358,7 @@ router.put('/settings', auth, (req, res) => {
     if (zra_env && !['sandbox', 'production'].includes(zra_env)) {
       return res.status(400).json({ error: 'zra_env must be sandbox or production' });
     }
-    // v1.13.93 â€” zra_enabled is no longer editable via this endpoint.
+    // v1.13.93 — zra_enabled is no longer editable via this endpoint.
     // ZRA compliance means every sale MUST route through VSDC; the flag
     // is auto-set to 1 by POST /initialize once the device is
     // successfully registered with VSDC and can only be flipped back to
@@ -381,7 +381,7 @@ router.put('/settings', auth, (req, res) => {
       sets.push('zra_block_offline_sales=?');
       vals.push(zra_block_offline_sales ? 1 : 0);
     }
-    // 2026-08-27 â€” VSDC proxy secret. Adding the column to
+    // 2026-08-27 — VSDC proxy secret. Adding the column to
     // ZRA_CONFIG_COLS was not enough: this handler destructures each
     // field explicitly, so an un-destructured one is silently dropped and
     // the field appeared to clear itself on save.
@@ -389,13 +389,13 @@ router.put('/settings', auth, (req, res) => {
     // A BLANK submission is ignored rather than written. The input shows
     // a placeholder when empty, so saving an untouched form would
     // otherwise wipe a working secret and lock the till out. Clearing it
-    // deliberately is not something the UI needs to offer â€” rotating
+    // deliberately is not something the UI needs to offer — rotating
     // means typing a new value.
     if (zra_proxy_secret !== undefined && String(zra_proxy_secret).trim() !== '') {
       sets.push('zra_proxy_secret=?');
       vals.push(String(zra_proxy_secret).trim());
     }
-    // v1.13.154 â€” empty string is valid here (means "no proxy, use my
+    // v1.13.154 — empty string is valid here (means "no proxy, use my
     // own device" once HQ registers one directly). Only reject
     // non-string types.
     if (zra_proxy_branch_slug !== undefined) {
@@ -405,7 +405,7 @@ router.put('/settings', auth, (req, res) => {
     if (!sets.length) return res.status(400).json({ error: 'No fields to update' });
 
     const existing = db.prepare('SELECT id FROM business_settings WHERE tenant_id = ? LIMIT 1').get(req.user.tenantId);
-    if (!existing) return res.status(400).json({ error: 'business_settings row missing â€” save Company Profile first' });
+    if (!existing) return res.status(400).json({ error: 'business_settings row missing — save Company Profile first' });
     sets.push("updated_at=datetime('now')");
     db.prepare(`UPDATE business_settings SET ${sets.join(', ')} WHERE id=?`).run(...vals, existing.id);
     const row = db.prepare(
@@ -426,20 +426,20 @@ router.post('/initialize', auth, async (req, res) => {
         error: 'Save VSDC URL, TPIN, Branch ID and Device Serial No first, then click Initialize.',
       });
     }
-    // 2026-08-27 â€” a device registers with ZRA exactly ONCE. When this
+    // 2026-08-27 — a device registers with ZRA exactly ONCE. When this
     // install is a till reaching a VSDC that was already initialised
     // elsewhere (Electron through the proxy), selectInitInfo answers 902
-    // "This device is installed" â€” correct, not an error. Re-raising it
+    // "This device is installed" — correct, not an error. Re-raising it
     // left zra_enabled at 0 and the till could never fiscalise.
     //
     // On 902, copy the identity the proxy host already holds instead of
     // demanding a fresh registration.
     let info;
     try {
-      // 2026-09-03 â€” 120s, not the 20s default. This call is ONE-SHOT: VSDC
+      // 2026-09-03 — 120s, not the 20s default. This call is ONE-SHOT: VSDC
       // returns the SDC ID exactly once and answers 902 forever after, so a
       // timeout here loses the identity permanently. That is precisely what
-      // happened to HQ (branch 041) â€” the first press against a Tomcat
+      // happened to HQ (branch 041) — the first press against a Tomcat
       // started minutes earlier took longer than 20s on a cold JVM, VSDC
       // registered the device and created siData/1001710705_041, and we gave
       // up before the reply arrived. The registration stands; the SDC ID is
@@ -452,7 +452,7 @@ router.post('/initialize', auth, async (req, res) => {
       const viaProxy = /\/vsdc-proxy(\/|$)/.test(String(cfg.zra_vsdc_url || ''));
       // A direct-URL install has no proxy host to copy the identity from, and
       // VSDC will not reissue it. Say so plainly instead of surfacing the raw
-      // 902 â€” the operator's next move is to ask ZRA for the SDC ID, or to
+      // 902 — the operator's next move is to ask ZRA for the SDC ID, or to
       // deactivate and re-register the device on the portal. Pressing the
       // button again only produces another 902.
       if (e.resultCd === '902' && !viaProxy) {
@@ -517,9 +517,9 @@ router.post('/initialize', auth, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ Sync â€” Codes / Item Classes / Notices â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Sync — Codes / Item Classes / Notices ──────────────────────────────
 
-// POST /api/zra/sync/codes â€” pull the VSDC master code list (currency,
+// POST /api/zra/sync/codes — pull the VSDC master code list (currency,
 // tax types, packaging units, quantity units, etc). Upserts into
 // zra_codes. Uses zra_sync_state to remember the last lastReqDt for
 // incremental pulls.
@@ -538,7 +538,7 @@ router.post('/sync/codes', auth, async (req, res) => {
       throw e;
     }
 
-    // Response shape (VSDC Spec Â§5.2): { data: { clsList: [ { cdCls, cdClsNm, dtlList: [ { cd, cdNm, ...} ] } ] } }
+    // Response shape (VSDC Spec §5.2): { data: { clsList: [ { cdCls, cdClsNm, dtlList: [ { cd, cdNm, ...} ] } ] } }
     const clsList = parsed.data?.clsList || [];
     const upsert = db.prepare(
       `INSERT INTO zra_codes (cd_cls, cd, cd_nm, cd_desc, use_yn, user_dfn_cd1, user_dfn_cd2, user_dfn_cd3, srt_ord, updated_at)
@@ -582,8 +582,8 @@ router.post('/sync/codes', auth, async (req, res) => {
   }
 });
 
-// POST /api/zra/sync/item-classes â€” pull UNSPSC classification. Large
-// dataset (~40k rows) â€” VSDC returns in batches of 1000. We loop until
+// POST /api/zra/sync/item-classes — pull UNSPSC classification. Large
+// dataset (~40k rows) — VSDC returns in batches of 1000. We loop until
 // resultCd=001 (nothing more). ?full=true resets the bookmark.
 router.post('/sync/item-classes', auth, async (req, res) => {
   try {
@@ -627,10 +627,10 @@ router.post('/sync/item-classes', auth, async (req, res) => {
       ]));
       batches++;
       // Advance the bookmark to the maximum useUpdDt in this batch, if
-      // VSDC supplies it â€” otherwise just keep looping with the same
+      // VSDC supplies it — otherwise just keep looping with the same
       // lastReqDt until we get 001 or hit MAX_BATCHES.
       const maxTs = list.reduce((m, x) => x.useUpdDt && x.useUpdDt > m ? x.useUpdDt : m, lastReqDt);
-      if (maxTs === lastReqDt) break; // no progress â†’ done
+      if (maxTs === lastReqDt) break; // no progress → done
       lastReqDt = maxTs;
     }
     vsdc.bumpSyncState(endpoint, '000', batches === MAX_BATCHES ? 'hit MAX_BATCHES cap' : null);
@@ -641,7 +641,7 @@ router.post('/sync/item-classes', auth, async (req, res) => {
   }
 });
 
-// POST /api/zra/sync/notices â€” pull latest ZRA-published notices.
+// POST /api/zra/sync/notices — pull latest ZRA-published notices.
 // Optional feature; small (a few rows per pull) so we always incremental.
 router.post('/sync/notices', auth, async (req, res) => {
   try {
@@ -674,7 +674,7 @@ router.post('/sync/notices', auth, async (req, res) => {
   }
 });
 
-// POST /api/zra/sync/all â€” convenience wrapper: run all three syncs in
+// POST /api/zra/sync/all — convenience wrapper: run all three syncs in
 // sequence. Continues on individual failures so one endpoint being down
 // doesn't block the others.
 router.post('/sync/all', auth, async (req, res) => {
@@ -780,7 +780,7 @@ async function syncNotices(tenantId, { full = false } = {}) {
   return { upserted: list.length };
 }
 
-// â”€â”€â”€ Read APIs for cached data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Read APIs for cached data ──────────────────────────────────────────
 // Consumed by the product form dropdowns and diagnostics UI.
 
 router.get('/codes', auth, readOnlyGuard, (req, res) => {
@@ -795,7 +795,7 @@ router.get('/codes', auth, readOnlyGuard, (req, res) => {
       return res.json(rows);
     }
     // No cls filter: return summary counts per class (useful for a
-    // diagnostics screen â€” "we have 42 packaging codes cached").
+    // diagnostics screen — "we have 42 packaging codes cached").
     const rows = db.prepare(
       `SELECT cd_cls, COUNT(*) AS n FROM zra_codes GROUP BY cd_cls ORDER BY cd_cls`
     ).all();
@@ -833,9 +833,9 @@ router.get('/notices', auth, readOnlyGuard, (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// â”€â”€â”€ Pending fiscalisation queue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Pending fiscalisation queue ───────────────────────────────────────
 //
-// â”€â”€ Push sales that were never sent to ZRA â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Push sales that were never sent to ZRA ─────────────────────────────────
 // v1.13.175
 //
 // Red Sea traded on 1-2 September with ZRA not yet connected: the branches
@@ -865,7 +865,7 @@ const pendingPushSql = `
       AND COALESCE(status, '') != 'Reversed'
       AND tenant_id = ?`;
 
-// GET /api/zra/push-pending â€” what is waiting, without sending anything.
+// GET /api/zra/push-pending — what is waiting, without sending anything.
 router.get('/push-pending', auth, readOnlyGuard, (req, res) => {
   try {
     const t = req.user.tenantId;
@@ -963,7 +963,7 @@ router.post('/push-pending', auth, async (req, res) => {
 
 // GET /api/zra/pending-fiscalisation
 //
-// 2026-08-27 â€” built for the offline-Electron design. A till selling
+// 2026-08-27 — built for the offline-Electron design. A till selling
 // while disconnected issues a PROVISIONAL receipt and the order syncs up
 // as zra_status='FAILED'; zraRetryQueue then fiscalises it once VSDC is
 // reachable again. That is fine for a short outage, but ZRA rejects
@@ -971,7 +971,7 @@ router.post('/push-pending', auth, async (req, res) => {
 // compliance risk: the customer already holds a receipt.
 //
 // Red Sea's own policy is that a branch reconnects within 24h, and ZRA's
-// tolerance is believed to be about the same â€” which leaves no margin.
+// tolerance is believed to be about the same — which leaves no margin.
 // This surfaces the age of the OLDEST unfiscalised order so someone can
 // act at 12h rather than discovering it at 23h. Threshold is a query
 // param so it can be tightened once ZRA confirms their real limit.
@@ -1017,7 +1017,7 @@ router.get('/sync-state', auth, readOnlyGuard, (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// v1.13.37 â€” Bulk import the UNSPSC classification list from the Excel
+// v1.13.37 — Bulk import the UNSPSC classification list from the Excel
 // file ZRA publishes (`UNSPSC-Classification-Codes.xlsx`). Lets Kelete
 // populate zra_item_classes without waiting for the VSDC WAR install +
 // its ~40 k-row paginated sync. Same target table as /sync/item-classes,
@@ -1026,12 +1026,12 @@ router.get('/sync-state', auth, readOnlyGuard, (req, res) => {
 //
 // Auto-detects columns by header substring so the exact ZRA sheet
 // layout doesn't have to be hard-coded. Expected columns:
-//   - Code / Class Code / Item Class Code       â†’ item_cls_cd  (8-digit UNSPSC)
-//   - Name / Description / Item Class Name      â†’ item_cls_nm
+//   - Code / Class Code / Item Class Code       → item_cls_cd  (8-digit UNSPSC)
+//   - Name / Description / Item Class Name      → item_cls_nm
 //   - Level (optional; derived from code length if absent)
-//   - Tax Type / VAT Cat / vatCatCd (optional)  â†’ tax_ty_cd
+//   - Tax Type / VAT Cat / vatCatCd (optional)  → tax_ty_cd
 //
-// Runs the entire insert in one transaction â€” 40 k rows takes ~1 s.
+// Runs the entire insert in one transaction — 40 k rows takes ~1 s.
 router.post('/import-item-classes', auth, xlsxUpload.single('file'), (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No file provided' });
@@ -1041,7 +1041,7 @@ router.post('/import-item-classes', auth, xlsxUpload.single('file'), (req, res) 
     const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: '', raw: false });
     if (rows.length === 0) return res.status(400).json({ error: 'Sheet is empty.' });
 
-    // v1.13.40 â€” Two supported layouts:
+    // v1.13.40 — Two supported layouts:
     //
     //   A. "Wide" UNSPSC (official ZRA sheet): each row carries all four
     //      levels. Columns: Segment / Segment Title / Family / Family
@@ -1072,7 +1072,7 @@ router.post('/import-item-classes', auth, xlsxUpload.single('file'), (req, res) 
       return null;
     };
 
-    // â”€â”€ Layout A detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Layout A detection ────────────────────────────────────────
     const segCol   = findExact(['Segment']);
     const segNmCol = findExact(['Segment Title', 'Segment Name']);
     const famCol   = findExact(['Family']);
@@ -1083,7 +1083,7 @@ router.post('/import-item-classes', auth, xlsxUpload.single('file'), (req, res) 
     const comNmCol = findExact(['Commodity Title', 'Commodity Name']);
     const isWide = !!(segCol && famCol && clsCol && comCol && segNmCol && famNmCol && clsNmCol && comNmCol);
 
-    // â”€â”€ Layout B fallback â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Layout B fallback ─────────────────────────────────────────
     const codeCol  = findContains(['itemclasscode', 'classcode', 'unspsccode', 'code']);
     const nameCol  = findContains(['itemclassname', 'classname', 'description', 'title', 'name']);
     const levelCol = findContains(['level', 'lvl']);
@@ -1178,7 +1178,7 @@ router.post('/import-item-classes', auth, xlsxUpload.single('file'), (req, res) 
           last_result_cd = 'IMPORT-XLSX',
           last_error     = NULL
       `).run();
-    } catch { /* ignore â€” table may be absent on very old DBs */ }
+    } catch { /* ignore — table may be absent on very old DBs */ }
 
     res.json({
       ok: true,
@@ -1199,26 +1199,26 @@ router.post('/import-item-classes', auth, xlsxUpload.single('file'), (req, res) 
   }
 });
 
-// â”€â”€â”€ VSDC-supplier purchase pull (T06A) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── VSDC-supplier purchase pull (T06A) ─────────────────────────────────
 //
-// v1.13.80 â€” Three-step flow:
-//   1. POST /api/zra/purchases/pull  â€” fetch new supplier invoices from
+// v1.13.80 — Three-step flow:
+//   1. POST /api/zra/purchases/pull  — fetch new supplier invoices from
 //      /trnsPurchase/selectTrnsPurchaseSales, upsert into
 //      zra_pending_purchases (dedup on spplr_tpin + spplr_invc_no).
-//   2. GET  /api/zra/purchases       â€” list rows, filterable by ?status=.
-//   3. POST /api/zra/purchases/:id/approve â€” call /trnsPurchase/savePurchase
+//   2. GET  /api/zra/purchases       — list rows, filterable by ?status=.
+//   3. POST /api/zra/purchases/:id/approve — call /trnsPurchase/savePurchase
 //      with regTyCd='A' using the cached raw_json. On success, stamp the
 //      row APPROVED with the allocated pchsInvcNo.
-//   4. POST /api/zra/purchases/:id/reject  â€” local audit only; ZRA already
+//   4. POST /api/zra/purchases/:id/reject  — local audit only; ZRA already
 //      has the supplier's side, so a reject is a bookkeeping mark.
 //
 // NOT wired this bump: creating a local GRN row from an approved
-// purchase. Follow-up â€” for now the approval lands in ZRA + our audit
+// purchase. Follow-up — for now the approval lands in ZRA + our audit
 // log; the operator books the physical GRN through the existing UI.
 
-// v1.13.153 â€” HQ-device proxy resolver. All 4 purchase-pull endpoints
+// v1.13.153 — HQ-device proxy resolver. All 4 purchase-pull endpoints
 // below need a live VSDC channel; when the calling tenant has none
-// (HQ, by default â€” Pattern A), proxy through business_settings.
+// (HQ, by default — Pattern A), proxy through business_settings.
 // zra_proxy_branch_slug instead. This is read-through: any tenant that
 // DOES have its own device (a branch, or HQ if ever registered
 // directly) uses itself and ignores the proxy setting entirely.
@@ -1344,18 +1344,18 @@ router.get('/purchases/:id', auth, readOnlyGuard, async (req, res) => {
       let items = [];
       try { items = JSON.parse(row.raw_json || '{}')?.itemList || []; } catch { /* keep empty */ }
 
-      // 2026-08-26 â€” annotate each line with how it should map to one of
+      // 2026-08-26 — annotate each line with how it should map to one of
       // our products. Supplier item codes live in the SUPPLIER's ZRA
       // namespace, so they never match ours; the operator's decision is
       // remembered in zra_supplier_item_map and replayed here.
       //
       // suggestion levels, strongest first:
-      //   'saved'     â€” mapped before for this supplier+code. Trust it.
-      //   'name'      â€” exact case-insensitive name hit in hq_products.
+      //   'saved'     — mapped before for this supplier+code. Trust it.
+      //   'name'      — exact case-insensitive name hit in hq_products.
       //                 PRE-FILLED BUT FLAGGED: the UI must show this as
       //                 needing confirmation, never as already-decided.
       //                 Supplier naming is not authoritative for us.
-      //   null        â€” no idea, operator must choose.
+      //   null        — no idea, operator must choose.
       const maps = db.prepare(
         'SELECT * FROM zra_supplier_item_map WHERE spplr_tpin = ?'
       ).all(row.spplr_tpin || '');
@@ -1391,7 +1391,7 @@ router.get('/purchases/:id', auth, readOnlyGuard, async (req, res) => {
         };
       });
 
-      // 2026-08-30 â€” tell the operator what will happen to the SUPPLIER.
+      // 2026-08-30 — tell the operator what will happen to the SUPPLIER.
       // The link is resolved at approval, which meant there was no way to
       // tell "this matches a supplier you already have" from "this is about
       // to create a new one" until after the fact. preview: true resolves it
@@ -1401,7 +1401,7 @@ router.get('/purchases/:id', auth, readOnlyGuard, async (req, res) => {
         supplier_match = resolveZraSupplier({
           tpin: row.spplr_tpin, name: row.spplr_nm, preview: true,
         });
-      } catch (_) { /* preview only â€” never block the invoice from opening */ }
+      } catch (_) { /* preview only — never block the invoice from opening */ }
 
       return { ...row, item_list: items, supplier_match };
     });
@@ -1410,22 +1410,22 @@ router.get('/purchases/:id', auth, readOnlyGuard, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// v1.13.139 â€” approve creates an HQ Purchase (master.db) with pre-filled
-// data from the pulled VSDC invoice. NO ZRA calls fire here â€” per spec
-// Â§5.11 the savePurchase + saveStockItems + saveStockMaster chain fires
+// v1.13.139 — approve creates an HQ Purchase (master.db) with pre-filled
+// data from the pulled VSDC invoice. NO ZRA calls fire here — per spec
+// §5.11 the savePurchase + saveStockItems + saveStockMaster chain fires
 // atomically when HQ confirms received qty in the 3-step Flow A. This
 // keeps ZRA's stock view in sync with physical reality (stock arrives
 // AT branch confirm, not at HQ-clicks-approve).
 //
-// Body: { destination_slug: string }  â€” which branch these goods ship to.
+// Body: { destination_slug: string }  — which branch these goods ship to.
 //   All lines route to the same branch (per ZRA-pulled invoice = one
 //   supplier delivery). Per-line destinations can be added later.
 router.post('/purchases/:id/approve', auth, async (req, res) => {
   try {
-    // v1.13.153 â€” the pending-purchase cache row lives wherever it was
+    // v1.13.153 — the pending-purchase cache row lives wherever it was
     // pulled TO (usually the proxy branch, since HQ has no device of
     // its own). Everything else in this handler (masterDb hq_purchases
-    // creation, destination branchDb product matching) is unaffected â€”
+    // creation, destination branchDb product matching) is unaffected —
     // only the bare `db.*` calls against zra_pending_purchases need to
     // resolve to the right physical DB.
     const proxy = await resolveHqZraProxy(req);
@@ -1462,19 +1462,19 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
     try { branchDb = getTenantDb(destination_slug); }
     catch (e) { return res.status(400).json({ error: `Cannot open destination DB: ${e.message}` }); }
 
-    // 2026-08-26 â€” per-line mapping, supplied by the operator.
+    // 2026-08-26 — per-line mapping, supplied by the operator.
     //
     // Supplier item codes belong to the SUPPLIER's ZRA namespace
     // (Chambishi's ZM2BGU23755 vs our ZM2NTBX0000023 for the same
     // bottle), so the old "match on zra_item_cd, else on name" guess
     // essentially never hit. Every line fell through to auto-create,
     // silently filling the catalogue with duplicates under the
-    // supplier's naming â€” which is the actual damage this replaces.
+    // supplier's naming — which is the actual damage this replaces.
     //
     // req.body.line_map: [{ itemCd, action: 'MAP'|'CREATE'|'IGNORE',
     //                       product_sync_id? }]
     // The UI requires a decision per line before enabling Approve, so a
-    // missing entry is a client bug, not a normal state â€” reject rather
+    // missing entry is a client bug, not a normal state — reject rather
     // than silently falling back to the old guessing behaviour.
     const lineMap = new Map(
       (Array.isArray(req.body?.line_map) ? req.body.line_map : [])
@@ -1503,11 +1503,11 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
 
     const kept = decided.filter(d => d.action !== 'IGNORE');
     if (kept.length === 0) {
-      return res.status(400).json({ error: 'All lines were set to Ignore â€” nothing to bring onto a purchase order.' });
+      return res.status(400).json({ error: 'All lines were set to Ignore — nothing to bring onto a purchase order.' });
     }
 
     // Remember the decisions so the next invoice from this supplier
-    // maps itself. CREATE and IGNORE are stored too â€” a deliberate
+    // maps itself. CREATE and IGNORE are stored too — a deliberate
     // "this really is new" or "never import this" should not re-prompt
     // on every delivery.
     try {
@@ -1535,11 +1535,11 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
                      d.action, d.product_sync_id || null, pname, req.user?.id || null);
         }
       })();
-    } catch (_) { /* mapping memory is best-effort â€” never block the approve */ }
+    } catch (_) { /* mapping memory is best-effort — never block the approve */ }
 
     // Resolve each kept line to a product on the DESTINATION branch.
-    // MAP    â†’ the operator's chosen sync_id.
-    // CREATE â†’ fresh sync_id; hqPurchases.js Confirm auto-creates the
+    // MAP    → the operator's chosen sync_id.
+    // CREATE → fresh sync_id; hqPurchases.js Confirm auto-creates the
     //          product from the line snapshot at receive time.
     const matches = kept.map(d => {
       const p = d.action === 'MAP' && d.product_sync_id
@@ -1561,8 +1561,8 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
     const ignoredCount = decided.length - kept.length;
     const unmatchedNames = matches.filter(m => !m.product).map(m => m.it.itemNm || m.it.itemCd).filter(Boolean);
     const matchSummary = `${matchedCount}/${kept.length} mapped at ${destination_slug}`
-      + (ignoredCount ? ` Â· ${ignoredCount} ignored` : '') +
-      (unmatchedNames.length ? ` â€” unmatched: ${unmatchedNames.slice(0, 5).join(', ')}${unmatchedNames.length > 5 ? 'â€¦' : ''}` : '');
+      + (ignoredCount ? ` · ${ignoredCount} ignored` : '') +
+      (unmatchedNames.length ? ` — unmatched: ${unmatchedNames.slice(0, 5).join(', ')}${unmatchedNames.length > 5 ? '…' : ''}` : '');
 
     // Build HQ Purchase line items. Every ZRA line becomes an
     // hq_purchase_items row with status AWAITING_GRN, ready for the
@@ -1571,18 +1571,18 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
     // UUID so the branch's Confirm handler auto-creates the product
     // from the line snapshot (mirrors POST /api/hq/purchases path).
     //
-    // Phase 2 (Â§5.11): also snapshot the ZRA classification data
+    // Phase 2 (§5.11): also snapshot the ZRA classification data
     // (itemCd, itemClsCd, pkgUnitCd, qtyUnitCd, vatCatCd, exciseTxCatCd)
     // so hqPurchases.js Confirm can rebuild the savePurchase +
     // saveStockItems itemList without a second pull from ZRA.
     const clean = matches.map(({ it, product, action, mapped_sync_id, receive_qty, receive_unit }) => {
       const qty  = parseFloat(it.qty) || 0;
       const cost = parseFloat(it.prc) || 0;
-      // 2026-08-26 â€” receive in OUR unit, not the supplier's.
+      // 2026-08-26 — receive in OUR unit, not the supplier's.
       //
       // The supplier invoices in their packaging (20 EA); we may stock
       // the same goods as Box. Previously the raw qty was kept while the
-      // unit silently became ours, so "20 EA" was booked as "20 Box" â€”
+      // unit silently became ours, so "20 EA" was booked as "20 Box" —
       // out by the whole conversion factor, and that wrong figure went
       // to ZRA as well. The operator now states what physically arrived
       // in our own units.
@@ -1591,7 +1591,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
       // supplier's figure (qty x prc, what we actually owe), and unit
       // cost is derived from it so cost x qty still reconciles no matter
       // which unit was chosen.
-      // 2026-08-31 â€” the pulled line carries VAT and a discount; we were
+      // 2026-08-31 — the pulled line carries VAT and a discount; we were
       // dropping both.
       //
       // ZRA's purchase itemList gives prc, taxAmt and dcAmt per line, but only
@@ -1602,7 +1602,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
       //
       // dcAmt / taxAmt are line totals in the supplier's own quantity, which is
       // what we owe regardless of the unit we receive in.
-      // 2026-08-31 â€” `prc` is VAT-INCLUSIVE. Proved against real CHAMBISHI
+      // 2026-08-31 — `prc` is VAT-INCLUSIVE. Proved against real CHAMBISHI
       // pulls, not assumed:
       //
       //     qty 20 x prc 317.00 = 6,340.00
@@ -1611,7 +1611,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
       //     6,340 / 1.16 = 5,465.52
       //
       // So vatAmt is the VAT already CONTAINED in qty x prc, and the ex-VAT
-      // base is taxblAmt â€” not qty x prc. An earlier version of this read prc
+      // base is taxblAmt — not qty x prc. An earlier version of this read prc
       // as the base and ADDED vatAmt, which would have overstated every future
       // ZRA purchase by its own VAT.
       //
@@ -1624,7 +1624,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
       const lineTotal = parseFloat(it.totAmt) || gross;
       // Base is DERIVED from the total, not taken from taxblAmt.
       //
-      // Where ZRA is self-consistent the two are identical â€” CHAMBISHI's
+      // Where ZRA is self-consistent the two are identical — CHAMBISHI's
       // 6,340 - 874.48 gives exactly its taxblAmt of 5,465.52. But some pulls
       // are not: Red Sea's own self-invoices report taxblAmt 56,001.72 and
       // vatAmt 8,960.28, which sum to 64,962 against a totAmt of 62,200.
@@ -1637,10 +1637,10 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
       const recvUnit  = (receive_unit || '').trim() || product?.unit || it.qtyUnitCd || 'pcs';
       const unitCost  = recvQty > 0 ? lineTotal / recvQty : cost;
       // Base per OUR unit, so qty x base_price still equals the invoice's base
-      // after a unit conversion â€” the same anchoring the line total uses.
+      // after a unit conversion — the same anchoring the line total uses.
       const basePerUnit = recvQty > 0 ? baseTotal / recvQty : cost;
       return {
-        // 2026-08-26 â€” honour the operator's mapped sync_id even when the
+        // 2026-08-26 — honour the operator's mapped sync_id even when the
         // branch has no row for it yet (an HQ product that hasn't been
         // pushed to this depot). Minting a fresh UUID there would create
         // a duplicate of the very product they just mapped to; reusing
@@ -1655,13 +1655,13 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
         vat_amount:       +vatAmt.toFixed(4),
         discount_amount:  +discAmt.toFixed(4),
         line_total:       +lineTotal.toFixed(4),
-        // 2026-08-26 â€” when the line is MAPPED to one of our products,
+        // 2026-08-26 — when the line is MAPPED to one of our products,
         // the ZRA classification must be OURS, not the supplier's.
         //
         // it.itemCd is the supplier's code in the SUPPLIER's ZRA
         // namespace (Chambishi's ZM2BGU23755). Storing that here meant
         // Generate GRN later reported a purchase to ZRA under an item
-        // code registered to a different taxpayer â€” rejected at best,
+        // code registered to a different taxpayer — rejected at best,
         // and a purchase booked against an item we do not own at worst.
         //
         // Only an unmapped/CREATE line keeps the supplier's values, and
@@ -1693,7 +1693,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
     const grnDate = raw.salesDt
       ? String(raw.salesDt).replace(/^(\d{4})(\d{2})(\d{2}).*/, '$1-$2-$3')
       : new Date().toISOString().slice(0, 10);
-    // 2026-08-30 â€” link the supplier NOW, not "later".
+    // 2026-08-30 — link the supplier NOW, not "later".
     //
     // This used to write supplier_id: null with the comment "HQ supplier link
     // is a later concern". Later never came: the GRN step matches suppliers by
@@ -1706,10 +1706,10 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
       userId: createdBy,
     });
 
-    const notesText = `Auto-created from ZRA purchase pull #${row.id} â€” ${matchSummary}` +
-      (row.spplr_invc_no ? ` Â· Supplier Invoice ${row.spplr_invc_no}` : '') +
+    const notesText = `Auto-created from ZRA purchase pull #${row.id} — ${matchSummary}` +
+      (row.spplr_invc_no ? ` · Supplier Invoice ${row.spplr_invc_no}` : '') +
       (zraSupplier
-        ? ` Â· Supplier ${zraSupplier.how === 'CREATED' ? 'created' : 'matched'}: ${zraSupplier.name}`
+        ? ` · Supplier ${zraSupplier.how === 'CREATED' ? 'created' : 'matched'}: ${zraSupplier.name}`
         : '');
 
     let newPurchaseId;
@@ -1731,11 +1731,11 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
         grnDate, totalAmount, notesText,
         'K', null,                                  // Kelete is ZMW-only
         createdBy, createdByName,
-        // Phase 2 â€” ZRA cross-reference so hqPurchases.js Confirm knows
+        // Phase 2 — ZRA cross-reference so hqPurchases.js Confirm knows
         // this PO originated from a VSDC pull and should fire the ZRA
         // savePurchase + saveStockItems + saveStockMaster chain on final
         // approval. regTyCd='A' = auto (i.e., approved from an existing
-        // VSDC-supplier invoice, per Â§5.11 spec).
+        // VSDC-supplier invoice, per §5.11 spec).
         row.id, row.spplr_tpin || null, row.spplr_bhf_id || null, 'A'
       );
       newPurchaseId = info.lastInsertRowid;
@@ -1764,7 +1764,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
     })();
 
     // Mark the pending row APPROVED with the linked HQ purchase. From
-    // here it flows through Flow A: branch submits GRN â†’ HQ confirms â†’
+    // here it flows through Flow A: branch submits GRN → HQ confirms →
     // stock bumps at branch. ZRA calls (savePurchase + saveStockItems +
     // saveStockMaster) fire at HQ Confirm (deferred).
     db.prepare(`UPDATE zra_pending_purchases
@@ -1807,22 +1807,22 @@ router.post('/purchases/:id/reject', auth, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// â”€â”€â”€ Item registry reconciliation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Item registry reconciliation ───────────────────────────────────────
 //
 // POST /api/zra/items/reconcile
 // Pull the full items list from VSDC and compare against the local
 // products table (matching on zra_item_cd). Returns:
 //   { total_on_zra, matched, missing_locally, missing_on_zra, tax_mismatches:[{ ... }] }
-// Nothing is auto-fixed â€” this is a read-only reconciliation. Ops
+// Nothing is auto-fixed — this is a read-only reconciliation. Ops
 // decide whether to bulk-retry saveItem for missing_on_zra rows, or
 // investigate mismatches (usually a category-code correction on our side).
 router.post('/items/reconcile', auth, async (req, res) => {
   try {
     const endpoint = '/items/selectItems';
-    // 2026-08-26 â€” same defect as /stock/reconcile had: this defaulted to
+    // 2026-08-26 — same defect as /stock/reconcile had: this defaulted to
     // an INCREMENTAL pull and then bumped sync state on every click, so
     // the next click asked "what changed since seconds ago", got nothing,
-    // and the page reported "ZRA: 0 Â· Matched: 0 Â· Missing on ZRA: 67" â€”
+    // and the page reported "ZRA: 0 · Matched: 0 · Missing on ZRA: 67" —
     // which reads as "ZRA has none of our items" when it actually means
     // "we asked ZRA the wrong question". A registry COMPARISON needs
     // ZRA's whole catalogue; a delta is meaningless here by construction.
@@ -1840,7 +1840,7 @@ router.post('/items/reconcile', auth, async (req, res) => {
       if (it.itemCd) zraByCd.set(String(it.itemCd), it);
     }
     // Pull the local products that HAVE been pushed (zra_item_cd is set).
-    // If zra_item_cd is null the product was never pushed â€” that's a
+    // If zra_item_cd is null the product was never pushed — that's a
     // different problem (surface it separately as "unregistered locally").
     const localRows = db.prepare(
       `SELECT id, name, code, zra_item_cd, zra_item_cls_cd, zra_vat_cat_cd, zra_registered_at
@@ -1852,12 +1852,12 @@ router.post('/items/reconcile', auth, async (req, res) => {
     const matched = [];
     const unregistered = [];
     for (const p of localRows) {
-      // 2026-08-26 â€” was `if (!p.zra_item_cd) â†’ unregistered`. That is
+      // 2026-08-26 — was `if (!p.zra_item_cd) → unregistered`. That is
       // wrong: only the ORIGINAL catalogue got zra_item_cd from the
       // one-time ZM-code backfill. Products created since are registered
       // with ZRA under products.code (saveItem sends
       // `zra_item_cd || code`), so this reported perfectly-registered
-      // items as "never pushed" â€” a false alarm that sent us chasing a
+      // items as "never pushed" — a false alarm that sent us chasing a
       // registration gap that did not exist.
       //
       // Registration status now comes from zra_registered_at, which
@@ -1873,7 +1873,7 @@ router.post('/items/reconcile', auth, async (req, res) => {
         missingOnZra.push({ id: p.id, name: p.name, itemCd, registered_at: p.zra_registered_at });
         continue;
       }
-      // Match â€” check for tax-category drift. ZRA uses `taxTyCd` for the
+      // Match — check for tax-category drift. ZRA uses `taxTyCd` for the
       // VAT category on the selectItems response; local column is
       // zra_vat_cat_cd. Class-code drift (zra_item_cls_cd vs itemClsCd)
       // is the other frequent culprit.
@@ -1893,13 +1893,13 @@ router.post('/items/reconcile', auth, async (req, res) => {
       }
       zraByCd.delete(String(itemCd));
     }
-    // Whatever's left in zraByCd exists on ZRA but not in our local DB â€”
+    // Whatever's left in zraByCd exists on ZRA but not in our local DB —
     // usually items registered from a different device or bhfId, worth
     // showing so the operator can investigate.
     const missingLocally = Array.from(zraByCd.values()).map(z => ({
       itemCd: z.itemCd, itemNm: z.itemNm, taxTyCd: z.taxTyCd || z.vatCatCd,
     }));
-    // Deliberately NOT bumping sync state â€” this is a read-only
+    // Deliberately NOT bumping sync state — this is a read-only
     // diagnostic, not a sync. Advancing last_req_dt made every
     // subsequent check pull an empty delta (see comment above).
     res.json({
@@ -1924,9 +1924,9 @@ router.post('/items/reconcile', auth, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ Single item lookup (support/debug) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Single item lookup (support/debug) ─────────────────────────────────
 //
-// GET /api/zra/items/:itemCd â€” pull ONE item straight from VSDC.
+// GET /api/zra/items/:itemCd — pull ONE item straight from VSDC.
 // Handy when a specific product fails at sale time and support wants to
 // see what tax type / class code ZRA has for it, without going through
 // the full reconciliation report.
@@ -1939,16 +1939,16 @@ router.get('/items/:itemCd', auth, readOnlyGuard, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// â”€â”€â”€ Manufacturer RRP sync (MTV Category B accuracy) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Manufacturer RRP sync (MTV Category B accuracy) ───────────────────
 //
 // POST /api/zra/rrp/sync
 // Pull the latest RRPs from VSDC and merge into products.zra_rrp by
 // matching on zra_item_cd. Any local product whose itemCd is in the
 // response gets its RRP updated. Products we don't sell (RRPs for
-// items not in our catalogue) are ignored â€” no error, no orphan rows.
+// items not in our catalogue) are ignored — no error, no orphan rows.
 //
 // Business context: for MTV Category B goods (beer, spirits, cigarettes,
-// sugar, oil, soft drinks) VAT = max(actual net, RRP Ã— qty) Ã— 16/116.
+// sugar, oil, soft drinks) VAT = max(actual net, RRP × qty) × 16/116.
 // Manufacturers change RRPs periodically; without this sync we'd
 // under-declare VAT on any post-RRP-change sale until someone
 // manually updated products.zra_rrp. Recommended to schedule daily.
@@ -1963,16 +1963,16 @@ router.post('/rrp/sync', auth, async (req, res) => {
       return res.status(502).json({ error: result.error, resultCd: result.resultCd });
     }
     const rrpList = result.rrpList || [];
-    // v1.13.149 â€” match on COALESCE(zra_item_cd, code), same fallback
+    // v1.13.149 — match on COALESCE(zra_item_cd, code), same fallback
     // vsdcClient.saveItem uses when building itemCd for registration
     // (`product.zra_item_cd || product.code`). New products never get
     // zra_item_cd auto-generated (no code path sets it), so they
-    // register under their plain `code` â€” matching only on zra_item_cd
+    // register under their plain `code` — matching only on zra_item_cd
     // silently failed to update RRP for every such product, including
     // the very item Sirak just registered live during UAT-2 T04A
     // testing (T04A-TEST-01).
     const updateStmt = db.prepare(
-      // 2026-09-02 â€” zra_mfr_item_cd first. ZRA keys RRPs by the
+      // 2026-09-02 — zra_mfr_item_cd first. ZRA keys RRPs by the
       // manufacturer's item code, which is why this matched 0 of 580.
       // NULL for every product until the mapping is filled, so the
       // COALESCE falls through to today's behaviour meanwhile.
@@ -2005,19 +2005,19 @@ router.post('/rrp/sync', auth, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ Stock reconciliation pull â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Stock reconciliation pull ─────────────────────────────────────────
 //
 // POST /api/zra/stock/reconcile
 // Pull ZRA's stock ledger and compare against local products.current_stock.
 // Returns per-item deltas > tolerance so the operator can investigate any
 // drift before it becomes a "missing stock = unrecorded sales" tax
-// assessment. Read-only â€” no auto-correction.
+// assessment. Read-only — no auto-correction.
 router.post('/stock/reconcile', auth, async (req, res) => {
   try {
     const endpoint = '/stock/selectStockItems';
-    // 2026-08-26 â€” was defaulting to lastReqDtFor() (incremental). Two
+    // 2026-08-26 — was defaulting to lastReqDtFor() (incremental). Two
     // problems with that here: (1) a drift COMPARISON is meaningless
-    // against a delta â€” you need ZRA's whole current picture to compare
+    // against a delta — you need ZRA's whole current picture to compare
     // local stock against; (2) the bumpSyncState('000') below stored
     // "now" on every click, so the NEXT click asked "what changed in the
     // last few seconds" and got nothing. That self-poisoning loop is why
@@ -2031,7 +2031,7 @@ router.post('/stock/reconcile', auth, async (req, res) => {
       vsdc.bumpSyncState(endpoint, result.resultCd || 'ERR', result.error);
       return res.status(502).json({ error: result.error, resultCd: result.resultCd });
     }
-    // 2026-08-26 â€” Corrected against a REAL sandbox response (captured in
+    // 2026-08-26 — Corrected against a REAL sandbox response (captured in
     // the audit log; the spec's own response table for this endpoint is a
     // copy-paste of the Import Item response and cannot be trusted).
     //
@@ -2052,7 +2052,7 @@ router.post('/stock/reconcile', auth, async (req, res) => {
     //      was asking a question this endpoint cannot answer.
     //
     // Residual stock is something we PUSH (saveStockMaster rsdQty) and can
-    // only be read back from the portal's Stock Inventory page â€” there is
+    // only be read back from the portal's Stock Inventory page — there is
     // no select* counterpart for it. So this diagnostic now reports what
     // ZRA's movement ledger actually holds per item, and no longer
     // pretends to compute a residual drift.
@@ -2068,10 +2068,10 @@ router.post('/stock/reconcile', auth, async (req, res) => {
         zraRecsByCd.set(cd, (zraRecsByCd.get(cd) || 0) + 1);
       }
     }
-    // 2026-08-26 â€” was `AND zra_item_cd IS NOT NULL`, which silently
+    // 2026-08-26 — was `AND zra_item_cd IS NOT NULL`, which silently
     // excluded every product created after the one-time ZM-code backfill
     // (they carry only products.code). Those items could never be
-    // reported as drifted because they were never looked at â€” the exact
+    // reported as drifted because they were never looked at — the exact
     // blind spot that let a GRN go unreported to ZRA unnoticed. Select
     // `code` too and resolve via vsdc.itemCodeFor, matching the send path.
     const localRows = db.prepare(
@@ -2080,8 +2080,8 @@ router.post('/stock/reconcile', auth, async (req, res) => {
         WHERE deleted_at IS NULL AND COALESCE(zra_item_cd, code) IS NOT NULL`
     ).all();
     // Report per item: local current_stock alongside the movement volume
-    // ZRA has on file. NOTE these are different units of meaning â€” a
-    // residual vs a sum of movements â€” so this is presented for
+    // ZRA has on file. NOTE these are different units of meaning — a
+    // residual vs a sum of movements — so this is presented for
     // investigation, never auto-corrected.
     const drifts = [];
     for (const p of localRows) {
@@ -2099,7 +2099,7 @@ router.post('/stock/reconcile', auth, async (req, res) => {
         });
       }
     }
-    // Deliberately NOT bumping sync state here â€” this is a read-only
+    // Deliberately NOT bumping sync state here — this is a read-only
     // diagnostic, not a sync. Advancing last_req_dt made every
     // subsequent check pull an empty delta (see comment above).
     res.json({
@@ -2119,18 +2119,18 @@ router.post('/stock/reconcile', auth, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ Stock reconciliation â€” apply correction (DISABLED) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Stock reconciliation — apply correction (DISABLED) ────────────────
 //
 // POST /api/zra/stock/reconcile/apply
 //
-// 2026-08-26 â€” DISABLED after verifying a real sandbox response.
+// 2026-08-26 — DISABLED after verifying a real sandbox response.
 //
 // This endpoint was written on the assumption that
 // /stock/selectStockItems returns a per-item RESIDUAL quantity (rsdQty),
 // so that local products.current_stock minus ZRA rsdQty would yield a
 // correctable drift. A captured live response proved that wrong: the
-// endpoint returns the MOVEMENT LEDGER â€” stockList[] of movement records,
-// each with a nested itemList[] carrying per-movement qty â€” and contains
+// endpoint returns the MOVEMENT LEDGER — stockList[] of movement records,
+// each with a nested itemList[] carrying per-movement qty — and contains
 // no rsdQty field at all.
 //
 // That means the delta this endpoint computed was derived from
@@ -2141,7 +2141,7 @@ router.post('/stock/reconcile', auth, async (req, res) => {
 // catalogue. It is left disabled rather than deleted so the reasoning
 // survives with the code.
 //
-// Residual stock is push-only (saveStockMaster rsdQty) â€” there is no
+// Residual stock is push-only (saveStockMaster rsdQty) — there is no
 // select* counterpart to read it back, so a genuine residual
 // reconciliation cannot be built on this endpoint. Any future correction
 // must be driven from ZRA's movement ledger vs our own stock_movements
@@ -2153,30 +2153,30 @@ router.post('/stock/reconcile/apply', auth, async (req, res) => {
   });
 });
 
-// â”€â”€â”€ Import declarations queue (Â§5.8 T05A) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Import declarations queue (§5.8 T05A) ─────────────────────────────
 //
-// 2026-08-26 â€” Rebuilt to mirror the ZRA Purchase Queue (T06A) above,
+// 2026-08-26 — Rebuilt to mirror the ZRA Purchase Queue (T06A) above,
 // per user request, so both ZRA-sourced inbound flows behave identically:
 //
-//   1. POST /api/zra/imports/pull        â€” fetch declarations from
+//   1. POST /api/zra/imports/pull        — fetch declarations from
 //      /imports/selectImportItems, upsert into zra_pending_imports
 //      (dedup on taskCd + dclNo + itemSeq). Status NEW.
-//   2. GET  /api/zra/imports             â€” list rows, filterable by ?status=.
-//   3. GET  /api/zra/imports/:id         â€” single row + parsed raw_json.
-//   4. POST /api/zra/imports/:id/approve â€” transmit approval to ZRA, then
+//   2. GET  /api/zra/imports             — list rows, filterable by ?status=.
+//   3. GET  /api/zra/imports/:id         — single row + parsed raw_json.
+//   4. POST /api/zra/imports/:id/approve — transmit approval to ZRA, then
 //      create an HQ Purchase for the destination branch. Stock does NOT
 //      move here.
-//   5. POST /api/zra/imports/:id/reject  â€” transmit rejection to ZRA and
+//   5. POST /api/zra/imports/:id/reject  — transmit rejection to ZRA and
 //      mark the row locally.
 //
 // TWO deliberate differences from the purchase queue, both forced by spec:
 //
 //   * BOTH decisions hit ZRA. /imports/updateImportItems must be called
-//     with imptItemSttsCd '3' (approved) or '4' (rejected) â€” ZRA is
+//     with imptItemSttsCd '3' (approved) or '4' (rejected) — ZRA is
 //     waiting on our answer for an import declaration. A purchase-queue
 //     reject is local-only because ZRA already holds the supplier's side.
 //   * QUANTITY IS EDITABLE. T05A Test Procedure step 3 ("the user updates
-//     the quantities accordingly") â€” the declared customs qty may differ
+//     the quantities accordingly") — the declared customs qty may differ
 //     from what physically arrived, so approve accepts an approved_qty
 //     and the HQ Purchase is built from THAT, not the declared figure.
 //
@@ -2186,7 +2186,7 @@ router.post('/stock/reconcile/apply', auth, async (req, res) => {
 // receipt and HQ generates the GRN (which is where savePurchase +
 // saveStockItems + saveStockMaster fire).
 //
-// Red Sea sources 100% locally, so this realistically stays empty â€” but
+// Red Sea sources 100% locally, so this realistically stays empty — but
 // the endpoints are MANDATORY per spec and must be provably callable.
 router.post('/imports/pull', auth, async (req, res) => {
   try {
@@ -2194,7 +2194,7 @@ router.post('/imports/pull', auth, async (req, res) => {
     if (!proxy.ok) return res.status(400).json({ error: proxy.reason });
     return await proxy.run(async () => {
       const endpoint = '/imports/selectImportItems';
-      // Full pull by default â€” same reasoning as the reconcile
+      // Full pull by default — same reasoning as the reconcile
       // diagnostics: an incremental delta plus a sync-state bump makes
       // every subsequent pull return nothing.
       const lastReqDt = req.body?.full === false ? vsdc.lastReqDtFor(endpoint) : vsdc.EPOCH_REQ_DT;
@@ -2244,7 +2244,7 @@ router.post('/imports/pull', auth, async (req, res) => {
   }
 });
 
-// List â€” mirrors GET /api/zra/purchases.
+// List — mirrors GET /api/zra/purchases.
 router.get('/imports', auth, readOnlyGuard, async (req, res) => {
   try {
     const proxy = await resolveHqZraProxy(req);
@@ -2278,7 +2278,7 @@ router.get('/imports/:id', auth, readOnlyGuard, async (req, res) => {
 });
 
 // Shared by approve + reject: transmit the decision to ZRA.
-// imptItemSttsCd per spec Â§5.8 â€” '3' approved, '4' rejected.
+// imptItemSttsCd per spec §5.8 — '3' approved, '4' rejected.
 async function transmitImportDecision(tenantId, row, decision, actor) {
   return vsdc.updateImportItems(tenantId, {
     taskCd: row.task_cd,
@@ -2310,7 +2310,7 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
         return res.status(400).json({ error: `Destination "${destination_slug}" is not a registered branch` });
       }
 
-      // T05A step 3 â€” the operator may correct the declared quantity to
+      // T05A step 3 — the operator may correct the declared quantity to
       // what actually arrived. Falls back to the declared figure.
       const approvedQty = req.body?.approved_qty != null
         ? parseFloat(req.body.approved_qty)
@@ -2331,7 +2331,7 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
       })();
 
       // Transmit to ZRA FIRST. Unlike the purchase queue (where approval
-      // is purely internal until GRN), ZRA is blocking on this answer â€”
+      // is purely internal until GRN), ZRA is blocking on this answer —
       // so if it fails there is nothing to record locally either.
       const updateRes = await transmitImportDecision(proxy.tenantId, row, 'approve', req.user?.id);
       if (updateRes.skipped) return res.status(400).json({ error: `ZRA call skipped: ${updateRes.reason}` });
@@ -2341,7 +2341,7 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
         return res.status(502).json({ error: updateRes.error, resultCd: updateRes.resultCd });
       }
 
-      // Match to a product on the DESTINATION branch â€” same rules as the
+      // Match to a product on the DESTINATION branch — same rules as the
       // purchase queue: itemCd first, then name. An unmatched line still
       // proceeds on a fresh sync_id; hqPurchases.js Confirm auto-creates
       // the product from the line snapshot at receive time.
@@ -2361,12 +2361,12 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
       }
       const matchSummary = product
         ? `matched "${product.name}" at ${destination_slug}`
-        : `no local match at ${destination_slug} â€” will be auto-created on receipt`;
+        : `no local match at ${destination_slug} — will be auto-created on receipt`;
 
       // Unit cost from the customs value where available. invcFcurAmt is
       // a FOREIGN-currency total for the line, so convert with the
       // declared rate and divide by qty. Where the declaration carries no
-      // usable value we leave 0 rather than invent one â€” the branch
+      // usable value we leave 0 rather than invent one — the branch
       // enters the real landed cost at GRN, which is what feeds WAC.
       const fcurAmt = parseFloat(row.invc_fcur_amt) || 0;
       const fcurRate = parseFloat(row.invc_fcur_excrt) || 0;
@@ -2388,9 +2388,9 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
         ? String(row.dcl_de).replace(/^(\d{4})(\d{2})(\d{2}).*/, '$1-$2-$3')
         : new Date().toISOString().slice(0, 10);
       const lineTotal = +(approvedQty * unitCost).toFixed(4);
-      const notesText = `Auto-created from ZRA import declaration ${row.dcl_no || 'â€”'} `
-        + `(task ${row.task_cd || 'â€”'}, item ${row.item_seq}) â€” ${matchSummary}`
-        + (approvedQty !== declaredQty ? ` Â· qty adjusted ${declaredQty} â†’ ${approvedQty}` : '');
+      const notesText = `Auto-created from ZRA import declaration ${row.dcl_no || '—'} `
+        + `(task ${row.task_cd || '—'}, item ${row.item_seq}) — ${matchSummary}`
+        + (approvedQty !== declaredQty ? ` · qty adjusted ${declaredQty} → ${approvedQty}` : '');
       let newPurchaseId = null;
       masterDb.transaction(() => {
         const info = masterDb.prepare(`
@@ -2410,7 +2410,7 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
           req.user?.id || null, req.user?.firstName || req.user?.email || 'HQ',
           // zra_reg_ty_cd left NULL deliberately. On the purchase queue
           // 'A' tells hqGrns.js to fire /trnsPurchase/savePurchase at GRN
-          // time â€” but an import is NOT a domestic supplier purchase and
+          // time — but an import is NOT a domestic supplier purchase and
           // ZRA already holds the declaration, so sending savePurchase
           // here would misreport it. Per the spec's own dependency note
           // an approved import should chain saveStockItems +
@@ -2419,7 +2419,7 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
           // exercised (Red Sea sources 100% locally, ZRA returns no
           // declarations), so it is left explicitly undefined rather
           // than guessed at. Define it with real data before relying on
-          // it â€” see the T05A notes above.
+          // it — see the T05A notes above.
           null, null, null, null
         );
         newPurchaseId = info.lastInsertRowid;
@@ -2438,8 +2438,8 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
           row.item_nm || row.item_cd || 'Imported item',
           product?.unit || row.qty_unit_cd || null,
           approvedQty, unitCost, null, lineTotal,
-          // An import declaration carries no VAT or discount line â€” duty and
-          // VAT are settled separately with customs â€” so base is the cost and
+          // An import declaration carries no VAT or discount line — duty and
+          // VAT are settled separately with customs — so base is the cost and
           // the other two are genuinely zero rather than unknown.
           unitCost, 0, 0,
           destination_slug, destName,
@@ -2483,7 +2483,7 @@ router.post('/imports/:id/reject', auth, async (req, res) => {
       if (row.status !== 'NEW') return res.status(400).json({ error: `Row is ${row.status}, not NEW` });
       const reason = (req.body?.reason || '').trim() || null;
 
-      // Unlike the purchase queue, a reject MUST reach ZRA â€” the
+      // Unlike the purchase queue, a reject MUST reach ZRA — the
       // declaration stays pending on their side until we answer.
       const updateRes = await transmitImportDecision(proxy.tenantId, row, 'reject', req.user?.id);
       if (updateRes.skipped) return res.status(400).json({ error: `ZRA call skipped: ${updateRes.reason}` });
@@ -2505,9 +2505,9 @@ router.post('/imports/:id/reject', auth, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message, resultCd: error.resultCd }); }
 });
 
-// â”€â”€â”€ Branch list pull â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Branch list pull ──────────────────────────────────────────────────
 //
-// GET /api/zra/branches â€” pull the branch office list ZRA has for our
+// GET /api/zra/branches — pull the branch office list ZRA has for our
 // TPIN. Handy when opening a new branch: retrieve the ZRA-issued bhfId
 // so it can be entered into business_settings.zra_bhf_id on the new
 // depot's Kelete instance. Read-only.
@@ -2520,15 +2520,15 @@ router.get('/branches', auth, readOnlyGuard, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// â”€â”€â”€ Invoice recovery lookup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Invoice recovery lookup ────────────────────────────────────────────
 //
 // GET /api/zra/invoices/:invcNo
 // Query VSDC's /trnsSales/selectInvoice to check whether a sale invoice
 // number (allocated locally, then sent to VSDC via saveSales) is present
 // on ZRA's side. Used two ways:
-//   1. Reconciliation UI â€” operator can look up any invoice to confirm
+//   1. Reconciliation UI — operator can look up any invoice to confirm
 //      its fiscal state without digging through zra_audit_log.
-//   2. Retry-loop guard â€” before re-sending a failed/timed-out saveSales,
+//   2. Retry-loop guard — before re-sending a failed/timed-out saveSales,
 //      the retry queue calls this first so we don't create a duplicate
 //      when the first call actually landed on ZRA's side after the
 //      response was lost.
@@ -2545,7 +2545,7 @@ router.get('/invoices/:invcNo', auth, readOnlyGuard, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// â”€â”€â”€ Customer TPIN lookup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Customer TPIN lookup ───────────────────────────────────────────────
 //
 // GET /api/zra/customer-lookup/:tpin
 // Called from the POS Pay modal when the cashier types a buyer's TPIN.
@@ -2558,12 +2558,12 @@ router.get('/customer-lookup/:tpin', auth, readOnlyGuard, async (req, res) => {
     const tpin = String(req.params.tpin || '').trim();
     const result = await vsdc.selectCustomer(req.user.tenantId, tpin);
 
-    // v1.13.157 â€” merge with our own customers table on EVERY lookup,
+    // v1.13.157 — merge with our own customers table on EVERY lookup,
     // not just when ZRA is disabled. ZRA's own customer registry is
-    // often thin (many TPINs have a name on file but no address) â€” a
+    // often thin (many TPINs have a name on file but no address) — a
     // buyer we've sold to before locally may have an address ZRA never
     // captured. ZRA's field wins when both sources have a value;
-    // ours fills in whatever ZRA leaves blank. Read-only â€” never
+    // ours fills in whatever ZRA leaves blank. Read-only — never
     // writes here (persistence happens at order-create time instead,
     // see routes/orders.js).
     let local = null;
@@ -2583,15 +2583,15 @@ router.get('/customer-lookup/:tpin', auth, readOnlyGuard, async (req, res) => {
       return res.json(result);
     }
     if (!result.ok) {
-      // 2026-09-03 â€” production VSDC refuses the whole select* family with
+      // 2026-09-03 — production VSDC refuses the whole select* family with
       // 901 "It is not valid device", so this lookup now fails for every
       // branch. A failed lookup must not strand the cashier: fall back to
       // our own customers table exactly as the `skipped` path above does.
       //
       // When we have nothing locally either, say the lookup was
       // UNAVAILABLE rather than returning an error the UI renders as
-      // "TPIN not registered". Those two mean different things â€” one is
-      // the buyer's problem, the other is ours â€” and conflating them puts
+      // "TPIN not registered". Those two mean different things — one is
+      // the buyer's problem, the other is ours — and conflating them puts
       // a false claim about the buyer's tax status on the cashier's screen.
       if (local) {
         return res.json({
@@ -2606,7 +2606,7 @@ router.get('/customer-lookup/:tpin', auth, readOnlyGuard, async (req, res) => {
     }
 
     if (!result.exists) {
-      // ZRA has never heard of this TPIN â€” fall back entirely to our
+      // ZRA has never heard of this TPIN — fall back entirely to our
       // own record if we have one (e.g. a customer we registered
       // ourselves that hasn't been pushed to ZRA yet).
       if (local) {
@@ -2618,7 +2618,7 @@ router.get('/customer-lookup/:tpin', auth, readOnlyGuard, async (req, res) => {
       return res.json({ tpin, exists: false, customer: null });
     }
 
-    // ZRA found the TPIN â€” merge, ZRA's field wins per-attribute.
+    // ZRA found the TPIN — merge, ZRA's field wins per-attribute.
     const merged = {
       name:    result.customer.name    || local?.name    || '',
       address: result.customer.address || local?.address || '',
@@ -2629,11 +2629,11 @@ router.get('/customer-lookup/:tpin', auth, readOnlyGuard, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// v1.13.144 â€” legacy /audit-log removed here (returned no bodies and
+// v1.13.144 — legacy /audit-log removed here (returned no bodies and
 // won the Express route match against the v1.13.144 handler below).
 // The comprehensive version follows.
 
-// v1.13.144 â€” In-app ZRA audit log viewer for UAT / ops. Reviewer can
+// v1.13.144 — In-app ZRA audit log viewer for UAT / ops. Reviewer can
 // see every VSDC request+response without SSHing to the VPS. Filters:
 //   ?endpoint=/trnsSales/saveSales   (exact match)
 //   ?result_cd=000                   (exact match; use 'error' to catch !='000')
@@ -2660,7 +2660,7 @@ router.get('/audit-log', auth, readOnlyGuard, (req, res) => {
     const rows = db.prepare(`
       SELECT id, endpoint, result_cd, result_msg, http_status, duration_ms,
              cis_invc_no, request_body, response_body,
-             -- 2026-08-28 â€” return the RAW timestamp and let the browser do
+             -- 2026-08-28 — return the RAW timestamp and let the browser do
              -- the one and only conversion. Sending ONLY the 'localtime'
              -- version double-shifted every row: SQLite turned UTC into
              -- local and dropped the marker, then the viewer saw a bare
@@ -2676,7 +2676,7 @@ router.get('/audit-log', auth, readOnlyGuard, (req, res) => {
        LIMIT ? OFFSET ?
     `).all(...params, limit, offset);
     const total = db.prepare(`SELECT COUNT(*) AS n FROM zra_audit_log WHERE ${where.join(' AND ')}`).get(...params).n;
-    // Distinct endpoints for the filter dropdown â€” capped at 200.
+    // Distinct endpoints for the filter dropdown — capped at 200.
     const endpoints = db.prepare(`SELECT DISTINCT endpoint FROM zra_audit_log ORDER BY endpoint LIMIT 200`).all().map(r => r.endpoint);
     res.json({ rows, total, endpoints, limit, offset });
   } catch (error) {

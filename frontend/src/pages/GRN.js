@@ -20,13 +20,13 @@ const emptyItem = () => ({
 });
 const todayStr = new Date().toISOString().split('T')[0];
 
-// â”€â”€ Row is "complete" when product, quantity > 0, and unit price are all filled â”€â”€
+// ── Row is "complete" when product, quantity > 0, and unit price are all filled ──
 const isRowComplete = (row) =>
   row.product_id !== '' &&
   row.quantity !== '' && parseFloat(row.quantity) > 0 &&
   row.unit_price !== '';
 
-// â”€â”€ Credit Note helpers (mirror /accounting/credit-notes) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Credit Note helpers (mirror /accounting/credit-notes) ──────────────
 const CN_REASON_HAS_ITEMS = (r) => r === 'Crate Return' || r === 'Goods Return';
 const cnReasonStyle = (r) => {
   switch (r) {
@@ -61,16 +61,16 @@ const cnProductUnitValue = (p, defaultDep, reason, conv = 1) => {
   return avg > 0 ? (avg * c).toFixed(2) : '';
 };
 
-// â”€â”€ Payment status badge style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Payment status badge style ────────────────────────────────────────────
 // Used only for legacy / standalone GRNs (no HQ link). HQ-linked GRNs in
-// Kelete don't carry AP at the branch â€” HQ pays â€” so they use hqStatusBadge.
+// Kelete don't carry AP at the branch — HQ pays — so they use hqStatusBadge.
 const paymentStatusStyle = (status) => {
   if (status === 'Paid')           return { bg: '#dcfce7', color: '#166534', border: '#86efac' };
   if (status === 'Partially Paid') return { bg: '#fef9c3', color: '#854d0e', border: '#fcd34d' };
   return                                  { bg: '#fee2e2', color: '#991b1b', border: '#fca5a5' }; // Not Paid
 };
 
-// v1.9.21 â€” HQ-linked GRN lifecycle badge. Replaces the legacy "Not Paid"
+// v1.9.21 — HQ-linked GRN lifecycle badge. Replaces the legacy "Not Paid"
 // pill on the branch GRN view: Kelete branches no longer hold AP, so what
 // the user actually needs to see is whether HQ has approved the GRN yet.
 const hqStatusBadge = (s) => {
@@ -98,7 +98,7 @@ const GRN = () => {
   const { t } = useLanguage();
   const { hasPermission, user: authUser } = useAuth();
   const { symbol: curSym, money } = useCurrency();
-  // v1.10.113 â€” each GRN row carries its own cost_currency ($/K/FRA),
+  // v1.10.113 — each GRN row carries its own cost_currency ($/K/FRA),
   // because Kelete HQ books GRNs against suppliers with different native
   // currencies (MATUIDA in USD, HENIKEN in K, etc.). Use the row's own
   // currency for its amount display instead of the tenant-wide curSym.
@@ -107,7 +107,7 @@ const GRN = () => {
     return u === 'K' ? 'K' : u === 'FRA' ? '' : u === 'USD' ? '$' : curSym;
   };
   const suffixForCcy = (c) => String(c || '').toUpperCase() === 'FRA' ? ' FRA' : '';
-  // v1.10.113 â€” currency-aware money formatter that reads viewGRN's own
+  // v1.10.113 — currency-aware money formatter that reads viewGRN's own
   // cost_currency instead of the tenant-wide money() from useCurrency.
   // Used throughout the detail-view modal (desktop + mobile).
   const isMobile = useIsMobile();
@@ -123,7 +123,7 @@ const GRN = () => {
   const [editId, setEditId]       = useState(null);
   const [editLoading, setEditLoading] = useState(false);
   const [viewGRN, setViewGRN]           = useState(null);
-  // v1.10.113 â€” viewGrn-scoped money formatter. Reads viewGRN?.cost_currency
+  // v1.10.113 — viewGrn-scoped money formatter. Reads viewGRN?.cost_currency
   // to pick the right symbol. Falls back to tenant money() before viewGRN
   // is set (should never render, but keeps the function safe to call).
   const viewMoney = (v) => {
@@ -140,17 +140,17 @@ const GRN = () => {
   const notesRef = useRef(null);
   const [recentProducts, setRecentProducts] = useState([]);
 
-  // â”€â”€ List date filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── List date filter ──────────────────────────────────────────────
   const [filterFrom, setFilterFrom] = useState(todayStr);
   const [filterTo,   setFilterTo]   = useState(todayStr);
 
-  // â”€â”€ Print preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Print preview ─────────────────────────────────────────────────
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const [businessInfo, setBusinessInfo]         = useState({});
   const [printItemsMap, setPrintItemsMap]       = useState({});
   const [printItemsLoading, setPrintItemsLoading] = useState(false);
 
-  // â”€â”€ Product Received Report â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Product Received Report ────────────────────────────────────────
   const [showReport, setShowReport]           = useState(false);
   const [reportFrom, setReportFrom]           = useState('');
   const [reportTo, setReportTo]               = useState(todayStr);
@@ -166,22 +166,22 @@ const GRN = () => {
   const reportSearchRef = useRef(null);
   const reportDropdownRef = useRef(null);
 
-  // â”€â”€ New GRN form state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── New GRN form state ────────────────────────────────────────────
   const [supplierId, setSupplierId] = useState('');
   const [date, setDate]             = useState(todayStr);
   const [notes, setNotes]           = useState('');
   const [items, setItems]           = useState([emptyItem()]);
   const [invoiceAttachment, setInvoiceAttachment] = useState(null); // relative path under uploads/
-  // v1.9.7 â€” when the GRN form is opened via IncomingStock "Accept &
+  // v1.9.7 — when the GRN form is opened via IncomingStock "Accept &
   // Generate GRN", these carry the parent PO context. Saving with these
   // set switches the GRN into PENDING_HQ_CONFIRM mode (no stock posted
   // until HQ confirms; supplier AP also deferred).
   const [linkedPurchaseSyncId, setLinkedPurchaseSyncId] = useState(null);
   const [linkedPurchaseNumber, setLinkedPurchaseNumber] = useState(null);
-  // v1.9.12 â€” supplier's printed invoice number, mandatory on HQ-linked
+  // v1.9.12 — supplier's printed invoice number, mandatory on HQ-linked
   // GRNs. Surfaced as its own input next to the date.
   const [supplierInvoiceNumber, setSupplierInvoiceNumber] = useState('');
-  // v1.9.17 â€” inline credit notes attached to this GRN. Each entry is
+  // v1.9.17 — inline credit notes attached to this GRN. Each entry is
   // { reason, amount, notes, items? } and persists as a supplier_credit_notes
   // row (+ supplier_credit_note_items for Crate/Goods Return) with grn_sync_id
   // linking back. Active only when this GRN is linked to a HQ PO.
@@ -199,7 +199,7 @@ const GRN = () => {
   const cnCountByReason = (r) => creditNotes.filter(c => c.reason === r).length;
   const cnSumByReason   = (r) => creditNotes.filter(c => c.reason === r).reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
 
-  // â”€â”€ Product autocomplete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Product autocomplete ──────────────────────────────────────────
   const [openDropdownIdx, setOpenDropdownIdx] = useState(-1);
   const [dropdownRect, setDropdownRect] = useState(null);
   const [highlightedIdx, setHighlightedIdx] = useState(-1);
@@ -210,7 +210,7 @@ const GRN = () => {
   // Mobile scroll-lock pattern. On mobile WebView (Capacitor + Android Chrome)
   // the outer scrolling container is .page-content, not body. When a
   // full-screen modal opens with position:fixed, the modal pins to the layout
-  // viewport but the user's eyes are looking at a scrolled .page-content â€” so
+  // viewport but the user's eyes are looking at a scrolled .page-content — so
   // the modal appears "above" the visible area and they have to scroll to find
   // it. Locking .page-content scroll + saving scrollTop while a modal is open
   // keeps the visual viewport aligned with the layout viewport. On close we
@@ -262,11 +262,11 @@ const GRN = () => {
     } catch (err) { /* use defaults */ }
   };
 
-  // v1.9.7 â€” when navigated from IncomingStock "Accept & Generate GRN",
+  // v1.9.7 — when navigated from IncomingStock "Accept & Generate GRN",
   // the URL carries the parent PO sync_id + number + supplier_id. Auto-
   // open the form, drop the PO# into Notes, lock the supplier, and stash
   // the linked_purchase_sync_id for the eventual save.
-  // v1.9.18 â€” also stash the supplier name from the URL so we can resolve
+  // v1.9.18 — also stash the supplier name from the URL so we can resolve
   // the local supplier once the suppliers list has loaded (the HQ-side
   // supplier_id integer doesn't match the branch's local suppliers.id).
   const [pendingSupplierName, setPendingSupplierName] = useState('');
@@ -294,9 +294,9 @@ const GRN = () => {
   // eslint-disable-next-line
   }, []);
 
-  // v1.9.18 â€” when suppliers finish loading, resolve the HQ-passed supplier:
+  // v1.9.18 — when suppliers finish loading, resolve the HQ-passed supplier:
   //   1) by current supplierId (if it's already a valid local id)
-  //   2) by name (case-insensitive) â€” the reliable cross-system key
+  //   2) by name (case-insensitive) — the reliable cross-system key
   // If still no match, leave supplierId empty so the supplier dropdown
   // re-appears and the user can pick / quick-add.
   useEffect(() => {
@@ -307,7 +307,7 @@ const GRN = () => {
       const byName = suppliers.find(s => (s.name || '').toLowerCase() === pendingSupplierName.toLowerCase());
       if (byName) { setSupplierId(String(byName.id)); return; }
     }
-    // No match â€” clear so the dropdown shows and user can pick.
+    // No match — clear so the dropdown shows and user can pick.
     setSupplierId('');
   // eslint-disable-next-line
   }, [suppliers, linkedPurchaseSyncId, pendingSupplierName]);
@@ -332,7 +332,7 @@ const GRN = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // â”€â”€ Barcode scanner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Barcode scanner ───────────────────────────────────────────────
   const scannerBuffer = useRef('');
   const scannerTimer  = useRef(null);
   const productsRef   = useRef([]);
@@ -381,7 +381,7 @@ const GRN = () => {
     return () => window.removeEventListener('keydown', handleScannerKey);
   }, [handleScannerKey]);
 
-  // â”€â”€ Filtered list (applied to the table + print) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Filtered list (applied to the table + print) ──────────────────
   const filteredGRNs = grns.filter(grn => {
     const d = (grn.date || grn.created_at || '').split('T')[0];
     if (filterFrom && d < filterFrom) return false;
@@ -390,7 +390,7 @@ const GRN = () => {
   });
 
   const filteredTotal = filteredGRNs.reduce((s, g) => s + parseFloat(g.total_amount || 0), 0);
-  // v1.10.113 â€” split filtered total by currency so mixed-ccy lists
+  // v1.10.113 — split filtered total by currency so mixed-ccy lists
   // (e.g. one USD supplier + one K supplier) display honestly instead
   // of adding raw numbers across currencies.
   const filteredTotalsByCcy = filteredGRNs.reduce((acc, g) => {
@@ -402,7 +402,7 @@ const GRN = () => {
     .map(([c, v]) => `${symForCcy(c)}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}${suffixForCcy(c)}`)
     .join(' + ') || `${curSym}0.00`;
 
-  // â”€â”€ Form helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Form helpers ──────────────────────────────────────────────────
   const openForm = () => {
     setEditMode(false); setEditId(null);
     setSupplierId(''); setDate(todayStr); setNotes(''); setInvoiceAttachment(null);
@@ -469,7 +469,7 @@ const GRN = () => {
   const handleDeleteFromView = () => {
     const g = viewGRN;
     setPendingDelete({
-      subject: `GRN ${g.grn_number} â€” stock will be reversed`,
+      subject: `GRN ${g.grn_number} — stock will be reversed`,
       perform: async () => {
         try {
           await deleteGRN(g.id);
@@ -480,7 +480,7 @@ const GRN = () => {
           const msg = err.response?.data?.error || 'Failed to delete GRN.';
           const violations = err.response?.data?.violations;
           if (violations?.length) {
-            alert(msg + '\n\n' + violations.map(v => `â€¢ ${v.product_name}: needs ${v.grn_qty}, only ${v.current_stock} in stock`).join('\n'));
+            alert(msg + '\n\n' + violations.map(v => `• ${v.product_name}: needs ${v.grn_qty}, only ${v.current_stock} in stock`).join('\n'));
           } else {
             alert(msg);
           }
@@ -495,7 +495,7 @@ const GRN = () => {
   const addItemRow = () => {
     const last = items[items.length - 1];
     if (!isRowComplete(last)) {
-      setAddRowError('Please complete the current row â€” select a product, enter a quantity and unit cost â€” before adding another.');
+      setAddRowError('Please complete the current row — select a product, enter a quantity and unit cost — before adding another.');
       return;
     }
     setAddRowError('');
@@ -511,7 +511,7 @@ const GRN = () => {
   const beverageTotal = items.reduce((sum, item) => {
     return sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
   }, 0);
-  // Container line: new crates received Ã— deposit. GRN is purchase-only;
+  // Container line: new crates received × deposit. GRN is purchase-only;
   // empties going back to the supplier are recorded separately as a Credit
   // Note (reason='Crate Return') so this GRN matches the supplier invoice.
   // Legacy GRNs that already had containers_returned still net it out so
@@ -527,7 +527,7 @@ const GRN = () => {
 
   const handleSave = async () => {
     setError('');
-    // v1.9.20 â€” supplier_id no longer required at branch. Kelete branches
+    // v1.9.20 — supplier_id no longer required at branch. Kelete branches
     // don't maintain a supplier list (AP lives at HQ). For HQ-linked GRNs
     // the supplier name comes via the URL prefill and is sent as text.
     if (linkedPurchaseSyncId && !(supplierInvoiceNumber || '').trim()) {
@@ -535,11 +535,11 @@ const GRN = () => {
     }
     const validItems = items.filter(i => i.product_id && parseFloat(i.quantity) > 0 && parseFloat(i.unit_price) >= 0);
     if (validItems.length === 0) return setError('Please add at least one item with a product and quantity.');
-    // v1.9.23 â€” only send supplier_id when it actually matches a local
+    // v1.9.23 — only send supplier_id when it actually matches a local
     // supplier row. The HQ-side supplier_id passed via the URL prefill
     // doesn't exist in the branch's suppliers table, so passing it raw
     // triggered a FOREIGN KEY constraint failure on insert. Sending NULL
-    // is fine â€” the branch has no AP, and supplier_name carries the
+    // is fine — the branch has no AP, and supplier_name carries the
     // human-readable label.
     const localSupplier = supplierId ? suppliers.find(s => String(s.id) === String(supplierId)) : null;
     const payload = {
@@ -547,12 +547,12 @@ const GRN = () => {
       supplier_name: pendingSupplierName || localSupplier?.name || null,
       date, notes,
       invoice_attachment: invoiceAttachment,
-      // v1.9.7 â€” when set, backend defers stock + AP until HQ confirms.
+      // v1.9.7 — when set, backend defers stock + AP until HQ confirms.
       linked_purchase_sync_id: linkedPurchaseSyncId || null,
       linked_purchase_number:  linkedPurchaseNumber || null,
-      // v1.9.12 â€” paper invoice number from supplier (mandatory when linked).
+      // v1.9.12 — paper invoice number from supplier (mandatory when linked).
       supplier_invoice_number: (supplierInvoiceNumber || '').trim() || null,
-      // v1.9.17 â€” credit notes only sent when linked (legacy GRNs ignore).
+      // v1.9.17 — credit notes only sent when linked (legacy GRNs ignore).
       // Now carries optional `items` array for Crate Return / Goods Return
       // so the backend can persist the per-product breakdown + stock moves.
       credit_notes: linkedPurchaseSyncId
@@ -582,7 +582,7 @@ const GRN = () => {
         containers_received:       parseFloat(i.containers_received || 0),
         // Phase 3: new GRNs no longer accept returns at GRN time (use Credit
         // Notes / Empty Returns instead). Keep the field for backward compat
-        // so editing a legacy GRN preserves its original total â€” but no UI
+        // so editing a legacy GRN preserves its original total — but no UI
         // path adds new values.
         containers_returned:       parseFloat(i.containers_returned || 0),
         container_deposit:         parseFloat(i.container_deposit   || 0),
@@ -602,7 +602,7 @@ const GRN = () => {
         await createGRN(payload);
         window.dispatchEvent(new Event('stock:refresh'));
         setShowForm(false);
-        // v1.9.7 â€” reset PO link so the next GRN (manually started) isn't
+        // v1.9.7 — reset PO link so the next GRN (manually started) isn't
         // accidentally tied to the previous PO.
         setLinkedPurchaseSyncId(null);
         setLinkedPurchaseNumber(null);
@@ -622,7 +622,7 @@ const GRN = () => {
 
   const formatDate = (d) => {
     const str = (d || '').split('T')[0];
-    if (!str) return 'â€”';
+    if (!str) return '—';
     return new Date(str + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
@@ -678,10 +678,10 @@ const GRN = () => {
       const printedAt = new Date().toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
       const bizName = biz.business_name || 'Business Name';
       const addr = [biz.business_address,biz.business_phone,biz.business_email].filter(Boolean).join('  |  ');
-      const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
+      const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
       const hasF = filterFrom || filterTo;
       const dateLabel = hasF
-        ? `${filterFrom?formatDate(filterFrom):'All'} â€” ${filterTo?formatDate(filterTo):'All'}`
+        ? `${filterFrom?formatDate(filterFrom):'All'} — ${filterTo?formatDate(filterTo):'All'}`
         : formatDateLong(todayStr);
       const rows = filteredGRNs.map((grn,idx) => {
         const items = map[grn.id] || [];
@@ -705,7 +705,7 @@ const GRN = () => {
           <td style="padding:8px 10px;color:#000;font-size:10.5px">${idx+1}</td>
           <td style="padding:8px 10px;font-weight:700;font-family:monospace;font-size:11px">${grn.grn_number}</td>
           <td style="padding:8px 10px">${formatDate(grn.date||grn.created_at)}</td>
-          <td style="padding:8px 10px;font-weight:500">${grn.supplier_name||'â€”'}</td>
+          <td style="padding:8px 10px;font-weight:500">${grn.supplier_name||'—'}</td>
           <td style="padding:8px 10px;text-align:right">${grn.total_items}</td>
           <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace">$${fmt(grn.total_amount)}</td>
           <td style="padding:8px 10px;text-align:right"><span style="padding:2px 8px;border:1px solid #000;font-size:10px;font-weight:600">${ps}</span></td>
@@ -748,7 +748,7 @@ const GRN = () => {
             </tr></thead>
             <tbody>${rows}</tbody>
             <tfoot><tr>
-              <td colspan="4">TOTAL â€” ${filteredGRNs.length} GRN${filteredGRNs.length!==1?'s':''}</td>
+              <td colspan="4">TOTAL — ${filteredGRNs.length} GRN${filteredGRNs.length!==1?'s':''}</td>
               <td style="text-align:right">${filteredGRNs.reduce((s,g)=>s+parseInt(g.total_items||0),0)} items</td>
               <td style="text-align:right;font-size:13px;font-family:monospace">$${filteredTotal.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
               <td></td>
@@ -765,7 +765,7 @@ const GRN = () => {
             </div>`).join('')}
         </div>
         <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
-          <span style="font-size:9px;color:#000">${bizName} â€” Confidential</span>
+          <span style="font-size:9px;color:#000">${bizName} — Confidential</span>
           <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
         </div>
       </body></html>`;
@@ -780,18 +780,18 @@ const GRN = () => {
     const printedAt = new Date().toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
     const biz = businessInfo;
     const bizName = biz.business_name || 'Business Name';
-    const addr = [biz.business_address,biz.business_phone,biz.business_email].filter(Boolean).join('  Â·  ');
+    const addr = [biz.business_address,biz.business_phone,biz.business_email].filter(Boolean).join('  ·  ');
     const ps = grn.payment_status||'Not Paid';
     const items = grn.items || [];
-    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || 'â€”';
-    const preparedBy = grn.created_by_name || 'â€”';
+    const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
+    const preparedBy = grn.created_by_name || '—';
     const itemRows = items.map((item,idx)=>`<tr style="border-bottom:1px solid #ddd;background:${idx%2===1?'#f9f9f9':'#fff'}">
       <td style="padding:9px 12px;color:#000;font-size:10.5px">${idx+1}</td>
       <td style="padding:9px 12px;font-weight:600">${item.product_name}</td>
       <td style="padding:9px 12px;text-align:right;font-family:monospace">${parseFloat(item.quantity).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
       <td style="padding:9px 12px;text-align:right;font-family:monospace">${fmt(item.unit_price)}</td>
       <td style="padding:9px 12px;text-align:right;font-weight:700;font-family:monospace">${fmt(item.total_price)}</td>
-      <td style="padding:9px 12px;font-size:10.5px">${item.expiry_date||'â€”'}</td>
+      <td style="padding:9px 12px;font-size:10.5px">${item.expiry_date||'—'}</td>
     </tr>`).join('');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
@@ -811,7 +811,7 @@ const GRN = () => {
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
-        ${[['Supplier',grn.supplier_name||'â€”'],['Received Date',formatDate(grn.date||grn.created_at)],['Total Lines',grn.total_items+' line'+(grn.total_items!==1?'s':'')]].map(([lbl,val])=>`
+        ${[['Supplier',grn.supplier_name||'—'],['Received Date',formatDate(grn.date||grn.created_at)],['Total Lines',grn.total_items+' line'+(grn.total_items!==1?'s':'')]].map(([lbl,val])=>`
           <div style="padding:10px 14px;border:1.5px solid #000">
             <div style="font-size:9px;letter-spacing:0.8px;text-transform:uppercase;font-weight:600;margin-bottom:4px">${lbl}</div>
             <div style="font-size:13px;font-weight:700">${val}</div>
@@ -848,7 +848,7 @@ const GRN = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;margin-top:20px;padding-top:8px;display:flex;justify-content:space-between">
-        <span style="font-size:9px;color:#000">${bizName} â€” Confidential Document</span>
+        <span style="font-size:9px;color:#000">${bizName} — Confidential Document</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
     </body></html>`;
@@ -861,7 +861,7 @@ const GRN = () => {
   return (
     <div className="page-content">
 
-      {/* â”€â”€ Page Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Page Header ──────────────────────────────────────────── */}
       <div className="page-header">
         <div>
           <h1>{t('grnTitle')}</h1>
@@ -888,7 +888,7 @@ const GRN = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Summary Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Summary Cards ────────────────────────────────────────── */}
       <div className="stat-cards">
         <div className="stat-card blue">
           <div className="stat-icon"><FiFileText /></div>
@@ -915,7 +915,7 @@ const GRN = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Date Filter Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Date Filter Bar ───────────────────────────────────────── */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
@@ -951,11 +951,11 @@ const GRN = () => {
 
         <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
           {filteredGRNs.length} GRN{filteredGRNs.length !== 1 ? 's' : ''}
-          {hasFilter && <> &nbsp;Â·&nbsp; Total: <strong style={{ color: '#16a34a' }}>{filteredTotalDisplay}</strong></>}
+          {hasFilter && <> &nbsp;·&nbsp; Total: <strong style={{ color: '#16a34a' }}>{filteredTotalDisplay}</strong></>}
         </span>
       </div>
 
-      {/* â”€â”€ GRN Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── GRN Table ─────────────────────────────────────────────── */}
       <div className="data-table-container">
         {filteredGRNs.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
@@ -974,11 +974,11 @@ const GRN = () => {
                 <tr key={grn.id}>
                   <td style={{ fontWeight: 500 }}>{grn.grn_number}</td>
                   <td>{formatDate(grn.date || grn.created_at)}</td>
-                  <td>{grn.supplier_name || 'â€”'}</td>
+                  <td>{grn.supplier_name || '—'}</td>
                   <td style={{ textAlign: 'center' }}>{grn.total_items}</td>
                   <td>{symForCcy(grn.cost_currency)}{parseFloat(grn.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}{suffixForCcy(grn.cost_currency)}</td>
                   <td>
-                    {/* v1.9.21 â€” HQ-linked GRNs show their HQ lifecycle
+                    {/* v1.9.21 — HQ-linked GRNs show their HQ lifecycle
                         (Awaiting / Confirmed / Rejected) instead of the
                         legacy payment_status pill. Branches no longer pay. */}
                     {grn.linked_purchase_sync_id ? (() => { const s = hqStatusBadge(grn.hq_status); return (
@@ -1024,8 +1024,8 @@ const GRN = () => {
                           <FiEdit2 size={13} />
                         </button>
                       )}
-                      {/* v1.9.19 â€” Pay button removed (HQ handles supplier payments).
-                          v1.9.20 â€” CN button removed too. Credit Notes are
+                      {/* v1.9.19 — Pay button removed (HQ handles supplier payments).
+                          v1.9.20 — CN button removed too. Credit Notes are
                           attached inside the NEW GRN form (Discount /
                           Crate Return / Goods Return / Other tabs); no
                           standalone CN flow on branch. */}
@@ -1038,7 +1038,7 @@ const GRN = () => {
         )}
       </div>
 
-      {/* â”€â”€ Product Received Breakdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Product Received Breakdown ────────────────────────────── */}
       <div style={{ marginTop: 20, border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
 
         {/* Collapsible Header */}
@@ -1054,7 +1054,7 @@ const GRN = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <FiPackage size={16} style={{ color: '#16a34a' }} />
             <span style={{ fontWeight: 700, fontSize: 14, color: '#15803d' }}>Product Received Breakdown</span>
-            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>â€” How much of each product was received in a date range</span>
+            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>— How much of each product was received in a date range</span>
           </div>
           {showReport ? <FiChevronUp size={16} style={{ color: '#6b7280' }} /> : <FiChevronDown size={16} style={{ color: '#6b7280' }} />}
         </button>
@@ -1149,7 +1149,7 @@ const GRN = () => {
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 20px', borderRadius: 8, border: 'none', background: reportLoading ? '#9ca3af' : '#16a34a', color: '#fff', cursor: reportLoading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
               >
                 <FiSearch size={14} />
-                {reportLoading ? 'Searchingâ€¦' : 'Search'}
+                {reportLoading ? 'Searching…' : 'Search'}
               </button>
               {reportSearched && !reportLoading && (
                 <button
@@ -1237,11 +1237,11 @@ const GRN = () => {
                   </table>
                 </div>
 
-                {/* Per-GRN breakdown â€” shown only when a specific product is selected */}
+                {/* Per-GRN breakdown — shown only when a specific product is selected */}
                 {reportBreakdown.length > 0 && (
                   <>
                     <div style={{ fontSize: 12, fontWeight: 600, color: '#15803d', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <FiPackage size={13} /> GRN Breakdown â€” {reportData[0]?.product_name}
+                      <FiPackage size={13} /> GRN Breakdown — {reportData[0]?.product_name}
                     </div>
                     <div style={{ border: '1px solid #d1fae5', borderRadius: 10, overflow: 'hidden' }}>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -1262,7 +1262,7 @@ const GRN = () => {
                               <td style={{ padding: '9px 14px', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
                               <td style={{ padding: '9px 14px', fontWeight: 600, color: '#2563eb', fontFamily: 'monospace', fontSize: 12 }}>{row.grn_number}</td>
                               <td style={{ padding: '9px 14px', color: '#374151' }}>{formatDate(row.date)}</td>
-                              <td style={{ padding: '9px 14px', color: '#374151' }}>{row.supplier_name || 'â€”'}</td>
+                              <td style={{ padding: '9px 14px', color: '#374151' }}>{row.supplier_name || '—'}</td>
                               <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#15803d', fontFamily: 'monospace' }}>
                                 {parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </td>
@@ -1278,7 +1278,7 @@ const GRN = () => {
                         <tfoot>
                           <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
                             <td colSpan={4} style={{ padding: '9px 14px', fontWeight: 700, fontSize: 12, color: '#14532d' }}>
-                              TOTAL â€” {reportBreakdown.length} GRN{reportBreakdown.length !== 1 ? 's' : ''}
+                              TOTAL — {reportBreakdown.length} GRN{reportBreakdown.length !== 1 ? 's' : ''}
                             </td>
                             <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, fontFamily: 'monospace', color: '#15803d' }}>
                               {reportBreakdown.reduce((s, r) => s + parseFloat(r.quantity || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -1299,7 +1299,7 @@ const GRN = () => {
         )}
       </div>
 
-      {/* â”€â”€ View GRN Modal â€” Mobile (â‰¤768px) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      {/* ── View GRN Modal — Mobile (≤768px) ────────────────────────
           Rendered via portal into document.body so position:fixed
           really pins to the viewport (an ancestor in the React tree
           was breaking it, causing the modal to render at top of the
@@ -1310,15 +1310,15 @@ const GRN = () => {
             {/* Compact header */}
             <div style={{ background: 'linear-gradient(135deg, #14532d 0%, #16a34a 100%)', padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexShrink: 0 }}>
               <button onClick={() => setViewGRN(null)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, color: '#fff', width: 36, height: 36, fontSize: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                â†
+                ←
               </button>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{viewGRN.grn_number}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.85)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {formatDate(viewGRN.date || viewGRN.created_at)} Â· {viewGRN.supplier_name || 'â€”'}
+                  {formatDate(viewGRN.date || viewGRN.created_at)} · {viewGRN.supplier_name || '—'}
                 </div>
               </div>
-              {/* v1.9.21 â€” HQ lifecycle pill for HQ-linked GRNs, legacy
+              {/* v1.9.21 — HQ lifecycle pill for HQ-linked GRNs, legacy
                   payment_status for standalone/legacy GRNs. */}
               <span style={{ padding: '4px 10px', borderRadius: 14, fontSize: 10, fontWeight: 800, background: 'rgba(255,255,255,0.22)', color: '#fff', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 {viewGRN.linked_purchase_sync_id ? hqStatusBadge(viewGRN.hq_status).label : (viewGRN.payment_status || 'Not Paid')}
@@ -1337,7 +1337,7 @@ const GRN = () => {
                 </div>
                 <div style={{ display: 'flex', gap: 12, fontSize: 11, color: '#166534', flexWrap: 'wrap' }}>
                   <span>Items: <strong>{viewGRN.total_items}</strong></span>
-                  {/* v1.9.21 â€” Paid/Balance hidden for HQ-linked GRNs
+                  {/* v1.9.21 — Paid/Balance hidden for HQ-linked GRNs
                       (branch has no AP). Kept for legacy/standalone GRNs. */}
                   {!viewGRN.linked_purchase_sync_id && (
                     <>
@@ -1348,13 +1348,13 @@ const GRN = () => {
                 </div>
               </div>
 
-              {/* v1.9.21 â€” HQ status card (linked GRNs only). Replaces the
+              {/* v1.9.21 — HQ status card (linked GRNs only). Replaces the
                   legacy "Not Paid / Paid: $0 / Balance: $X" strip with
                   the lifecycle the branch actually cares about. */}
               {viewGRN.linked_purchase_sync_id && (() => {
                 const s = hqStatusBadge(viewGRN.hq_status);
                 const sub = viewGRN.hq_status === 'CONFIRMED'
-                  ? `Stock is on the sales floor${viewGRN.hq_confirmed_at ? ` Â· ${formatDate(viewGRN.hq_confirmed_at)}` : ''}${viewGRN.hq_confirmed_by_name ? ` Â· by ${viewGRN.hq_confirmed_by_name}` : ''}`
+                  ? `Stock is on the sales floor${viewGRN.hq_confirmed_at ? ` · ${formatDate(viewGRN.hq_confirmed_at)}` : ''}${viewGRN.hq_confirmed_by_name ? ` · by ${viewGRN.hq_confirmed_by_name}` : ''}`
                   : (viewGRN.hq_status === 'HQ_REJECTED' || viewGRN.hq_status === 'REJECTED')
                     ? (viewGRN.hq_reject_reason || 'Re-submit a corrected GRN.')
                     : 'Stock will post to the sales floor once HQ confirms.';
@@ -1388,7 +1388,7 @@ const GRN = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13, color: '#374151' }}>
                       <span>
                         {parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {item.unit || item.product_unit || ''}
-                        <span style={{ color: '#9ca3af', margin: '0 6px' }}>Ã—</span>
+                        <span style={{ color: '#9ca3af', margin: '0 6px' }}>×</span>
                         {viewMoney(item.unit_price)}
                       </span>
                       <span style={{ fontWeight: 800, color: '#15803d', fontFamily: 'monospace' }}>
@@ -1402,11 +1402,11 @@ const GRN = () => {
                     )}
                     {hasContainer && (
                       <div style={{ marginTop: 8, padding: '8px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 8, fontSize: 11.5, color: '#92400e' }}>
-                        <div style={{ fontWeight: 600 }}>â†³ Returnable: {containerProd?.name || 'Empty container'}</div>
+                        <div style={{ fontWeight: 600 }}>↳ Returnable: {containerProd?.name || 'Empty container'}</div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
                           <span>Recv {recv} / Ret {ret} @ {viewMoney(dep)}</span>
                           <span style={{ fontWeight: 700, color: containerLine < 0 ? '#dc2626' : '#92400e' }}>
-                            {containerLine < 0 ? 'âˆ’' : '+'}{viewMoney(Math.abs(containerLine))}
+                            {containerLine < 0 ? '−' : '+'}{viewMoney(Math.abs(containerLine))}
                           </span>
                         </div>
                       </div>
@@ -1460,7 +1460,7 @@ const GRN = () => {
         </div>
       ), document.body)}
 
-      {/* â”€â”€ View GRN Modal â€” Desktop (>768px) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── View GRN Modal — Desktop (>768px) ───────────────────── */}
       {viewGRN && !isMobile && ReactDOM.createPortal((
         <div className="view-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 900, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', display: 'flex', flexDirection: 'column' }}>
@@ -1474,11 +1474,11 @@ const GRN = () => {
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', letterSpacing: 0.3 }}>{viewGRN.grn_number}</div>
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 3 }}>
-                  {formatDate(viewGRN.date || viewGRN.created_at)} &nbsp;Â·&nbsp; {viewGRN.supplier_name || 'â€”'}
+                  {formatDate(viewGRN.date || viewGRN.created_at)} &nbsp;·&nbsp; {viewGRN.supplier_name || '—'}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                {/* v1.9.21 â€” pill shows HQ lifecycle for HQ-linked GRNs,
+                {/* v1.9.21 — pill shows HQ lifecycle for HQ-linked GRNs,
                     legacy payment_status for standalone GRNs. */}
                 <span style={{
                   padding: '4px 12px', borderRadius: 20, fontSize: 11, fontWeight: 700,
@@ -1495,12 +1495,12 @@ const GRN = () => {
             {/* Body */}
             <div style={{ padding: '24px 28px', flex: 1 }}>
 
-              {/* v1.9.21 â€” Status strip: HQ lifecycle card for linked GRNs,
+              {/* v1.9.21 — Status strip: HQ lifecycle card for linked GRNs,
                   legacy Paid/Balance strip for standalone/legacy GRNs. */}
               {viewGRN.linked_purchase_sync_id ? (() => {
                 const s = hqStatusBadge(viewGRN.hq_status);
                 const sub = viewGRN.hq_status === 'CONFIRMED'
-                  ? `Stock is on the sales floor${viewGRN.hq_confirmed_at ? ` Â· ${formatDate(viewGRN.hq_confirmed_at)}` : ''}${viewGRN.hq_confirmed_by_name ? ` Â· by ${viewGRN.hq_confirmed_by_name}` : ''}`
+                  ? `Stock is on the sales floor${viewGRN.hq_confirmed_at ? ` · ${formatDate(viewGRN.hq_confirmed_at)}` : ''}${viewGRN.hq_confirmed_by_name ? ` · by ${viewGRN.hq_confirmed_by_name}` : ''}`
                   : (viewGRN.hq_status === 'HQ_REJECTED' || viewGRN.hq_status === 'REJECTED')
                     ? (viewGRN.hq_reject_reason || 'Re-submit a corrected GRN.')
                     : 'Stock will post to the sales floor once HQ confirms.';
@@ -1516,7 +1516,7 @@ const GRN = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, background: s.bg, border: `1px solid ${s.border}`, marginBottom: 16 }}>
                     <span style={{ fontWeight: 700, fontSize: 13, color: s.color }}>{viewGRN.payment_status || 'Not Paid'}</span>
                     <span style={{ fontSize: 12, color: s.color, opacity: 0.8 }}>
-                      &nbsp;Â·&nbsp; Paid: <strong>{viewMoney(viewGRN.amount_paid_on_grn || 0)}</strong>
+                      &nbsp;·&nbsp; Paid: <strong>{viewMoney(viewGRN.amount_paid_on_grn || 0)}</strong>
                       &nbsp;&nbsp;Balance: <strong>{viewMoney(viewGRN.balance_on_grn || 0)}</strong>
                     </span>
                   </div>
@@ -1525,7 +1525,7 @@ const GRN = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 24 }}>
                 {[
-                  { label: 'Supplier',    value: viewGRN.supplier_name || 'â€”' },
+                  { label: 'Supplier',    value: viewGRN.supplier_name || '—' },
                   { label: 'Date',        value: formatDate(viewGRN.date || viewGRN.created_at) },
                   { label: 'Total Items', value: viewGRN.total_items },
                 ].map(info => (
@@ -1569,16 +1569,16 @@ const GRN = () => {
                             <td style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
                             <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>{item.product_name}</td>
                             <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.unit || item.product_unit || 'â€”'}</td>
+                            <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.unit || item.product_unit || '—'}</td>
                             <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                             <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#15803d', fontFamily: 'monospace' }}>{parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.expiry_date || 'â€”'}</td>
+                            <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.expiry_date || '—'}</td>
                           </tr>
                           {hasContainer && (
                             <tr style={{ background: '#fffbeb', borderBottom: '1px solid #f1f5f9' }}>
                               <td style={{ padding: '6px 14px 10px', color: '#b45309', fontSize: 11 }}></td>
                               <td style={{ padding: '6px 14px 10px 32px', fontSize: 12, color: '#92400e' }}>
-                                <span style={{ fontWeight: 600 }}>â†³ Returnable:</span> {containerProd?.name || 'Empty container'}
+                                <span style={{ fontWeight: 600 }}>↳ Returnable:</span> {containerProd?.name || 'Empty container'}
                                 <span style={{ marginLeft: 10, color: '#a16207' }}>
                                   Recv {recv}, Ret {ret}
                                 </span>
@@ -1586,11 +1586,11 @@ const GRN = () => {
                               <td colSpan={3} style={{ padding: '6px 14px 10px', fontSize: 11, color: '#a16207', textAlign: 'right' }}>
                                 {(recv - ret) > 0 && `+${recv - ret} into yard`}
                                 {(recv - ret) < 0 && `${recv - ret} sent back`}
-                                {(recv - ret) === 0 && 'â€”'}
+                                {(recv - ret) === 0 && '—'}
                                 &nbsp;@ {viewMoney(dep)}
                               </td>
                               <td style={{ padding: '6px 14px 10px', textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', color: containerLine < 0 ? '#dc2626' : '#92400e' }}>
-                                {containerLine < 0 ? 'âˆ’' : '+'}{viewMoney(Math.abs(containerLine))}
+                                {containerLine < 0 ? '−' : '+'}{viewMoney(Math.abs(containerLine))}
                               </td>
                               <td style={{ padding: '6px 14px 10px' }}></td>
                             </tr>
@@ -1665,10 +1665,10 @@ const GRN = () => {
         </div>
       ), document.body)}
 
-      {/* â”€â”€ New GRN Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── New GRN Modal ─────────────────────────────────────────── */}
       {showForm && ReactDOM.createPortal((
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
-          {/* v1.9.17 â€” modal is back to its legacy centered size. The CN
+          {/* v1.9.17 — modal is back to its legacy centered size. The CN
               experience moved inside it as per-reason tabs (Discount /
               Crate Return / Goods Return / Other / Summary) mirroring the
               /accounting/credit-notes UX. */}
@@ -1701,11 +1701,11 @@ const GRN = () => {
               <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}><FiX size={20} /></button>
             </div>
 
-            {/* v1.9.17 â€” tab strip (HQ-linked GRNs only). Past/legacy GRNs
+            {/* v1.9.17 — tab strip (HQ-linked GRNs only). Past/legacy GRNs
                 keep the flat layout to avoid disrupting old behavior.
                 Layout: [GRN] [Discount(n)] [Crate Return(n)] [Goods Return(n)]
                 [Other(n)] [Summary]. Each CN tab queues a draft into
-                creditNotes[] â€” the real POST happens on Save GRN. */}
+                creditNotes[] — the real POST happens on Save GRN. */}
             {linkedPurchaseSyncId && (
               <div style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid #e5e7eb', padding: '0 24px' }}>
                 {[
@@ -1734,7 +1734,7 @@ const GRN = () => {
 
             <div style={{ padding: '20px 24px', display: (linkedPurchaseSyncId && activeTab !== 'grn') ? 'none' : 'block' }}>
 
-              {/* v1.9.20 â€” Supplier is now display-only on branch GRN. The
+              {/* v1.9.20 — Supplier is now display-only on branch GRN. The
                   branch doesn't maintain a supplier list and doesn't pay
                   AP (HQ does both). The name comes from the HQ PO via the
                   ?supplier_name= URL prefill and is sent to the backend
@@ -1745,14 +1745,14 @@ const GRN = () => {
                     {t('supplier')}
                   </label>
                   <div style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f3f4f6', fontSize: 14, color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span>{pendingSupplierName || suppliers.find(s => String(s.id) === String(supplierId))?.name || 'â€”'}</span>
+                    <span>{pendingSupplierName || suppliers.find(s => String(s.id) === String(supplierId))?.name || '—'}</span>
                     {linkedPurchaseNumber && (
                       <span style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic' }}>from PO {linkedPurchaseNumber}</span>
                     )}
                   </div>
                 </div>
                 <div>
-                  {/* v1.9.12 â€” Date + Supplier Invoice # share the right cell
+                  {/* v1.9.12 — Date + Supplier Invoice # share the right cell
                       when the GRN is HQ-PO-linked. Invoice # is required;
                       the form blocks save until it's filled. */}
                   <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{t('date')}</label>
@@ -1828,7 +1828,7 @@ const GRN = () => {
                 {/* Barcode scan message */}
                 {scanMsg && (
                   <div style={{ marginBottom: 8, padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600, background: scanMsg.type === 'error' ? '#fee2e2' : '#dcfce7', color: scanMsg.type === 'error' ? '#dc2626' : '#16a34a', border: `1px solid ${scanMsg.type === 'error' ? '#fca5a5' : '#86efac'}` }}>
-                    {scanMsg.type === 'error' ? 'âš  ' : 'âœ“ '}{scanMsg.text}
+                    {scanMsg.type === 'error' ? '⚠ ' : '✓ '}{scanMsg.text}
                   </div>
                 )}
 
@@ -1864,7 +1864,7 @@ const GRN = () => {
                     padding: '9px 13px', marginBottom: 10, borderRadius: 8,
                     background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', fontSize: 12.5,
                   }}>
-                    <span style={{ flexShrink: 0 }}>âš </span>
+                    <span style={{ flexShrink: 0 }}>⚠</span>
                     <span>{addRowError}</span>
                   </div>
                 )}
@@ -1887,7 +1887,7 @@ const GRN = () => {
                       const lineTotal  = (parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0);
                       const isLast     = idx === items.length - 1;
                       const incomplete = isLast && addRowError && !isRowComplete(item);
-                      // Container sub-line â€” visible only when this item's product has a linked container.
+                      // Container sub-line — visible only when this item's product has a linked container.
                       const containerSyncId = item.container_product_sync_id;
                       const containerProduct = containerSyncId
                         ? products.find(p => p.sync_id === containerSyncId)
@@ -1899,7 +1899,7 @@ const GRN = () => {
                       return (
                         <React.Fragment key={idx}>
                         <tr>
-                          {/* â”€â”€ Product autocomplete â”€â”€ */}
+                          {/* ── Product autocomplete ── */}
                           <td style={{ padding: '8px 8px 8px 0' }}>
                             <div style={{ position: 'relative' }}>
                               <input
@@ -1913,7 +1913,7 @@ const GRN = () => {
                                 }}
                                 onFocus={e => { const r = e.target.getBoundingClientRect(); setDropdownRect({ top: r.bottom + 2, left: r.left, width: r.width }); setOpenDropdownIdx(idx); setHighlightedIdx(-1); }}
                                 onBlur={() => { setTimeout(() => { setOpenDropdownIdx(-1); setHighlightedIdx(-1); }, 160); }}
-                                placeholder="Type or search productâ€¦"
+                                placeholder="Type or search product…"
                                 style={{ width: '100%', padding: '8px 10px', border: `1px solid ${incomplete && !item.product_id ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }}
                                 onKeyDown={e => {
                                   const filtered = products.filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode));
@@ -2004,13 +2004,13 @@ const GRN = () => {
                               style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${incomplete && (!item.quantity || parseFloat(item.quantity) <= 0) ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, textAlign: 'right' }}
                             />
                           </td>
-                          {/* â”€â”€ Unit picker â€” dropdown enumerates every packaging the product was configured with. â”€â”€ */}
+                          {/* ── Unit picker — dropdown enumerates every packaging the product was configured with. ── */}
                           <td style={{ padding: '8px 8px' }}>
                             {(() => {
                               const prod = products.find(p => p.id === parseInt(item.product_id));
                               if (!prod) {
                                 return (
-                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#9ca3af', background: '#f9fafb' }}>â€”</div>
+                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#9ca3af', background: '#f9fafb' }}>—</div>
                                 );
                               }
                               const units = unitsForProductFE(prod);
@@ -2076,7 +2076,7 @@ const GRN = () => {
                         {containerSyncId && (
                           <tr style={{ background: '#fffbeb' }}>
                             <td style={{ padding: '4px 8px 10px 28px', fontSize: 12, color: '#92400e' }}>
-                              <span style={{ fontSize: 11, color: '#b45309', fontWeight: 600 }}>â†³ Returnable: </span>
+                              <span style={{ fontSize: 11, color: '#b45309', fontWeight: 600 }}>↳ Returnable: </span>
                               {containerProduct ? containerProduct.name : 'Empty container'}
                             </td>
                             <td style={{ padding: '4px 8px 10px' }}>
@@ -2103,7 +2103,7 @@ const GRN = () => {
                               </div>
                             </td>
                             <td colSpan={3} style={{ padding: '4px 8px 10px', fontSize: 11, color: '#a16207' }}>
-                              {recv > 0 && `+${recv} new crates added to stock â€” to return empties later, use Credit Notes`}
+                              {recv > 0 && `+${recv} new crates added to stock — to return empties later, use Credit Notes`}
                             </td>
                           </tr>
                         )}
@@ -2121,7 +2121,7 @@ const GRN = () => {
                         Beverages: <strong style={{ color: '#374151' }}>{curSym}{(parseFloat(beverageTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
                       </span>
                       <span style={{ fontSize: 12, color: '#92400e' }}>
-                        Containers: <strong>{containerTotal < 0 ? 'âˆ’' : '+'}{curSym}{(parseFloat(Math.abs(containerTotal))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
+                        Containers: <strong>{containerTotal < 0 ? '−' : '+'}{curSym}{(parseFloat(Math.abs(containerTotal))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
                       </span>
                     </>
                   )}
@@ -2131,7 +2131,7 @@ const GRN = () => {
               </div>
             </div>
 
-            {/* v1.9.17 â€” Per-reason CN tab panels. Each tab shows the form
+            {/* v1.9.17 — Per-reason CN tab panels. Each tab shows the form
                 matching that reason (Discount/Other = amount + notes,
                 Crate/Goods Return = items table) plus a list of CNs
                 already queued for that reason. + Add Credit Note pushes
@@ -2220,12 +2220,12 @@ const GRN = () => {
                   {/* Contextual help banner (matches /accounting/credit-notes) */}
                   {reason === 'Crate Return' && (
                     <div style={{ marginBottom: 14, padding: '10px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, fontSize: 12, color: '#1e3a8a' }}>
-                      <strong>Note:</strong> Crate Returns are deposit refunds â€” covers any returnable container (crates, empty bottles, kegs). They reduce AP balance and move empty stock, but do <strong>not</strong> appear on the Profit Report (they're not income).
+                      <strong>Note:</strong> Crate Returns are deposit refunds — covers any returnable container (crates, empty bottles, kegs). They reduce AP balance and move empty stock, but do <strong>not</strong> appear on the Profit Report (they're not income).
                     </div>
                   )}
                   {reason === 'Goods Return' && (
                     <div style={{ marginBottom: 14, padding: '10px 14px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8, fontSize: 12, color: '#9a3412' }}>
-                      <strong>Note:</strong> Goods Returns reverse a purchase â€” pick the actual product going back to the supplier (damaged, wrong, or excess). Stock leaves your store at the avg cost price; AP balance drops by the same amount. Does <strong>not</strong> appear on the Profit Report (it's a reversal, not income).
+                      <strong>Note:</strong> Goods Returns reverse a purchase — pick the actual product going back to the supplier (damaged, wrong, or excess). Stock leaves your store at the avg cost price; AP balance drops by the same amount. Does <strong>not</strong> appear on the Profit Report (it's a reversal, not income).
                     </div>
                   )}
 
@@ -2233,7 +2233,7 @@ const GRN = () => {
                   <div style={{ marginBottom: 14 }}>
                     <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Reference</label>
                     <div style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', fontSize: 13, color: '#374151' }}>
-                      {linkedPurchaseNumber || 'â€”'}
+                      {linkedPurchaseNumber || '—'}
                     </div>
                   </div>
 
@@ -2371,14 +2371,14 @@ const GRN = () => {
                         <tbody>
                           {creditNotes.map((c, idx) => c.reason !== reason ? null : (
                             <tr key={idx} style={{ borderTop: '1px solid #f1f5f9' }}>
-                              <td style={{ padding: '8px 10px', color: '#374151' }}>{c.notes || 'â€”'}</td>
+                              <td style={{ padding: '8px 10px', color: '#374151' }}>{c.notes || '—'}</td>
                               <td style={{ padding: '8px 10px', color: '#6b7280', fontSize: 12 }}>
-                                {c.items?.length ? c.items.map(it => `${it.quantity}Ã—${it.product_name || ''}`).join(', ') : 'â€”'}
+                                {c.items?.length ? c.items.map(it => `${it.quantity}×${it.product_name || ''}`).join(', ') : '—'}
                               </td>
-                              <td style={{ padding: '8px 10px', textAlign: 'right', color: rs.color, fontWeight: 700 }}>âˆ’{curSym}{(parseFloat(c.amount)||0).toFixed(2)}</td>
+                              <td style={{ padding: '8px 10px', textAlign: 'right', color: rs.color, fontWeight: 700 }}>−{curSym}{(parseFloat(c.amount)||0).toFixed(2)}</td>
                               <td style={{ padding: '8px 10px', textAlign: 'right' }}>
                                 <button onClick={() => setCreditNotes(arr => arr.filter((_, i) => i !== idx))}
-                                  style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 16 }} title="Remove">Ã—</button>
+                                  style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', fontSize: 16 }} title="Remove">×</button>
                               </td>
                             </tr>
                           ))}
@@ -2390,13 +2390,13 @@ const GRN = () => {
               );
             })()}
 
-            {/* v1.9.17 â€” Summary tab panel â€” shows GRN totals + CN breakdown by reason. */}
+            {/* v1.9.17 — Summary tab panel — shows GRN totals + CN breakdown by reason. */}
             {linkedPurchaseSyncId && activeTab === 'summary' && (
               <div style={{ padding: '20px 24px' }}>
                 <h4 style={{ margin: '0 0 14px', fontSize: 15 }}>Review &amp; Submit</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, fontSize: 13, color: '#374151' }}>
-                  <div><span style={{ color: '#6b7280' }}>From PO:</span> <strong>{linkedPurchaseNumber || 'â€”'}</strong></div>
-                  <div><span style={{ color: '#6b7280' }}>Supplier Invoice #:</span> <strong>{supplierInvoiceNumber || 'â€”'}</strong></div>
+                  <div><span style={{ color: '#6b7280' }}>From PO:</span> <strong>{linkedPurchaseNumber || '—'}</strong></div>
+                  <div><span style={{ color: '#6b7280' }}>Supplier Invoice #:</span> <strong>{supplierInvoiceNumber || '—'}</strong></div>
                   <div><span style={{ color: '#6b7280' }}>Date:</span> <strong>{date}</strong></div>
                   <div><span style={{ color: '#6b7280' }}>Items:</span> <strong>{items.filter(i => i.product_id && parseFloat(i.quantity) > 0).length}</strong></div>
                 </div>
@@ -2410,8 +2410,8 @@ const GRN = () => {
                     if (sum <= 0) return null;
                     return (
                       <div key={r} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0 4px 14px', fontSize: 13, color: '#dc2626' }}>
-                        <span>âˆ’ {r} CN</span>
-                        <span>âˆ’{curSym}{sum.toFixed(2)}</span>
+                        <span>− {r} CN</span>
+                        <span>−{curSym}{sum.toFixed(2)}</span>
                       </div>
                     );
                   })}
@@ -2447,7 +2447,7 @@ const GRN = () => {
         </div>
       ), document.body)}
 
-      {/* â”€â”€ Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print Preview ─────────────────────────────────────────── */}
       {false && showPrintPreview && (
         <div
           className="print-preview-overlay"
@@ -2461,7 +2461,7 @@ const GRN = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
               <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
-                Print Preview â€” Goods Received Notes ({filteredGRNs.length} records)
+                Print Preview — Goods Received Notes ({filteredGRNs.length} records)
               </span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -2495,7 +2495,7 @@ const GRN = () => {
                 </div>
                 <div style={{ fontSize: 15, fontWeight: 700 }}>
                   {hasFilter
-                    ? `${filterFrom ? formatDate(filterFrom) : 'All'} â€” ${filterTo ? formatDate(filterTo) : 'All'}`
+                    ? `${filterFrom ? formatDate(filterFrom) : 'All'} — ${filterTo ? formatDate(filterTo) : 'All'}`
                     : formatDateLong(todayStr)}
                 </div>
                 <div style={{ fontSize: 10, opacity: 0.6, marginTop: 4 }}>Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
@@ -2536,7 +2536,7 @@ const GRN = () => {
                   </div>
                   {hasFilter && (
                     <span style={{ fontSize: 10.5, color: '#64748b' }}>
-                      {filterFrom ? formatDate(filterFrom) : 'â€”'}  to  {filterTo ? formatDate(filterTo) : 'â€”'}
+                      {filterFrom ? formatDate(filterFrom) : '—'}  to  {filterTo ? formatDate(filterTo) : '—'}
                     </span>
                   )}
                 </div>
@@ -2557,13 +2557,13 @@ const GRN = () => {
                             <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8' }}>{grn.grn_number}</td>
                             <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(grn.date || grn.created_at)}</td>
-                            <td style={{ padding: '8px 12px', fontWeight: 500 }}>{grn.supplier_name || 'â€”'}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 500 }}>{grn.supplier_name || '—'}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'right', color: '#374151' }}>{grn.total_items}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#15803d' }}>
                               {curSym}{parseFloat(grn.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                              {/* v1.9.21 â€” Print preview honors HQ lifecycle for HQ-linked GRNs. */}
+                              {/* v1.9.21 — Print preview honors HQ lifecycle for HQ-linked GRNs. */}
                               {grn.linked_purchase_sync_id ? (() => { const s = hqStatusBadge(grn.hq_status); return (
                                 <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: 10, fontWeight: 600,
                                   background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
@@ -2610,7 +2610,7 @@ const GRN = () => {
                   <tfoot>
                     <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
                       <td colSpan={4} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#14532d' }}>
-                        TOTAL â€” {filteredGRNs.length} GRN{filteredGRNs.length !== 1 ? 's' : ''}
+                        TOTAL — {filteredGRNs.length} GRN{filteredGRNs.length !== 1 ? 's' : ''}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: 11, color: '#374151' }}>
                         {filteredGRNs.reduce((s, g) => s + parseInt(g.total_items || 0), 0)} items
@@ -2626,7 +2626,7 @@ const GRN = () => {
 
               {/* Footer */}
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || 'Business'} â€” Confidential</span>
+                <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>{businessInfo.business_name || 'Business'} — Confidential</span>
                 <span style={{ fontSize: 9.5, color: '#cbd5e1' }}>
                   Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </span>
@@ -2636,7 +2636,7 @@ const GRN = () => {
         </div>
       )}
 
-      {/* â”€â”€ Print styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Print styles ──────────────────────────────────────────── */}
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -2659,7 +2659,7 @@ const GRN = () => {
         }
       `}</style>
 
-      {/* â”€â”€ GRN Single-Record Print Preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── GRN Single-Record Print Preview ───────────────────────── */}
       {false && viewGRN && showGRNPrint && (
         <div
           className="print-preview-overlay"
@@ -2673,7 +2673,7 @@ const GRN = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={15} style={{ color: '#64748b' }} />
               <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
-                Print Preview â€” {viewGRN.grn_number}
+                Print Preview — {viewGRN.grn_number}
               </span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
@@ -2691,7 +2691,7 @@ const GRN = () => {
             id="print-document"
             style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
           >
-            {/* â”€â”€ Green gradient header â”€â”€ */}
+            {/* ── Green gradient header ── */}
             <div style={{ background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #16a34a 100%)', padding: '30px 44px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ fontSize: 8, letterSpacing: 3, textTransform: 'uppercase', opacity: 0.6, marginBottom: 8 }}>Goods Received Note</div>
@@ -2699,7 +2699,7 @@ const GRN = () => {
                   {businessInfo.business_name || 'Business Name'}
                 </div>
                 <div style={{ fontSize: 10.5, opacity: 0.7, lineHeight: 1.8 }}>
-                  {[businessInfo.business_address, businessInfo.business_phone, businessInfo.business_email].filter(Boolean).join('  Â·  ')}
+                  {[businessInfo.business_address, businessInfo.business_phone, businessInfo.business_email].filter(Boolean).join('  ·  ')}
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -2721,9 +2721,9 @@ const GRN = () => {
               {/* Info cards row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 26 }}>
                 {[
-                  { label: 'Supplier',     value: viewGRN.supplier_name || 'â€”',                           icon: 'ðŸ¢', bg: '#f0fdf4', border: '#86efac', color: '#15803d' },
-                  { label: 'Received Date', value: formatDate(viewGRN.date || viewGRN.created_at),         icon: 'ðŸ“…', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
-                  { label: 'Total Items',   value: `${viewGRN.total_items} line${viewGRN.total_items !== 1 ? 's' : ''}`, icon: 'ðŸ“¦', bg: '#fff7ed', border: '#fed7aa', color: '#c2410c' },
+                  { label: 'Supplier',     value: viewGRN.supplier_name || '—',                           icon: '🏢', bg: '#f0fdf4', border: '#86efac', color: '#15803d' },
+                  { label: 'Received Date', value: formatDate(viewGRN.date || viewGRN.created_at),         icon: '📅', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+                  { label: 'Total Items',   value: `${viewGRN.total_items} line${viewGRN.total_items !== 1 ? 's' : ''}`, icon: '📦', bg: '#fff7ed', border: '#fed7aa', color: '#c2410c' },
                 ].map(card => (
                   <div key={card.label} style={{ padding: '12px 16px', borderRadius: 10, background: card.bg, border: `1.5px solid ${card.border}` }}>
                     <div style={{ fontSize: 9, letterSpacing: 0.8, textTransform: 'uppercase', color: '#64748b', fontWeight: 600, marginBottom: 5 }}>{card.label}</div>
@@ -2758,7 +2758,7 @@ const GRN = () => {
                         <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#15803d' }}>{parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', color: '#374151', fontSize: 10.5 }}>{item.expiry_date || 'â€”'}</td>
+                        <td style={{ padding: '10px 14px', color: '#374151', fontSize: 10.5 }}>{item.expiry_date || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -2795,7 +2795,7 @@ const GRN = () => {
 
             {/* Footer bar */}
             <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '10px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} â€” Confidential Document</span>
+              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
               <span style={{ fontSize: 9, color: '#94a3b8' }}>
                 Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>

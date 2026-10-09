@@ -23,11 +23,11 @@ const todayStr = new Date().toISOString().split('T')[0];
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
 const formatDate = (d) => {
-  if (!d) return 'â€”';
+  if (!d) return '—';
   return new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-// 2026-08-30 â€” covers every movement_type the sales bin card can surface.
+// 2026-08-30 — covers every movement_type the sales bin card can surface.
 // It previously stopped at six, so GRN, transfer and credit-note rows printed
 // their raw database value ("grn", "transfer") in the Type column. Transfer
 // direction comes from the sign of the quantity, since both directions share
@@ -53,8 +53,8 @@ const movementLabel = (type, qty) => {
 };
 
 const typeStyle = (type) => {
-  if (type === 'grn' || type === 'hq_grn') return { background: '#dcfce7', color: '#166534' }; // green â€” IN
-  if (type === 'credit_note')   return { background: '#fee2e2', color: '#dc2626' };            // red â€” OUT
+  if (type === 'grn' || type === 'hq_grn') return { background: '#dcfce7', color: '#166534' }; // green — IN
+  if (type === 'credit_note')   return { background: '#fee2e2', color: '#dc2626' };            // red — OUT
   if (type === 'transfer' || type === 'transfer_in' || type === 'transfer_out')
                                 return { background: '#e0e7ff', color: '#4338ca' };            // indigo
   if (type === 'production')    return { background: '#cffafe', color: '#0e7490' };
@@ -86,12 +86,12 @@ const SalesBinCard = () => {
   const [businessInfo, setBusinessInfo]   = useState({});
   const [showPrint, setShowPrint]         = useState(false);
   const [stickyLocked, setStickyLocked]   = useState(true);
-  // 2026-09-26 â€” IN/OUT/All row filter, ported from Kelete v1.10.315. Purely
+  // 2026-09-26 — IN/OUT/All row filter, ported from Kelete v1.10.315. Purely
   // a view: the totals bar stays period-wide and the Balance column keeps the
   // backend's cumulative running total, so narrowing to IN or OUT never
   // rewrites the history the card is reporting.
   const [rowFilter, setRowFilter]         = useState('all');
-  // 2026-09-17 â€” phones never pin the top block and never cap the table's
+  // 2026-09-17 — phones never pin the top block and never cap the table's
   // height: the block is nearly the whole screen there, and the capped table
   // left a thin strip that scrolled while everything above it stayed put, so
   // the page felt stuck. On a phone the whole page scrolls, as it should.
@@ -107,9 +107,9 @@ const SalesBinCard = () => {
 
   useModalScrollLock(showPrint);
 
-  // 2026-08-30 â€” HQ GRN read-only modal. A GRN reference on this page points
+  // 2026-08-30 — HQ GRN read-only modal. A GRN reference on this page points
   // at master.hq_grns, not the branch grn table, so it cannot be navigated to
-  // â€” it is fetched and shown here instead.
+  // — it is fetched and shown here instead.
   const [hqGrn, setHqGrn]               = useState(null);
   const [hqGrnLoading, setHqGrnLoading] = useState(false);
   const [hqGrnError, setHqGrnError]     = useState('');
@@ -129,7 +129,7 @@ const SalesBinCard = () => {
   };
   const closeHqGrn = () => { setHqGrn(null); setHqGrnError(''); setHqGrnLoading(false); };
 
-  // Quantities and money in the modal â€” plain grouped numbers, 2dp.
+  // Quantities and money in the modal — plain grouped numbers, 2dp.
   const money = (n) => (parseFloat(n) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   useEffect(() => {
@@ -183,27 +183,27 @@ const SalesBinCard = () => {
                      : rowFilter === 'out' ? rows.filter(r => parseFloat(r.quantity) < 0)
                      : rows;
 
-  // v1.13.121 â€” A4 print that opens the browser print dialog directly
+  // v1.13.121 — A4 print that opens the browser print dialog directly
   // (matches ProfitReport / SalesReport / SalesInventory style). Replaces
   // the modal-based preview so all Ref-13 report prints look identical.
   const handleA4Print = () => {
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    const printedBy = [authUser?.firstName, authUser?.lastName].filter(Boolean).join(' ') || 'â€”';
+    const printedBy = [authUser?.firstName, authUser?.lastName].filter(Boolean).join(' ') || '—';
     const bizName = businessInfo?.business_name || 'Business Name';
     const bizAddr = businessInfo?.business_address || '';
     const bizPhone = businessInfo?.business_phone || '';
-    const rangeLabel = from === to ? formatDate(from) : `${formatDate(from)}  â†’  ${formatDate(to)}`;
-    const productLabel = `${selectedProduct?.name || ''}${unitLabel ? '  Â·  ' + unitLabel : ''}`;
+    const rangeLabel = from === to ? formatDate(from) : `${formatDate(from)}  →  ${formatDate(to)}`;
+    const productLabel = `${selectedProduct?.name || ''}${unitLabel ? '  ·  ' + unitLabel : ''}`;
 
     const fmtN = (v) => (parseFloat(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const openingRow = `<tr style="background:#eff6ff">
-      <td style="padding:7px 10px;color:#9ca3af">â€”</td>
+      <td style="padding:7px 10px;color:#9ca3af">—</td>
       <td style="padding:7px 10px">${formatDate(from)}</td>
-      <td style="padding:7px 10px;color:#9ca3af">â€”</td>
+      <td style="padding:7px 10px;color:#9ca3af">—</td>
       <td style="padding:7px 10px;color:#1d4ed8;font-weight:700">Opening Balance</td>
       <td style="padding:7px 10px;text-align:right;color:#166534;font-weight:700">${openBal > 0 ? fmtN(openBal) : ''}</td>
-      <td style="padding:7px 10px;text-align:right">â€”</td>
+      <td style="padding:7px 10px;text-align:right">—</td>
       <td style="padding:7px 10px;text-align:right;color:#1d4ed8;font-weight:800">${fmtN(openBal)}</td>
     </tr>`;
 
@@ -218,7 +218,7 @@ const SalesBinCard = () => {
       return `<tr style="background:${idx % 2 === 0 ? '#fff' : '#f9fafb'};border-bottom:1px solid #f3f4f6">
         <td style="padding:6px 10px;color:#9ca3af">${idx + 1}</td>
         <td style="padding:6px 10px">${formatDate(row.date)}</td>
-        <td style="padding:6px 10px;font-weight:600">${fmtInvoiceNo(row.reference) || 'â€”'}</td>
+        <td style="padding:6px 10px;font-weight:600">${fmtInvoiceNo(row.reference) || '—'}</td>
         <td style="padding:6px 10px;color:#374151">${movementLabel(row.movement_type, row.quantity)}</td>
         <td style="padding:6px 10px;text-align:right;color:#166534;font-weight:700">${inV}</td>
         <td style="padding:6px 10px;text-align:right;color:#dc2626;font-weight:700">${outV}</td>
@@ -226,7 +226,7 @@ const SalesBinCard = () => {
       </tr>`;
     }).join('');
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sales Bin Card â€” ${productLabel}</title><style>
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Sales Bin Card — ${productLabel}</title><style>
       @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
@@ -271,7 +271,7 @@ const SalesBinCard = () => {
           </tr></thead>
           <tbody>${openingRow}${bodyRows}</tbody>
           <tfoot><tr>
-            <td colspan="4">TOTALS â€” ${rows.length} movement${rows.length !== 1 ? 's' : ''}</td>
+            <td colspan="4">TOTALS — ${rows.length} movement${rows.length !== 1 ? 's' : ''}</td>
             <td style="text-align:right;color:#166534">${fmtN(totalIn)}</td>
             <td style="text-align:right;color:#dc2626">${fmtN(totalOut)}</td>
             <td style="text-align:right">${fmtN(closeBal)}</td>
@@ -288,7 +288,7 @@ const SalesBinCard = () => {
           </div>`).join('')}
       </div>
       <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
-        <span style="font-size:9px">${bizName} â€” Confidential</span>
+        <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
     </body></html>`;
@@ -297,7 +297,7 @@ const SalesBinCard = () => {
     if (w) { w.document.write(html); w.document.close(); w.focus(); setTimeout(() => { w.print(); }, 300); }
   };
 
-  // Thermal (80mm) print â€” compact bin-card that fits a receipt roll.
+  // Thermal (80mm) print — compact bin-card that fits a receipt roll.
   // Opens a new window with a print-only stylesheet and triggers print
   // immediately. Same pattern the POS receipt uses.
   const handleThermalPrint = () => {
@@ -331,39 +331,39 @@ const SalesBinCard = () => {
     const html = `<!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <style>
-  /* 2026-08-30 â€” 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
+  /* 2026-08-30 — 72mm, NOT 80mm. 80mm is the width of the PAPER; the print
      head only covers 72mm. The driver says so itself: its paper setting
-     reads "ZPrinter Paper(80(72) x 3276mm)" â€” 80mm roll, 72mm printable.
+     reads "ZPrinter Paper(80(72) x 3276mm)" — 80mm roll, 72mm printable.
      Declaring 80mm made Chrome lay the receipt out 8mm wider than the
      printer can reach, and the driver simply dropped the overhang. Every
      line lost the same three or four characters off the right: Walk-i(n),
      ZM(W), INV0060001067/9(0), 77.3(7). It read as a table problem, but the
-     header and totals were clipped too â€” the canvas was just too wide.
+     header and totals were clipped too — the canvas was just too wide.
      Matching the canvas to the print head means nothing can fall off. */
   @page { size: 72mm auto; margin: 0; }
   html, body { margin: 0; padding: 0; }
-  /* 2026-09-01 â€” same left-edge shift as every other 72mm print in this
+  /* 2026-09-01 — same left-edge shift as every other 72mm print in this
      codebase. 4mm left, 0 right: the content moves across without the
      content area getting any narrower. */
   body { width: 72mm; max-width: 72mm; padding: 2mm 0 2mm 4mm;
          font-family: 'Courier New', Courier, monospace; font-size: 10px; color: #000; font-weight: 700; }
   table { width: 100%; border-collapse: collapse; font-size: 10px; }
-  /* 2026-08-30 â€” see the note in the tax-invoice templates: width:100% on a
+  /* 2026-08-30 — see the note in the tax-invoice templates: width:100% on a
      table is only a suggestion under table-layout:auto, so an unbreakable
      value (an invoice number, a TPIN) stretches the table past the paper and
      carries every right-aligned figure off the edge with it. */
-  /* 2026-08-30 â€” tables stop at 86% of the body. The remaining 14% is
+  /* 2026-08-30 — tables stop at 86% of the body. The remaining 14% is
      deliberately never printed on.
-     Four earlier attempts tried to make the content FIT inside 100% â€”
+     Four earlier attempts tried to make the content FIT inside 100% —
      narrower page, narrower columns, smaller font, wrapping cells. But 100%
      is where the loss happens: a right-aligned value sits on the print
      head's last dot, and that dot is unreliable. It is why even 77.37 came
      out as 77.3 while the centred lines beside it printed in full.
-     The reference receipt this was compared against does the same thing â€”
+     The reference receipt this was compared against does the same thing —
      its item table visibly stops well short of the edge. Leaving slack means
      an overflow eats into the margin instead of falling off the paper, and
-     the Total column â€” the number that matters most and was always last in
-     the row â€” is no longer the one closest to the cut. */
+     the Total column — the number that matters most and was always last in
+     the row — is no longer the one closest to the cut. */
   table { width: 86%; max-width: 86%; }
   table tr > td:last-child { overflow-wrap: anywhere; word-break: break-word; }
   td, th { padding: 1px 0; vertical-align: top; }
@@ -405,7 +405,7 @@ const SalesBinCard = () => {
 </body></html>`;
 
     const w = window.open('', '_blank');
-    if (!w) { alert('Popup blocked â€” allow popups to print.'); return; }
+    if (!w) { alert('Popup blocked — allow popups to print.'); return; }
     w.document.write(html);
     w.document.close();
     w.focus();
@@ -413,13 +413,13 @@ const SalesBinCard = () => {
   };
 
   return (
-    // 2026-09-17 â€” the page's own scroll box, as every other page has. It used
+    // 2026-09-17 — the page's own scroll box, as every other page has. It used
     // to be a plain div, so nothing here scrolled on its own: the whole window
-    // did, and the Locked (sticky) top block scrolled away with it â€” the
+    // did, and the Locked (sticky) top block scrolled away with it — the
     // Locked / Unlocked button appeared to do nothing, on phones especially.
     <div className="page-content" style={{ background: '#f8fafc' }}>
 
-      {/* Sticky top block â€” Header + Filter + Summary. Lock toggle keeps it
+      {/* Sticky top block — Header + Filter + Summary. Lock toggle keeps it
           pinned at the top of the viewport so long scrolling tables stay
           under it. Unlock to reclaim screen space (default browser flow). */}
       <div style={{
@@ -474,7 +474,7 @@ const SalesBinCard = () => {
         <div style={{ flex: '2 1 220px', minWidth: 180 }}>
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Product *</label>
           <input list="salesbincard-products" value={productSearch} onChange={e => handleProductInput(e.target.value)}
-            placeholder="Type or select a productâ€¦"
+            placeholder="Type or select a product…"
             style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, boxSizing: 'border-box' }} />
           <datalist id="salesbincard-products">
             {products.map(p => <option key={p.id} value={`${p.name}${p.unit ? ` (${p.unit})` : ''}`} />)}
@@ -493,7 +493,7 @@ const SalesBinCard = () => {
         <div>
           <button onClick={handleSearch} disabled={loading}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 8, border: 'none', background: loading ? '#9ca3af' : ACCENT, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
-            <FiSearch size={14} /> {loading ? 'Loadingâ€¦' : 'Show'}
+            <FiSearch size={14} /> {loading ? 'Loading…' : 'Show'}
           </button>
         </div>
       </div>
@@ -534,10 +534,10 @@ const SalesBinCard = () => {
         <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb' }}>
           <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
             <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
-              {selectedProduct ? selectedProduct.name : 'Product'} â€” Sales Bin Card
+              {selectedProduct ? selectedProduct.name : 'Product'} — Sales Bin Card
             </div>
             <div style={{ fontSize: 12, color: '#6b7280' }}>
-              {formatDate(from)} â€“ {formatDate(to)} &nbsp;Â·&nbsp; {rows.length} movement{rows.length !== 1 ? 's' : ''}
+              {formatDate(from)} – {formatDate(to)} &nbsp;·&nbsp; {rows.length} movement{rows.length !== 1 ? 's' : ''}
             </div>
           </div>
 
@@ -586,14 +586,14 @@ const SalesBinCard = () => {
                 </thead>
                 <tbody>
                   <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                    <td style={{ padding: '10px 14px', color: '#9ca3af', fontFamily: 'monospace' }}>â€”</td>
+                    <td style={{ padding: '10px 14px', color: '#9ca3af', fontFamily: 'monospace' }}>—</td>
                     <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(from)}</td>
-                    <td style={{ padding: '10px 14px', color: '#6b7280' }}>â€”</td>
+                    <td style={{ padding: '10px 14px', color: '#6b7280' }}>—</td>
                     <td style={{ padding: '10px 14px' }}>
                       <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>Opening Balance</span>
                     </td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>{openBal > 0 ? money(openBal) : 'â€”'}</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>â€”</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>{openBal > 0 ? money(openBal) : '—'}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>—</td>
                     <td style={{ padding: '10px 14px', textAlign: 'right', color: '#1d4ed8', fontWeight: 800, fontFamily: 'monospace' }}>{(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                   </tr>
                   {visibleRows.map((row, idx) => {
@@ -607,11 +607,11 @@ const SalesBinCard = () => {
                         <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
                         <td style={{ padding: '10px 14px', color: '#111827', fontWeight: 600 }}>
                           {(() => {
-                            // 2026-08-30 â€” a GRN reference opens the HQ
+                            // 2026-08-30 — a GRN reference opens the HQ
                             // read-only modal, not the branch GRN page. Red
                             // Sea procurement is HQ-owned, so the row lives in
                             // master.hq_grns and the branch GRN page has
-                            // nothing to show. SIV references still navigate â€”
+                            // nothing to show. SIV references still navigate —
                             // those are branch-owned.
                             const t = refTarget(row.reference);
                             const displayRef = fmtInvoiceNo(row.reference);
@@ -629,7 +629,7 @@ const SalesBinCard = () => {
                                   style={{ background: 'none', border: 'none', padding: 0, color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 3, fontSize: 'inherit', fontFamily: 'inherit' }}>
                                   {displayRef}
                                 </button>
-                              : (displayRef || 'â€”');
+                              : (displayRef || '—');
                           })()}
                           {row.source_grn_number && (() => {
                             const g = refTarget(row.source_grn_number);
@@ -649,8 +649,8 @@ const SalesBinCard = () => {
                             {movementLabel(row.movement_type, row.quantity)}
                           </span>
                         </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>{isIn ? money(toDisp(qty)) : 'â€”'}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>{isOut ? money(toDisp(Math.abs(qty))) : 'â€”'}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>{isIn ? money(toDisp(qty)) : '—'}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>{isOut ? money(toDisp(Math.abs(qty))) : '—'}</td>
                         <td style={{ padding: '10px 14px', textAlign: 'right', color: '#111827', fontWeight: 800, fontFamily: 'monospace' }}>{(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                       </tr>
                     );
@@ -676,7 +676,7 @@ const SalesBinCard = () => {
         <div className="print-preview-overlay" style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#0f172a', display: 'flex', flexDirection: 'column' }}>
           <div style={{ background: '#1e293b', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
             <div style={{ color: '#94a3b8', fontSize: 13 }}>
-              Sales Bin Card â€” <strong style={{ color: '#fff' }}>{selectedProduct?.name}</strong>
+              Sales Bin Card — <strong style={{ color: '#fff' }}>{selectedProduct?.name}</strong>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => window.print()} style={{ padding: '8px 20px', borderRadius: 7, border: 'none', background: ACCENT, color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
@@ -695,7 +695,7 @@ const SalesBinCard = () => {
                   <div>
                     <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 2, opacity: 0.75, marginBottom: 4 }}>Sales Document</div>
                     <div style={{ fontSize: 26, fontWeight: 900, letterSpacing: -0.5 }}>SALES BIN CARD</div>
-                    <div style={{ fontSize: 13, opacity: 0.85, marginTop: 6 }}>{selectedProduct?.name} {unitLabel ? `Â· ${unitLabel}` : ''}</div>
+                    <div style={{ fontSize: 13, opacity: 0.85, marginTop: 6 }}>{selectedProduct?.name} {unitLabel ? `· ${unitLabel}` : ''}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 16, fontWeight: 800 }}>{businessInfo.business_name || 'Business Name'}</div>
@@ -735,12 +735,12 @@ const SalesBinCard = () => {
                   </thead>
                   <tbody>
                     <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                      <td style={{ padding: '8px 10px', color: '#9ca3af' }}>â€”</td>
+                      <td style={{ padding: '8px 10px', color: '#9ca3af' }}>—</td>
                       <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(from)}</td>
-                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>â€”</td>
+                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
                       <td style={{ padding: '8px 10px', color: '#1d4ed8', fontWeight: 700 }}>Opening Balance</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', color: '#166534', fontWeight: 700 }}>{openBal > 0 ? money(openBal) : ''}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right' }}>â€”</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right' }}>—</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#1d4ed8' }}>{(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     </tr>
                     {visibleRows.map((row, idx) => {
@@ -751,7 +751,7 @@ const SalesBinCard = () => {
                         <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
                           <td style={{ padding: '8px 10px', color: '#9ca3af' }}>{idx + 1}</td>
                           <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(row.date)}</td>
-                          <td style={{ padding: '8px 10px', fontWeight: 600 }}>{fmtInvoiceNo(row.reference) || 'â€”'}</td>
+                          <td style={{ padding: '8px 10px', fontWeight: 600 }}>{fmtInvoiceNo(row.reference) || '—'}</td>
                           <td style={{ padding: '8px 10px', color: '#6b7280' }}>{movementLabel(row.movement_type, row.quantity)}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#166534', fontWeight: 700 }}>{isIn ? money(toDisp(qty)) : ''}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#dc2626', fontWeight: 700 }}>{isOut ? money(toDisp(Math.abs(qty))) : ''}</td>
@@ -797,7 +797,7 @@ const SalesBinCard = () => {
         }
       `}</style>
 
-      {/* 2026-08-30 â€” HQ GRN read-only view, opened from a GRN reference in
+      {/* 2026-08-30 — HQ GRN read-only view, opened from a GRN reference in
           the movement table. Red Sea procurement is HQ-owned, so the branch
           `grn` table has no row for these; the header and lines come from
           master.hq_grns via /api/inventory/hq-grn/:syncId. Themed with the
@@ -820,7 +820,7 @@ const SalesBinCard = () => {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, letterSpacing: 1, opacity: 0.85, fontWeight: 700 }}>HQ GOODS RECEIVED NOTE</div>
                   <div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'monospace' }}>
-                    {hqGrn?.grn?.grn_number || (hqGrnLoading ? 'Loadingâ€¦' : 'â€”')}
+                    {hqGrn?.grn?.grn_number || (hqGrnLoading ? 'Loading…' : '—')}
                   </div>
                 </div>
                 <button onClick={closeHqGrn} aria-label="Close"
@@ -831,7 +831,7 @@ const SalesBinCard = () => {
               </div>
 
               <div style={{ padding: 20 }}>
-                {hqGrnLoading && <div style={{ color: '#6b7280', padding: '30px 0', textAlign: 'center' }}>Loading GRNâ€¦</div>}
+                {hqGrnLoading && <div style={{ color: '#6b7280', padding: '30px 0', textAlign: 'center' }}>Loading GRN…</div>}
                 {hqGrnError && (
                   <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
                                 borderRadius: 8, padding: 14, fontSize: 13 }}>{hqGrnError}</div>
@@ -844,12 +844,12 @@ const SalesBinCard = () => {
                     <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', background: '#fafafa' }}>
                       <div style={{ fontSize: 10, letterSpacing: 0.6, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 2,
-                                    fontFamily: mono ? 'monospace' : 'inherit' }}>{value || 'â€”'}</div>
+                                    fontFamily: mono ? 'monospace' : 'inherit' }}>{value || '—'}</div>
                     </div>
                   );
                   const when = (name, at) => (name || at)
-                    ? `${name || 'â€”'}${at ? '  Â·  ' + new Date(at).toLocaleString('en-GB', { hour12: false }) : ''}`
-                    : 'â€”';
+                    ? `${name || '—'}${at ? '  ·  ' + new Date(at).toLocaleString('en-GB', { hour12: false }) : ''}`
+                    : '—';
                   return (
                     <>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 10, marginBottom: 16 }}>
@@ -888,7 +888,7 @@ const SalesBinCard = () => {
                                     {it.is_extra ? <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#92400e',
                                       background: '#fef3c7', padding: '1px 6px', borderRadius: 10 }}>EXTRA</span> : null}
                                   </td>
-                                  <td style={{ padding: '8px 12px', color: '#6b7280' }}>{it.unit || 'â€”'}</td>
+                                  <td style={{ padding: '8px 12px', color: '#6b7280' }}>{it.unit || '—'}</td>
                                   <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.quantity)}</td>
                                   <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.unit_price)}</td>
                                   <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{money(it.total_price)}</td>
@@ -903,7 +903,7 @@ const SalesBinCard = () => {
                               {parseFloat(g.cn_total || 0) !== 0 && (
                                 <tr style={{ background: '#fafafa' }}>
                                   <td colSpan={4} style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#374151' }}>CREDIT NOTES</td>
-                                  <td style={{ padding: '9px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#b91c1c' }}>âˆ’{money(g.cn_total)}</td>
+                                  <td style={{ padding: '9px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#b91c1c' }}>−{money(g.cn_total)}</td>
                                 </tr>
                               )}
                               <tr style={{ background: '#111827', color: '#fff' }}>
@@ -915,7 +915,7 @@ const SalesBinCard = () => {
                         </div>
                       </div>
 
-                      {/* 2026-08-31 â€” what actually went back.
+                      {/* 2026-08-31 — what actually went back.
                           The modal showed one CREDIT NOTES line and a figure,
                           so a bin card row that moved 3 boxes out could not be
                           traced to the note that moved them. */}
@@ -925,9 +925,9 @@ const SalesBinCard = () => {
                                         fontWeight: 800, letterSpacing: 0.5, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                             <span>
                               {cn.reason || 'CREDIT NOTE'}
-                              {cn.credit_note_number && <span style={{ fontFamily: 'monospace', fontWeight: 700 }}> Â· {cn.credit_note_number}</span>}
+                              {cn.credit_note_number && <span style={{ fontFamily: 'monospace', fontWeight: 700 }}> · {cn.credit_note_number}</span>}
                             </span>
-                            <span>âˆ’ {money(cn.amount)}</span>
+                            <span>− {money(cn.amount)}</span>
                           </div>
                           <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
@@ -945,7 +945,7 @@ const SalesBinCard = () => {
                                 {(cn.items || []).map((it, i) => (
                                   <tr key={i} style={{ borderTop: '1px solid #fee2e2' }}>
                                     <td style={{ padding: '7px 12px', fontWeight: 600, color: '#111827' }}>{it.product_name}</td>
-                                    <td style={{ padding: '7px 12px', color: '#6b7280' }}>{it.unit || 'â€”'}</td>
+                                    <td style={{ padding: '7px 12px', color: '#6b7280' }}>{it.unit || '—'}</td>
                                     <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.quantity)}</td>
                                     <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.unit_value)}</td>
                                     <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.discount)}</td>
@@ -960,7 +960,7 @@ const SalesBinCard = () => {
                                 </tr>
                                 <tr style={{ background: '#fef2f2' }}>
                                   <td colSpan={5} style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: '#991b1b' }}>GRAND TOTAL</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: '#991b1b' }}>âˆ’ {money(cn.amount)}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: '#991b1b' }}>− {money(cn.amount)}</td>
                                 </tr>
                               </tfoot>
                             </table>
@@ -980,7 +980,7 @@ const SalesBinCard = () => {
 
               <div style={{ borderTop: '1px solid #e5e7eb', padding: '12px 20px', display: 'flex',
                             alignItems: 'center', justifyContent: 'space-between', background: '#fafafa' }}>
-                <span style={{ fontSize: 11, color: '#9ca3af' }}>Read-only view Â· HQ archive</span>
+                <span style={{ fontSize: 11, color: '#9ca3af' }}>Read-only view · HQ archive</span>
                 <button onClick={closeHqGrn}
                   style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8,
                            padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}>Close</button>

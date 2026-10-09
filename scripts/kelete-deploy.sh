@@ -1,5 +1,5 @@
 #!/bin/bash
-# Kelete auto-deploy â€” pulled by cron every minute.
+# Kelete auto-deploy — pulled by cron every minute.
 # No-op when origin/main hasn't advanced; full deploy when it has.
 # Robust against cron's limited PATH (sources NVM if installed) and
 # overlapping runs (flock lock).

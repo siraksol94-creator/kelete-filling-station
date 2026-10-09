@@ -1,5 +1,5 @@
 /**
- * hqPurchases.js â€” HQ-managed supplier purchase receipts.
+ * hqPurchases.js — HQ-managed supplier purchase receipts.
  *
  * HQ has NO physical warehouse (see project memory + the user's clarif).
  * Every supplier purchase is logged here ONCE at HQ with per-line
@@ -9,14 +9,14 @@
  *
  * On confirm we:
  *   - find product at destination by sync_id (fallback: same name),
- *     auto-create if missing â€” using the snapshot from the line.
+ *     auto-create if missing — using the snapshot from the line.
  *   - increment products.current_stock by received_qty (base units).
  *   - insert a stock_movement (location='sales', movement_type='hq_receipt')
  *     so Bin Card + per-branch stock card reflect the arrival.
  *   - flip line status to RECEIVED, stamp received_by + received_at.
  *   - auto-COMPLETE the header once every line is RECEIVED/CANCELLED.
  *
- * Auth: hqAuth (JWT only) â€” same model as the other HQ routes.
+ * Auth: hqAuth (JWT only) — same model as the other HQ routes.
  */
 const express = require('express');
 const router  = express.Router();
@@ -39,11 +39,11 @@ function hqAuth(req, res, next) {
 
 function nextPurchaseNumber() {
   const yr = new Date().getFullYear();
-  // 2026-09-04 â€” was COUNT(*) + 1, which breaks the moment a row is deleted:
+  // 2026-09-04 — was COUNT(*) + 1, which breaks the moment a row is deleted:
   // the count drops while the numbers already issued do not, so the next
   // document reuses one that exists and the UNIQUE constraint rejects it.
   // Deleting five stale test rows today was enough to do it. Take the highest
-  // number actually issued this year instead â€” deletions cannot lower it, and
+  // number actually issued this year instead — deletions cannot lower it, and
   // a number is never reused.
   const row = masterDb.prepare(
     `SELECT MAX(CAST(substr(purchase_number, ?) AS INTEGER)) AS n
@@ -67,7 +67,7 @@ function destinationName(slug) {
   } catch (_) { return slug; }
 }
 
-// 2026-09-09 â€” a 400 the outer catch can tell apart from a crash. The line
+// 2026-09-09 — a 400 the outer catch can tell apart from a crash. The line
 // builder below is shared by three routes and reports bad input by throwing,
 // rather than each caller re-checking what it just handed over.
 function badRequest(message) {
@@ -76,12 +76,12 @@ function badRequest(message) {
   return e;
 }
 
-// v1.10.54 â€” FX rate at PO Create (WAC redesign push 2).
+// v1.10.54 — FX rate at PO Create (WAC redesign push 2).
 // Rate is captured HERE, one rate for the whole PO, per user's
 // 2026-07-03 design memo. Validation is soft: if the caller sends
 // cost_currency + fx_rate_used they must both be sane, but sending
 // neither is fine (frontend gates the requirement based on whether
-// any destination line targets a tri-currency branch â€” the backend
+// any destination line targets a tri-currency branch — the backend
 // just trusts what it receives).
 function parseCurrency({ cost_currency, fx_rate_used }) {
   const VALID_CCY = new Set(['USD', 'FRA', 'K']);
@@ -97,16 +97,16 @@ function parseCurrency({ cost_currency, fx_rate_used }) {
 }
 
 // Validate items + compute the total. Every line must have qty>0 and a
-// registered destination_slug â€” HQ can't dispatch to a non-tenant.
+// registered destination_slug — HQ can't dispatch to a non-tenant.
 //
-// 2026-09-09 â€” extracted from POST unchanged so that saving a draft, and
+// 2026-09-09 — extracted from POST unchanged so that saving a draft, and
 // promoting one to a real purchase, produce byte-identical lines. A draft
 // that computed its costs even slightly differently would be a purchase that
 // changed the moment it was saved, which is the one thing a draft must not do.
 function buildLines(items, ccy, rate) {
-  // Convert helper: local cost â†’ USD equivalent, using the PO rate.
+  // Convert helper: local cost → USD equivalent, using the PO rate.
   // USD stays 1:1. FRA/K divide by the rate. NULL rate on non-USD
-  // shouldn't happen (we validated above) but we guard with 0 â†’ NULL.
+  // shouldn't happen (we validated above) but we guard with 0 → NULL.
   const toUsd = (localCost) => {
     const c = parseFloat(localCost || 0) || 0;
     if (c <= 0) return 0;
@@ -121,11 +121,11 @@ function buildLines(items, ccy, rate) {
     const name = String(it.product_name || '').trim();
     const qty  = parseFloat(it.dispatched_qty);
 
-    // 2026-08-30 â€” the invoice's own figures, and the cost DERIVED from them.
+    // 2026-08-30 — the invoice's own figures, and the cost DERIVED from them.
     //
     // A supplier invoice prints base price, VAT and discount per line. Until
     // now only one number could be recorded, so whoever typed the purchase
-    // had to compute (base + VAT - discount) / qty by hand for every line â€”
+    // had to compute (base + VAT - discount) / qty by hand for every line —
     // arithmetic done by a person, rounded to 2dp, leaving AP a few kwacha
     // off the amount due.
     //
@@ -136,9 +136,9 @@ function buildLines(items, ccy, rate) {
     // Older callers send only cost_price and no base_price; they keep
     // working, because base falls back to cost and VAT/discount are 0.
     const basePrice = parseFloat(it.base_price);
-    // 2026-09-04 â€” the RRP this line was billed on, stored alongside the
+    // 2026-09-04 — the RRP this line was billed on, stored alongside the
     // figures it explains. Suppliers charge VAT on the RRP rather than on
-    // what they bill: a Varun line at base 6,352.62 carries VAT 1,097.38 â€”
+    // what they bill: a Varun line at base 6,352.62 carries VAT 1,097.38 —
     // not 16% of the base (1,016.42) but 16/116 of RRP x qty. Minimum
     // taxable value, the same rule the POS applies when it sells the item.
     //
@@ -186,21 +186,21 @@ function buildLines(items, ccy, rate) {
 //         items: [{product_sync_id?, product_name, unit, dispatched_qty,
 //                  cost_price, destination_slug}] }
 //
-// product_sync_id is optional â€” when blank we auto-generate one so the
+// product_sync_id is optional — when blank we auto-generate one so the
 // destination branch creates a matching product on receive. Pre-existing
 // branch products can be linked by passing their sync_id.
 router.post('/', hqAuth, (req, res) => {
   try {
     const { supplier_id, supplier_name, invoice_number, date, notes, items } = req.body || {};
-    // 2026-09-09 â€” a purchase can be parked as a DRAFT: typed at HQ over a
+    // 2026-09-09 — a purchase can be parked as a DRAFT: typed at HQ over a
     // day, corrected, and only then raised. A draft is HQ's own working paper
-    // â€” it holds a PO number and it shows in this list, but it is not a
+    // — it holds a PO number and it shows in this list, but it is not a
     // purchase yet, so no depot sees it, no GRN can be raised against it and
     // AP never counts it. Everything downstream reads line status, and DRAFT
     // is in none of those lists, so nothing had to learn about it.
     const wantDraft = String(req.body?.status || '').toUpperCase() === 'DRAFT';
     if (!date) return res.status(400).json({ error: 'date is required' });
-    // A draft is allowed to be empty â€” that is the point of parking one
+    // A draft is allowed to be empty — that is the point of parking one
     // half-typed. A real purchase is not.
     if (!Array.isArray(items) || (items.length === 0 && !wantDraft)) {
       return res.status(400).json({ error: 'At least one item required' });
@@ -252,7 +252,7 @@ router.post('/', hqAuth, (req, res) => {
       }
     })();
 
-    // 2026-09-19 â€” wake each depot this delivery is going to. They already got
+    // 2026-09-19 — wake each depot this delivery is going to. They already got
     // a badge and the on-screen notice, but only while someone was looking at
     // the app; a delivery that arrives at the gate before anyone opens it is
     // exactly the case this is for. A draft has not been sent anywhere yet, so
@@ -269,7 +269,7 @@ router.post('/', hqAuth, (req, res) => {
         for (const [s, lines] of byDepot) {
           notifyBranchRoles(s, null, {
             title: 'Stock on the way from HQ',
-            body: `${lines} item${lines === 1 ? '' : 's'} Â· ${purchaseNumber}${supplier_name ? ' Â· ' + supplier_name : ''}`,
+            body: `${lines} item${lines === 1 ? '' : 's'} · ${purchaseNumber}${supplier_name ? ' · ' + supplier_name : ''}`,
             data: { type: 'incoming-stock', purchase_number: purchaseNumber },
             channelId: 'kelete-alerts-v1',
           }).catch(() => {});
@@ -292,18 +292,18 @@ function getOne(syncIdOrId) {
   return { ...row, items };
 }
 
-// GET /api/hq/purchases â€” list (HQ side, all branches).
+// GET /api/hq/purchases — list (HQ side, all branches).
 router.get('/', hqAuth, (req, res) => {
   try {
     const status = String(req.query.status || '').toUpperCase();
-    // 2026-09-26 â€” from/to filtered HERE, not in the browser. The list is
+    // 2026-09-26 — from/to filtered HERE, not in the browser. The list is
     // capped at 500 newest below, so a client-side date filter would quietly
     // return nothing for any range older than the most recent 500 purchases
     // and look like the data had gone missing.
     const from = String(req.query.from || '').slice(0, 10);
     const to   = String(req.query.to   || '').slice(0, 10);
     // A discarded draft is kept only to hold its PO number and to carry the
-    // discard out to the mirrors â€” it is not a purchase and never shows.
+    // discard out to the mirrors — it is not a purchase and never shows.
     let sql = `SELECT * FROM hq_purchases WHERE status <> 'DISCARDED'`;
     const params = [];
     if (status) { sql += ' AND status = ?'; params.push(status); }
@@ -319,14 +319,14 @@ router.get('/', hqAuth, (req, res) => {
     const counts = masterDb.prepare(`
       SELECT purchase_id,
              COUNT(*) AS total,
-             -- 2026-09-04 â€” the list showed supplier and total but never WHERE
+             -- 2026-09-04 — the list showed supplier and total but never WHERE
              -- the goods went, which is the thing HQ scans for. Lines normally
              -- share one destination (the form sends them all to the branch
              -- picked at the top), so MIN gives the name; dest_count catches
              -- the older purchases that were split across branches.
              COUNT(DISTINCT destination_slug) AS dest_count,
              MIN(COALESCE(destination_name, destination_slug)) AS dest_name,
-             -- 2026-09-09 â€” every branch a purchase touches, so the list's
+             -- 2026-09-09 — every branch a purchase touches, so the list's
              -- destination filter matches a split purchase on any one of its
              -- branches rather than only on the name MIN happened to pick.
              GROUP_CONCAT(DISTINCT destination_slug) AS dest_slugs,
@@ -337,7 +337,7 @@ router.get('/', hqAuth, (req, res) => {
         FROM hq_purchase_items
        GROUP BY purchase_id
     `).all().reduce((acc, r) => { acc[r.purchase_id] = r; return acc; }, {});
-    // 2026-09-04 â€” the GRN raised against each purchase. Red Sea tracks a
+    // 2026-09-04 — the GRN raised against each purchase. Red Sea tracks a
     // delivery by its supplier invoice number and quotes the GRN number back
     // to Accounts, and the list showed neither, so both had to be found by
     // opening purchases one at a time. One query for the whole page rather
@@ -351,7 +351,7 @@ router.get('/', hqAuth, (req, res) => {
     const enriched = headers.map(h => ({
       ...h,
       grn_number: grnByPo[h.sync_id]?.grn_number || null,
-      // The depot's number wins â€” it is read off the paper that came with the
+      // The depot's number wins — it is read off the paper that came with the
       // goods. HQ's is what the order was raised against, and is the only one
       // available until a depot confirms.
       invoice_display: h.supplier_invoice_number
@@ -363,7 +363,7 @@ router.get('/', hqAuth, (req, res) => {
       items_awaiting_confirm: counts[h.id]?.awaiting_confirm || 0,
       items_awaiting_grn:     counts[h.id]?.awaiting_grn     || 0,
       items_cancelled:        counts[h.id]?.cancelled        || 0,
-      // Legacy field kept so older clients don't break â€” same as awaiting_grn.
+      // Legacy field kept so older clients don't break — same as awaiting_grn.
       items_pending:          counts[h.id]?.awaiting_grn     || 0,
       items_received:         counts[h.id]?.confirmed        || 0,
       dest_count:             counts[h.id]?.dest_count       || 0,
@@ -377,7 +377,7 @@ router.get('/', hqAuth, (req, res) => {
 });
 
 // GET /api/hq/purchases/incoming?slug=
-// Branch-facing â€” every line whose destination_slug matches AND is
+// Branch-facing — every line whose destination_slug matches AND is
 // still in flight (AWAITING_GRN = branch must enter actual qty;
 // GRN_SUBMITTED = waiting for HQ confirmation, branch can see it but
 // can't re-submit). Sort by submitted/created time so the freshest
@@ -386,28 +386,28 @@ router.get('/incoming', hqAuth, (req, res) => {
   try {
     const slug = String(req.query.slug || '').toLowerCase();
     if (!slug) return res.status(400).json({ error: 'slug is required' });
-    // v1.13.91 â€” scope=pending (default, back-compat) keeps the live
+    // v1.13.91 — scope=pending (default, back-compat) keeps the live
     // queue behaviour. scope=history returns confirmed / rejected /
     // cancelled lines so the branch can audit past incoming stock.
     const scope = String(req.query.scope || 'pending').toLowerCase();
-    // 2026-08-29 â€” RECEIPT_REPORTED belongs in the live queue.
+    // 2026-08-29 — RECEIPT_REPORTED belongs in the live queue.
     //
     // Kelete's branch action is submit-grn, which writes GRN_SUBMITTED, so
     // these two lists were right there. Kelete's branch action is Confirm
-    // Received (routes/branchReceipts.js), which writes RECEIPT_REPORTED â€”
+    // Received (routes/branchReceipts.js), which writes RECEIPT_REPORTED —
     // a status neither list had heard of. The moment a branch confirmed a
     // delivery the line dropped out of Pending and appeared in History,
     // even though HQ had not touched it yet. Confirmed on live data:
     // Kelete 0 RECEIPT_REPORTED rows, Kelete's whole flow producing them.
     //
-    // Kelete keeps its own path deliberately â€” Confirm Received captures the
+    // Kelete keeps its own path deliberately — Confirm Received captures the
     // supplier invoice number and attachment that ZRA reporting needs, and
     // Kelete's submit-grn takes neither.
     const LIVE_STATUSES = "('AWAITING_GRN', 'GRN_SUBMITTED', 'RECEIPT_REPORTED')";
-    // 2026-09-09 â€” history is written as NOT IN the live list, so a status
+    // 2026-09-09 — history is written as NOT IN the live list, so a status
     // invented later lands in it by default. DRAFT did exactly that: a
     // purchase HQ had not raised yet would have appeared in the depot's
-    // Incoming Stock history the moment it was parked. Excluded explicitly â€”
+    // Incoming Stock history the moment it was parked. Excluded explicitly —
     // the pending arm needs no guard, DRAFT simply is not in its list.
     const whereStatus = scope === 'history'
       ? `i.status NOT IN ${LIVE_STATUSES} AND i.status <> 'DRAFT'`
@@ -419,7 +419,7 @@ router.get('/incoming', hqAuth, (req, res) => {
              p.date AS purchase_date, p.notes AS purchase_notes,
              p.created_by_name AS hq_user
         FROM hq_purchase_items i
-        -- 2026-08-28 â€” join on sync_id, NOT the integer id. purchase_id holds
+        -- 2026-08-28 — join on sync_id, NOT the integer id. purchase_id holds
         -- HQ's row number; on a synced mirror the local hq_purchases row has a
         -- DIFFERENT auto-number, so p.id = i.purchase_id matches the wrong
         -- purchase or none at all. Measured on a real till: of 20 items the
@@ -430,7 +430,7 @@ router.get('/incoming', hqAuth, (req, res) => {
                ON (p.sync_id = i.purchase_sync_id
                    OR (i.purchase_sync_id IS NULL AND p.id = i.purchase_id))
        WHERE i.destination_slug = ? AND ${whereStatus}
-       -- 2026-08-30 â€” newest purchase first, but lines in the order they were
+       -- 2026-08-30 — newest purchase first, but lines in the order they were
        -- entered. This was "p.date DESC, i.id DESC", which reversed every
        -- purchase's lines, so the branch read the screen bottom-up against a
        -- top-down invoice. p.id DESC keeps two purchases from the same date
@@ -445,7 +445,7 @@ router.get('/incoming', hqAuth, (req, res) => {
 });
 
 // GET /api/hq/purchases/awaiting-confirmation
-// HQ-facing â€” every line that branches have submitted GRNs for and
+// HQ-facing — every line that branches have submitted GRNs for and
 // HQ hasn't confirmed yet. Drives the "Confirm GRN" page + the HQ
 // notification badge. Includes the destination slug so HQ knows
 // which branch counted what.
@@ -456,7 +456,7 @@ router.get('/awaiting-confirmation', hqAuth, (req, res) => {
              p.purchase_number, p.supplier_name, p.invoice_number, p.supplier_invoice_number,
              p.date AS purchase_date, p.created_by_name AS hq_user
         FROM hq_purchase_items i
-        -- 2026-08-28 â€” join on sync_id, NOT the integer id. purchase_id holds
+        -- 2026-08-28 — join on sync_id, NOT the integer id. purchase_id holds
         -- HQ's row number; on a synced mirror the local hq_purchases row has a
         -- DIFFERENT auto-number, so p.id = i.purchase_id matches the wrong
         -- purchase or none at all. Measured on a real till: of 20 items the
@@ -476,18 +476,18 @@ router.get('/awaiting-confirmation', hqAuth, (req, res) => {
   }
 });
 
-// GET /api/hq/purchases/:id â€” detail (HQ side, with items).
-// GET /api/hq/purchases/last-price?product_sync_id=â€¦&supplier_id=â€¦
+// GET /api/hq/purchases/:id — detail (HQ side, with items).
+// GET /api/hq/purchases/last-price?product_sync_id=…&supplier_id=…
 //
-// 2026-09-04 â€” what this item last cost from this supplier. The form used to
-// prefill Base Price from products.cost_price, which is the LANDED cost â€”
-// base plus VAT less discount, blended by WAC â€” and therefore never a figure
+// 2026-09-04 — what this item last cost from this supplier. The form used to
+// prefill Base Price from products.cost_price, which is the LANDED cost —
+// base plus VAT less discount, blended by WAC — and therefore never a figure
 // the supplier printed. Operators saw a number that looked authoritative and
 // was not the one on the invoice in their hand.
 //
 // Scoped to the supplier first, because the same water costs different money
 // from Zambian Breweries and from Varun; "last paid" only means something
-// within one supplier. Falls back to any supplier, then to nothing â€” a blank
+// within one supplier. Falls back to any supplier, then to nothing — a blank
 // is honest, an inherited price from someone else is not.
 //
 // Registered above /:id: Express matches in order and 'last-price' would
@@ -504,7 +504,7 @@ router.get('/last-price', hqAuth, (req, res) => {
          JOIN hq_purchases p ON p.id = i.purchase_id
         WHERE i.product_sync_id = ?
           AND i.base_price > 0
-          -- 2026-09-09 â€” a draft is a price nobody has committed to yet, and
+          -- 2026-09-09 — a draft is a price nobody has committed to yet, and
           -- half of it may be mid-typing. It must not become "the last price"
           -- that prefills the next purchase.
           AND p.status NOT IN ('DRAFT', 'DISCARDED')
@@ -518,7 +518,7 @@ router.get('/last-price', hqAuth, (req, res) => {
     res.json({
       base_price: row.base_price,
       rrp: row.rrp || 0,
-      // 2026-09-11 â€” the discount per unit on that same line, so the form can
+      // 2026-09-11 — the discount per unit on that same line, so the form can
       // remember it the way it remembers the base price. discount_amount is
       // the line total; per unit it follows whatever qty is typed next time.
       base_discount: row.dispatched_qty > 0 ? (parseFloat(row.discount_amount) || 0) / row.dispatched_qty : 0,
@@ -530,9 +530,9 @@ router.get('/last-price', hqAuth, (req, res) => {
   }
 });
 
-// GET /api/hq/purchases/trace?q=â€¦
+// GET /api/hq/purchases/trace?q=…
 //
-// 2026-09-04 â€” "where has this purchase got to?", answered by the number the
+// 2026-09-04 — "where has this purchase got to?", answered by the number the
 // supplier uses. Red Sea deals with suppliers by invoice number, not by our
 // PO number, so a search that only matched HQP-2026-00041 was no use on the
 // phone to Pepsi.
@@ -542,13 +542,13 @@ router.get('/last-price', hqAuth, (req, res) => {
 // every hit is one purchase with one timeline.
 //
 // The invoice number can live in three places for the same purchase:
-//   hq_purchases.invoice_number          â€” typed at HQ when the PO is raised
-//   hq_purchases.supplier_invoice_number â€” stamped by the depot at confirm
-//   hq_grns.supplier_invoice_number      â€” copied at GRN generation
+//   hq_purchases.invoice_number          — typed at HQ when the PO is raised
+//   hq_purchases.supplier_invoice_number — stamped by the depot at confirm
+//   hq_grns.supplier_invoice_number      — copied at GRN generation
 // All three are searched. They should agree; when they do not, that is a
 // finding rather than an error, and the result carries all three.
 //
-// Registered above /:id â€” Express matches in order.
+// Registered above /:id — Express matches in order.
 router.get('/trace', hqAuth, (req, res) => {
   try {
     const q = String(req.query.q || '').trim();
@@ -599,18 +599,18 @@ router.get('/trace', hqAuth, (req, res) => {
       ).get(grn.sync_id) : null;
 
       // Every stage of the pipeline, done or not. Returning only the completed
-      // ones made a purchase sitting in the Accounts queue look finished â€” the
+      // ones made a purchase sitting in the Accounts queue look finished — the
       // list simply stopped at "GRN generated" with no hint that a check, an
       // approval and a payment were still owed. A stage carries done:false and
       // no timestamp instead of being omitted.
-      // 2026-09-09 â€” a draft is findable by its invoice number on purpose:
+      // 2026-09-09 — a draft is findable by its invoice number on purpose:
       // if the number someone is chasing is sitting in a half-typed draft,
       // "not found" is the wrong answer. But it has been raised with nobody
       // and sent nowhere, so neither of the first two stages is done.
       const isDraft = po.status === 'DRAFT';
       const steps = [
         {
-          key: 'raised', label: isDraft ? 'Draft at HQ â€” not raised yet' : 'Raised at HQ',
+          key: 'raised', label: isDraft ? 'Draft at HQ — not raised yet' : 'Raised at HQ',
           done: !isDraft,
           at: isDraft ? null : (po.created_at || po.date), by: po.created_by_name || null,
           detail: po.purchase_number,
@@ -647,8 +647,8 @@ router.get('/trace', hqAuth, (req, res) => {
         },
       ];
 
-      // Send-Back is not a status of its own â€” it rolls ap_status back to
-      // PENDING â€” so it gets its own step or it vanishes from the history.
+      // Send-Back is not a status of its own — it rolls ap_status back to
+      // PENDING — so it gets its own step or it vanishes from the history.
       // Inserted before the stage it was rejected from, which is where it
       // happened in time.
       if (ap && ap.sent_back_at) {
@@ -731,7 +731,7 @@ function maybeCompleteHeader(purchaseId) {
     // Header is COMPLETED if at least one line ended up CONFIRMED, else
     // CANCELLED (all lines were cancelled / branch-rejected).
     const next = (cnt.confirmed || 0) > 0 ? 'COMPLETED' : 'CANCELLED';
-    // 2026-08-28 â€” no manual updated_at: the master-sync touch trigger owns it.
+    // 2026-08-28 — no manual updated_at: the master-sync touch trigger owns it.
     // Setting it here would make the trigger skip and this status change would
     // silently never sync. See masterDb.js CONTRACT block.
     masterDb.prepare(`UPDATE hq_purchases SET status = ? WHERE id = ?`).run(next, purchaseId);
@@ -740,13 +740,13 @@ function maybeCompleteHeader(purchaseId) {
 
 // PUT /api/hq/purchases/items/:itemId/submit-grn
 // Branch action. Records the actual qty that physically arrived; line
-// moves AWAITING_GRN â†’ GRN_SUBMITTED. **No stock change at the branch
-// yet** â€” that happens when HQ confirms the GRN, because HQ is the only
+// moves AWAITING_GRN → GRN_SUBMITTED. **No stock change at the branch
+// yet** — that happens when HQ confirms the GRN, because HQ is the only
 // place authorised to lock in supplier AP. If branch needs to re-submit
 // (HQ rejected), the same endpoint accepts it again from AWAITING_GRN.
 router.put('/items/:itemId/submit-grn', hqAuth, (req, res) => {
   try {
-    // v1.8.65 â€” reason field aligned with transfer_variances vocabulary.
+    // v1.8.65 — reason field aligned with transfer_variances vocabulary.
     // Accepts 'OK' | 'Short' | 'Damaged' | 'Lost'. Defaults to derived
     // value based on received vs dispatched if absent (back-compat).
     const { received_qty, variance_notes, reason } = req.body || {};
@@ -755,7 +755,7 @@ router.put('/items/:itemId/submit-grn', hqAuth, (req, res) => {
 
     const item = masterDb.prepare(`SELECT * FROM hq_purchase_items WHERE id = ?`).get(req.params.itemId);
     if (!item) return res.status(404).json({ error: 'Line not found' });
-    if (item.status !== 'AWAITING_GRN') return res.status(400).json({ error: `Line is ${item.status} â€” only AWAITING_GRN lines can submit a GRN` });
+    if (item.status !== 'AWAITING_GRN') return res.status(400).json({ error: `Line is ${item.status} — only AWAITING_GRN lines can submit a GRN` });
     if (!isRegistered(item.destination_slug)) return res.status(400).json({ error: `Destination "${item.destination_slug}" no longer registered` });
 
     const receivedBy = req.user.id || null;
@@ -778,11 +778,11 @@ router.put('/items/:itemId/submit-grn', hqAuth, (req, res) => {
        WHERE id = ?
     `).run(receivedQty, variance_notes || null, resolvedReason, receivedBy, receivedByName, req.params.itemId);
 
-    // 2026-09-19 â€” tell HQ. This line is now sitting in Generate GRN, and
+    // 2026-09-19 — tell HQ. This line is now sitting in Generate GRN, and
     // until someone there generates it there is no GRN and no payable: the
     // supplier's invoice has nothing in the system to match it to. HQ had no
     // way of knowing except to go and look. Fire-and-forget, one alert per
-    // delivery rather than per line â€” the alert only fires on the FIRST line
+    // delivery rather than per line — the alert only fires on the FIRST line
     // of a purchase to confirm, or a 40-line delivery would buzz 40 times.
     try {
       const stillOpen = masterDb.prepare(
@@ -796,8 +796,8 @@ router.put('/items/:itemId/submit-grn', hqAuth, (req, res) => {
           catch (_) { return item.destination_slug; }
         })();
         require('../services/notify').notifyHqRoles(['Administrator', 'Manager', 'Accountant'], {
-          title: 'Delivery confirmed â€” GRN needed',
-          body: `${depot} confirmed ${p?.purchase_number || 'a delivery'}${p?.supplier_name ? ' Â· ' + p.supplier_name : ''}`,
+          title: 'Delivery confirmed — GRN needed',
+          body: `${depot} confirmed ${p?.purchase_number || 'a delivery'}${p?.supplier_name ? ' · ' + p.supplier_name : ''}`,
           data: { type: 'grn-pending', purchase_number: p?.purchase_number || '', slug: item.destination_slug },
           channelId: 'kelete-alerts-v1',
         }).catch(() => {});
@@ -813,18 +813,18 @@ router.put('/items/:itemId/submit-grn', hqAuth, (req, res) => {
 });
 
 // PUT /api/hq/purchases/items/:itemId/confirm
-// HQ action â€” accepts the branch's GRN. This is the ONLY place that
+// HQ action — accepts the branch's GRN. This is the ONLY place that
 // touches branch stock: products.current_stock bumps + a stock_movement
 // row gets minted (movement_type='hq_receipt'). After this point the
 // supplier AP is committed and can be paid via /hq/suppliers/:id/payments.
-// Body: { confirm_notes? }  (HQ doesn't override the qty â€” if HQ disagrees
+// Body: { confirm_notes? }  (HQ doesn't override the qty — if HQ disagrees
 // with the branch count it rejects instead.)
 router.put('/items/:itemId/confirm', hqAuth, (req, res) => {
   try {
     const { confirm_notes } = req.body || {};
     const item = masterDb.prepare(`SELECT * FROM hq_purchase_items WHERE id = ?`).get(req.params.itemId);
     if (!item) return res.status(404).json({ error: 'Line not found' });
-    if (item.status !== 'GRN_SUBMITTED') return res.status(400).json({ error: `Line is ${item.status} â€” only GRN_SUBMITTED lines can be confirmed` });
+    if (item.status !== 'GRN_SUBMITTED') return res.status(400).json({ error: `Line is ${item.status} — only GRN_SUBMITTED lines can be confirmed` });
 
     const toSlug = item.destination_slug;
     if (!isRegistered(toSlug)) return res.status(400).json({ error: `Destination "${toSlug}" no longer registered` });
@@ -832,8 +832,8 @@ router.put('/items/:itemId/confirm', hqAuth, (req, res) => {
 
     const confirmedBy     = req.user.id || null;
     const confirmedByName = req.user.firstName || req.user.email || 'HQ';
-    // v1.8.99 â€” stock_movements.created_by FK references users(id) ON THE
-    // BRANCH DB. HQ users don't exist there â†’ FOREIGN KEY constraint failed.
+    // v1.8.99 — stock_movements.created_by FK references users(id) ON THE
+    // BRANCH DB. HQ users don't exist there → FOREIGN KEY constraint failed.
     // Same fix as v1.8.96 Confirm Damages: pass NULL for the branch-side
     // movement's created_by. HQ user identity is preserved on the master
     // hq_purchase_items row (confirmed_by + confirmed_by_name snapshot).
@@ -843,7 +843,7 @@ router.put('/items/:itemId/confirm', hqAuth, (req, res) => {
     toDb.transaction(() => {
       // Find product at branch by sync_id (preferred) then name; auto-
       // create from the line snapshot if neither matches. Same logic as
-      // the deprecated /receive endpoint â€” moved here so it only fires
+      // the deprecated /receive endpoint — moved here so it only fires
       // at confirm time (the whole point of the v1.3.0 state machine).
       let prod = toDb.prepare(`
         SELECT id, sync_id, unit, alt_unit, conversion_factor, units_json
@@ -888,7 +888,7 @@ router.put('/items/:itemId/confirm', hqAuth, (req, res) => {
       `).run(
         prod.id, prod.sync_id, 'sales', 'hq_receipt',
         baseQty, 'hq_purchase', item.sync_id,
-        `HQ Purchase confirmed${confirm_notes ? ' â€” ' + confirm_notes : ''}`,
+        `HQ Purchase confirmed${confirm_notes ? ' — ' + confirm_notes : ''}`,
         branchSideCreatedBy,
         randomUUID(), null, null, null
       );
@@ -916,7 +916,7 @@ router.put('/items/:itemId/confirm', hqAuth, (req, res) => {
 });
 
 // PUT /api/hq/purchases/items/:itemId/reject
-// HQ action â€” pushes a GRN_SUBMITTED line back to the branch for a recount.
+// HQ action — pushes a GRN_SUBMITTED line back to the branch for a recount.
 // confirm_notes captures the reason ("recount needed", "supplier delivery
 // note says 8 not 10", etc); branch sees it on their Pending GRN screen.
 router.put('/items/:itemId/reject', hqAuth, (req, res) => {
@@ -924,7 +924,7 @@ router.put('/items/:itemId/reject', hqAuth, (req, res) => {
     const { confirm_notes } = req.body || {};
     const item = masterDb.prepare(`SELECT * FROM hq_purchase_items WHERE id = ?`).get(req.params.itemId);
     if (!item) return res.status(404).json({ error: 'Line not found' });
-    if (item.status !== 'GRN_SUBMITTED') return res.status(400).json({ error: `Line is ${item.status} â€” only GRN_SUBMITTED lines can be rejected` });
+    if (item.status !== 'GRN_SUBMITTED') return res.status(400).json({ error: `Line is ${item.status} — only GRN_SUBMITTED lines can be rejected` });
 
     masterDb.prepare(`
       UPDATE hq_purchase_items
@@ -935,7 +935,7 @@ router.put('/items/:itemId/reject', hqAuth, (req, res) => {
              received_at = NULL,
              confirm_notes = ?
        WHERE id = ?
-    `).run(confirm_notes || 'Rejected â€” recount requested', req.params.itemId);
+    `).run(confirm_notes || 'Rejected — recount requested', req.params.itemId);
 
     res.json({
       item: masterDb.prepare(`SELECT * FROM hq_purchase_items WHERE id = ?`).get(req.params.itemId),
@@ -947,7 +947,7 @@ router.put('/items/:itemId/reject', hqAuth, (req, res) => {
 });
 
 // PUT /api/hq/purchases/:syncId/branch-reject-all
-// 2026-08-31 â€” reject the WHOLE delivery, in one transaction.
+// 2026-08-31 — reject the WHOLE delivery, in one transaction.
 //
 // Rejecting one line of a delivery is not a real operation: a truck arrives
 // or it does not. Per-line reject let a branch decline one product and
@@ -958,7 +958,7 @@ router.put('/items/:itemId/reject', hqAuth, (req, res) => {
 //
 // The per-line endpoint below stays for HQ tooling and older clients.
 //
-// Body: { reason } â€” required, surfaced on HQ's incoming view.
+// Body: { reason } — required, surfaced on HQ's incoming view.
 router.put('/:syncId/branch-reject-all', hqAuth, (req, res) => {
   try {
     const reason = ((req.body && req.body.reason) || '').toString().trim();
@@ -975,7 +975,7 @@ router.put('/:syncId/branch-reject-all', hqAuth, (req, res) => {
     ).all(...(slug ? [req.params.syncId, slug] : [req.params.syncId]));
 
     if (lines.length === 0) {
-      return res.status(400).json({ error: 'Nothing left to reject on this delivery â€” its lines are no longer awaiting a GRN.' });
+      return res.status(400).json({ error: 'Nothing left to reject on this delivery — its lines are no longer awaiting a GRN.' });
     }
 
     const actor = req.user.firstName || req.user.email || 'branch';
@@ -994,7 +994,7 @@ router.put('/:syncId/branch-reject-all', hqAuth, (req, res) => {
         upd.run(req.user.id || null, actor, reason, l.id);
         dropped += parseFloat(l.line_total) || 0;
       }
-      // Rejected lines don't count toward supplier AP â€” drop their value from
+      // Rejected lines don't count toward supplier AP — drop their value from
       // the header total in one go, so a partial failure cannot leave the
       // header disagreeing with its lines.
       masterDb.prepare(`
@@ -1013,14 +1013,14 @@ router.put('/:syncId/branch-reject-all', hqAuth, (req, res) => {
 });
 
 // PUT /api/hq/purchases/items/:itemId/branch-reject
-// v1.9.7 â€” branch action. Branch can decline an incoming PO line (wrong
+// v1.9.7 — branch action. Branch can decline an incoming PO line (wrong
 // branch, wrong supplier, item doesn't match what they were expecting,
 // etc.) instead of being forced to generate a GRN for it. Status
 // becomes BRANCH_REJECTED (terminal) and the rejection appears on the
 // HQ Purchases list with the reason so HQ can re-issue the line to a
 // different branch or cancel it outright.
 //
-// Body: { reason }  â€” required, surfaced on HQ's incoming view.
+// Body: { reason }  — required, surfaced on HQ's incoming view.
 router.put('/items/:itemId/branch-reject', hqAuth, (req, res) => {
   try {
     const reason = ((req.body && req.body.reason) || '').toString().trim();
@@ -1031,7 +1031,7 @@ router.put('/items/:itemId/branch-reject', hqAuth, (req, res) => {
     // (GRN_SUBMITTED / CONFIRMED) the rejection has to come from HQ
     // via the GRN-level reject path.
     if (item.status !== 'AWAITING_GRN') {
-      return res.status(400).json({ error: `Line is ${item.status} â€” branch can only reject AWAITING_GRN lines.` });
+      return res.status(400).json({ error: `Line is ${item.status} — branch can only reject AWAITING_GRN lines.` });
     }
 
     masterDb.transaction(() => {
@@ -1045,7 +1045,7 @@ router.put('/items/:itemId/branch-reject', hqAuth, (req, res) => {
          WHERE id = ?
       `).run(req.user.id || null, req.user.firstName || req.user.email || 'branch', reason, req.params.itemId);
 
-      // Rejected lines don't count toward supplier AP â€” drop their value
+      // Rejected lines don't count toward supplier AP — drop their value
       // from the header total so HQ AP stays accurate.
       masterDb.prepare(`
         UPDATE hq_purchases
@@ -1066,8 +1066,8 @@ router.put('/items/:itemId/branch-reject', hqAuth, (req, res) => {
   }
 });
 
-// PUT /api/hq/purchases/items/:itemId/cancel â€” drop a single line that
-// hasn't been CONFIRMED yet (AWAITING_GRN or GRN_SUBMITTED â€” both safe,
+// PUT /api/hq/purchases/items/:itemId/cancel — drop a single line that
+// hasn't been CONFIRMED yet (AWAITING_GRN or GRN_SUBMITTED — both safe,
 // no branch stock has moved). Confirmed lines can't be cancelled here
 // because they already changed branch stock; you'd need a damages /
 // adjustment flow for that.
@@ -1076,7 +1076,7 @@ router.put('/items/:itemId/cancel', hqAuth, (req, res) => {
     const item = masterDb.prepare(`SELECT * FROM hq_purchase_items WHERE id = ?`).get(req.params.itemId);
     if (!item) return res.status(404).json({ error: 'Line not found' });
     if (!['AWAITING_GRN', 'GRN_SUBMITTED'].includes(item.status)) {
-      return res.status(400).json({ error: `Line is ${item.status} â€” only un-confirmed lines can be cancelled` });
+      return res.status(400).json({ error: `Line is ${item.status} — only un-confirmed lines can be cancelled` });
     }
 
     masterDb.transaction(() => {
@@ -1107,10 +1107,10 @@ router.put('/items/:itemId/cancel', hqAuth, (req, res) => {
   }
 });
 
-// PUT /api/hq/purchases/:id/cancel â€” cancel an entire purchase. Rejected
+// PUT /api/hq/purchases/:id/cancel — cancel an entire purchase. Rejected
 // if any line has already been CONFIRMED (those lines moved real stock at
 // a branch; cancellation would need a counter-movement which v1.3 doesn't
-// support â€” use the damages workflow for that). AWAITING_GRN +
+// support — use the damages workflow for that). AWAITING_GRN +
 // GRN_SUBMITTED lines flip to CANCELLED in one go.
 router.put('/:id/cancel', hqAuth, (req, res) => {
   try {
@@ -1123,7 +1123,7 @@ router.put('/:id/cancel', hqAuth, (req, res) => {
       SELECT COUNT(*) AS n FROM hq_purchase_items WHERE purchase_id = ? AND status = 'CONFIRMED'
     `).get(req.params.id).n;
     if (confirmed > 0) {
-      return res.status(400).json({ error: `Cannot cancel â€” ${confirmed} line(s) already confirmed (stock at branch). Cancel them individually first if you need to.` });
+      return res.status(400).json({ error: `Cannot cancel — ${confirmed} line(s) already confirmed (stock at branch). Cancel them individually first if you need to.` });
     }
     masterDb.transaction(() => {
       masterDb.prepare(`
@@ -1145,9 +1145,9 @@ router.put('/:id/cancel', hqAuth, (req, res) => {
 });
 
 // PUT /api/hq/purchases/:id
-// Save a draft â€” and, with { status: 'OPEN' }, raise it.
+// Save a draft — and, with { status: 'OPEN' }, raise it.
 //
-// 2026-09-09 â€” the only route in this file that rewrites a purchase's lines,
+// 2026-09-09 — the only route in this file that rewrites a purchase's lines,
 // and it is safe precisely because it refuses to run on anything but a DRAFT.
 // A draft has never been seen by a depot, has no GRN, no receipt and no AP
 // entry, so there is nothing downstream to keep in step. The instant it is
@@ -1158,7 +1158,7 @@ router.put('/:id', hqAuth, (req, res) => {
     const p = masterDb.prepare(`SELECT * FROM hq_purchases WHERE id = ?`).get(id);
     if (!p) return res.status(404).json({ error: 'Purchase not found' });
     if (p.status !== 'DRAFT') {
-      return res.status(400).json({ error: `Only a draft can be edited â€” this purchase is ${p.status}.` });
+      return res.status(400).json({ error: `Only a draft can be edited — this purchase is ${p.status}.` });
     }
 
     const { supplier_id, supplier_name, invoice_number, date, notes, items } = req.body || {};
@@ -1195,7 +1195,7 @@ router.put('/:id', hqAuth, (req, res) => {
           lineStatus
         );
       }
-      // No updated_at here â€” the master-sync trigger owns it, and setting it
+      // No updated_at here — the master-sync trigger owns it, and setting it
       // makes the trigger skip, leaving the change unsynced. See the CONTRACT
       // block in config/masterDb.js.
       masterDb.prepare(`
@@ -1218,7 +1218,7 @@ router.put('/:id', hqAuth, (req, res) => {
   }
 });
 
-// DELETE /api/hq/purchases/:id â€” discard a draft.
+// DELETE /api/hq/purchases/:id — discard a draft.
 //
 // The header is marked DISCARDED and kept; it is not deleted. Two reasons,
 // both found by testing the hard delete that was here first:
@@ -1229,7 +1229,7 @@ router.put('/:id', hqAuth, (req, res) => {
 //   opposite. Keeping the row keeps the number spent.
 //
 //   The mirrors. hq_purchases syncs to every branch by trigger, and the
-//   triggers fire on INSERT and UPDATE â€” a DELETE propagates nothing. A draft
+//   triggers fire on INSERT and UPDATE — a DELETE propagates nothing. A draft
 //   that had already reached a mirror would have stayed there for good, and a
 //   later purchase reusing its number would then collide with it on
 //   purchase_number UNIQUE. An UPDATE syncs; a DELETE cannot.
@@ -1242,9 +1242,9 @@ router.delete('/:id', hqAuth, (req, res) => {
     const p = masterDb.prepare(`SELECT * FROM hq_purchases WHERE id = ?`).get(id);
     if (!p) return res.status(404).json({ error: 'Purchase not found' });
     if (p.status !== 'DRAFT') {
-      return res.status(400).json({ error: `Only a draft can be deleted â€” this purchase is ${p.status}. Cancel it instead.` });
+      return res.status(400).json({ error: `Only a draft can be deleted — this purchase is ${p.status}. Cancel it instead.` });
     }
-    // No updated_at â€” the master-sync trigger owns it (config/masterDb.js).
+    // No updated_at — the master-sync trigger owns it (config/masterDb.js).
     masterDb.prepare(`UPDATE hq_purchases SET status = 'DISCARDED' WHERE id = ?`).run(id);
     res.json({ ok: true, purchase_number: p.purchase_number });
   } catch (error) {
@@ -1252,10 +1252,10 @@ router.delete('/:id', hqAuth, (req, res) => {
   }
 });
 
-// 2026-08-29 â€” exported so hqGrns.js can call it after Generate GRN.
+// 2026-08-29 — exported so hqGrns.js can call it after Generate GRN.
 // Kelete's whole purchase flow ends there, and it was the ONE finishing
 // action that never promoted the header: three callers below, none of them
-// the button anyone uses. Live data showed it plainly â€” Kelete 109 purchases
+// the button anyone uses. Live data showed it plainly — Kelete 109 purchases
 // COMPLETED, Kelete 0, with 26 confirmed lines sitting under 18 headers
 // still marked OPEN.
 module.exports = router;

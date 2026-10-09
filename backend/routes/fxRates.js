@@ -1,8 +1,8 @@
-// FX Rates â€” per-branch history of USDâ†”FRA conversion rates.
+// FX Rates — per-branch history of USD↔FRA conversion rates.
 //
 // Used only by dual-currency branches (currency_mode='USD+FRA'). The Cashier
 // reads the latest effective row via GET /current; the manager adds new rows
-// from Accounting â†’ Currency Rates. Old rows are kept for audit and so old
+// from Accounting → Currency Rates. Old rows are kept for audit and so old
 // receipts replay with the rate that was in effect when the order was paid.
 //
 // Permission gate: 'FxRates' page perm (admin always; others granted via the
@@ -20,7 +20,7 @@ const { randomUUID } = require('crypto');
 //
 // open.er-api.com is the source the user picked for the card. It only
 // publishes "latest" (no historical endpoint), so the chart still uses
-// fawazahmed0 for past 6 days â€” but today's chart point is filled from
+// fawazahmed0 for past 6 days — but today's chart point is filled from
 // THIS cache so the card and the most-recent chart bar always agree.
 const LIVE_TTL_MS = 30 * 60 * 1000;
 let liveCache = null; // { fetchedAt, payload }
@@ -94,9 +94,9 @@ function fetchUsdCdfOnDate(date) {
   });
 }
 
-// â”€â”€â”€ List all rates (most recent first) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── List all rates (most recent first) ──────────────────────────────────────
 // v1.8.2: optional `since` query (YYYY-MM-DD) to fetch rates effective from
-// that date onwards â€” used by the chart's 1d / 7d / 1m tabs.
+// that date onwards — used by the chart's 1d / 7d / 1m tabs.
 router.get('/', auth, readOnlyGuard, requirePagePerm('FxRates'), (req, res) => {
   try {
     const since = (req.query.since || '').slice(0, 10);
@@ -120,7 +120,7 @@ router.get('/', auth, readOnlyGuard, requirePagePerm('FxRates'), (req, res) => {
   }
 });
 
-// â”€â”€â”€ Current effective rate (used by Cashier / POS) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Current effective rate (used by Cashier / POS) ──────────────────────────
 // v1.8.2: picks the latest rate whose effective_at <= NOW() (or effective_date
 // if no effective_at set). Rates can now flip mid-day; this returns whatever
 // is in force right now.
@@ -142,17 +142,17 @@ router.get('/current', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// â”€â”€â”€ Add a new rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Add a new rate ──────────────────────────────────────────────────────────
 // v1.7.0: optional sell_rate_k / buy_rate_k for K (third currency). Both are
-// optional â€” branches on USD+FRA mode just omit them.
+// optional — branches on USD+FRA mode just omit them.
 router.post('/', auth, requirePagePerm('FxRates'), (req, res) => {
   try {
     const effective_date = (req.body.effective_date || '').slice(0, 10);
     // v1.8.2: optional intra-day timestamp. Accept either:
-    //   effective_at  â€” full 'YYYY-MM-DD HH:MM' / 'YYYY-MM-DDTHH:MM' string, OR
-    //   effective_time â€” 'HH:MM' (combined with effective_date)
+    //   effective_at  — full 'YYYY-MM-DD HH:MM' / 'YYYY-MM-DDTHH:MM' string, OR
+    //   effective_time — 'HH:MM' (combined with effective_date)
     // Falls back to NOW() when neither is provided.
-    // v1.8.81 â€” TIMEZONE FIX: SELECT in /current compares against SQLite's
+    // v1.8.81 — TIMEZONE FIX: SELECT in /current compares against SQLite's
     // datetime('now') which is UTC, but we previously stored effective_at as
     // a local-time string. That made every just-saved rate appear "future"
     // by the UTC offset (~2h for Lusaka), so the Cashier fell back to the
@@ -173,17 +173,17 @@ router.post('/', auth, requirePagePerm('FxRates'), (req, res) => {
     };
     let effective_at;
     if (req.body.effective_at) {
-      // v1.8.82 â€” frontend now sends UTC directly (computed in the browser
+      // v1.8.82 — frontend now sends UTC directly (computed in the browser
       // where the user's local tz is known). Store as-is. No double conversion.
       let utcStr = String(req.body.effective_at).replace('T', ' ').slice(0, 19);
       if (utcStr.length === 16) utcStr += ':00';
       effective_at = utcStr;
     } else if (req.body.effective_time) {
-      // Legacy path for older clients â€” assumes server tz matches user tz
+      // Legacy path for older clients — assumes server tz matches user tz
       // (correct when both are on the same machine, broken across regions).
       effective_at = localTimeToUtcStr(`${effective_date} ${String(req.body.effective_time).slice(0, 5)}:00`);
     } else {
-      // Auto NOW â€” use UTC directly so it matches SQLite datetime('now')
+      // Auto NOW — use UTC directly so it matches SQLite datetime('now')
       effective_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
     }
     const sell = parseFloat(req.body.sell_rate);
@@ -217,7 +217,7 @@ router.post('/', auth, requirePagePerm('FxRates'), (req, res) => {
   }
 });
 
-// â”€â”€â”€ Soft-delete a rate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Soft-delete a rate ──────────────────────────────────────────────────────
 router.delete('/:id', auth, requirePagePerm('FxRates'), (req, res) => {
   try {
     const row = db.prepare('SELECT id FROM fx_rates WHERE id = ? AND tenant_id = ? AND deleted_at IS NULL')
@@ -231,7 +231,7 @@ router.delete('/:id', auth, requirePagePerm('FxRates'), (req, res) => {
   }
 });
 
-// â”€â”€â”€ Live BCC rate (reference only â€” POS/Cashier do NOT use this) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Live BCC rate (reference only — POS/Cashier do NOT use this) ───────────
 // Returns the upstream rate verbatim plus a fetchedAt stamp so the UI can
 // show "updated 14:05". Cached in-memory for 30min to be polite to the
 // free public API.
@@ -257,7 +257,7 @@ router.get('/live', auth, readOnlyGuard, async (req, res) => {
   }
 });
 
-// â”€â”€â”€ Live rate history (last N days) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Live rate history (last N days) ────────────────────────────────────────
 // Used by the Currency Rates chart. Returns an array of {date, rate} from
 // today going back days-1 days. Missing/failed days come back as rate:null
 // so the chart can break the line rather than failing the whole request.

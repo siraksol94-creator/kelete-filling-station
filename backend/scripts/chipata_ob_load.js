@@ -1,5 +1,5 @@
 /**
- * chipata_ob_load.js â€” load Chipata's pre-system customer balances from the
+ * chipata_ob_load.js — load Chipata's pre-system customer balances from the
  * manual ledger (sent 2026-09-13), the same way Livingstone was loaded:
  *
  *   opening balance = everything the customer took on credit before the system
@@ -10,8 +10,8 @@
  * livingstone_ob_repair.js for how that load went wrong and why this is a
  * report-first script instead of SQL pasted over a remote session.
  *
- * Existing customers are matched by id, never by name â€” Red Sea names carry
- * trailing spaces â€” and each id's name is checked before anything is written.
+ * Existing customers are matched by id, never by name — Red Sea names carry
+ * trailing spaces — and each id's name is checked before anything is written.
  * A new customer is refused if a live customer already looks like it.
  *
  * Nothing is written without --apply. Safe to run twice: every step checks the
@@ -64,12 +64,12 @@ function main() {
     tenant_id: db.prepare(`SELECT value FROM sync_config WHERE key = ?`).get(`tenant:${SLUG}`)?.value || null,
     branch_id: null, device_id: null,
   };
-  // created_by has a foreign key to users â€” take one of THIS branch's users.
+  // created_by has a foreign key to users — take one of THIS branch's users.
   const uid = db.prepare(
     `SELECT id FROM users WHERE deleted_at IS NULL AND role = 'Administrator' ORDER BY id LIMIT 1`
   ).get()?.id || null;
 
-  // â”€â”€ plan: every check first, nothing written â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── plan: every check first, nothing written ───────────────────────────
   const problems = [];
   const plan = [];
   for (const row of LEDGER) {
@@ -90,7 +90,7 @@ function main() {
           `SELECT id, name FROM customers WHERE deleted_at IS NULL AND (${row.like.map(() => 'UPPER(name) LIKE ?').join(' OR ')})`
         ).all(...row.like);
         if (lookalikes.length) {
-          problems.push(`${row.name}: not created â€” already on file as ${lookalikes.map(l => `#${l.id} "${l.name}"`).join(', ')}`);
+          problems.push(`${row.name}: not created — already on file as ${lookalikes.map(l => `#${l.id} "${l.name}"`).join(', ')}`);
           continue;
         }
         p.create = true;
@@ -99,7 +99,7 @@ function main() {
 
     const currentOb = p.customer ? Number(p.customer.opening_balance || 0) : 0;
     if (!p.create && !same(currentOb, row.ob)) {
-      if (!same(currentOb, 0)) { problems.push(`${row.name}: opening balance is already ${money(currentOb)}, not 0 â€” left alone`); continue; }
+      if (!same(currentOb, 0)) { problems.push(`${row.name}: opening balance is already ${money(currentOb)}, not 0 — left alone`); continue; }
       p.setOb = true;
     }
 
@@ -124,11 +124,11 @@ function main() {
       const adding = p.addPays.includes(pay);
       what.push(`paid ${pay.date} ${money(pay.amount)}${adding ? ' + CR' : ' (already)'}`);
     }
-    log(`  ${row.name.padEnd(17)} ${what.join(' Â· ')}`);
+    log(`  ${row.name.padEnd(17)} ${what.join(' · ')}`);
   }
 
   if (problems.length) {
-    log(`\nSTOPPED â€” nothing written. Fix these first:`);
+    log(`\nSTOPPED — nothing written. Fix these first:`);
     for (const m of problems) log(`  - ${m}`);
     log('');
     process.exit(1);
@@ -139,7 +139,7 @@ function main() {
   if (changes === 0) { log('Nothing to change.\n'); report(db); return; }
   if (!APPLY) { log(`${changes} change(s) ready. Re-run with --apply to write them.\n`); return; }
 
-  // â”€â”€ apply, all or nothing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── apply, all or nothing ──────────────────────────────────────────────
   db.transaction(() => {
     for (const p of plan) {
       const { row } = p;
@@ -171,7 +171,7 @@ function main() {
                                      date, created_by, sync_id, tenant_id, branch_id, device_id, synced,
                                      source_type, source_customer_payment_id, created_at, updated_at)
           VALUES (?,?,?,'Cash',?,?,0,0,0,0,0,?,?,?,?,?,?,0,'ar_payment',?,datetime('now'),datetime('now'))
-        `).run(nextReceiptNumber(db), c.name.trim(), 'AR Payment â€” ' + NOTES, pay.amount,
+        `).run(nextReceiptNumber(db), c.name.trim(), 'AR Payment — ' + NOTES, pay.amount,
                pay.amount, pay.date, uid, crSync, c.tenant_id, c.branch_id, c.device_id, payId);
 
         db.prepare(`UPDATE customer_payments SET cash_receipt_sync_id = ?, updated_at = datetime('now'), synced = 0 WHERE id = ?`)
@@ -183,7 +183,7 @@ function main() {
   report(db);
 }
 
-// CR-<year>-<device shortcode>-<seq> â€” the same shape generateNumber() makes,
+// CR-<year>-<device shortcode>-<seq> — the same shape generateNumber() makes,
 // carrying on from the highest already issued for this device.
 function nextReceiptNumber(db) {
   const dev   = db.prepare(`SELECT value FROM sync_config WHERE key = 'device_id'`).get()?.value;
@@ -199,7 +199,7 @@ function nextReceiptNumber(db) {
 }
 
 // The statement balance for each customer in the ledger:
-// opening + system sales âˆ’ paid at the till âˆ’ every AR payment.
+// opening + system sales − paid at the till − every AR payment.
 function report(db) {
   const rows = db.prepare(`
     SELECT c.id, c.name, c.opening_balance AS ob,

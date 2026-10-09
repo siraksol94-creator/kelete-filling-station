@@ -11,14 +11,14 @@ const TENANTS_DIR = process.env.TENANTS_DIR
         ? path.join(process.env.ELECTRON_USER_DATA, 'tenants')
         : path.join(__dirname, '..', '..', 'tenants'));
 
-const cache = new Map(); // slug â†’ Database instance
+const cache = new Map(); // slug → Database instance
 
-// 2026-08-28 â€” a till is ONE branch and holds only its own book.
+// 2026-08-28 — a till is ONE branch and holds only its own book.
 //
 // The VPS keeps every branch side by side, so getTenantDb('buseko') there is
 // just a file open. On a till it is not: the file does not exist, and the old
 // path tried to mkdir into the read-only Program Files install folder,
-// which Windows refuses â€” EPERM on the Transfers screen.
+// which Windows refuses — EPERM on the Transfers screen.
 //
 // Moving the folder alone would be WORSE than the error: the till would
 // happily create an empty buseko.db and post Buseko's stock deduction into
@@ -27,7 +27,7 @@ const cache = new Map(); // slug â†’ Database instance
 // foreign slug is refused outright. Callers that genuinely need another
 // branch's book must go through the VPS, which has them all.
 function ownSlugIfElectron() {
-  if (!process.env.ELECTRON_USER_DATA) return null;   // VPS â€” every book is local
+  if (!process.env.ELECTRON_USER_DATA) return null;   // VPS — every book is local
   try {
     const { defaultDb } = require('./database');
     return defaultDb.prepare(
@@ -42,7 +42,7 @@ function getTenantDb(slug) {
   if (process.env.ELECTRON_USER_DATA) {
     const own = ownSlugIfElectron();
     const { defaultDb } = require('./database');
-    if (own && slug === own) return defaultDb;        // our own branch â€” this IS its book
+    if (own && slug === own) return defaultDb;        // our own branch — this IS its book
     const err = new Error(
       `This computer only holds the ${own || 'local'} branch. ` +
       `Working with ${slug} needs an internet connection so the server can do it.`
@@ -69,14 +69,14 @@ function getTenantDb(slug) {
 
   cache.set(slug, db);
 
-  // â”€â”€â”€ v1.9.0 â€” Layer 2: on-register auto-mirror â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─── v1.9.0 — Layer 2: on-register auto-mirror ─────────────────────────
   // The first time we open a brand-new branch DB, copy every HQ-owned row
   // (main_categories, categories, units, products) into it so the branch
   // launches with HQ's catalogue already populated. Without this, new
-  // branches (e.g. mansa1 after activation) come up with 0 products â€”
+  // branches (e.g. mansa1 after activation) come up with 0 products —
   // pushProductToBranches only fires on EDIT at HQ, never on first sight.
   //
-  // setImmediate so we don't block the caller (tenant middleware) â€” the
+  // setImmediate so we don't block the caller (tenant middleware) — the
   // first /products request races a touch but the next refresh will be
   // fully populated. Requires deferred require() because hqPush imports
   // are loaded by server.js after this module, and database/masterDb are
@@ -95,7 +95,7 @@ function getTenantDb(slug) {
         });
         const b = (r.per_branch || {})[slug];
         if (b) {
-          console.log(`[hq-mirror] On-register sweep for "${slug}" done in ${Date.now() - t0}ms â€” products: ${b.products.pushed} inserted, ${b.products.updated} updated; categories: ${b.categories.pushed}; units: ${b.units.pushed}`);
+          console.log(`[hq-mirror] On-register sweep for "${slug}" done in ${Date.now() - t0}ms — products: ${b.products.pushed} inserted, ${b.products.updated} updated; categories: ${b.categories.pushed}; units: ${b.units.pushed}`);
         }
       } catch (e) {
         console.error(`[hq-mirror] On-register sweep for "${slug}" failed:`, e.message);

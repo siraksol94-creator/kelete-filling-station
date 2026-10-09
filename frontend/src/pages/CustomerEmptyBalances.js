@@ -1,4 +1,4 @@
-// CustomerEmptyBalances â€” v1.13.62
+// CustomerEmptyBalances — v1.13.62
 //
 // Shows every registered customer holding a non-zero empty-container
 // balance (i.e. Kelete is holding empties on their behalf). Read-only
@@ -7,7 +7,7 @@
 // sale attached).
 //
 // Sales Report / Cash Book are NOT affected by any activity on this
-// page â€” empties are physical stock, not money.
+// page — empties are physical stock, not money.
 
 import React, { useEffect, useState } from 'react';
 import { FiRefreshCw, FiPackage, FiPlus, FiX, FiUsers } from 'react-icons/fi';
@@ -82,7 +82,7 @@ export default function CustomerEmptyBalances() {
         qty,
         notes: returnModal.notes || null,
       });
-      flash(`Recorded â€” ${data.customer_name} balance ${data.old_balance} â†’ ${data.new_balance}.`);
+      flash(`Recorded — ${data.customer_name} balance ${data.old_balance} → ${data.new_balance}.`);
       setReturnModal(null);
       load();
     } catch (e) {
@@ -99,7 +99,7 @@ export default function CustomerEmptyBalances() {
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>Customer Empty Balances</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
-            Empties Kelete is holding on customers' behalf. Physical stock only â€” nothing hits Sales Report or Cash Book.
+            Empties Kelete is holding on customers' behalf. Physical stock only — nothing hits Sales Report or Cash Book.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -142,7 +142,7 @@ export default function CustomerEmptyBalances() {
       {/* Table */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loadingâ€¦</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
         ) : rows.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
             No customer has an outstanding empty balance.
@@ -161,7 +161,7 @@ export default function CustomerEmptyBalances() {
               {rows.map(r => (
                 <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>{r.name}</td>
-                  <td style={{ padding: '10px 14px', color: '#6b7280' }}>{r.phone || 'â€”'}</td>
+                  <td style={{ padding: '10px 14px', color: '#6b7280' }}>{r.phone || '—'}</td>
                   <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, color: '#0e7490', fontSize: 15 }}>
                     {parseInt(r.empty_balance, 10).toLocaleString()}
                   </td>
@@ -205,9 +205,9 @@ export default function CustomerEmptyBalances() {
                           setReturnModal(m => ({ ...m, customer_id: e.target.value, customer_name: c?.name || '' }));
                         }}
                         style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff', boxSizing: 'border-box' }}>
-                  <option value="">â€” pick a customer â€”</option>
+                  <option value="">— pick a customer —</option>
                   {allCustomers.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}{c.phone ? ` Â· ${c.phone}` : ''}</option>
+                    <option key={c.id} value={c.id}>{c.name}{c.phone ? ` · ${c.phone}` : ''}</option>
                   ))}
                 </select>
               </div>
@@ -239,7 +239,7 @@ export default function CustomerEmptyBalances() {
               </button>
               <button onClick={submitReturn} disabled={returnModal.saving}
                       style={{ padding: '9px 20px', border: 'none', borderRadius: 8, background: returnModal.saving ? '#9ca3af' : '#16a34a', color: '#fff', cursor: returnModal.saving ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700 }}>
-                {returnModal.saving ? 'Savingâ€¦' : 'Save Return'}
+                {returnModal.saving ? 'Saving…' : 'Save Return'}
               </button>
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function CustomerEmptyBalances() {
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 640, maxHeight: '85vh', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
             <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>{ledgerModal.customer.name} Â· Empty History</h3>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>{ledgerModal.customer.name} · Empty History</h3>
                 <p style={{ margin: '3px 0 0', fontSize: 13, color: '#0e7490', fontWeight: 700 }}>
                   Current balance: {parseInt(ledgerModal.empty_balance, 10).toLocaleString()} empties
                 </p>
@@ -288,12 +288,12 @@ export default function CustomerEmptyBalances() {
                             {l.kind === 'pure_return' ? 'Pure Return' : l.kind === 'sale' ? 'On Sale' : l.kind}
                           </span>
                         </td>
-                        <td style={{ padding: '8px 10px', color: '#6b7280', fontFamily: 'monospace' }}>{l.order_number ? fmtInvoiceNo(l.order_number) : 'â€”'}</td>
+                        <td style={{ padding: '8px 10px', color: '#6b7280', fontFamily: 'monospace' }}>{l.order_number ? fmtInvoiceNo(l.order_number) : '—'}</td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: l.qty > 0 ? '#16a34a' : l.qty < 0 ? '#dc2626' : '#374151' }}>
                           {l.qty > 0 ? `+${l.qty}` : l.qty}
                         </td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#0e7490' }}>{l.balance_after}</td>
-                        <td style={{ padding: '8px 10px', color: '#6b7280' }}>{l.created_by_name || 'â€”'}</td>
+                        <td style={{ padding: '8px 10px', color: '#6b7280' }}>{l.created_by_name || '—'}</td>
                       </tr>
                     ))}
                   </tbody>

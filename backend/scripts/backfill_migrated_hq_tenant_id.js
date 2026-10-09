@@ -1,5 +1,5 @@
 /**
- * v1.10.75 hotfix â€” backfill tenant_id on migrated HQ rows.
+ * v1.10.75 hotfix — backfill tenant_id on migrated HQ rows.
  *
  * The v1.10.72 + v1.10.75 migration scripts inserted rows with tenant_id
  * = NULL. Account Payables at HQ (routes/accountPayables.js) filters
@@ -8,7 +8,7 @@
  * tenant_id) shows them correctly.
  *
  * This script resolves HQ's actual tenant_id from existing rows (users
- * or cash_receipts â€” whichever has one) and updates every migrated row
+ * or cash_receipts — whichever has one) and updates every migrated row
  * that still holds NULL. Idempotent + safe to re-run.
  *
  * HOW TO RUN:
@@ -32,8 +32,8 @@ function main() {
   const hqDb = getTenantDb(hqSlug);
   if (!hqDb) { console.error(`HQ tenant DB not accessible at slug "${hqSlug}"`); process.exit(1); }
 
-  // v1.10.75 hotfix#2 â€” resolve tenant_id from THREE places:
-  // 1. sync_config table (the definitive source â€” routes/auth.js reads
+  // v1.10.75 hotfix#2 — resolve tenant_id from THREE places:
+  // 1. sync_config table (the definitive source — routes/auth.js reads
   //    key = "tenant:<slug>" to build the JWT's tenantId).
   // 2. Any existing row that already has a tenant_id set.
   // 3. Master.tenants.id for this slug as a last-resort fallback.
@@ -58,7 +58,7 @@ function main() {
     }
   }
   if (!tenantId) {
-    // Last resort â€” pull the tenant id from master.tenants for this slug.
+    // Last resort — pull the tenant id from master.tenants for this slug.
     try {
       const { masterDb } = require('../config/masterDb');
       const r = masterDb?.prepare(`SELECT id FROM tenants WHERE slug = ? LIMIT 1`).get(hqSlug);
@@ -68,12 +68,12 @@ function main() {
   if (!tenantId) {
     console.error('Could not resolve HQ tenant_id.');
     console.error("Try: sqlite3 tenants/hq.db \"SELECT * FROM sync_config\"");
-    console.error('and paste the output back â€” we can hard-code it.');
+    console.error('and paste the output back — we can hard-code it.');
     process.exit(1);
   }
   console.log(`HQ tenant_id resolved: ${tenantId}`);
   console.log(`HQ tenant slug:        ${hqSlug}`);
-  console.log('Backfillingâ€¦');
+  console.log('Backfilling…');
 
   const tables = [
     'suppliers',

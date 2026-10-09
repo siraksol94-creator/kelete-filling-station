@@ -12,9 +12,9 @@ name: Deploy
 # problem entirely and also removes the VPS password from CI secrets.
 
 on:
-  # 2026-07-31 â€” cost cut: was `push: branches: [main]` which triggered the
+  # 2026-07-31 — cost cut: was `push: branches: [main]` which triggered the
   # windows-2022 Electron build on EVERY commit. During the ZRA push week
-  # that meant ~20 builds â†’ $44 metered spend. Web deployments are handled
+  # that meant ~20 builds → $44 metered spend. Web deployments are handled
   # by the VPS's own cron `git pull` and don't need CI, so the only real
   # reason to run this workflow is to ship a NEW Electron installer.
   #
@@ -30,7 +30,7 @@ jobs:
     name: Build & Publish Electron App
     # Pinned to windows-2022 because GitHub's windows-latest image now ships
     # Visual Studio 18, which node-gyp@10.1.0 (bundled with Node 20.20.2)
-    # can't parse â€” the VS finder fails with `unknown version "undefined"
+    # can't parse — the VS finder fails with `unknown version "undefined"
     # found at C:\Program Files\Microsoft Visual Studio\18\Enterprise` and
     # better-sqlite3's native build aborts. windows-2022 still has VS 2022
     # which node-gyp recognises.

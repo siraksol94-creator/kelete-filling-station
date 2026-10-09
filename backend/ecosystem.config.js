@@ -11,7 +11,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         TENANT_PORT: 5300,
-        // VPS_URL not needed on the VPS itself â€” only used by device sync clients
+        // VPS_URL not needed on the VPS itself — only used by device sync clients
       },
     },
   ],

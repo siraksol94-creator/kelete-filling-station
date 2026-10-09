@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// factoryReset.js â€” v1.10.5
+// factoryReset.js — v1.10.5
 // Full transactional wipe across master.db + every tenant DB.
 //
 // KEEPS: products (with prices/units/categories), categories, main_categories,
@@ -12,10 +12,10 @@
 // SIDE EFFECT: products.current_stock is reset to 0 in every branch DB.
 //
 // SAFETY:
-//   â€¢ Requires --yes-really flag (refuses otherwise).
-//   â€¢ Snapshots every DB to backend/../backups/reset_<ts>/ BEFORE any DELETE.
-//   â€¢ Wraps deletes in a transaction per DB (auto-rollback on error).
-//   â€¢ --dry-run prints counts without touching anything.
+//   • Requires --yes-really flag (refuses otherwise).
+//   • Snapshots every DB to backend/../backups/reset_<ts>/ BEFORE any DELETE.
+//   • Wraps deletes in a transaction per DB (auto-rollback on error).
+//   • --dry-run prints counts without touching anything.
 //
 // USAGE (on VPS, PM2 stopped):
 //   pm2 stop kelete-tenant
@@ -45,9 +45,9 @@ const MASTER_DB_ALT = path.join(ROOT, 'master.db');
 const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 const BACKUP_DIR  = path.join(ROOT, '..', 'backups', `reset_${ts}`);
 
-// â”€â”€â”€ What we clear â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── What we clear ──────────────────────────────────────────────────────────
 // Per-branch DB (tenants/<slug>.db). Order matters for FK cascade even with
-// FK OFF â€” child rows first is still cleaner.
+// FK OFF — child rows first is still cleaner.
 const BRANCH_TABLES = [
   // Sales
   'order_payment_edits',
@@ -80,7 +80,7 @@ const BRANCH_TABLES = [
   'suppliers',
 ];
 
-// master.db â€” HQ paperwork + inter-branch movements + HQ suppliers.
+// master.db — HQ paperwork + inter-branch movements + HQ suppliers.
 const MASTER_TABLES = [
   // v1.10.0 procurement
   'hq_grn_items', 'hq_grns',
@@ -97,7 +97,7 @@ const MASTER_TABLES = [
   'hq_damages',
 ];
 
-// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Helpers ────────────────────────────────────────────────────────────────
 function tableExists(db, name) {
   return !!db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name=?").get(name);
 }
@@ -119,7 +119,7 @@ function backupDb(dbPath) {
 
 function resetDb(dbPath, tables, opts = {}) {
   if (!fs.existsSync(dbPath)) {
-    console.log(`  âš   skip (not found): ${dbPath}`);
+    console.log(`  ⚠  skip (not found): ${dbPath}`);
     return { summary: [], skipped: true };
   }
   const db = new Database(dbPath);
@@ -152,24 +152,24 @@ function resetDb(dbPath, tables, opts = {}) {
 }
 
 function printSummary(label, summary) {
-  console.log(`\nâ”€â”€ ${label} â”€â”€`);
+  console.log(`\n── ${label} ──`);
   if (!summary.length) { console.log('  (nothing to clear)'); return; }
   for (const s of summary) {
-    console.log(`  ${s.table.padEnd(40)} ${String(s.before).padStart(8)}  â†’  ${s.after}`);
+    console.log(`  ${s.table.padEnd(40)} ${String(s.before).padStart(8)}  →  ${s.after}`);
   }
 }
 
-// â”€â”€â”€ Run â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-console.log(`\nKelete Factory Reset â€” ${dryRun ? 'DRY RUN' : 'LIVE'}`);
+// ─── Run ────────────────────────────────────────────────────────────────────
+console.log(`\nKelete Factory Reset — ${dryRun ? 'DRY RUN' : 'LIVE'}`);
 console.log(`Tenants dir : ${TENANTS_DIR}`);
-console.log(`Backup dir  : ${dryRun ? '(none â€” dry run)' : BACKUP_DIR}`);
+console.log(`Backup dir  : ${dryRun ? '(none — dry run)' : BACKUP_DIR}`);
 
 // Locate master.db
 let masterDbPath = fs.existsSync(MASTER_DB) ? MASTER_DB
                  : fs.existsSync(MASTER_DB_ALT) ? MASTER_DB_ALT
                  : null;
 if (masterDbPath) console.log(`Master DB   : ${masterDbPath}`);
-else              console.log(`Master DB   : (not found â€” skipping HQ tables)`);
+else              console.log(`Master DB   : (not found — skipping HQ tables)`);
 
 // Discover tenant DBs
 const tenantDbs = fs.existsSync(TENANTS_DIR)
@@ -179,9 +179,9 @@ console.log(`Tenants     : ${tenantDbs.length ? tenantDbs.map(p => path.basename
 
 // Back everything up first (unless dry run)
 if (!dryRun) {
-  console.log('Backing upâ€¦');
-  if (masterDbPath) { const b = backupDb(masterDbPath); if (b) console.log(`  âœ“ ${b}`); }
-  for (const p of tenantDbs) { const b = backupDb(p); if (b) console.log(`  âœ“ ${b}`); }
+  console.log('Backing up…');
+  if (masterDbPath) { const b = backupDb(masterDbPath); if (b) console.log(`  ✓ ${b}`); }
+  for (const p of tenantDbs) { const b = backupDb(p); if (b) console.log(`  ✓ ${b}`); }
 }
 
 // Reset master.db
@@ -196,4 +196,4 @@ for (const p of tenantDbs) {
   if (!skipped) printSummary(`tenant     (${path.basename(p)})`, summary);
 }
 
-console.log(`\n${dryRun ? 'DRY RUN complete â€” nothing was written.' : 'DONE. Backups above; restart PM2 when ready.'}\n`);
+console.log(`\n${dryRun ? 'DRY RUN complete — nothing was written.' : 'DONE. Backups above; restart PM2 when ready.'}\n`);

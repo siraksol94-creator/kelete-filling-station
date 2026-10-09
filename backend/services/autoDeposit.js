@@ -1,20 +1,20 @@
-// autoDeposit â€” a saved Cash Report sends its counted money to HQ as deposits.
+// autoDeposit — a saved Cash Report sends its counted money to HQ as deposits.
 //
-// 2026-09-11. Switched on per depot (System Settings â†’ Auto deposit, off by
+// 2026-09-11. Switched on per depot (System Settings → Auto deposit, off by
 // default) for the Lusaka depots, which run one cashier a day. When on:
 //
-//   Save report   â†’ one PENDING deposit per method with money counted
+//   Save report   → one PENDING deposit per method with money counted
 //                   (Cash / Mobile Money / Bank), dated the report's date.
 //                   HQ confirms them in HQ Deposits exactly as before.
-//   Edit report   â†’ those PENDING deposits follow the new amounts: a method
+//   Edit report   → those PENDING deposits follow the new amounts: a method
 //                   that gains money gets a deposit, one that drops to 0
 //                   loses it.
-//   Delete report â†’ its PENDING deposits are soft-deleted, reason
+//   Delete report → its PENDING deposits are soft-deleted, reason
 //                   "Cash report deleted", so the record stays.
-//   HQ confirmed  â†’ editing or deleting that report is refused.
-//   HQ rejected   â†’ that deposit is left exactly as it is.
+//   HQ confirmed  → editing or deleting that report is refused.
+//   HQ rejected   → that deposit is left exactly as it is.
 //
-// The deposit is the money COUNTED â€” the CR is counted + PVs. Once HQ
+// The deposit is the money COUNTED — the CR is counted + PVs. Once HQ
 // confirms, the depot's Cash Book nets that day to zero.
 //
 // Deposits live in master.db and are linked back by cash_report_sync_id, so
@@ -39,7 +39,7 @@ const METHODS = [
   { method: 'Bank',         col: 'k_received'   },
 ];
 
-const CONFIRMED_MSG = 'HQ has already confirmed the deposit from this cash report â€” ask HQ before changing it.';
+const CONFIRMED_MSG = 'HQ has already confirmed the deposit from this cash report — ask HQ before changing it.';
 
 const round2 = (n) => Math.round((parseFloat(n) || 0) * 100) / 100;
 const nameOf = (u) => [u?.first_name, u?.last_name].filter(Boolean).join(' ') || u?.firstName || u?.email || null;
@@ -64,9 +64,9 @@ function blockIfConfirmed(reportSyncId) {
   try {
     const d = linkedDeposits(reportSyncId).find(x => x.status === 'CONFIRMED');
     if (!d) return null;
-    // 2026-09-15 â€” a deposit sent to another depot names that depot.
+    // 2026-09-15 — a deposit sent to another depot names that depot.
     return d.to_slug
-      ? `${d.to_name || d.to_slug} has already confirmed the deposit from this cash report â€” ask them before changing it.`
+      ? `${d.to_name || d.to_slug} has already confirmed the deposit from this cash report — ask them before changing it.`
       : CONFIRMED_MSG;
   } catch (_) { return null; }
 }
@@ -92,7 +92,7 @@ function syncFromReport({ report, slug, branchName, cashierName, user, enabled }
 
   const date = String(report.date || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
   const who = nameOf(user);
-  // 2026-09-15 â€” new deposits go where System Settings â†’ Deposit to says (HQ
+  // 2026-09-15 — new deposits go where System Settings → Deposit to says (HQ
   // by default). Deposits already made keep the destination they were sent to.
   const target = require('./depositTarget').depositTargetFor(slug);
   // items: what moved, per method, so the Cash Report can say it in words.
@@ -122,7 +122,7 @@ function syncFromReport({ report, slug, branchName, cashierName, user, enabled }
             VALUES (?,?,?,?, 'K', ?, 0, NULL, ?, ?, NULL, ?, ?, ?, 'PENDING', ?, ?, ?)
           `).run(
             nextDepositNumber(m), randomUUID(), slug, branchName || slug,
-            amt, `Auto from Cash Report ${date}${cashierName ? ` Â· ${cashierName}` : ''}`,
+            amt, `Auto from Cash Report ${date}${cashierName ? ` · ${cashierName}` : ''}`,
             date, meth.method,
             target ? target.slug : null, target ? target.name : null,
             user?.id ?? null, who, report.sync_id
@@ -135,7 +135,7 @@ function syncFromReport({ report, slug, branchName, cashierName, user, enabled }
           UPDATE cash_deposits
              SET deleted_at = datetime('now'), deleted_by = ?, deleted_by_name = ?, delete_reason = ?
            WHERE id = ?
-        `).run(user?.id ?? null, who, `Cash report changed â€” nothing counted in ${meth.method}`, dep.id);
+        `).run(user?.id ?? null, who, `Cash report changed — nothing counted in ${meth.method}`, dep.id);
         out.removed += 1;
         out.items.push({ method: meth.method, amount: 0, action: 'removed' });
       }

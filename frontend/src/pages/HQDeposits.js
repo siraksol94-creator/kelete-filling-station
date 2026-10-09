@@ -1,4 +1,4 @@
-// HQ Deposits â€” Branch â†’ HQ cash deposit workflow.
+// HQ Deposits — Branch → HQ cash deposit workflow.
 //
 // One screen, two behaviours by host:
 //   - Branch (kassumbalesa1, ...): "Send Deposit" button + own outgoing
@@ -7,7 +7,7 @@
 //   - HQ (keletedistributionzm bare):          incoming inbox from every branch with
 //     Confirm / Reject actions on PENDING rows.
 //
-// Cash movement is NOT income/expense â€” the cash physically moves from
+// Cash movement is NOT income/expense — the cash physically moves from
 // one drawer to another. No payment_voucher / cash_receipt is written
 // on confirm; the per-currency Cash Report aggregation reads cash_deposits
 // directly so drawer Expected reflects today's outflow / inflow without
@@ -32,7 +32,7 @@ import { labelFromSlug } from '../utils/useDepositTarget';
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
-// v1.8.61 â€” parse attachment column (string or JSON-array string) into
+// v1.8.61 — parse attachment column (string or JSON-array string) into
 // an array of paths. Tolerates legacy single-string entries.
 const parseAttachments = (raw) => {
   if (!raw) return [];
@@ -53,8 +53,8 @@ const HQDeposits = () => {
   const onHq = isHqHost();
   const isDual = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
   const hasK   = currencyMode === 'USD+FRA+K';
-  // v1.10.29 â€” currencies this branch can actually deposit. K-only
-  // (Liquor-style) branches must NOT be able to select USD/FRA â€” those
+  // v1.10.29 — currencies this branch can actually deposit. K-only
+  // (Liquor-style) branches must NOT be able to select USD/FRA — those
   // drawers don't exist here. Order = display order in the dropdown.
   const depositCcyOptions = currencyMode === 'K'
     ? [{ value: 'K',   label: 'K (Kwacha)' }]
@@ -74,7 +74,7 @@ const HQDeposits = () => {
   const [sendForm, setSendForm] = useState({ currency: defaultDepositCcy, amount: '', from_method: 'Cash', notes: '', deposit_date: todayStr(), attachments: [] });
   const [sending, setSending]   = useState(false);
   const [sendError, setSendError] = useState('');
-  // v1.8.61 â€” multi-file upload state for the deposit slips.
+  // v1.8.61 — multi-file upload state for the deposit slips.
   const fileInputRef = useRef(null);
   const camInputRef  = useRef(null);
   const [uploadingAtt, setUploadingAtt] = useState(false);
@@ -84,27 +84,27 @@ const HQDeposits = () => {
   const [rejectingId, setRejectingId]   = useState(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  // v1.10.83 â€” admin-password gate when confirming with a changed date.
+  // v1.10.83 — admin-password gate when confirming with a changed date.
   // Non-null value = the AdminPasswordPrompt is open; { deposit, newDate }
   // are the details we'll POST once the password check passes.
   const [pendingDateChange, setPendingDateChange] = useState(null);
 
   // Filters
-  // 2026-09-17 â€” opens on Pending (the work waiting), all depots, no dates.
+  // 2026-09-17 — opens on Pending (the work waiting), all depots, no dates.
   const [statusFilter, setStatusFilter] = useState('PENDING');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate]     = useState('');
-  // 2026-09-11 â€” HQ: narrow the list to one depot ('' = all depots).
+  // 2026-09-11 — HQ: narrow the list to one depot ('' = all depots).
   const [branchFilter, setBranchFilter] = useState('');
 
   useModalScrollLock(showSend || !!rejectingId);
 
-  // 2026-09-15 â€” System Settings â†’ Deposit to. A depot sends to HQ or to the
+  // 2026-09-15 — System Settings → Deposit to. A depot sends to HQ or to the
   // depot picked there; that side confirms. Each row carries _dir: 'out' (this
   // depot sent it) or 'in' (sent to this depot / to HQ on the HQ screen).
   const [target, setTarget] = useState(null); // null = HQ
   const targetName = target?.name || 'HQ';
-  // Short form for the heading â€” the full name reads "Kelete Distribution - KABWE".
+  // Short form for the heading — the full name reads "Kelete Distribution - KABWE".
   const targetLabel = target?.slug ? labelFromSlug(target.slug) : 'HQ';
   useEffect(() => {
     if (onHq) return;
@@ -118,7 +118,7 @@ const HQDeposits = () => {
     try {
       const base = statusFilter !== 'ALL' ? { status: statusFilter } : {};
       if (onHq) {
-        // Only deposits sent to HQ â€” depot-to-depot deposits are not HQ's.
+        // Only deposits sent to HQ — depot-to-depot deposits are not HQ's.
         const r = await getCashDeposits({ ...base, to: 'hq' });
         setDeposits((Array.isArray(r.data) ? r.data : []).map(d => ({ ...d, _dir: 'in' })));
       } else {
@@ -147,7 +147,7 @@ const HQDeposits = () => {
     setShowSend(true);
   };
 
-  // v1.8.61 â€” upload one or more files (file picker is multi-select).
+  // v1.8.61 — upload one or more files (file picker is multi-select).
   const handleFilesPicked = async (filesList) => {
     if (!filesList || filesList.length === 0) return;
     setAttError('');
@@ -179,11 +179,11 @@ const HQDeposits = () => {
     const amt = parseFloat(sendForm.amount || 0);
     if (!(amt > 0)) { setSendError('Amount must be > 0'); return; }
     const slug = getBranchSlug() || (window.location.hostname.split('.')[0] || '');
-    if (!slug) { setSendError('Branch not detected â€” cannot send deposit'); return; }
+    if (!slug) { setSendError('Branch not detected — cannot send deposit'); return; }
     setSending(true);
     try {
       // Multi-attachment serialised as JSON array. Backend stores the
-      // string verbatim in the legacy `attachment` column â€” parseAttachments()
+      // string verbatim in the legacy `attachment` column — parseAttachments()
       // on read tolerates both shapes (single string or JSON array).
       const atts = sendForm.attachments || [];
       const attachmentPayload = atts.length === 0 ? null
@@ -193,9 +193,9 @@ const HQDeposits = () => {
         from_slug:    slug,
         currency:     sendForm.currency,
         amount:       amt,
-        // v1.10.48 â€” send `from_method` only on Liquor branches so backend
+        // v1.10.48 — send `from_method` only on Liquor branches so backend
         // tags the deposit to the physical drawer (Cash/MoMo/Bank). Kelete
-        // omits it â†’ stored as NULL â†’ doesn't affect the per-currency
+        // omits it → stored as NULL → doesn't affect the per-currency
         // deposit split logic.
         ...(isLiquorStyle ? { from_method: sendForm.from_method } : {}),
         notes:        sendForm.notes || null,
@@ -211,7 +211,7 @@ const HQDeposits = () => {
   };
 
   const handleConfirm = async (d) => {
-    // v1.10.82 â€” HQ operator can override the deposit_date at confirm
+    // v1.10.82 — HQ operator can override the deposit_date at confirm
     // time (e.g. cash arrived last week but they're only clicking
     // confirm now). Blank = keep the branch's original date.
     const currentDate = d.deposit_date || new Date().toISOString().slice(0, 10);
@@ -226,7 +226,7 @@ const HQDeposits = () => {
     const dateOk = /^\d{4}-\d{2}-\d{2}$/.test(trimmed);
     if (trimmed && !dateOk) { alert('Date must be YYYY-MM-DD.'); return; }
 
-    // v1.10.83 â€” moving a deposit to a different accounting date shifts
+    // v1.10.83 — moving a deposit to a different accounting date shifts
     // where it lands in the Cash Book. That's a sensitive edit, so it
     // needs admin authorization. Unchanged date = fast-path, no prompt.
     if (dateOk && trimmed !== d.deposit_date) {
@@ -242,7 +242,7 @@ const HQDeposits = () => {
     }
   };
 
-  // v1.10.84 â€” edit accounting date of an already-CONFIRMED deposit.
+  // v1.10.84 — edit accounting date of an already-CONFIRMED deposit.
   // Same UX as handleConfirm's date-change path: prompt for a new date,
   // then require admin password before writing. Backend uses PUT /date
   // (not /confirm) because the row is already CONFIRMED.
@@ -261,8 +261,8 @@ const HQDeposits = () => {
     setPendingDateChange({ deposit: d, newDate: trimmed, mode: 'edit' });
   };
 
-  // v1.10.83 â€” runs after admin authorises the date change. In 'confirm'
-  // mode we flip PENDING â†’ CONFIRMED with the new date; in 'edit' mode
+  // v1.10.83 — runs after admin authorises the date change. In 'confirm'
+  // mode we flip PENDING → CONFIRMED with the new date; in 'edit' mode
   // the row is already CONFIRMED, we just move its date.
   const finishConfirmWithDate = async () => {
     if (!pendingDateChange) return;
@@ -293,11 +293,11 @@ const HQDeposits = () => {
   };
 
   const handleDelete = async (d) => {
-    const label = `${d.deposit_number} â€” ${d.currency} ${parseFloat(d.amount).toLocaleString()}`;
+    const label = `${d.deposit_number} — ${d.currency} ${parseFloat(d.amount).toLocaleString()}`;
     const extra = d.status === 'CONFIRMED'
       ? '\n\nThis deposit was already CONFIRMED. Deleting it removes it from Cash Report reconciliation.'
       : '';
-    // 2026-08-28 â€” deleting a deposit now records WHY. This is cash handed
+    // 2026-08-28 — deleting a deposit now records WHY. This is cash handed
     // from a branch to HQ; removing it silently changes both sides' books
     // with nothing to say who did it or on what grounds.
     const reason = window.prompt(
@@ -309,7 +309,7 @@ Reason (required, kept on record):`
     );
     if (reason === null) return;                     // cancelled
     if (reason.trim().length < 3) {
-      alert('Please give a reason of at least 3 characters â€” it is kept on the deposit record.');
+      alert('Please give a reason of at least 3 characters — it is kept on the deposit record.');
       return;
     }
     try {
@@ -323,24 +323,24 @@ Reason (required, kept on record):`
   const fmt = (n) => `${curSym}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   const fmtRaw = (n) => Math.round(parseFloat(n || 0)).toLocaleString();
 
-  // Stats â€” pending count, totals per currency this month.
-  // 2026-09-11 â€” deleted deposits stay in the table (greyed, struck through)
+  // Stats — pending count, totals per currency this month.
+  // 2026-09-11 — deleted deposits stay in the table (greyed, struck through)
   // as the record, but must not count: the cards summed them too, so a
   // cleaned-up list still showed K1,358,670 confirmed and 19 pending.
-  // 2026-09-11 â€” deleted deposits are no longer listed at all (the row stays
+  // 2026-09-11 — deleted deposits are no longer listed at all (the row stays
   // in the database with who, when and why). The depot filter narrows the
   // list and the cards together.
   const branchOptions = [...new Map(
     deposits.filter(d => !d.deleted_at).map(d => [d.from_slug, d.from_name || d.from_slug])
   ).entries()].sort((a, b) => String(a[1]).localeCompare(String(b[1])));
-  // 2026-09-17 â€” the date filter works on the deposit date (the day the cash
+  // 2026-09-17 — the date filter works on the deposit date (the day the cash
   // left), falling back to when the record was created. Blank = no limit.
   const dayOf = (d) => (d.deposit_date || String(d.created_at || '').slice(0, 10) || '');
   const liveDeposits   = deposits.filter(d => !d.deleted_at
     && (!branchFilter || d.from_slug === branchFilter)
     && (!fromDate || dayOf(d) >= fromDate)
     && (!toDate   || dayOf(d) <= toDate));
-  // 2026-09-13 â€” sortable columns (see SortTh). Ties fall back to newest created first.
+  // 2026-09-13 — sortable columns (see SortTh). Ties fall back to newest created first.
   // Who is on the other side of the row: the sender for incoming, where it went for outgoing.
   const partyLabel = (d) => onHq ? (d.from_name || d.from_slug || '')
     : d._dir === 'in' ? `From ${d.from_name || d.from_slug || ''}`
@@ -372,7 +372,7 @@ Reason (required, kept on record):`
     acc[d.currency] = (acc[d.currency] || 0) + parseFloat(d.amount || 0);
     return acc;
   }, {});
-  // 2026-09-16 â€” the Pending card shows the money waiting, not just how many.
+  // 2026-09-16 — the Pending card shows the money waiting, not just how many.
   const pendingTotal   = liveDeposits.filter(d => d.status === 'PENDING').reduce((s, d) => s + (parseFloat(d.amount) || 0), 0);
   const receivedTotal   = onHq ? 0 : liveDeposits.filter(d => d._dir === 'in' && d.status === 'CONFIRMED').reduce((s, d) => s + (parseFloat(d.amount) || 0), 0);
   const waitingForMe    = onHq ? 0 : liveDeposits.filter(d => d._dir === 'in' && d.status === 'PENDING').length;
@@ -381,7 +381,7 @@ Reason (required, kept on record):`
     <div className="page-content">
       <div className="page-header">
         <div>
-          {/* 2026-09-18 â€” a depot that deposits to another depot (Bankers â†’
+          {/* 2026-09-18 — a depot that deposits to another depot (Bankers →
               Kabwe) is not sending to HQ, so the heading says where it goes. */}
           <h1>{onHq ? 'HQ' : targetLabel} Deposits</h1>
           <p>{onHq
@@ -393,7 +393,7 @@ Reason (required, kept on record):`
             style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             <FiRefreshCw size={15} /> Refresh
           </button>
-          {/* 2026-09-14 â€” hidden when System Settings â†’ Auto deposit is on: the
+          {/* 2026-09-14 — hidden when System Settings → Auto deposit is on: the
               Cash Report sends the deposit itself, so a manual one would double it. */}
           {!onHq && !autoDeposit && (
             <button onClick={openSendModal}
@@ -413,7 +413,7 @@ Reason (required, kept on record):`
             {pendingCount} deposit{pendingCount === 1 ? '' : 's'} waiting
           </div>
         </div>
-        {/* 2026-09-11 â€” USD only where it can happen: a Kwacha-only branch
+        {/* 2026-09-11 — USD only where it can happen: a Kwacha-only branch
             (all of Kelete) never has a USD deposit, so no "K0.00 USD" card. */}
         {(currencyMode !== 'K' || (confirmedTotal.USD || 0) > 0) && (
           <div style={{ background: '#dcfce7', border: '1px solid #86efac', borderRadius: 10, padding: 14 }}>
@@ -421,7 +421,7 @@ Reason (required, kept on record):`
             <div style={{ fontSize: 22, fontWeight: 800, color: '#14532d' }}>{fmt(confirmedTotal.USD || 0)}</div>
           </div>
         )}
-        {/* v1.10.19 â€” also show FRA / K cards when actual deposits exist,
+        {/* v1.10.19 — also show FRA / K cards when actual deposits exist,
             not only when the current branch's currency_mode says so. HQ view
             aggregates across every branch and might see K deposits from a
             Kelete branch even while HQ's own mode is USD-only. */}
@@ -471,7 +471,7 @@ Reason (required, kept on record):`
             </select>
           </>
         )}
-        {/* 2026-09-17 â€” date range on the deposit date. Blank = every date. */}
+        {/* 2026-09-17 — date range on the deposit date. Blank = every date. */}
         <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginLeft: 8 }}>From:</label>
         <input type="date" value={fromDate} max={toDate || undefined} onChange={e => setFromDate(e.target.value)}
           style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
@@ -495,11 +495,11 @@ Reason (required, kept on record):`
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            {/* 2026-09-13 â€” phone-cards: one card per deposit on phones (HQ and depots). */}
+            {/* 2026-09-13 — phone-cards: one card per deposit on phones (HQ and depots). */}
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead style={{ background: '#f8fafc' }}>
                 <tr>
-                  {/* 2026-09-13 â€” Date, From (HQ only), Notes, Deposit #, Attachment,
+                  {/* 2026-09-13 — Date, From (HQ only), Notes, Deposit #, Attachment,
                       then the rest. Click a heading to sort by it; click again to reverse.
                       The in/out arrow now sits inside the date cell, so on a phone card
                       the date is the card's title rather than a lone arrow. */}
@@ -517,8 +517,8 @@ Reason (required, kept on record):`
               </thead>
               <tbody>
                 {sortedDeposits.map(d => {
-                  // A deleted deposit still shows â€” greyed, struck through and
-                  // badged, with the reason on hover â€” so the record survives.
+                  // A deleted deposit still shows — greyed, struck through and
+                  // badged, with the reason on hover — so the record survives.
                   const isDeleted   = !!d.deleted_at;
                   const statusColor = isDeleted ? '#64748b' : d.status === 'CONFIRMED' ? '#16a34a' : d.status === 'REJECTED' ? '#dc2626' : '#d97706';
                   const statusBg    = isDeleted ? '#f1f5f9' : d.status === 'CONFIRMED' ? '#dcfce7' : d.status === 'REJECTED' ? '#fee2e2' : '#fef3c7';
@@ -527,7 +527,7 @@ Reason (required, kept on record):`
                   return (
                     <tr key={d.id}
                         title={isDeleted
-                          ? `Deleted by ${d.deleted_by_name || 'unknown'}${d.delete_reason ? ' â€” ' + d.delete_reason : ''}`
+                          ? `Deleted by ${d.deleted_by_name || 'unknown'}${d.delete_reason ? ' — ' + d.delete_reason : ''}`
                           : undefined}
                         style={{ borderTop: '1px solid #f1f5f9',
                                  opacity: isDeleted ? 0.55 : 1,
@@ -537,16 +537,16 @@ Reason (required, kept on record):`
                           {canReceive
                             ? <FiArrowDownLeft size={14} color="#16a34a" title="Incoming" />
                             : <FiArrowUpRight  size={14} color="#d97706" title={`Outgoing to ${d.to_name || 'HQ'}`} />}
-                          {d.deposit_date || (d.created_at ? new Date(d.created_at).toLocaleDateString() : 'â€”')}
+                          {d.deposit_date || (d.created_at ? new Date(d.created_at).toLocaleDateString() : '—')}
                         </span>
                       </td>
                       <td style={td}>{partyLabel(d)}</td>
-                      <td style={{ ...td, color: '#6b7280', maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.notes}>{d.notes || 'â€”'}</td>
+                      <td style={{ ...td, color: '#6b7280', maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.notes}>{d.notes || '—'}</td>
                       <td style={{ ...td, fontFamily: 'monospace', fontSize: 11 }}>{d.deposit_number}</td>
                       <td style={td}>
                         {(() => {
                           const atts = parseAttachments(d.attachment);
-                          if (atts.length === 0) return <span style={{ color: '#cbd5e1', fontSize: 11 }}>â€”</span>;
+                          if (atts.length === 0) return <span style={{ color: '#cbd5e1', fontSize: 11 }}>—</span>;
                           const apiBase = (process.env.REACT_APP_API_URL || '/api').replace(/\/api\/?$/, '');
                           return (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -560,7 +560,7 @@ Reason (required, kept on record):`
                           );
                         })()}
                       </td>
-                      {/* 2026-09-11 â€” no Currency column (Kelete is all K); the
+                      {/* 2026-09-11 — no Currency column (Kelete is all K); the
                           amount carries its symbol in front, K122,356. */}
                       <td style={{ ...td, textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
                         {d.currency === 'USD' ? fmt(d.amount) : `${d.currency === 'K' ? 'K' : `${d.currency} `}${fmtRaw(d.amount)}`}
@@ -571,12 +571,12 @@ Reason (required, kept on record):`
                         </span>
                         {d.status === 'REJECTED' && d.reject_reason && (
                           <div style={{ fontSize: 10, color: '#b91c1c', fontStyle: 'italic', marginTop: 3 }} title={d.reject_reason}>
-                            {d.reject_reason.length > 30 ? d.reject_reason.slice(0, 30) + 'â€¦' : d.reject_reason}
+                            {d.reject_reason.length > 30 ? d.reject_reason.slice(0, 30) + '…' : d.reject_reason}
                           </div>
                         )}
                       </td>
                       <td style={{ ...td, color: '#6b7280', fontSize: 11 }}>
-                        <div>{d.created_at ? new Date(d.created_at).toLocaleString() : 'â€”'}</div>
+                        <div>{d.created_at ? new Date(d.created_at).toLocaleString() : '—'}</div>
                         {d.created_by_name && <div style={{ fontSize: 10 }}>by {d.created_by_name}</div>}
                       </td>
                       <td style={{ ...td, color: '#6b7280', fontSize: 11 }}>
@@ -585,7 +585,7 @@ Reason (required, kept on record):`
                             <div>{new Date(d.confirmed_at).toLocaleString()}</div>
                             {d.confirmed_by_name && <div style={{ fontSize: 10 }}>by {d.confirmed_by_name}</div>}
                           </>
-                        ) : 'â€”'}
+                        ) : '—'}
                       </td>
                       <td style={{ ...td, textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: 6 }}>
@@ -601,7 +601,7 @@ Reason (required, kept on record):`
                               </button>
                             </>
                           )}
-                          {/* v1.10.84 â€” HQ can edit accounting date on CONFIRMED
+                          {/* v1.10.84 — HQ can edit accounting date on CONFIRMED
                               deposits. Admin-gated inside handleEditDate. */}
                           {canReceive && d.status === 'CONFIRMED' && (
                             <button onClick={() => handleEditDate(d)} title="Edit accounting date"
@@ -610,7 +610,7 @@ Reason (required, kept on record):`
                             </button>
                           )}
                           {/* Delete: a branch can delete its own PENDING rows.
-                              2026-09-11 â€” no delete at HQ: HQ confirms or
+                              2026-09-11 — no delete at HQ: HQ confirms or
                               rejects; a wrong deposit is the depot's to remove. */}
                           {!onHq && d._dir !== 'in' && d.status === 'PENDING' && (
                             <button onClick={() => handleDelete(d)} title="Delete deposit"
@@ -629,7 +629,7 @@ Reason (required, kept on record):`
         )}
       </div>
 
-      {/* Send Deposit modal â€” branch side */}
+      {/* Send Deposit modal — branch side */}
       {showSend && (
         <Portal>
         <div className="modal-overlay" onClick={() => setShowSend(false)}>
@@ -642,7 +642,7 @@ Reason (required, kept on record):`
             </div>
             <div className="modal-body">
               <p style={{ fontSize: 13, color: '#6b7280', marginTop: 0, marginBottom: 14 }}>
-                Record cash physically leaving this branch and going to {targetName}. No exchange happens â€” just enter the raw currency and amount. {targetName} marks it confirmed when they receive it.
+                Record cash physically leaving this branch and going to {targetName}. No exchange happens — just enter the raw currency and amount. {targetName} marks it confirmed when they receive it.
               </p>
               <div className="form-row">
                 <div className="form-group">
@@ -661,7 +661,7 @@ Reason (required, kept on record):`
                     placeholder="0.00" autoFocus />
                 </div>
               </div>
-              {/* v1.10.48 â€” From Drawer picker on Liquor branches so the
+              {/* v1.10.48 — From Drawer picker on Liquor branches so the
                   Cash Book tiles know which physical bucket shrank. Hidden
                   on Kelete tri-currency where deposits are currency-anchored
                   (USD/FRA/K), not method-anchored. */}
@@ -673,7 +673,7 @@ Reason (required, kept on record):`
                       { value: 'Cash',         label: 'Cash on Hand',  color: '#16a34a' },
                       { value: 'Mobile Money', label: 'Mobile Money',  color: '#ea580c' },
                       { value: 'Bank',         label: 'Bank',          color: '#2563eb' },
-                    // 2026-09-11 â€” MoMo / Bank follow System Settings â†’ Payment methods shown.
+                    // 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown.
                     ].filter(opt => methodShown(opt.value) || sendForm.from_method === opt.value).map(opt => {
                       const active = sendForm.from_method === opt.value;
                       return (
@@ -706,7 +706,7 @@ Reason (required, kept on record):`
                   placeholder="Courier / driver / reference" />
               </div>
               <div className="form-group">
-                <label>Attach Deposit Slips (optional) â€” picture or PDF, multiple allowed</label>
+                <label>Attach Deposit Slips (optional) — picture or PDF, multiple allowed</label>
                 <div style={{ border: '1px dashed #d1d5db', borderRadius: 8, padding: 10, background: '#fafafa' }}>
                   {/* List of already-uploaded attachments with Remove */}
                   {(sendForm.attachments || []).length > 0 && (
@@ -715,7 +715,7 @@ Reason (required, kept on record):`
                         const isPdf = (path || '').toLowerCase().endsWith('.pdf');
                         const apiBase = (process.env.REACT_APP_API_URL || '/api').replace(/\/api\/?$/, '');
                         const url = `${apiBase}/uploads/${path}`;
-                        const shortName = path.length > 36 ? `â€¦${path.slice(-34)}` : path;
+                        const shortName = path.length > 36 ? `…${path.slice(-34)}` : path;
                         return (
                           <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6 }}>
                             {isPdf ? <FiFileText size={14} color="#dc2626" /> : <FiImage size={14} color="#16a34a" />}
@@ -743,7 +743,7 @@ Reason (required, kept on record):`
                       onChange={e => { handleFilesPicked(e.target.files); e.target.value = ''; }} />
                     <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingAtt}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: 6, cursor: uploadingAtt ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
-                      <FiPaperclip size={12} /> {uploadingAtt ? 'Uploadingâ€¦' : 'Choose files'}
+                      <FiPaperclip size={12} /> {uploadingAtt ? 'Uploading…' : 'Choose files'}
                     </button>
                     <button type="button" onClick={() => camInputRef.current?.click()} disabled={uploadingAtt}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 6, cursor: uploadingAtt ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
@@ -780,7 +780,7 @@ Reason (required, kept on record):`
         </Portal>
       )}
 
-      {/* Reject modal â€” HQ side */}
+      {/* Reject modal — HQ side */}
       {rejectingId && (
         <Portal>
         <div className="modal-overlay" onClick={() => setRejectingId(null)}>
@@ -814,7 +814,7 @@ Reason (required, kept on record):`
         </Portal>
       )}
 
-      {/* v1.10.83/84 â€” admin password gate for both:
+      {/* v1.10.83/84 — admin password gate for both:
            - PENDING confirm-with-date-change (mode='confirm')
            - CONFIRMED edit-date (mode='edit') */}
       <AdminPasswordPrompt
@@ -831,10 +831,10 @@ const th = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 7
 const td = { padding: '10px 12px' };
 
 // A clickable column heading. The first click on dates and amounts sorts
-// newest / largest first; text columns start Aâ†’Z. Clicking again reverses.
+// newest / largest first; text columns start A→Z. Clicking again reverses.
 const DESC_FIRST = new Set(['date', 'amount', 'created', 'confirmed']);
 
-// 2026-09-13 â€” a deposit's photo lives in the SENDING depot's upload folder
+// 2026-09-13 — a deposit's photo lives in the SENDING depot's upload folder
 // (TENANTS_DIR/<slug>/uploads/), and the server only serves a depot's folder
 // on that depot's own address. Opened at HQ, a plain /uploads/... link looked
 // in HQ's folder and answered "Cannot GET". Same helper as HqGrnArchive.
@@ -858,7 +858,7 @@ function SortTh({ k, label, sort, setSort, align }) {
         style={{ ...th, textAlign: align || 'left', cursor: 'pointer', userSelect: 'none', whiteSpace: 'nowrap', color: active ? '#0f172a' : th.color }}>
       {label}
       <span style={{ marginLeft: 4, fontSize: 9, opacity: active ? 1 : 0.35 }}>
-        {active ? (sort.dir === 'asc' ? 'â–²' : 'â–¼') : 'â–²â–¼'}
+        {active ? (sort.dir === 'asc' ? '▲' : '▼') : '▲▼'}
       </span>
     </th>
   );

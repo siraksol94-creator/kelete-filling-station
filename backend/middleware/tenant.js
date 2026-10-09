@@ -25,7 +25,7 @@ function resolveBranchTenantId(slug, branchDb) {
 
 // Subdomains that bypass per-tenant DB routing. The bare domain hits here as
 // 'keletedistributionzm' (the first dot-split of 'keletezm.com'); this is the HQ /
-// management layer â€” admin panel + tenant-admin routes live here, not a
+// management layer — admin panel + tenant-admin routes live here, not a
 // real per-branch tenant DB. Same role as 'liquor' in Liquor's middleware.
 // Without this entry, /api/tenant-admin/* returns 404 to any caller hitting
 // the bare domain (which is how central admin reaches Kelete).
@@ -33,7 +33,7 @@ function resolveBranchTenantId(slug, branchDb) {
 // HQ branch-switch override: when host is bare 'keletedistributionzm' AND the caller
 // sends an 'X-Branch' header naming a registered tenant, we open THAT
 // branch's DB instead. Bypass-list entries like 'www' / 'localhost' /
-// 'api' do NOT honour X-Branch â€” only the bare brand domain does, so a
+// 'api' do NOT honour X-Branch — only the bare brand domain does, so a
 // child subdomain (lusaka1.keletezm.com) can never spoof its way into
 // another branch's data.
 const SKIP_SLUGS = new Set(['www', 'kelete', 'keletezm', 'keletedistributionzm', 'localhost', 'api', '127', 'sidanitsolutions']);
@@ -44,7 +44,7 @@ module.exports = function tenantMiddleware(req, res, next) {
   const host = (req.headers['x-tenant'] || req.hostname || '').toLowerCase();
   const slug = host.split('.')[0];
 
-  // HQ branch-switch path: bare keletezm.com + X-Branch header â†’ use that
+  // HQ branch-switch path: bare keletezm.com + X-Branch header → use that
   // branch's DB and stash the branch's tenant_id on req so the auth
   // middleware can override req.user.tenantId. Without an X-Branch header
   // we fall through to the default DB (so /api/tenant-admin/* + the public
@@ -60,8 +60,8 @@ module.exports = function tenantMiddleware(req, res, next) {
         // v1.6.5: resolve from master.branches (authoritative) or any of
         // the 3 fallback locations. Previously this only checked the plain
         // 'tenant_id' key, which is missing on branches activated via HQ
-        // (they have 'tenant:<slug>' instead) â†’ req.hqBranchTenantId
-        // stayed undefined â†’ auth.js didn't override req.user.tenantId â†’
+        // (they have 'tenant:<slug>' instead) → req.hqBranchTenantId
+        // stayed undefined → auth.js didn't override req.user.tenantId →
         // GET /products WHERE tenant_id='local-only' returned 0 rows.
         const tid = resolveBranchTenantId(xBranch, branchDb);
         if (tid) req.hqBranchTenantId = tid;
@@ -75,7 +75,7 @@ module.exports = function tenantMiddleware(req, res, next) {
         return res.status(503).json({ error: 'Branch database unavailable' });
       }
     }
-    return next(); // bare HQ with no X-Branch â†’ default DB
+    return next(); // bare HQ with no X-Branch → default DB
   }
 
   if (!slug || SKIP_SLUGS.has(slug)) {
@@ -93,7 +93,7 @@ module.exports = function tenantMiddleware(req, res, next) {
     // async middleware (multer file uploads, etc.) that drops the
     // AsyncLocalStorage. Without this stash, multer-using POST routes
     // (CSV import, image upload, attachments) silently wrote to the
-    // default DB instead of the tenant's â€” confirmed via diagnostic on
+    // default DB instead of the tenant's — confirmed via diagnostic on
     // 2026-06-22: 242 products had landed in backend/kelete.db while
     // tenants/kassumbalesa1.db had 0.
     req.tenantDb = tenantDb;

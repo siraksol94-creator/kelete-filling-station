@@ -10,7 +10,7 @@ const { retryOrder: zraRetryOrder } = require('../services/zraRetryQueue');
 const { buildVatLines } = require('../services/vatReport');
 
 // Get distinct users that have orders (for filter dropdown).
-// v1.9.1 â€” JOIN by sync_id (with fallback to local id for legacy rows whose
+// v1.9.1 — JOIN by sync_id (with fallback to local id for legacy rows whose
 // backfill couldn't run, e.g. user later deleted from this DB).
 router.get('/users', auth, readOnlyGuard, (req, res) => {
   try {
@@ -30,13 +30,13 @@ router.get('/users', auth, readOnlyGuard, (req, res) => {
 // Get all orders
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
-    // v1.13.50 â€” attach per-order COGS derived from stock_movements.cost_at_sale
+    // v1.13.50 — attach per-order COGS derived from stock_movements.cost_at_sale
     // (stamped by trg_stamp_cost_at_sale on every sale/sale_reverse). NET math
     // (sum of -qty * cost) so partially-reversed orders show the correct
     // remaining cost. Falls back to 0 for rows where cost_at_sale was never
     // stamped (very old rows before the backfill ran).
-    // v1.13.151 â€” Also aggregate partial-refund amount + timestamp per
-    // order (from order_items.reversed_quantity Ã— line price) so the
+    // v1.13.151 — Also aggregate partial-refund amount + timestamp per
+    // order (from order_items.reversed_quantity × line price) so the
     // Sales Report can render partial CNs as their own row in the list.
     // For Reversed orders this equals the full total (every line
     // reversed); for Partial orders it's the refunded slice; for Active
@@ -75,16 +75,16 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// v1.13.115 â€” ZRA Ref 9 VAT Transaction Report.
+// v1.13.115 — ZRA Ref 9 VAT Transaction Report.
 // One row per active (non-reversed) order in [from,to] range, with the 6
 // fields ZRA Ref 9 requires: invoice #, date, customer, description of
 // goods, value (net of VAT), VAT amount. VAT uses the same MTV-boost
-// logic as the receipt (cat B + RRP>0 â†’ max(net_inc, RRP*qty) Ã— 16/116;
-// else net_inc Ã— 16/116).
+// logic as the receipt (cat B + RRP>0 → max(net_inc, RRP*qty) × 16/116;
+// else net_inc × 16/116).
 router.get('/vat-report', auth, readOnlyGuard, (req, res) => {
   try {
     const { from, to } = req.query;
-    // 2026-09-12 â€” the line builder moved to services/vatReport.js unchanged,
+    // 2026-09-12 — the line builder moved to services/vatReport.js unchanged,
     // so HQ's consolidated report reads exactly the same lines.
     res.json(buildVatLines(db, { tenantId: req.user.tenantId, from, to }));
   } catch (error) {
@@ -92,9 +92,9 @@ router.get('/vat-report', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// v1.13.124 â€” Mark a Credit Note as first-printed. Frontend calls this
+// v1.13.124 — Mark a Credit Note as first-printed. Frontend calls this
 // AFTER the very first successful CN print so subsequent prints add the
-// COPY / DUPLICATE band. Idempotent â€” later calls are no-op.
+// COPY / DUPLICATE band. Idempotent — later calls are no-op.
 router.put('/:id/mark-cn-printed', auth, (req, res) => {
   try {
     const row = db.prepare(
@@ -110,7 +110,7 @@ router.put('/:id/mark-cn-printed', auth, (req, res) => {
   }
 });
 
-// v1.8.86 â€” Cashier Payment History: read-only list of orders the Cashier
+// v1.8.86 — Cashier Payment History: read-only list of orders the Cashier
 // has already collected payment on. Newest first, limited to 50 by default
 // (override with ?limit=N). Same column shape as cashier-inbox so the same
 // list card UI can render it without changes.
@@ -138,11 +138,11 @@ router.get('/payment-history', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// v1.8.87 â€” Admin-only post-payment edit (typos, wrong currency, wrong rate).
+// v1.8.87 — Admin-only post-payment edit (typos, wrong currency, wrong rate).
 // Mutates only the 12 payment/rate fields + recomputes amount_received from
 // (cash + fra/sellRate + k/sellRateK). Stock, items, customer credit limit,
 // order_number stay untouched. Writes an audit row to order_payment_edits.
-// Rules: Administrator role Â· order has paid_at Â· paid_at within 7 days Â·
+// Rules: Administrator role · order has paid_at · paid_at within 7 days ·
 // reason >= 3 chars. Response includes cr_exists flag so the frontend can
 // nudge the user to re-Save the day's Cash Report (no auto-fix).
 router.put('/:id/edit-payment', auth, (req, res) => {
@@ -161,7 +161,7 @@ router.put('/:id/edit-payment', auth, (req, res) => {
     const paidAtMs = new Date(order.paid_at + (order.paid_at.includes('T') ? '' : 'Z')).getTime();
     const daysSince = (Date.now() - paidAtMs) / (1000 * 60 * 60 * 24);
     if (daysSince > 7) {
-      return res.status(400).json({ error: `Order paid ${Math.floor(daysSince)} days ago â€” outside the 7-day edit window.` });
+      return res.status(400).json({ error: `Order paid ${Math.floor(daysSince)} days ago — outside the 7-day edit window.` });
     }
 
     const oldPayload = {
@@ -203,7 +203,7 @@ router.put('/:id/edit-payment', auth, (req, res) => {
       + (newPayload.selling_rate_k_used > 0 ? newPayload.k_received   / newPayload.selling_rate_k_used : 0);
     newPayload.amount_received = newAmountReceived;
 
-    // v1.10.107 â€” same OVER-CHANGE guard as /collect-payment. Prevents
+    // v1.10.107 — same OVER-CHANGE guard as /collect-payment. Prevents
     // sneaking a bad edit past the frontend gate.
     {
       const bsEdit = db.prepare(
@@ -274,13 +274,13 @@ router.put('/:id/edit-payment', auth, (req, res) => {
       );
     })();
 
-    // CR existence check â€” does a Sales CR row exist for this order's paid date + cashier?
+    // CR existence check — does a Sales CR row exist for this order's paid date + cashier?
     // If yes, frontend will warn the user to re-Save the Cash Report.
     const paidDate = (order.paid_at || '').slice(0, 10);
     let crExists = false;
     let crCashierName = null;
     if (paidDate && order.cashier_user_id) {
-      // v1.9.1 â€” look up by sync_id first (stable across DBs); fall back to
+      // v1.9.1 — look up by sync_id first (stable across DBs); fall back to
       // the legacy local-integer id only when the new column is empty (e.g.
       // for pre-fix rows that haven't been backfilled yet).
       const cashier = db.prepare(
@@ -316,7 +316,7 @@ router.put('/:id/edit-payment', auth, (req, res) => {
   }
 });
 
-// Dispatch inbox â€” list orders that the Cashier has collected payment on
+// Dispatch inbox — list orders that the Cashier has collected payment on
 // and that are now waiting to be physically released by the Dispatch
 // station. Same FIFO ordering as the Cashier inbox so the oldest order
 // gets handed over first.
@@ -324,14 +324,14 @@ router.get('/dispatch-inbox', auth, requirePagePerm('Dispatch'), readOnlyGuard, 
   try {
     const rows = db.prepare(
       `SELECT o.id, o.order_number, o.customer_name, o.total_amount, o.subtotal, o.discount,
-              -- 2026-09-26 â€” created_at added: pos_dispatch posts the order
+              -- 2026-09-26 — created_at added: pos_dispatch posts the order
               -- already PAID (line 545) and never stamps paid_at, so the card
               -- had no time to show. Payment and order are the same moment in
               -- that workflow, so the order's own time is the payment time.
               o.paid_at, o.sales_at, o.created_at, o.cashier_user_id, o.currency,
-              -- 2026-09-04 â€” the Dispatch card shows the ZRA receipt number and
+              -- 2026-09-04 — the Dispatch card shows the ZRA receipt number and
               -- falls back to "awaiting ZRA" when there is none. These three were
-              -- not selected, so it fell back on EVERY order â€” telling the operator
+              -- not selected, so it fell back on EVERY order — telling the operator
               -- a sale ZRA had already signed was still pending.
               o.zra_status, o.zra_rcpt_no, o.zra_sdc_id,
               TRIM(COALESCE(uc.first_name, '') || ' ' || COALESCE(uc.last_name, '')) AS cashier_name,
@@ -350,7 +350,7 @@ router.get('/dispatch-inbox', auth, requirePagePerm('Dispatch'), readOnlyGuard, 
   }
 });
 
-// Dispatch confirms goods released â€” 3-station flow's final step.
+// Dispatch confirms goods released — 3-station flow's final step.
 // This is the point at which stock physically leaves and we mint the
 // stock_movements rows that the rest of the system (Bin Card, profit, etc.)
 // reads. Also stamps dispatch_user_id + dispatched_at and triggers profit
@@ -366,7 +366,7 @@ router.put('/:id/confirm-dispatch', auth, requirePagePerm('Dispatch'), (req, res
       }
 
       // Pull line items and decrement stock the same way POST /orders does
-      // (see the single_pos checkout block above) â€” keeps Bin Card / profit
+      // (see the single_pos checkout block above) — keeps Bin Card / profit
       // calculations identical regardless of which workflow created the row.
       const items = db.prepare(
         `SELECT oi.product_id, oi.product_sync_id, oi.quantity, oi.unit, oi.product_name
@@ -379,7 +379,7 @@ router.put('/:id/confirm-dispatch', auth, requirePagePerm('Dispatch'), (req, res
       const movSql = `INSERT INTO stock_movements (product_id, product_sync_id, location, movement_type, quantity, reference_id, reference_type, created_by, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at, reference_sync_id)
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'),?)`;
       const movStmt = db.prepare(movSql);
-      // v1.10.21 â€” keep products.current_stock in lockstep with stock_movements
+      // v1.10.21 — keep products.current_stock in lockstep with stock_movements
       // so the cache never drifts (self-heal used to paper over this on boot).
       const stockDecStmt = db.prepare(
         `UPDATE products SET current_stock = current_stock - ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
@@ -399,7 +399,7 @@ router.put('/:id/confirm-dispatch', auth, requirePagePerm('Dispatch'), (req, res
         if (productSyncId) stockDecStmt.run(baseQty, productSyncId);
       }
 
-      // v1.9.1 â€” also stamp sync_id so cross-device dispatch attribution stays right.
+      // v1.9.1 — also stamp sync_id so cross-device dispatch attribution stays right.
       const userSyncId = db.prepare('SELECT sync_id FROM users WHERE id = ?').get(req.user.id)?.sync_id || null;
       db.prepare(`
         UPDATE orders
@@ -425,14 +425,14 @@ router.put('/:id/confirm-dispatch', auth, requirePagePerm('Dispatch'), (req, res
   }
 });
 
-// Cashier inbox â€” list orders awaiting payment in the 3-station flow.
+// Cashier inbox — list orders awaiting payment in the 3-station flow.
 // The Sales station POSTs orders with status='PENDING_PAYMENT'; this endpoint
 // is what the Cashier page polls. Sorted by sales_at ASC so the oldest pending
-// order is processed first (FIFO â€” fair to the customer who arrived earliest).
+// order is processed first (FIFO — fair to the customer who arrived earliest).
 router.get('/cashier-inbox', auth, requirePagePerm('Cashier'), readOnlyGuard, (req, res) => {
   try {
-    // customers.outstanding is NOT a column â€” it's computed as
-    // SUM(orders.unpaid) âˆ’ SUM(customer_payments.amount). Two
+    // customers.outstanding is NOT a column — it's computed as
+    // SUM(orders.unpaid) − SUM(customer_payments.amount). Two
     // aggregation subqueries handle that here so the Cashier can show
     // the customer's running balance + available credit before taking
     // the partial payment.
@@ -481,13 +481,13 @@ router.get('/cashier-inbox', auth, requirePagePerm('Cashier'), readOnlyGuard, (r
 // Create order (POS checkout)
 router.post('/', auth, async (req, res) => {
   try {
-    // v1.13.101 â€” T11A offline-block pre-flight. If the tenant has
+    // v1.13.101 — T11A offline-block pre-flight. If the tenant has
     // enabled `zra_block_offline_sales` AND ZRA is on, ping VSDC before
-    // accepting the sale. VSDC unreachable â†’ 503 with a clear message
+    // accepting the sale. VSDC unreachable → 503 with a clear message
     // so the cashier knows to wait / restart Tomcat. Default OFF so
     // provisional-receipt behaviour is preserved for non-UAT operation.
     if (vsdc.isEnabled(req.user.tenantId) && vsdc.isBlockOfflineOn(req.user.tenantId)) {
-      // 2026-08-28 â€” diagnoseVsdc replaces the old boolean ping. It tells
+      // 2026-08-28 — diagnoseVsdc replaces the old boolean ping. It tells
       // the cashier WHICH problem this is: a genuine outage, or wrong ZRA
       // settings on this desktop. Those need opposite responses (wait vs.
       // fix a field), and the old blanket "VSDC is offline" sent people
@@ -510,7 +510,7 @@ router.post('/', auth, async (req, res) => {
       currency, fra_received, fra_change_given, selling_rate_used, buying_rate_used,
       // Triple-currency K bucket (Kelete). POS Credit Sale modal now sends these.
       k_received, k_change_given, selling_rate_k_used, buying_rate_k_used,
-      // v1.8.68 â€” per-currency change tracking. Optional from frontend; if
+      // v1.8.68 — per-currency change tracking. Optional from frontend; if
       // not sent, derived below from change_amount minus fra/k change-given.
       usd_change_given, overpaid_kept_ccy, overpaid_kept_amt,
       // 3-station workflow (kassumbalesa1): when the Sales station confirms an
@@ -518,16 +518,16 @@ router.post('/', auth, async (req, res) => {
       // skip stock movements (stock decrements at Dispatch), and skip profit
       // recalculation (no revenue realised until Cashier collects payment).
       status,
-      // v1.13.62 â€” customer-side empties deposit flow. Optional; when
+      // v1.13.62 — customer-side empties deposit flow. Optional; when
       // present, drives customers.empty_balance + EMPTY ZB stock inbound.
       empty_flow,
-      // v1.13.67 â€” bearer voucher redemption. When present, POS is
+      // v1.13.67 — bearer voucher redemption. When present, POS is
       // claiming N empties against an existing EMP- voucher.
       //   voucher_code       : string    voucher_number to look up
       //   voucher_qty_claim  : integer   how many empties to draw
       // Server validates voucher exists, is ACTIVE, has enough
       // qty_remaining; then records the claim + decrements the voucher.
-      // Sales Report / Cash Book stay untouched â€” physical stock only.
+      // Sales Report / Cash Book stay untouched — physical stock only.
       voucher_code,
       voucher_qty_claim,
       // T08A #6 LPO invoice. When present, forces every line to zero-rated
@@ -536,7 +536,7 @@ router.post('/', auth, async (req, res) => {
       // cross-check the LPO certificate on TaxOnline.
       lpo_number,
     } = req.body;
-    // v1.13.25 â€” pos_dispatch workflow: same operator writes + pays at POS,
+    // v1.13.25 — pos_dispatch workflow: same operator writes + pays at POS,
     // then a dispatcher hands over goods. Order posts as PAID (payment
     // collected up front), stock deducts at Dispatch confirm. Read the
     // workflow_mode once so we can gate stock/profit paths on it.
@@ -549,14 +549,14 @@ router.post('/', auth, async (req, res) => {
       : (isPosDispatch ? 'PAID' : null);
     const isPendingPayment = orderStatus === 'PENDING_PAYMENT';
     // Skip stock decrement + profit recalc when the order is still pending
-    // physical handover â€” same reasoning as three_station's PENDING_PAYMENT
+    // physical handover — same reasoning as three_station's PENDING_PAYMENT
     // path (stock leaves at Dispatch confirm).
     const deferStockAndProfit = isPendingPayment || isPosDispatch;
-    // 2026-08-28 â€” fiscalisation is NOT the same question as stock.
+    // 2026-08-28 — fiscalisation is NOT the same question as stock.
     //
     // These used to share one flag, and pos_dispatch fell through the gap:
     // the order is created already PAID, so ZRA was skipped here on the
-    // grounds that "the Cashier collection triggers it" â€” but pos_dispatch
+    // grounds that "the Cashier collection triggers it" — but pos_dispatch
     // has no Cashier step. It goes straight to the Dispatch inbox, and
     // confirm-dispatch has no ZRA in it by design. The sale was never sent
     // to ZRA at all, and never marked FAILED either, so the retry queue
@@ -581,15 +581,15 @@ router.post('/', auth, async (req, res) => {
     const buyingRateKUsed  = buying_rate_k_used  !== undefined && buying_rate_k_used  !== null
       ? parseFloat(buying_rate_k_used)  || null : null;
 
-    // v1.8.68 â€” per-currency change tracking. Three fields are accepted
+    // v1.8.68 — per-currency change tracking. Three fields are accepted
     // explicitly from the client; when missing we derive them so the bookkeeping
     // is correct even for older POS clients that haven't been updated yet.
     const _changeOwedUSD = parseFloat(change_amount || 0) || 0;
-    // v1.8.78 â€” change handed back is a real currency exchange, BUY rate applies
+    // v1.8.78 — change handed back is a real currency exchange, BUY rate applies
     // (matches the frontend's totalChangeGiven formula in Cashier.js / POS.js).
     const _fraGivenAsUSD = (buyingRateUsed  || 0) > 0 ? fraChangeGiven / buyingRateUsed  : 0;
     const _kGivenAsUSD   = (buyingRateKUsed || 0) > 0 ? kChangeGiven   / buyingRateKUsed : 0;
-    // v1.8.74 â€” compute per-currency over-payment using source-currency
+    // v1.8.74 — compute per-currency over-payment using source-currency
     // priority (USD pays first, then FRA, then K). Mirrors the collect-payment
     // endpoint + frontend logic so the default keptCcy lands on the currency
     // that actually holds the surplus. NOTE: must compute physical USD here
@@ -637,21 +637,21 @@ router.post('/', auth, async (req, res) => {
     if (usd_change_given !== undefined && usd_change_given !== null) {
       usdChangeGiven = parseFloat(usd_change_given) || 0;
     } else if (overpaidKeptCcy) {
-      // Cashier kept the over-payment â†’ no USD was returned for that portion.
+      // Cashier kept the over-payment → no USD was returned for that portion.
       usdChangeGiven = 0;
     } else {
       usdChangeGiven = Math.max(0, _changeOwedUSD - _fraGivenAsUSD - _kGivenAsUSD);
     }
-    // v1.8.74 â€” when keptCcy missing, default to source-currency of the
-    // over-payment (FRA â†’ K â†’ USD priority) instead of legacy USD default.
+    // v1.8.74 — when keptCcy missing, default to source-currency of the
+    // over-payment (FRA → K → USD priority) instead of legacy USD default.
     if (!overpaidKeptCcy && _changeOwedUSD > 0.005) {
       if      (overFRAcomputedPost > 0.5)   overpaidKeptCcy = 'FRA';
       else if (overKcomputedPost   > 0.5)   overpaidKeptCcy = 'K';
       else if (overUSDcomputedPost > 0.001) overpaidKeptCcy = 'USD';
     }
     if (overpaidKeptCcy && overpaidKeptAmt < 0.005) {
-      // v1.8.79 â€” fall back to USD-leftover Ã— BUY rate (matches frontend
-      // display) instead of sell rate, so kept = change owed âˆ’ change given.
+      // v1.8.79 — fall back to USD-leftover × BUY rate (matches frontend
+      // display) instead of sell rate, so kept = change owed − change given.
       const keptUSD = Math.max(0, _changeOwedUSD - _fraGivenAsUSD - _kGivenAsUSD - usdChangeGiven);
       if (overpaidKeptCcy === 'USD') {
         overpaidKeptAmt = overUSDcomputedPost > 0.001 ? overUSDcomputedPost : keptUSD;
@@ -677,15 +677,15 @@ router.post('/', auth, async (req, res) => {
     const overrideTs = overrideDate ? `${overrideDate} ${new Date().toTimeString().slice(0, 8)}` : null;
     const tsExpr = overrideTs ? '?' : "datetime('now')";
     const tsArgs = overrideTs ? [overrideTs] : [];
-    // v1.8.53 â€” for multi-currency sales (Kelete), `cash_received` MUST be
-    // the physical USD only â€” never the dollar-VALUE of all cash. Falling
+    // v1.8.53 — for multi-currency sales (Kelete), `cash_received` MUST be
+    // the physical USD only — never the dollar-VALUE of all cash. Falling
     // back to `amount_received` double-counts foreign-currency payments
     // (they appear in both the K/FRA bucket AND the USD bucket).
     //
     // Rule:
-    //   - If any FRA/K was paid â†’ cash_received = whatever the client sent,
+    //   - If any FRA/K was paid → cash_received = whatever the client sent,
     //     defaulting to 0 (NOT amount_received).
-    //   - Otherwise â†’ keep legacy fallback so single-currency tenants
+    //   - Otherwise → keep legacy fallback so single-currency tenants
     //     (lusaka1, mansa1 K-only or USD-only) still work.
     const fraInForFallback = parseFloat(fra_received || 0) || 0;
     const kInForFallback   = parseFloat(k_received   || 0) || 0;
@@ -700,17 +700,17 @@ router.post('/', auth, async (req, res) => {
     const finalAmountReceived = amount_received !== undefined ? parseFloat(amount_received) || 0 : totalReceived;
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
-    // v1.13.149 â€” new orders now save as INV- in the DB (was ORD-).
+    // v1.13.149 — new orders now save as INV- in the DB (was ORD-).
     // Sequence carries forward: syncConfig.generateNumber reads
     // sync_config.seq_orders which was already at N from the last ORD-
     // generation, so first INV- picks up at N+1 (no restart at 1).
     // Historical ORD- rows will be migrated separately in Fix 2 Part B.
     const orderNum = syncConfig.generateNumber('INV', 'orders');
 
-    // â”€â”€ Server-side credit-limit guard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Server-side credit-limit guard ───────────────────────────────────────
     // Mirrors the POS UI rule: if the buyer matches a known customer,
     // enforce credit_status and credit_limit. Walk-in sales must be paid in full.
-    // PENDING_PAYMENT (3-station Sales hand-off) skips this â€” no payment is
+    // PENDING_PAYMENT (3-station Sales hand-off) skips this — no payment is
     // being collected here, the Cashier station enforces it at the next stage.
     const unpaid = Math.max(0, parseFloat(total_amount || 0) - parseFloat(amount_received || 0));
     if (!isPendingPayment && unpaid > 0.001) {
@@ -728,18 +728,18 @@ router.post('/', auth, async (req, res) => {
         ).all(customer_name.trim(), tenantId);
         if (matches.length === 1) cust = matches[0];
         else if (matches.length > 1) {
-          return res.status(400).json({ error: 'Multiple customers match this name â€” please select the customer explicitly' });
+          return res.status(400).json({ error: 'Multiple customers match this name — please select the customer explicitly' });
         }
       }
       if (!cust) {
-        return res.status(400).json({ error: 'Unknown customer â€” partial payment requires a registered customer' });
+        return res.status(400).json({ error: 'Unknown customer — partial payment requires a registered customer' });
       }
       if (cust.credit_status === 'OnHold') {
-        return res.status(400).json({ error: 'Customer is on hold â€” payment in full required' });
+        return res.status(400).json({ error: 'Customer is on hold — payment in full required' });
       }
       const limit = parseFloat(cust.credit_limit || 0);
       if (limit > 0) {
-        // Existing AR = credit portion of past sales âˆ’ payments collected later.
+        // Existing AR = credit portion of past sales − payments collected later.
         // Then add the unpaid portion of THIS sale on top.
         const sold = db.prepare(`
           SELECT COALESCE(SUM(total_amount - COALESCE(amount_received, 0)), 0) AS s
@@ -761,7 +761,7 @@ router.post('/', auth, async (req, res) => {
       }
     }
 
-    // v1.9.1 â€” resolve sync_id for the authenticated user once per order, so
+    // v1.9.1 — resolve sync_id for the authenticated user once per order, so
     // we can stamp it on created_by_sync_id (and sales_user_sync_id when
     // pending-payment). Storing the sync_id alongside the legacy integer id
     // means receipts JOIN to the correct user on any device, regardless of
@@ -772,14 +772,14 @@ router.post('/', auth, async (req, res) => {
       const orderSyncId = randomUUID();
       // For PENDING_PAYMENT, also stamp sales_user_id + sales_at so the
       // Cashier inbox can show who created it and when.
-      // v1.13.77 â€” snapshot the customer's TPIN onto the order. Front-end
+      // v1.13.77 — snapshot the customer's TPIN onto the order. Front-end
       // may send it explicitly (Pay-modal override); otherwise fall back to
       // whatever's on the customer record so a saved B2B customer's TPIN
-      // rides along without the cashier retyping it. Walk-in / missing â†’
+      // rides along without the cashier retyping it. Walk-in / missing →
       // null, and the receipt substitutes ZRA's '1000000000' default.
       let resolvedTpin = (typeof customer_tpin === 'string' && customer_tpin.trim())
         ? customer_tpin.trim() : null;
-      // v1.13.102 â€” explicit customer_address from the POS Payment modal
+      // v1.13.102 — explicit customer_address from the POS Payment modal
       // takes precedence over the saved customer record. Enables B2B
       // walk-ins to enter TPIN + name + address ad-hoc without creating
       // a customer profile first. Fallback to customer record when the
@@ -820,10 +820,10 @@ router.post('/', auth, async (req, res) => {
 
       const orderId = info.lastInsertRowid;
 
-      // v1.13.157 â€” persist a walk-in-typed TPIN/name/address so the
+      // v1.13.157 — persist a walk-in-typed TPIN/name/address so the
       // NEXT sale to this same buyer can auto-fill from OUR own record
       // (not just ZRA's, which is often thin on address data). Only
-      // fires when a TPIN was actually captured; best-effort â€” never
+      // fires when a TPIN was actually captured; best-effort — never
       // blocks the sale. Existing customer records are only filled in
       // where blank (never overwrites an address someone already
       // entered deliberately via Suppliers & Customers).
@@ -844,10 +844,10 @@ router.post('/', auth, async (req, res) => {
               VALUES (?, ?, ?, 'Active', ?, ?, ?, ?, 0, datetime('now'), datetime('now'))
             `).run(customer_name || `TPIN ${resolvedTpin}`, resolvedTpin, resolvedAddress || null, randomUUID(), tenantId, branchId, deviceId);
           }
-        } catch (_) { /* best-effort â€” never block the sale over this */ }
+        } catch (_) { /* best-effort — never block the sale over this */ }
       }
 
-      // T08A #6 LPO â€” stamp lpo_number on the freshly inserted row so
+      // T08A #6 LPO — stamp lpo_number on the freshly inserted row so
       // vsdcClient.saveSales below reads it and flips the whole invoice
       // to Cat C2. Kept as a follow-up UPDATE (rather than baked into
       // ordSql) to keep the INSERT column list untouched.
@@ -856,7 +856,7 @@ router.post('/', auth, async (req, res) => {
           .run(String(lpo_number).trim(), orderId);
       }
 
-      // v1.13.128j â€” Snapshot ZRA fiscal fields onto the order line at
+      // v1.13.128j — Snapshot ZRA fiscal fields onto the order line at
        // sale time (see migrations.js for column rationale). These make
        // the invoice immutable: reprints and reports read fields the
        // sale committed, not today's product master or today's formula.
@@ -866,12 +866,12 @@ router.post('/', auth, async (req, res) => {
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,${tsExpr},${tsExpr},?)`;
       const itemStmt = db.prepare(itemSql);
       const movStmt  = db.prepare(movSql);
-      // v1.10.21 â€” decrement products.current_stock alongside the movement.
+      // v1.10.21 — decrement products.current_stock alongside the movement.
       const stockDecStmt = db.prepare(
         `UPDATE products SET current_stock = current_stock - ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
       );
 
-      // v1.13.128j â€” ZRA VAT rate lookup per VSDC API Spec Â§6.1. Anything
+      // v1.13.128j — ZRA VAT rate lookup per VSDC API Spec §6.1. Anything
       // not listed defaults to 16 (safest for FMCG). Used inside the loop
       // to compute the fiscal snapshot for each line.
       const ZRA_VAT_RATES = { A: 16, B: 16, C1: 0, C2: 0, C3: 0, D: 0, E: 0, F: 10, RVAT: 16 };
@@ -886,21 +886,21 @@ router.post('/', auth, async (req, res) => {
         const lineDiscount = parseFloat(item.discount || 0);
 
         // Fiscal snapshot (see migrations.js zra_vat_taxbl_amt block).
-        // Formula follows ZRA VSDC API Spec Â§5.9 MTV example (Chicken
-        // Wings, page 118): taxable base = max(sale Ã— qty, RRP Ã— qty)
-        // for Cat B when RRP > 0, else sale Ã— qty. Net = base/(1+rate/100),
-        // VAT = base âˆ’ Net. Zero-rated categories keep Net = base.
+        // Formula follows ZRA VSDC API Spec §5.9 MTV example (Chicken
+        // Wings, page 118): taxable base = max(sale × qty, RRP × qty)
+        // for Cat B when RRP > 0, else sale × qty. Net = base/(1+rate/100),
+        // VAT = base − Net. Zero-rated categories keep Net = base.
         // zra_rrp_snap stores the per-unit RRP that was live at sale
         // time (matches how the receipt column displays it). VAT math
         // multiplies by qty internally where needed.
         //
-        // 2026-08-26 â€” LPO sales snapshot as Cat C2 / 0%.
+        // 2026-08-26 — LPO sales snapshot as Cat C2 / 0%.
         //
         // The LPO zero-rating used to be applied ONLY in
         // vsdcClient.saveSales at transmission time, so the snapshot kept
         // each product's ordinary category. ZRA received the invoice
         // correctly zero-rated while the printed receipt and the VAT
-        // report â€” both of which read the snapshot â€” still showed 16%.
+        // report — both of which read the snapshot — still showed 16%.
         // Order INV-2026-C1DCF1-0062 (Embassy of Finland, LPO
         // 5721529679) went to ZRA as taxblAmtC2 2130 / totTaxAmt 0, yet
         // printed VAT of K303.63: a zero-rated customer handed an invoice
@@ -927,7 +927,7 @@ router.post('/', auth, async (req, res) => {
         if (overrideTs) itemArgs.push(overrideTs, overrideTs);
         itemStmt.run(...itemArgs);
 
-        // PENDING_PAYMENT and pos_dispatch both skip the stock decrement â€”
+        // PENDING_PAYMENT and pos_dispatch both skip the stock decrement —
         // stock only leaves at Dispatch (see memory
         // [[project-kelete-stock-deduction-timing]]). The matching decrement
         // movement is created when Dispatch confirms.
@@ -941,14 +941,14 @@ router.post('/', auth, async (req, res) => {
         }
       }
 
-      // v1.13.62 â€” Empties deposit flow. Applies AFTER items are recorded
+      // v1.13.62 — Empties deposit flow. Applies AFTER items are recorded
       // so the stock_movements + order_items path stays untouched. Skips
       // cleanly when empty_flow isn't sent (feature dormant).
       //
-      //   â€¢ Customer balance Â± via empty_credit_delta (server never lets
-      //     it go negative â€” clamps at 0 and logs the actual applied
+      //   • Customer balance ± via empty_credit_delta (server never lets
+      //     it go negative — clamps at 0 and logs the actual applied
       //     value in customer_empty_returns.qty).
-      //   â€¢ +empties_returned stock_movement against the EMPTY ZB product
+      //   • +empties_returned stock_movement against the EMPTY ZB product
       //     configured on business_settings.empty_container_product_sync_id.
       //     Walk-ins with empties_returned>0 still hit stock; the credit
       //     just can't be recorded (no customer to credit).
@@ -956,7 +956,7 @@ router.post('/', auth, async (req, res) => {
         const emptiesIn  = Math.max(0, parseInt(empty_flow.empties_returned || 0, 10) || 0);
         const rawDelta   = parseInt(empty_flow.empty_credit_delta || 0, 10) || 0;
 
-        // Credit ledger â€” only if we have a customer to attach to.
+        // Credit ledger — only if we have a customer to attach to.
         if (customer_id && rawDelta !== 0) {
           const cust = db.prepare(
             'SELECT id, sync_id, name, empty_balance FROM customers WHERE id = ? AND deleted_at IS NULL'
@@ -991,7 +991,7 @@ router.post('/', auth, async (req, res) => {
         }
 
         // Physical stock in for returned empties. Ties the movement to the
-        // order for traceability. Independent of the customer credit â€”
+        // order for traceability. Independent of the customer credit —
         // returned empties always count as inbound stock.
         if (emptiesIn > 0 && !deferStockAndProfit) {
           const emptyProdSyncId = db.prepare(
@@ -1014,12 +1014,12 @@ router.post('/', auth, async (req, res) => {
         }
       }
 
-      // v1.13.67 â€” Voucher claim. Redeems N empties against an existing
+      // v1.13.67 — Voucher claim. Redeems N empties against an existing
       // EMP- voucher. Server-authoritative: validates voucher exists,
       // ACTIVE, has enough qty_remaining. Rejects the whole order (via
       // throw inside the transaction) on any mismatch so the client
       // sees a clear error and no half-baked claim lands. No stock
-      // movement here â€” the stock was posted when the voucher was
+      // movement here — the stock was posted when the voucher was
       // ISSUED. This step just moves credit down.
       if (voucher_code && !isPendingPayment) {
         const code = String(voucher_code || '').trim();
@@ -1032,7 +1032,7 @@ router.post('/', auth, async (req, res) => {
             throw Object.assign(new Error(`Voucher ${code} not found.`), { status: 400 });
           }
           if (voucher.status !== 'ACTIVE') {
-            throw Object.assign(new Error(`Voucher ${code} is ${voucher.status.toLowerCase()} â€” cannot claim.`), { status: 400 });
+            throw Object.assign(new Error(`Voucher ${code} is ${voucher.status.toLowerCase()} — cannot claim.`), { status: 400 });
           }
           if (voucher.qty_remaining < claimQty) {
             throw Object.assign(new Error(`Voucher ${code} only has ${voucher.qty_remaining} empties left (attempted ${claimQty}).`), { status: 400 });
@@ -1072,12 +1072,12 @@ router.post('/', auth, async (req, res) => {
       recalculateDailyProfit(db, orderDate, req.user.tenantId);
     }
 
-    // ZRA saveSales â€” fires here for every flow EXCEPT PENDING_PAYMENT,
+    // ZRA saveSales — fires here for every flow EXCEPT PENDING_PAYMENT,
     // where the Cashier collection step owns it. Notably that includes
     // pos_dispatch: the order is paid at the POS, so it is fiscalised at
     // the POS. Dispatch never calls ZRA.
     let zra = { skipped: true, reason: 'not-paid' };
-    let deferredStockChain = null;   // fired after res.json â€” see below
+    let deferredStockChain = null;   // fired after res.json — see below
     if (!deferZra) {
       const zraItems = db.prepare(
         `SELECT oi.*, p.name AS product_name, p.code AS product_code,
@@ -1091,11 +1091,11 @@ router.post('/', auth, async (req, res) => {
         actor:   String(req.user?.id || 'system'),
         actorNm: req.user?.name || req.user?.email || String(req.user?.id || 'system'),
       });
-      // Stock chain â€” mandatory per ZRA checklist item 27-29. Runs only
+      // Stock chain — mandatory per ZRA checklist item 27-29. Runs only
       // when saveSales succeeded, so a failed sale doesn't emit stock
       // updates and mislead ZRA's view.
       //
-      // 2026-08-27 â€” DEFERRED past the response. Only saveSales produces
+      // 2026-08-27 — DEFERRED past the response. Only saveSales produces
       // the signature and QR the receipt needs; saveStockItems and
       // saveStockMaster add ~1.6s the cashier was standing there for with
       // nothing on the paper depending on them. Time-to-print drops from
@@ -1111,14 +1111,14 @@ router.post('/', auth, async (req, res) => {
       // picks the order up. Without it, deferring would trade speed for a
       // silent hole in stock reporting.
       if (zra.ok && zra.itemList) {
-      // 2026-08-28 â€” residual must be what is left AFTER this sale.
+      // 2026-08-28 — residual must be what is left AFTER this sale.
       // In flows where the goods have not physically left yet
       // (pos_dispatch / three_station: stock leaves at Dispatch confirm),
       // products.current_stock still counts what was just sold. We are
       // telling ZRA the sale happened, so reporting the pre-sale shelf
       // count sends a residual one sale too high on every such line.
       // Subtracting the sold quantity here keeps the figure right WITHOUT
-      // Dispatch having to call ZRA â€” it stays purely physical.
+      // Dispatch having to call ZRA — it stays purely physical.
         const snapshots = zraItems.map(it => {
           const prod = db.prepare(
             'SELECT current_stock, unit, alt_unit, conversion_factor, units_json FROM products WHERE id = ?'
@@ -1136,12 +1136,12 @@ router.post('/', auth, async (req, res) => {
     // Re-read the order so the response includes any ZRA fiscal fields
     // saveSales just wrote (rcpt_no, qr_code_url, sdc_id, etc.).
     const finalOrder = zra.skipped ? order : db.prepare('SELECT * FROM orders WHERE id = ?').get(order.id);
-    // v1.13.109 â€” return items joined with the current products.zra_rrp /
+    // v1.13.109 — return items joined with the current products.zra_rrp /
     // zra_vat_cat_cd so the fresh POS receipt renders correct RRP + Rate
     // columns even when the browser's cached /api/products response is
     // stale (e.g. RRP script ran after products were first loaded).
     // Mirrors the join in GET /orders/:id (v1.13.106).
-    // v1.13.110 â€” renamed from `items` because req.body already destructures
+    // v1.13.110 — renamed from `items` because req.body already destructures
     // `items` in this handler (line 437) and the shadowing threw
     // SyntaxError 'Identifier items has already been declared' on boot.
     const responseItems = db.prepare(
@@ -1154,7 +1154,7 @@ router.post('/', auth, async (req, res) => {
     ).all(finalOrder.sync_id);
     res.status(201).json({ ...finalOrder, zra, items: responseItems });
 
-    // â”€â”€ After the receipt is on its way â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── After the receipt is on its way ────────────────────────────────
     // Everything below runs with the response already sent, so it cannot
     // slow the till down. Failures are recorded, never thrown: the sale
     // is committed and fiscalised, and zra_stock_chain_done left at 0
@@ -1213,7 +1213,7 @@ router.get('/product-breakdown', auth, readOnlyGuard, (req, res) => {
 router.get('/product-summary', auth, readOnlyGuard, (req, res) => {
   try {
     const { from, to, userId } = req.query;
-    // total_qty is reported in BASE units (sum of oi.quantity Ã— conversion_factor when line is in alt unit).
+    // total_qty is reported in BASE units (sum of oi.quantity × conversion_factor when line is in alt unit).
     // Frontend uses unit + alt_unit + conversion_factor to format dual-unit display.
     let sql = `
       SELECT
@@ -1254,13 +1254,13 @@ router.get('/product-summary', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// v1.13.62 â€” customer-side empties deposit endpoints.
+// v1.13.62 — customer-side empties deposit endpoints.
 //
-// GET  /api/orders/customer-empties/:customerId          â€” balance + recent ledger rows
-// GET  /api/orders/customer-empties                       â€” every customer that carries a non-zero balance (report)
-// POST /api/orders/customer-empties/pure-return           â€” Case 4: customer walks in with empties, no beer sale
+// GET  /api/orders/customer-empties/:customerId          — balance + recent ledger rows
+// GET  /api/orders/customer-empties                       — every customer that carries a non-zero balance (report)
+// POST /api/orders/customer-empties/pure-return           — Case 4: customer walks in with empties, no beer sale
 //
-// v1.13.64 â€” MUST be declared BEFORE the /:id wildcard below, otherwise
+// v1.13.64 — MUST be declared BEFORE the /:id wildcard below, otherwise
 // Express matches "customer-empties" as an order id.
 router.get('/customer-empties/:customerId', auth, readOnlyGuard, (req, res) => {
   try {
@@ -1315,7 +1315,7 @@ router.post('/customer-empties/pure-return', auth, (req, res) => {
     const oldBal = parseInt(cust.empty_balance || 0, 10) || 0;
     const newBal = oldBal + returnQty;
 
-    // EMPTY ZB product resolver â€” matches order.POST behaviour.
+    // EMPTY ZB product resolver — matches order.POST behaviour.
     const emptyProdSyncId = db.prepare(
       "SELECT empty_container_product_sync_id FROM business_settings LIMIT 1"
     ).get()?.empty_container_product_sync_id;
@@ -1379,7 +1379,7 @@ router.post('/customer-empties/pure-return', auth, (req, res) => {
 });
 
 // Get order details
-// â”€â”€ Possible duplicate sales â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Possible duplicate sales ────────────────────────────────────────────────
 // v1.13.155
 //
 // Chawama rang INV-0067 and INV-0068 six seconds apart with an identical
@@ -1390,11 +1390,11 @@ router.post('/customer-empties/pure-return', auth, (req, res) => {
 //
 // Blocking the second sale automatically was considered and rejected. The
 // cashier re-enters the money received after pressing Pay, so the retry is a
-// genuinely different entry â€” an automatic block risks refusing a real sale at
+// genuinely different entry — an automatic block risks refusing a real sale at
 // a live till. This flags instead, and a person decides.
 //
 // WHAT COUNTS AS A PAIR: same items and quantities, same total, same cashier,
-// within 60 seconds. Amount received is deliberately NOT compared â€” it is
+// within 60 seconds. Amount received is deliberately NOT compared — it is
 // re-typed on the retry, so it can differ between the two.
 //
 // WHY 60 SECONDS, measured on Chawama's real day:
@@ -1490,7 +1490,7 @@ router.get('/possible-duplicates', auth, readOnlyGuard, (req, res) => {
 // POST /api/orders/possible-duplicates/dismiss
 // Body: { order_a_sync_id, order_b_sync_id, order_a_number, order_b_number, note }
 //
-// RECORDS A JUDGEMENT, NOTHING MORE. Both sales stay exactly as they are â€”
+// RECORDS A JUDGEMENT, NOTHING MORE. Both sales stay exactly as they are —
 // still in the report, still in the totals, still fiscalised, still in the
 // Cash Book. No reversal, no delete, no money moves. All this does is stop the
 // pair being raised again. Reversing a sale is the Reverse button on the row,
@@ -1551,7 +1551,7 @@ router.get('/:id', auth, readOnlyGuard, (req, res) => {
        LEFT JOIN products p ON p.sync_id = oi.product_sync_id
        WHERE oi.order_sync_id = ? AND oi.deleted_at IS NULL`
     ).all(order?.sync_id);
-    // 2026-09-01 â€” the empty voucher this sale drew on, so a reprint carries
+    // 2026-09-01 — the empty voucher this sale drew on, so a reprint carries
     // the same EMPTIES block as the original. Dispatch reads that block to
     // decide whether to release the goods, and a duplicate that silently omits
     // it is worse than no duplicate at all.
@@ -1576,22 +1576,22 @@ router.get('/:id', auth, readOnlyGuard, (req, res) => {
 // Cashier collects payment on a PENDING_PAYMENT order.
 // 3-station flow: marks PAID; stock deducts later at Dispatch.
 // 2-station flow (v1.6.3): marks DISPATCHED + deducts stock here. No
-// separate dispatch step â€” used by branches that don't have a dedicated
+// separate dispatch step — used by branches that don't have a dedicated
 // dispatch role. See workflow_mode='two_station' on business_settings.
 router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req, res) => {
   try {
     const {
       paid_usd, paid_fra, given_usd, given_fra,
       buy_rate, sell_rate,
-      // v1.7.0 â€” third currency (K). Optional; cashier sends 0 / null when
+      // v1.7.0 — third currency (K). Optional; cashier sends 0 / null when
       // not using K. Math: same Sirak pattern as FRA, just adds a 3rd term.
       paid_k, given_k, sell_rate_k, buy_rate_k,
-      // v1.8.68 â€” over-payment kept by cashier (no change handed back).
+      // v1.8.68 — over-payment kept by cashier (no change handed back).
       // Cashier picks which drawer holds the surplus so Cash Report doesn't
       // bleed it into the wrong currency.
       overpaid_kept_ccy,
-      // v1.8.72 â€” frontend now sends the NATIVE source-currency amount
-      // (e.g. FRA 250 instead of $0.108 â†’ 246 FRA round-trip). When
+      // v1.8.72 — frontend now sends the NATIVE source-currency amount
+      // (e.g. FRA 250 instead of $0.108 → 246 FRA round-trip). When
       // present > 0, backend uses it verbatim instead of recomputing.
       overpaid_kept_amt,
     } = req.body;
@@ -1625,10 +1625,10 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
       const change   = Math.max(0, totalAmountPaid - totalDue);
       const unpaid   = Math.max(0, totalDue - totalAmountPaid);
 
-      // v1.8.68 â€” figure out the over-payment kept in the drawer (USD-equivalent
+      // v1.8.68 — figure out the over-payment kept in the drawer (USD-equivalent
       // returned-as-change MINUS what cashier physically returned). What's left
-      // is "kept" â€” by default in the currency the over-payment came from.
-      // v1.8.78 â€” change handed back to customer in foreign currency is a real
+      // is "kept" — by default in the currency the over-payment came from.
+      // v1.8.78 — change handed back to customer in foreign currency is a real
       // exchange (we're "buying" USD back with FRA/K). Use BUY rate, matching the
       // frontend's totalChangeGiven formula. Previous SELL-rate use caused
       // frontend ($0.09 short) and backend ($1.07 short) to disagree, leading to
@@ -1637,9 +1637,9 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
       const givenFRAasUSD = buyRate   > 0 ? givenFRA / buyRate   : 0;
       const givenKasUSD   = buyRateK  > 0 ? givenK   / buyRateK  : 0;
       const totalGivenAsUSD = givenUSDasUSD + givenFRAasUSD + givenKasUSD;
-      // v1.10.81 â€” On Liquor tenants (currency_mode='K' AND
+      // v1.10.81 — On Liquor tenants (currency_mode='K' AND
       // payment_methods='cash_momo_bank'), the POS Pay modal has no
-      // Change Given inputs â€” cashier physically hands change to the
+      // Change Given inputs — cashier physically hands change to the
       // customer, no drawer surplus concept. Skip the classifier so we
       // don't fabricate "kept in drawer" rows on Liquor. Kassumbalesa
       // (currency_mode='USD+FRA+K') still runs the full classifier.
@@ -1648,19 +1648,19 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
       ).get() || {};
       const isLiquorStyleServer = String(bsRow.currency_mode || '').toUpperCase() === 'K'
         && String(bsRow.payment_methods || '').toLowerCase() === 'cash_momo_bank';
-      // v1.10.107 â€” hard OVER-CHANGE guard on Kassumbalesa / Kelete
+      // v1.10.107 — hard OVER-CHANGE guard on Kassumbalesa / Kelete
       // (non-Liquor). Rejects any collect-payment where the total change
       // returned (USD-equivalent, summed across USD + FRA + K given)
       // exceeds the change actually owed by more than $0.10 tolerance.
       // The frontend has isOverChange gating on the Confirm button, but
       // 4 orders today on Kassumbalesa (ORD-0102/0106/0107/0112) show
       // the pattern usd_change_given = change_amount AND fra_change_given
-      // = change Ã— buy_rate â€” i.e. the till returning ~2Ã— the amount
+      // = change × buy_rate — i.e. the till returning ~2× the amount
       // owed. Root cause is still under investigation (see conversation
       // notes 2026-07-05); until pinpointed, this backstop stops the
       // shop-loss regardless of how the frontend produced the payload.
       //
-      // Liquor branches skip this guard â€” they legitimately use
+      // Liquor branches skip this guard — they legitimately use
       // "kept in drawer" flows where the math tolerates greater slack.
       if (!isLiquorStyleServer && (totalGivenAsUSD - change) > 0.10) {
         throw Object.assign(
@@ -1673,11 +1673,11 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
       const overpaidKeptUSD = isLiquorStyleServer
         ? 0
         : Math.max(0, change - totalGivenAsUSD);
-      // v1.8.74 â€” attribute the over-payment to its SOURCE currency using
+      // v1.8.74 — attribute the over-payment to its SOURCE currency using
       // the same priority chain as the frontend (USD pays first, then FRA,
       // then K). Whatever's left over in each currency is the native
       // over-payment in that currency. Backend default keptCcy then matches
-      // the currency that actually holds the surplus â€” not the legacy
+      // the currency that actually holds the surplus — not the legacy
       // "FRA-only/K-only/else USD" heuristic which incorrectly picked USD
       // any time the customer also paid some USD.
       let _remBe = totalDue;
@@ -1701,7 +1701,7 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
         overKcomputed = paidK;
       }
       // Pick currency: explicit param wins; else default to the currency
-      // that actually holds the over-payment (FRA â†’ K â†’ USD priority).
+      // that actually holds the over-payment (FRA → K → USD priority).
       let keptCcy = (overpaid_kept_ccy || '').toUpperCase();
       if (overpaidKeptUSD < 0.005) {
         keptCcy = null;
@@ -1711,10 +1711,10 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
         else if (overUSDcomputed > 0.001) keptCcy = 'USD';
         else                              keptCcy = 'USD';
       }
-      // v1.8.72 â€” prefer the NATIVE amount sent by the frontend (it computed
-      // it directly from `paidFRA âˆ’ fraNeeded`, no FX round-trip). Fall back
+      // v1.8.72 — prefer the NATIVE amount sent by the frontend (it computed
+      // it directly from `paidFRA − fraNeeded`, no FX round-trip). Fall back
       // to source-currency native value computed above.
-      // v1.8.79 â€” when no native amount, convert USD-leftover at BUY rate
+      // v1.8.79 — when no native amount, convert USD-leftover at BUY rate
       // (consistent with the frontend display rate so 200 kept stays 200,
       // not 203 from sell rate).
       const explicitKeptAmt = parseFloat(overpaid_kept_amt || 0) || 0;
@@ -1733,22 +1733,22 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
         keptAmt = overUSDcomputed > 0.001 ? overUSDcomputed : overpaidKeptUSD;
       }
 
-      // v1.8.49 â€” credit-at-Cashier. When the order has a registered
+      // v1.8.49 — credit-at-Cashier. When the order has a registered
       // customer attached (set on the Sales/Reception screen), the Cashier
       // is allowed to take partial payment; the unpaid portion becomes a
       // credit balance on the customer. Walk-ins still must pay in full
-      // (with the same 10Â¢ FRA/K rounding tolerance).
+      // (with the same 10¢ FRA/K rounding tolerance).
       const hasRegisteredCustomer = !!order.customer_id;
       if (hasRegisteredCustomer && unpaid > 0.10) {
-        // Optional credit-limit guard â€” mirrors POS rule. customers
-        // has no `outstanding` column â€” compute it from orders minus
+        // Optional credit-limit guard — mirrors POS rule. customers
+        // has no `outstanding` column — compute it from orders minus
         // customer_payments (same formula as the AR/customers list).
         const cust = db.prepare(
           'SELECT id, sync_id, credit_limit, credit_status FROM customers WHERE id = ? AND deleted_at IS NULL AND tenant_id = ?'
         ).get(order.customer_id, req.user.tenantId);
         if (cust) {
           if (cust.credit_status === 'OnHold') {
-            throw Object.assign(new Error('Customer is on hold â€” payment in full required'), { status: 400 });
+            throw Object.assign(new Error('Customer is on hold — payment in full required'), { status: 400 });
           }
           const limit = parseFloat(cust.credit_limit || 0);
           if (limit > 0 && cust.sync_id) {
@@ -1781,11 +1781,11 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
       const isFullCredit       = hasRegisteredCustomer && totalAmountPaid < 0.001;
       const paymentMethod      = isFullCredit ? 'Credit' : isCreditCollection ? 'Partial-Credit' : 'Cash';
 
-      // v1.6.3 â€” detect workflow mode. two_station = stock deducts here.
+      // v1.6.3 — detect workflow mode. two_station = stock deducts here.
       const wm = (db.prepare("SELECT workflow_mode FROM business_settings LIMIT 1").get()?.workflow_mode || 'three_station').toLowerCase();
       const isTwoStation = wm === 'two_station';
 
-      // v1.9.1 â€” stamp the cashier's sync_id (and dispatch sync_id for the
+      // v1.9.1 — stamp the cashier's sync_id (and dispatch sync_id for the
       // two-station shortcut) so cross-device receipts show the right name.
       const userSyncId = db.prepare('SELECT sync_id FROM users WHERE id = ?').get(req.user.id)?.sync_id || null;
 
@@ -1846,14 +1846,14 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
           `INSERT INTO stock_movements (product_id, product_sync_id, location, movement_type, quantity, reference_id, reference_type, created_by, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at, reference_sync_id)
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'),?)`
         );
-        // v1.10.21 â€” decrement products.current_stock alongside the movement.
+        // v1.10.21 — decrement products.current_stock alongside the movement.
         const stockDecStmt = db.prepare(
           `UPDATE products SET current_stock = current_stock - ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
         );
         for (const it of items) {
-          // v1.8.39 â€” look up by sync_id first (cross-device safe); fall
+          // v1.8.39 — look up by sync_id first (cross-device safe); fall
           // back to local integer id only if sync_id is missing. Same
-          // localProductId logic as the reverse endpoint â€” prevents
+          // localProductId logic as the reverse endpoint — prevents
           // FOREIGN KEY constraint failed on synced orders.
           const prodBySync = it.product_sync_id
             ? db.prepare('SELECT id, sync_id, unit, alt_unit, conversion_factor, units_json FROM products WHERE sync_id = ?').get(it.product_sync_id)
@@ -1882,7 +1882,7 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
       const orderDate = (result.created_at || '').split(' ')[0] || new Date().toISOString().split('T')[0];
       try { recalculateDailyProfit(db, orderDate, req.user.tenantId); } catch (_) {}
     }
-    // ZRA saveSales at Cashier payment collection â€” this is when a
+    // ZRA saveSales at Cashier payment collection — this is when a
     // pending-payment order becomes a real fiscal invoice. Skips if the
     // order was already signed on POS checkout (idempotency via
     // orders.zra_status !== 'SIGNED').
@@ -1904,14 +1904,14 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
         // two_station deducts stock in the transaction above (status lands
         // on DISPATCHED); three_station leaves it for Dispatch confirm.
         const stockAlreadyOut = result.status === 'DISPATCHED';
-      // 2026-08-28 â€” residual must be what is left AFTER this sale.
+      // 2026-08-28 — residual must be what is left AFTER this sale.
       // In flows where the goods have not physically left yet
       // (pos_dispatch / three_station: stock leaves at Dispatch confirm),
       // products.current_stock still counts what was just sold. We are
       // telling ZRA the sale happened, so reporting the pre-sale shelf
       // count sends a residual one sale too high on every such line.
       // Subtracting the sold quantity here keeps the figure right WITHOUT
-      // Dispatch having to call ZRA â€” it stays purely physical.
+      // Dispatch having to call ZRA — it stays purely physical.
         const snapshots = zraItems.map(it => {
           const prod = db.prepare(
             'SELECT current_stock, unit, alt_unit, conversion_factor, units_json FROM products WHERE id = ?'
@@ -1943,7 +1943,7 @@ router.put('/:id/reverse', auth, async (req, res) => {
       if (!order) throw Object.assign(new Error('Order not found'), { status: 404 });
       if (order.status === 'Reversed') throw Object.assign(new Error('Order already reversed'), { status: 400 });
 
-      // v1.10.21 â€” before soft-deleting the movements, roll their net effect
+      // v1.10.21 — before soft-deleting the movements, roll their net effect
       // back on products.current_stock so the cache stays consistent with
       // the movements ledger. Net qty per product = SUM(movements to delete);
       // reversing that means subtracting it from current_stock (a sale
@@ -1961,11 +1961,11 @@ router.put('/:id/reverse', auth, async (req, res) => {
       for (const r of soonDeleted) {
         if (r.product_sync_id) stockRevStmt.run(r.net, r.product_sync_id);
       }
-      // v1.13.114 â€” ZRA Ref 8 audit trail: on full order reversal, keep
+      // v1.13.114 — ZRA Ref 8 audit trail: on full order reversal, keep
       // the original sale movements INTACT and add a compensating
       // 'sale_reverse' movement per product for the outstanding qty.
       // Previously we soft-deleted the sale rows which hid the sale
-      // from Bin Card entirely â€” an auditor comparing Sales Report
+      // from Bin Card entirely — an auditor comparing Sales Report
       // (shows Reversed order) to Bin Card (shows nothing) would
       // question the mismatch. Partial reverse endpoint below already
       // does the right thing (line ~1725); this brings full reverse
@@ -1995,11 +1995,11 @@ router.put('/:id/reverse', auth, async (req, res) => {
       }
 
       // Mark all line items fully reversed (cumulative reversed_quantity = original quantity).
-      // v1.9.4 â€” bump updated_at on both rows. Without this, sync push to VPS
+      // v1.9.4 — bump updated_at on both rows. Without this, sync push to VPS
       // gets silently REJECTed by the timestamp check (incoming == server
       // because the row's local timestamp didn't move when status flipped),
       // and the web side keeps showing PENDING_PAYMENT forever. Reproduced
-      // 2026-06-29 with ORD-0058â€“0061.
+      // 2026-06-29 with ORD-0058–0061.
       db.prepare(
         `UPDATE order_items
          SET reversed = 1, reversed_quantity = quantity, reversed_at = datetime('now'),
@@ -2017,29 +2017,29 @@ router.put('/:id/reverse', auth, async (req, res) => {
     const orderDate = result.created_at ? result.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10);
     recalculateDailyProfit(db, orderDate, req.user.tenantId);
 
-    // Credit note to ZRA â€” mandatory once the original invoice was
+    // Credit note to ZRA — mandatory once the original invoice was
     // fiscal (zra_rcpt_no set). Uses the same /trnsSales/saveSales with
     // rcptTyCd='R' and orgIncNo/orgSdcId back-referencing the original.
-    // Reason code default '07' (other) â€” a future UI can let the user
-    // pick from the 01â€“07 list. Reason is passed via req.body.rfd_rsn_cd.
+    // Reason code default '07' (other) — a future UI can let the user
+    // pick from the 01–07 list. Reason is passed via req.body.rfd_rsn_cd.
     //
-    // v1.13.100 â€” skipOrderPersist prevents vsdcClient from clobbering
+    // v1.13.100 — skipOrderPersist prevents vsdcClient from clobbering
     // the ORIGINAL sale's fiscal fields (rcptNo etc.) with the CN's.
     // Instead we persist the CN response into a parallel zra_cn_* column
     // set so the Sales Report can reprint the CN with its own fiscal
-    // signature â€” a T08A #13 requirement (Tax Credit Note prints must
+    // signature — a T08A #13 requirement (Tax Credit Note prints must
     // carry their own SDC ID, QR, receipt sign, VSDC date). Prior to
     // this, ZRA saw a valid CN but Red Sea lost the fiscal proof.
     let zra = { skipped: true, reason: 'not fiscal or zra off' };
-    // v1.13.136 â€” Non-fiscal reversal path (ZRA off or original not signed).
+    // v1.13.136 — Non-fiscal reversal path (ZRA off or original not signed).
     // Still capture the reason code + generate a local CN display number so
     // the reprint template can render a proper "Tax Credit Note" with its
     // own number distinct from the original invoice. Buseko (ZRA off during
-    // UAT-1) needs this to satisfy ZRA UAT Â§3.8(b)+(c): CN must show reason
+    // UAT-1) needs this to satisfy ZRA UAT §3.8(b)+(c): CN must show reason
     // and its own CN number. Fields populated:
-    //   local_cn_number       â€” string display (e.g. "CN-2026-A5C013-0197")
-    //   zra_cn_rfd_rsn_cd     â€” 01â€“07 per spec 6.15 (from req.body)
-    //   zra_cn_signed_at      â€” timestamp of local CN generation (repurposed
+    //   local_cn_number       — string display (e.g. "CN-2026-A5C013-0197")
+    //   zra_cn_rfd_rsn_cd     — 01–07 per spec 6.15 (from req.body)
+    //   zra_cn_signed_at      — timestamp of local CN generation (repurposed
     //                            from "when ZRA signed"); also gates the CN
     //                            reprint template to render the CN block.
     if (!result.zra_rcpt_no || !result.zra_sdc_id) {
@@ -2079,9 +2079,9 @@ router.put('/:id/reverse', auth, async (req, res) => {
         rcptTyCd: 'R',
         rfdRsnCd,
         skipOrderPersist: true,
-        // v1.13.70 â€” key spelled orgInvcNo (V+c) to match vsdcClient's read
+        // v1.13.70 — key spelled orgInvcNo (V+c) to match vsdcClient's read
         // at services/vsdcClient.js:333. Prior versions typed orgIncNo, so
-        // every credit note VSDC upload carried orgInvcNo=0 â†’ ZRA rejected
+        // every credit note VSDC upload carried orgInvcNo=0 → ZRA rejected
         // it as an un-linked reversal. Debit-note path (orders.js:1838)
         // was already correct.
         orgInvoice: { orgInvcNo: result.zra_rcpt_no, orgSdcId: result.zra_sdc_id },
@@ -2136,7 +2136,7 @@ router.put('/:id/reverse', auth, async (req, res) => {
   }
 });
 
-// Reverse a single item â€” supports PARTIAL reversal via body.quantity and body.unit
+// Reverse a single item — supports PARTIAL reversal via body.quantity and body.unit
 // Body: { quantity?: number, unit?: string }
 //   quantity defaults to remaining line qty
 //   unit defaults to the line's original unit (typically what was sold)
@@ -2147,7 +2147,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
     const { branchId, deviceId } = syncConfig.getConfig();
     const requestedQty = req.body?.quantity != null ? parseFloat(req.body.quantity) : null;
     const requestedUnit = (req.body?.unit || '').trim() || null;
-    // v1.13.79 â€” captured inside the tx and used AFTER commit to fire the
+    // v1.13.79 — captured inside the tx and used AFTER commit to fire the
     // ZRA credit note that covers just this partial line reversal.
     let cnLine = null;
 
@@ -2160,11 +2160,11 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
       if (!item) throw Object.assign(new Error('Item not found in this order'), { status: 404 });
       if (item.reversed) throw Object.assign(new Error('Item already fully reversed'), { status: 400 });
 
-      // v1.8.39 â€” include local products.id so the stock_movements INSERT
+      // v1.8.39 — include local products.id so the stock_movements INSERT
       // below uses the THIS-DB integer ID, not item.product_id which is
       // the originating device's local ID (cross-device sync sends order
       // rows verbatim so the integer can point at a nonexistent row on
-      // the receiving DB â†’ FOREIGN KEY constraint failed).
+      // the receiving DB → FOREIGN KEY constraint failed).
       const prod = db.prepare('SELECT id, unit, alt_unit, conversion_factor, units_json FROM products WHERE sync_id = ?').get(item.product_sync_id);
       const localProductId = prod?.id || item.product_id;
 
@@ -2197,7 +2197,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
       ).run(localProductId, item.product_sync_id, 'sales', 'sale_reverse', reverseBaseQty, req.params.id, 'order_reverse',
             `Partial reverse of ${reverseQty} ${reverseUnit}`, req.user.id,
             randomUUID(), tenantId, branchId, deviceId, order.sync_id);
-      // v1.10.21 â€” increment products.current_stock alongside the reversal movement.
+      // v1.10.21 — increment products.current_stock alongside the reversal movement.
       if (item.product_sync_id) {
         db.prepare(
           `UPDATE products SET current_stock = current_stock + ?, updated_at = datetime('now'), synced = 0 WHERE sync_id = ?`
@@ -2208,7 +2208,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
       const newReversedQty = alreadyReversedInLineUnit + reverseInLineUnit;
       const fullyReversed = newReversedQty >= parseFloat(item.quantity) - 0.0001;
       db.prepare(
-        // v1.9.4 â€” also bump updated_at; otherwise the row's local timestamp
+        // v1.9.4 — also bump updated_at; otherwise the row's local timestamp
         // doesn't move, server's timestamp REJECT silently drops the push.
         `UPDATE order_items SET reversed_quantity = ?, reversed = ?, reversed_at = CASE WHEN ? THEN datetime('now') ELSE reversed_at END, updated_at = datetime('now'), synced = 0 WHERE id = ?`
       ).run(newReversedQty, fullyReversed ? 1 : 0, fullyReversed ? 1 : 0, req.params.itemId);
@@ -2218,7 +2218,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
       const newSubtotal = Math.max(0, parseFloat(order.subtotal) - refund);
       const newTotal = Math.max(0, parseFloat(order.total_amount) - refund);
 
-      // v1.8.12 â€” refund the customer in the same currency mix they paid with.
+      // v1.8.12 — refund the customer in the same currency mix they paid with.
       // Otherwise the per-currency cash buckets stay overstated on the Cash
       // Report (status='Partial' leaves the order in the SUM, and cash_received
       // wouldn't drop). Distribution: each currency's USD-equivalent share of
@@ -2242,7 +2242,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
         if (totalShare > 0.0001) {
           // Kelete tri-currency path: distribute refund across per-currency
           // received columns and decrement amount_received. change_amount
-          // stays put â€” it already ties out because amount_received drops
+          // stays put — it already ties out because amount_received drops
           // by exactly the same delta as total_amount.
           const refundUsd = refund * (usdShare / totalShare);
           const refundFra = refund * (fraShare / totalShare) * (sellRate  || 0);
@@ -2252,10 +2252,10 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
           newK    = Math.max(0, oldK    - refundK);
           newAmtRecv = Math.max(0, oldAmtRecv - refund);
         } else {
-          // v1.10.102 â€” Liquor path (cash/fra/k all 0, customer paid via
+          // v1.10.102 — Liquor path (cash/fra/k all 0, customer paid via
           // momo/bank). Pre-v1.10.102 the block above was skipped entirely
           // and neither amount_received NOR change_amount moved, breaking
-          // the reconciliation identity amount_received âˆ’ total_amount =
+          // the reconciliation identity amount_received − total_amount =
           // change_amount. The K200 gap seen on Lusaka1 ORD-0150 was this:
           // partial-refund reduced total from K1,795 to K1,595 but change
           // stayed at K455 (the change dispensed at sale time), leaving
@@ -2266,7 +2266,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
           // bump change_amount by the refund so the identity holds. Trade-
           // off: change_amount now means "total change owed to customer"
           // instead of "physical change dispensed at till". Cash drawer
-          // will show a shortage equal to unpaid refunds â€” a useful signal
+          // will show a shortage equal to unpaid refunds — a useful signal
           // to remind the cashier to hand the money back.
           newChange = oldChange + refund;
         }
@@ -2290,7 +2290,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
 
       const updatedOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(req.params.id);
       const allItems = db.prepare('SELECT * FROM order_items WHERE order_sync_id = ? AND deleted_at IS NULL').all(order.sync_id);
-      // v1.13.79 â€” capture ONE synthetic line describing the reversed
+      // v1.13.79 — capture ONE synthetic line describing the reversed
       // portion (in the LINE's original unit so unit_price applies
       // directly, matching what the original sale invoice already shows).
       // Enriched with the product's ZRA classification so saveSales can
@@ -2301,12 +2301,12 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
                 zra_qty_unit_cd, zra_vat_cat_cd, zra_excise_ty_cd, zra_rrp
            FROM products WHERE sync_id = ? LIMIT 1`
       ).get(item.product_sync_id) || {};
-      // v1.13.129 â€” Carry the ORIGINAL sale's frozen snapshot fields
+      // v1.13.129 — Carry the ORIGINAL sale's frozen snapshot fields
       // through to the credit note, prorated by the reversed fraction.
       // This means the CN's ZRA figures always mirror what the original
       // invoice reported, even if the product's RRP or VAT category was
       // later edited. Guards divide-by-zero if the line quantity was
-      // somehow zero (defensive â€” should never fire, sale wouldn't post).
+      // somehow zero (defensive — should never fire, sale wouldn't post).
       const origLineQty = parseFloat(item.quantity) || 0;
       const propFrac = origLineQty > 0 ? (reverseInLineUnit / origLineQty) : 0;
       const snapTaxbl = item.zra_vat_taxbl_amt != null && item.zra_vat_taxbl_amt !== ''
@@ -2330,7 +2330,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
         zra_vat_cat_cd:   zraProd.zra_vat_cat_cd || null,
         zra_excise_ty_cd: zraProd.zra_excise_ty_cd || null,
         zra_rrp:          zraProd.zra_rrp || null,
-        // Snapshot fields â€” vsdcClient.saveSales prefers these when present.
+        // Snapshot fields — vsdcClient.saveSales prefers these when present.
         zra_vat_cat_snap:  item.zra_vat_cat_snap || null,
         zra_rrp_snap:      item.zra_rrp_snap != null ? item.zra_rrp_snap : null,
         zra_vat_rate:      item.zra_vat_rate    != null ? item.zra_vat_rate : null,
@@ -2345,19 +2345,19 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
     const orderDate = result.created_at ? result.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10);
     recalculateDailyProfit(db, orderDate, req.user.tenantId);
 
-    // v1.13.79 â€” ZRA credit note for the reversed portion (blocker #5).
+    // v1.13.79 — ZRA credit note for the reversed portion (blocker #5).
     // Fires only when the ORIGINAL sale was fiscal (zra_rcpt_no set) and
     // we captured a reversed line above.
     //
     // synthOrder pattern (same shape as the DN path at line ~1894):
     //   * skipOrderPersist keeps the original invoice's fiscal fields on
-    //     the order row intact â€” the order is still partially active so
+    //     the order row intact — the order is still partially active so
     //     the CN's rcpt_no must NOT clobber the original.
     //   * A shim without zra_cis_invc_no forces saveSales to allocate a
     //     NEW cisInvcNo for the CN. If we passed the full `result`, its
     //     inherited zra_cis_invc_no would be reused and VSDC would
     //     reject the CN with resultCd 924 (duplicate).
-    //   * cashDcAmt is skipped (discount=0 on the shim) â€” Red Sea doesn't
+    //   * cashDcAmt is skipped (discount=0 on the shim) — Red Sea doesn't
     //     use discounts and partial-refund fraction of the original
     //     cart discount isn't meaningful anyway.
     let zra = { skipped: true, reason: 'not fiscal or nothing to reverse' };
@@ -2365,18 +2365,18 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
       const synthOrder = {
         id:             result.id,
         customer_tpin:  result.customer_tpin || null,
-        // v1.13.147 â€” partial CN / debit note synth orders no longer
+        // v1.13.147 — partial CN / debit note synth orders no longer
         // hardcode 'Walk-in' as customer_name. ZRA custNm is OPTIONAL
-        // per Â§5.8; sending literal 'Walk-in' polluted the portal's
+        // per §5.8; sending literal 'Walk-in' polluted the portal's
         // Customer Name column while ordinary sales left it blank. Now
-        // consistent: no B2B TPIN â†’ null custNm across ALL receipt
+        // consistent: no B2B TPIN → null custNm across ALL receipt
         // types (S / R full / R partial / D).
         customer_name:  result.customer_name || null,
         payment_method: result.payment_method || 'Cash',
         discount:       0,
         zra_currency_ty_cd: result.zra_currency_ty_cd || 'ZMW',
         zra_exchange_rt:    result.zra_exchange_rt || 1,
-        // T08A #6 LPO â€” the original order's lpo_number was never copied
+        // T08A #6 LPO — the original order's lpo_number was never copied
         // onto this synth shim, so vsdcClient's `isLpo` check always read
         // false here and sent the partial CN's line at its normal VAT
         // category/rate instead of the zero-rated Cat C2 the original
@@ -2396,7 +2396,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
           skipOrderPersist: true,
           orgInvoice: { orgInvcNo: result.zra_rcpt_no, orgSdcId: result.zra_sdc_id },
         });
-        // v1.13.100 â€” persist the CN's own fiscal data so the reprint
+        // v1.13.100 — persist the CN's own fiscal data so the reprint
         // template can render it as a T08A-compliant Tax Credit Note
         // (CRN prefix + own QR + own SDC ID + own signature). Same
         // pattern as the full-reverse route above; partials overwrite
@@ -2433,7 +2433,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
           );
         }
         // Stock chain for the reversal (sarTyCd=12 SALE_CANCELLATION).
-        // The snapshot is the POST-reverse current_stock â€” restored by
+        // The snapshot is the POST-reverse current_stock — restored by
         // the transaction above.
         if (zra.ok && zra.itemList) {
           const snap = [{
@@ -2457,7 +2457,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
   }
 });
 
-// v1.13.94 â€” Manual ZRA retry for a single order stuck in FAILED status.
+// v1.13.94 — Manual ZRA retry for a single order stuck in FAILED status.
 // Same underlying logic the background retry queue uses; this endpoint
 // exists so operators can force a retry from the SalesReport UI without
 // waiting for the next cron tick.
@@ -2467,7 +2467,7 @@ router.post('/:id/retry-zra', auth, async (req, res) => {
     if (!orderId) return res.status(400).json({ error: 'invalid id' });
     const order = db.prepare('SELECT id, zra_status FROM orders WHERE id = ? AND deleted_at IS NULL AND tenant_id = ?').get(orderId, req.user.tenantId);
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    if (order.zra_status === 'SIGNED') return res.status(400).json({ error: 'Already signed â€” nothing to retry.' });
+    if (order.zra_status === 'SIGNED') return res.status(400).json({ error: 'Already signed — nothing to retry.' });
     // ambient db proxy is already scoped to the current tenant via the
     // tenant middleware, so retryOrder can use it directly.
     const result = await zraRetryOrder(req.user.tenantId, orderId);
@@ -2478,24 +2478,24 @@ router.post('/:id/retry-zra', auth, async (req, res) => {
   }
 });
 
-// v1.13.38 â€” Debit Note flow.
+// v1.13.38 — Debit Note flow.
 //
 // A debit note is an additional charge tied to an already-finalised sale
 // ("we forgot to bill the delivery", "the item was more expensive than
-// invoiced"). It is NOT a reversal â€” the customer owes MORE than the
+// invoiced"). It is NOT a reversal — the customer owes MORE than the
 // original invoice.
 //
 // Flow:
-//   1. Insert debit_notes row locally (always saves â€” local wins).
+//   1. Insert debit_notes row locally (always saves — local wins).
 //   2. If the original sale was fiscally signed by ZRA, register the DN
 //      through /trnsSales/saveSales with rcptTyCd='D' and orgIncNo/
 //      orgSdcId referencing the original. Uses a single synthetic
 //      "Additional charge" line at standard VAT (cat A).
 //   3. Copy ZRA fiscal fields onto the debit_notes row.
 //
-// Reason codes (ZRA spec 6.16 â€” same list as credit notes):
-//   01 wrong product Â· 02 wrong price Â· 03 damaged Â· 04 wrong customer
-//   05 duplicate     Â· 06 excess      Â· 07 other
+// Reason codes (ZRA spec 6.16 — same list as credit notes):
+//   01 wrong product · 02 wrong price · 03 damaged · 04 wrong customer
+//   05 duplicate     · 06 excess      · 07 other
 router.post('/:id/debit-note', auth, async (req, res) => {
   try {
     const tenantId = syncConfig.getTenantId(req);
@@ -2508,7 +2508,7 @@ router.post('/:id/debit-note', auth, async (req, res) => {
       return res.status(400).json({ error: 'Amount must be greater than zero.' });
     }
     if (!['01','02','03','04','05','06','07'].includes(reasonCd)) {
-      return res.status(400).json({ error: 'reason_cd must be 01â€“07 (per ZRA spec 6.16).' });
+      return res.status(400).json({ error: 'reason_cd must be 01–07 (per ZRA spec 6.16).' });
     }
 
     const orig = db.prepare(
@@ -2553,17 +2553,17 @@ router.post('/:id/debit-note', auth, async (req, res) => {
     );
     const dnId = info.lastInsertRowid;
 
-    // Fiscal registration â€” only if the original was signed by ZRA.
+    // Fiscal registration — only if the original was signed by ZRA.
     // Otherwise mark SKIPPED so the DN still exists locally as a
     // billing artifact.
     let zra = { skipped: true, reason: 'original not fiscal or ZRA off' };
     if (orig.zra_rcpt_no && orig.zra_sdc_id) {
-      // Synthetic single-line item at standard VAT. Doesn't hit stock â€”
+      // Synthetic single-line item at standard VAT. Doesn't hit stock —
       // debit notes in v1 are money-only adjustments.
       const synthOrder = {
         id: dnId,                                // won't be persisted (skipOrderPersist)
         customer_tpin: orig.customer_tpin || null,
-        // v1.13.147 â€” see partial-CN block: no more 'Walk-in' literal
+        // v1.13.147 — see partial-CN block: no more 'Walk-in' literal
         // in ZRA custNm. Blank when no B2B TPIN, matching sale behaviour.
         customer_name: orig.customer_name || null,
         payment_method: orig.payment_method || 'Cash',
@@ -2656,7 +2656,7 @@ router.post('/:id/debit-note', auth, async (req, res) => {
   }
 });
 
-// GET /api/orders/:id/debit-notes â€” list DNs attached to an order.
+// GET /api/orders/:id/debit-notes — list DNs attached to an order.
 router.get('/:id/debit-notes', auth, (req, res) => {
   try {
     const rows = db.prepare(
@@ -2670,7 +2670,7 @@ router.get('/:id/debit-notes', auth, (req, res) => {
   }
 });
 
-// GET /api/debit-notes â€” global list for reports + AR reconciliation.
+// GET /api/debit-notes — global list for reports + AR reconciliation.
 router.get('/debit-notes/list', auth, (req, res) => {
   try {
     const limit = Math.min(parseInt(req.query.limit) || 200, 1000);

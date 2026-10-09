@@ -1,5 +1,5 @@
 /**
- * electronBackup.js â€” daily local SQLite backup for Electron installs.
+ * electronBackup.js — daily local SQLite backup for Electron installs.
  *
  * Runs INSIDE the Electron backend process (no cron / Task Scheduler
  * needed). Backs up the defaultDb + master.db + any tenants/*.db files
@@ -21,10 +21,10 @@
  *
  * Location:
  *   %APPDATA%/Kelete/Backups/YYYY-MM-DD/
- *     â”œâ”€â”€ kelete.db
- *     â”œâ”€â”€ master.db          (if present)
- *     â””â”€â”€ tenants/           (if present)
- *         â””â”€â”€ <slug>.db
+ *     ├── kelete.db
+ *     ├── master.db          (if present)
+ *     └── tenants/           (if present)
+ *         └── <slug>.db
  */
 const fs = require('fs');
 const path = require('path');
@@ -47,7 +47,7 @@ function log(msg) {
 async function backupOne(srcPath, dstPath) {
   const name = path.basename(srcPath);
   if (!fs.existsSync(srcPath)) {
-    log(`  Â· ${name}  SKIP (not found)`);
+    log(`  · ${name}  SKIP (not found)`);
     return;
   }
   try {
@@ -60,9 +60,9 @@ async function backupOne(srcPath, dstPath) {
       db.close();
     }
     const size = fs.statSync(dstPath).size;
-    log(`  âœ“ ${name}  â†’ ${dstPath}  (${(size / 1024).toFixed(1)} KB)`);
+    log(`  ✓ ${name}  → ${dstPath}  (${(size / 1024).toFixed(1)} KB)`);
   } catch (e) {
-    log(`  âœ– ${name}  FAILED: ${e.message}`);
+    log(`  ✖ ${name}  FAILED: ${e.message}`);
   }
 }
 
@@ -75,7 +75,7 @@ function pruneOldBackups(backupRoot) {
       const st = fs.statSync(full);
       if (st.isDirectory() && st.mtimeMs < cutoff) {
         fs.rmSync(full, { recursive: true, force: true });
-        log(`  âˆ’ pruned ${full}`);
+        log(`  − pruned ${full}`);
       }
     }
   } catch (e) {
@@ -89,13 +89,13 @@ async function runOnce() {
   const backupRoot = path.join(USER_DATA, 'Backups');
   const dayDir = path.join(backupRoot, dayStamp);
 
-  log(`â–¶ starting daily backup â†’ ${dayDir}`);
+  log(`▶ starting daily backup → ${dayDir}`);
 
   // Snapshot the main defaultDb (kelete.db in USER_DATA per database.js).
   await backupOne(path.join(USER_DATA, 'kelete.db'), path.join(dayDir, 'kelete.db'));
 
   // master.db and tenants/ may or may not exist on Electron depending
-  // on whether the install is multi-branch â€” snapshot only if present.
+  // on whether the install is multi-branch — snapshot only if present.
   const masterCandidates = [
     path.join(USER_DATA, 'master.db'),
     path.join(__dirname, '..', '..', 'master.db'), // Electron repo layout fallback
@@ -117,12 +117,12 @@ async function runOnce() {
   }
 
   pruneOldBackups(backupRoot);
-  log(`âœ“ backup complete`);
+  log(`✓ backup complete`);
 }
 
 function start() {
   if (!USER_DATA) {
-    return; // Silent no-op on VPS â€” vps/backup.sh + cron handles that side.
+    return; // Silent no-op on VPS — vps/backup.sh + cron handles that side.
   }
   log(`Electron backup scheduler enabled (interval 24h, keep ${KEEP_DAYS} days)`);
   // First run ~30 s after start so the app finishes booting first

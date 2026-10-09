@@ -38,7 +38,7 @@ const Register = ({ onRegistered }) => {
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 100%)' }}>
       <div style={{ background: '#fff', borderRadius: 16, padding: '48px 40px', width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>ðŸ·</div>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🍷</div>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#111827' }}>Create Your Account</h1>
           <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: 14 }}>Set up your Kelete administrator account</p>
         </div>
@@ -83,7 +83,7 @@ const Register = ({ onRegistered }) => {
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 8, marginBottom: 0 }}>
-          You can set up cloud sync later from Settings â†’ Cloud Sync
+          You can set up cloud sync later from Settings → Cloud Sync
         </p>
       </div>
     </div>

@@ -18,12 +18,12 @@ import { FiGrid, FiShoppingCart, FiPackage, FiFileText, FiDollarSign, FiUsers, F
 import ChangePasswordModal from './ChangePasswordModal';
 
 const LANGUAGES = [
-  { code: 'en', label: 'English', flag: 'ðŸ‡¬ðŸ‡§' },
-  { code: 'am', label: 'Amharic', flag: 'ðŸ‡ªðŸ‡¹' },
-  { code: 'ti', label: 'Tigrinya', flag: 'ðŸ‡ªðŸ‡·' },
-  { code: 'fr', label: 'French',  flag: 'ðŸ‡«ðŸ‡·' },
-  { code: 'ar', label: 'Arabic',  flag: 'ðŸ‡¸ðŸ‡¦' },
-  { code: 'sw', label: 'Swahili', flag: 'ðŸ‡°ðŸ‡ª' },
+  { code: 'en', label: 'English', flag: '🇬🇧' },
+  { code: 'am', label: 'Amharic', flag: '🇪🇹' },
+  { code: 'ti', label: 'Tigrinya', flag: '🇪🇷' },
+  { code: 'fr', label: 'French',  flag: '🇫🇷' },
+  { code: 'ar', label: 'Arabic',  flag: '🇸🇦' },
+  { code: 'sw', label: 'Swahili', flag: '🇰🇪' },
 ];
 
 const Layout = () => {
@@ -37,31 +37,31 @@ const Layout = () => {
       'CashReceipt', 'PaymentVoucher', 'CashBook', 'FxRates', 'AccountPayables', 'AccountReceivables', 'ProfitReport',
       'Suppliers', 'Customers', 'Sales', 'Reports');
   const { language, changeLanguage, t } = useLanguage();
-  // 3-station gate â€” only kassumbalesa1 sees the Cashier sidebar entry.
+  // 3-station gate — only kassumbalesa1 sees the Cashier sidebar entry.
   const { workflowMode, legacyProcurementEnabled, currencyMode } = useCurrency();
   // v1.7.0: triple-currency mode 'USD+FRA+K' also counts as "dual/multi
-  // currency" for sidebar gating â€” same Currency Rates page handles both.
+  // currency" for sidebar gating — same Currency Rates page handles both.
   const isDualCurrency = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
-  // HQ branch selector â€” only when the React app is served from the bare
+  // HQ branch selector — only when the React app is served from the bare
   // keletezm.com host. On real per-branch subdomains hq=false and the
   // dropdown stays hidden (the host already pins the tenant).
   const hq = isHqHost();
-  // v1.3.2 â€” branches are pure POS / receive points. Several sidebar
+  // v1.3.2 — branches are pure POS / receive points. Several sidebar
   // entries (procurement, supplier mgmt, supplier AP, equity / loans /
   // shareholders, etc.) are HQ-only. When `branchOnly` is true we hide
   // them from the sidebar regardless of permission so branch staff can't
   // stumble into the legacy single-tenant flows. HQ admins still see
   // everything because hq=true sets branchOnly=false. Direct URL access
-  // is not blocked here â€” perms already gate routes; this just keeps the
+  // is not blocked here — perms already gate routes; this just keeps the
   // nav focused on what branches actually do.
   const branchOnly = !hq;
-  // v1.3.9 â€” legacy GRN + Suppliers + AP entries are shown at HQ always,
+  // v1.3.9 — legacy GRN + Suppliers + AP entries are shown at HQ always,
   // or on a branch only when the operator flipped the per-branch toggle
   // in System Settings (used to seed openings at launch). Must be declared
-  // AFTER branchOnly â€” referencing it earlier was the v1.3.9 TDZ crash
+  // AFTER branchOnly — referencing it earlier was the v1.3.9 TDZ crash
   // that blanked Layout.js for every branch.
   const showLegacyProcurement = !branchOnly || legacyProcurementEnabled;
-  // v1.13.29 â€” hqBranches + switchHqBranch removed with the "Pick a branch"
+  // v1.13.29 — hqBranches + switchHqBranch removed with the "Pick a branch"
   // dropdown. currentHqBranch stays: existing HQ users who previously
   // clicked into a branch have that slug persisted in localStorage, and
   // the badge poller below still respects it. To operate against a
@@ -75,9 +75,9 @@ const Layout = () => {
   useEffect(() => {
     let cancelled = false;
     const slug = hq ? (currentHqBranch || '') : (typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '');
-    // 2026-09-19 â€” HQ normally has NO branch picked, which made slug empty and
+    // 2026-09-19 — HQ normally has NO branch picked, which made slug empty and
     // abandoned this fetch before it asked. So hq_pending_grn and
-    // hq_pending_damages sat at 0 forever and their badges never drew â€” the
+    // hq_pending_damages sat at 0 forever and their badges never drew — the
     // Generate GRN badge had never once been seen. The server returns the HQ
     // counts whatever the slug is (it says so); only the asking was missing.
     if (!user || (!slug && !hq)) return undefined;
@@ -95,13 +95,13 @@ const Layout = () => {
   // eslint-disable-next-line
   }, [hq, currentHqBranch, user?.id]);
 
-  // 2026-09-15 â€” incoming stock / inter-branch transfer notice (depots only).
-  // Every 10s: what is waiting to be received. Anything not yet announced â€”
-  // including what is already waiting when the app opens â€” brings up the big
+  // 2026-09-15 — incoming stock / inter-branch transfer notice (depots only).
+  // Every 10s: what is waiting to be received. Anything not yet announced —
+  // including what is already waiting when the app opens — brings up the big
   // dark notice. While the cashier is mid-sale (POS reports it through
   // window.__rsPosBusy) the big notice waits and the small corner card shows
   // instead. "Later" closes the big notice and leaves the corner card up until
-  // everything is received; its Ã— hides it until the next arrival or app open.
+  // everything is received; its × hides it until the next arrival or app open.
   const [incoming, setIncoming] = useState({ stock: [], transfers: [], grns: [] });
   const [noticePhase, setNoticePhase] = useState('none'); // 'none' | 'big' | 'later'
   const [cornerClosed, setCornerClosed] = useState(false);
@@ -113,7 +113,7 @@ const Layout = () => {
     return () => window.removeEventListener('pos:busy', onBusy);
   }, []);
 
-  // 2026-09-18 â€” register this phone with Firebase once someone is logged in,
+  // 2026-09-18 — register this phone with Firebase once someone is logged in,
   // so the backend can wake it even with the app closed. Does nothing in a
   // browser: the plugin only exists inside the APK. Tapping a notification
   // lands on the page it is about.
@@ -128,7 +128,7 @@ const Layout = () => {
   // eslint-disable-next-line
   }, [user?.id]);
 
-  // 2026-09-18 â€” the corner card sits bottom-right, which on POS is exactly
+  // 2026-09-18 — the corner card sits bottom-right, which on POS is exactly
   // where Pay is, so the cashier can drag it out of the way. Where they put it
   // is kept per till (localStorage), not per user: it is about that screen.
   // null = the default bottom-right corner.
@@ -164,7 +164,7 @@ const Layout = () => {
   }, [cardPos]);
 
   const startCardDrag = (e) => {
-    // The Ã— and the buttons inside keep their own jobs.
+    // The × and the buttons inside keep their own jobs.
     if (e.target.closest('button')) return;
     const box = cardRef.current?.getBoundingClientRect();
     if (!box) return;
@@ -181,7 +181,7 @@ const Layout = () => {
       if (Math.abs(next.x - box.left) + Math.abs(next.y - box.top) < 4) return;
       movedRef.current = true;
     }
-    lastPosRef.current = next;     // what to save â€” state lands a render later
+    lastPosRef.current = next;     // what to save — state lands a render later
     setCardPos(next);
   };
   const endCardDrag = (e) => {
@@ -194,7 +194,7 @@ const Layout = () => {
   };
   useEffect(() => {
     const slug = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
-    // 2026-09-19 â€” HQ gets the same notice for the opposite direction: a depot
+    // 2026-09-19 — HQ gets the same notice for the opposite direction: a depot
     // has confirmed a delivery and it is waiting in Generate GRN. Until that
     // is done there is no GRN and no payable, so the supplier's invoice has
     // nothing to match against. HQ was skipped here entirely before.
@@ -225,7 +225,7 @@ const Layout = () => {
               stock.length && `${stock.length} delivery(ies) from HQ`,
               transfers.length && `${transfers.length} transfer(s)`,
               grns.length && `${grns.length} delivery(ies) to turn into a GRN`,
-            ].filter(Boolean).join(' Â· ');
+            ].filter(Boolean).join(' · ');
             const note = new window.Notification(
               hq ? 'Deliveries waiting for a GRN' : 'Stock waiting to be received',
               { body, tag: 'incoming-stock' });
@@ -241,7 +241,7 @@ const Layout = () => {
   // eslint-disable-next-line
   }, [hq, user?.id]);
 
-  // 2026-09-18 â€” an expense over this depot's daily limit, waiting for HQ.
+  // 2026-09-18 — an expense over this depot's daily limit, waiting for HQ.
   // Depots see a red card while it waits, green once HQ approves (tap it to
   // save the voucher, already filled in) and the reason if it is rejected.
   // HQ sees how many are waiting beside Payment Voucher in the sidebar.
@@ -273,10 +273,10 @@ const Layout = () => {
   // eslint-disable-next-line
   }, [hq, user?.id]);
 
-  // 2026-09-14 â€” Messages notifications. Every 12s: the unread count (sidebar
+  // 2026-09-14 — Messages notifications. Every 12s: the unread count (sidebar
   // badge, top-bar bell, "(3)" in the tab title) and the newest unread message.
-  // A NEW one pops a pop-up with a short sound â€” except on the Messages page,
-  // which shows it already â€” and, while the tab is in the background, a
+  // A NEW one pops a pop-up with a short sound — except on the Messages page,
+  // which shows it already — and, while the tab is in the background, a
   // computer notification if the user allowed them. Refreshes at once when the
   // Messages page marks a conversation read.
   const [chatUnread, setChatUnread] = useState(0);
@@ -309,7 +309,7 @@ const Layout = () => {
         }
         if (document.hidden && 'Notification' in window && window.Notification.permission === 'granted') {
           try {
-            const n = new window.Notification(`${latest.from} Â· ${latest.group || latest.place}`, {
+            const n = new window.Notification(`${latest.from} · ${latest.group || latest.place}`, {
               body: latest.preview, tag: `chat-${latest.conversation_id}`,
             });
             n.onclick = () => { window.focus(); openConversation(latest.conversation_id); n.close(); };
@@ -341,13 +341,13 @@ const Layout = () => {
   const [showLangMenu, setShowLangMenu] = useState(false);
   // Bumped by the header Refresh button to remount the current route (via
   // <Outlet key={refreshKey} />) so its useEffects re-run and the page
-  // re-fetches data. Same pattern as Butchery POS â€” avoids window.location
+  // re-fetches data. Same pattern as Butchery POS — avoids window.location
   // .reload() which would log the user out and break deep paths on Electron.
   const [refreshKey, setRefreshKey] = useState(0);
   // Pending discount-request count drives the red badge on the Approvals
-  // sidebar entry. Admin-only â€” non-admins never poll this endpoint.
+  // sidebar entry. Admin-only — non-admins never poll this endpoint.
   const [pendingDiscountCount, setPendingDiscountCount] = useState(0);
-  // v1.8.37 â€” in-app passcode modal to gate System Settings + Cloud Sync.
+  // v1.8.37 — in-app passcode modal to gate System Settings + Cloud Sync.
   // Replaces window.prompt() which Electron silently blocks (no dialog
   // shown, click did nothing). State carries the navigation target +
   // entered value + last error.
@@ -389,13 +389,13 @@ const Layout = () => {
   // and labels each cell from its column header. Manual data-label attrs win.
   useEffect(() => {
     const labelTables = () => {
-      // 2026-09-12 â€” table.phone-cards too: the phone-only card layout.
-      // 2026-09-13 â€” and table.purchase-lines, the New HQ Purchase item lines.
+      // 2026-09-12 — table.phone-cards too: the phone-only card layout.
+      // 2026-09-13 — and table.purchase-lines, the New HQ Purchase item lines.
       document.querySelectorAll('table.data-table, table.phone-cards, table.purchase-lines, .modal table').forEach(table => {
-        // 2026-09-12 â€” sortable headers carry a â–²/â–¼ glyph; it is not part of
+        // 2026-09-12 — sortable headers carry a ▲/▼ glyph; it is not part of
         // the column's name, so it stays out of the card label.
         const headers = Array.from(table.querySelectorAll('thead > tr > th'))
-          .map(th => th.textContent.replace(/[â–²â–¼â†‘â†“â‡…]/g, '').trim());
+          .map(th => th.textContent.replace(/[▲▼↑↓⇅]/g, '').trim());
         if (headers.length === 0) return;
         table.querySelectorAll('tbody > tr').forEach(tr => {
           let i = 0;
@@ -478,9 +478,9 @@ const Layout = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // v1.10.8 â€” kill accidental value nudges on every <input type="number">.
+  // v1.10.8 — kill accidental value nudges on every <input type="number">.
   // Wheel: blur the input so scrolling scrolls the page instead of changing
-  // the value. Arrow â†‘/â†“: swallow the keypress. Typing/paste/tab untouched.
+  // the value. Arrow ↑/↓: swallow the keypress. Typing/paste/tab untouched.
   useEffect(() => {
     const stopWheel = (e) => {
       if (e.target && e.target.type === 'number' && document.activeElement === e.target) {
@@ -508,7 +508,7 @@ const Layout = () => {
       fetch('/api/products', { headers }).then(r => r.json()).catch(() => []),
       fetch('/api/customers', { headers }).then(r => r.json()).catch(() => []),
       fetch('/api/suppliers', { headers }).then(r => r.json()).catch(() => []),
-      // 2026-09-18 â€” and what people wrote ON documents: the same box is
+      // 2026-09-18 — and what people wrote ON documents: the same box is
       // called notes, description, comment or reason depending on the form,
       // so the server maps the names (services/noteSources.js) and searches
       // them together. Every hit says which page it belongs to; anything the
@@ -528,7 +528,7 @@ const Layout = () => {
         .filter(s => matchTokens(searchQuery, s.name, s.phone, s.email))
         .slice(0, 3)
         .forEach(s => results.push({ type: 'Supplier', label: s.name, sub: s.phone || '', path: '/suppliers-customers/suppliers' }));
-      // The note itself is the label â€” it is what was searched for â€” with the
+      // The note itself is the label — it is what was searched for — with the
       // document's number, date and amount underneath so a hit can be
       // recognised without opening it.
       (Array.isArray(notes) ? notes : [])
@@ -538,7 +538,7 @@ const Layout = () => {
           type: n.type,
           label: n.note,
           sub: [n.number, n.date, n.amount != null ? `K${Number(n.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null]
-            .filter(Boolean).join(' Â· '),
+            .filter(Boolean).join(' · '),
           path: n.path,
         }));
       setSearchResults(results);
@@ -552,7 +552,7 @@ const Layout = () => {
     setSearchOpen(false);
   };
 
-  // 2026-09-18 â€” documents found by their note share one colour: what matters
+  // 2026-09-18 — documents found by their note share one colour: what matters
   // in the list is that the row is a document, not which kind. Anything not
   // named here falls back to that grey-blue.
   const typeColors = { Product: '#2563eb', Customer: '#16a34a', Supplier: '#f59e0b' };
@@ -612,7 +612,7 @@ const Layout = () => {
       {/* Backdrop: tap outside to close the mobile sidebar. */}
       {mobileOpen && <div className="sidebar-backdrop" onClick={() => setMobileOpen(false)} />}
       {/* Sidebar */}
-      {/* 2026-09-11 â€” the POS small terminal gets the logo's navy menu; PCs
+      {/* 2026-09-11 — the POS small terminal gets the logo's navy menu; PCs
           keep the slate one. */}
       <div className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}${isTerminal58() ? ' terminal-navy' : ''}`}>
         <div className="sidebar-header">
@@ -625,12 +625,12 @@ const Layout = () => {
           )}
         </div>
 
-        {/* v1.13.29 â€” HQ "Pick a branch" dropdown removed. HQ users
+        {/* v1.13.29 — HQ "Pick a branch" dropdown removed. HQ users
             reach a branch by visiting its subdomain directly
-            (buseko.keletezm.com, etc.) â€” cleaner separation. */}
+            (buseko.keletezm.com, etc.) — cleaner separation. */}
 
         <nav className="sidebar-nav">
-          {/* HQ Overview â€” only when serving from bare keletezm.com.
+          {/* HQ Overview — only when serving from bare keletezm.com.
               Sits above Dashboard because it's the natural landing page
               for an HQ operator (cross-branch snapshot, jump-to-branch). */}
           {hq && hasPageAccess('HQOverview') && (
@@ -639,14 +639,14 @@ const Layout = () => {
               {!collapsed && <span>HQ Overview</span>}
             </div>
           )}
-          {/* v1.9.25 â€” flat HQ items relocated into the existing groups
+          {/* v1.9.25 — flat HQ items relocated into the existing groups
               (Sales / Store / Accounting / Suppliers & Customers) so the
               sidebar reads the same on HQ and branch. HQ Overview stays
               flat above because it's the landing dashboard, not a group
-              child. HQ Products kept hidden (replaced by Store â†’ Item
+              child. HQ Products kept hidden (replaced by Store → Item
               Details that pushes to branches automatically). */}
 
-          {/* Dashboard â€” only for All access users */}
+          {/* Dashboard — only for All access users */}
           {isAllAccess() && (
             <div className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`} onClick={() => navigate('/dashboard')}>
               <FiGrid className="nav-icon" />
@@ -654,7 +654,7 @@ const Layout = () => {
             </div>
           )}
 
-          {/* 2026-09-14 â€” Messages: in-app chat for every signed-in user. */}
+          {/* 2026-09-14 — Messages: in-app chat for every signed-in user. */}
           <div className={`nav-item ${isActive('/messages') ? 'active' : ''}`} onClick={() => navigate('/messages')}>
             <FiMessageSquare className="nav-icon" />
             {!collapsed && <span>Messages</span>}
@@ -704,7 +704,7 @@ const Layout = () => {
           )}
 
           {/* Sales Group.
-              v1.9.25 â€” Group now renders on HQ too so HQ Sales Report can
+              v1.9.25 — Group now renders on HQ too so HQ Sales Report can
               live inside it instead of as a flat top-level entry. The
               existing branch-only children stay gated with !hq; the HQ
               Sales Report child is gated with hq. */}
@@ -723,7 +723,7 @@ const Layout = () => {
               </div>
               {openGroups.pos && (
                 <div className="nav-children">
-                  {/* v1.9.25 â€” HQ Sales Report sits inside the Sales group
+                  {/* v1.9.25 — HQ Sales Report sits inside the Sales group
                       (HQ-only). Branch never sees this; HQ never sees the
                       branch /pos/sales-report below. */}
                   {hq && hasPageAccess('HQSalesReport') && (
@@ -731,13 +731,13 @@ const Layout = () => {
                       <FiFileText className="nav-icon" /> <span>HQ Sales Report</span>
                     </div>
                   )}
-                  {/* 2026-09-15 â€” route sellers' sales per depot; same permission as HQ Sales Report. */}
+                  {/* 2026-09-15 — route sellers' sales per depot; same permission as HQ Sales Report. */}
                   {hq && hasPageAccess('HQSalesReport') && (
                     <div className={`nav-item ${isActive('/hq/route-sales') ? 'active' : ''}`} onClick={() => navigate('/hq/route-sales')}>
                       <FiTruck className="nav-icon" /> <span>HQ Route Selling</span>
                     </div>
                   )}
-                  {/* 2026-09-12 â€” every depot's VAT Transaction Report in one. */}
+                  {/* 2026-09-12 — every depot's VAT Transaction Report in one. */}
                   {hq && hasPageAccess('HQVatReport') && (
                     <div className={`nav-item ${isActive('/hq/vat-report') ? 'active' : ''}`} onClick={() => navigate('/hq/vat-report')}>
                       <FiFileText className="nav-icon" /> <span>HQ VAT Report</span>
@@ -748,7 +748,7 @@ const Layout = () => {
                       <FiShoppingCart className="nav-icon" /> <span>{t('pos')}</span>
                     </div>
                   )}
-                  {/* v1.9.25 â€” all the branch-side Sales children gate on
+                  {/* v1.9.25 — all the branch-side Sales children gate on
                       !hq so HQ only sees HQ Sales Report above. */}
                   {!hq && (workflowMode === 'three_station' || workflowMode === 'two_station') && hasPageAccess('Cashier') && (
                     <div className={`nav-item ${isActive('/pos/cashier') ? 'active' : ''}`} onClick={() => navigate('/pos/cashier')}>
@@ -814,7 +814,7 @@ const Layout = () => {
                       <FiFileText className="nav-icon" /> <span>{t('itemDetails')}</span>
                     </div>
                   )}
-                  {/* v1.9.25 â€” HQ procurement + stock supervision children
+                  {/* v1.9.25 — HQ procurement + stock supervision children
                       relocated from the flat top-level into the Store group.
                       All gated with `hq`; branches never see them. */}
                   {hq && hasPageAccess('HQInventoryReport') && (
@@ -859,7 +859,7 @@ const Layout = () => {
                       {badges.hq_pending_damages > 0 && <SidebarBadge n={badges.hq_pending_damages} />}
                     </div>
                   )}
-                  {/* v1.8.34 â€” Quick Price Update. Bulk selling-price editor.
+                  {/* v1.8.34 — Quick Price Update. Bulk selling-price editor.
                       Branch-only (HQ doesn't manage prices) and gated by
                       Items:Edit so cashier-supervisors can adjust prices
                       without full item-edit rights. */}
@@ -868,7 +868,7 @@ const Layout = () => {
                       <FiDollarSign className="nav-icon" /> <span>Quick Price</span>
                     </div>
                   )}
-                  {/* v1.13.153 â€” Opening Balance. Branch-only for the same
+                  {/* v1.13.153 — Opening Balance. Branch-only for the same
                       reason Quick Price is: an opening balance states what a
                       BRANCH holds, and HQ carries no sellable stock. */}
                   {!hq && hasPageAccess('OpeningBalance') && (
@@ -876,7 +876,7 @@ const Layout = () => {
                       <FiDollarSign className="nav-icon" /> <span>Opening Balance</span>
                     </div>
                   )}
-                  {/* v1.13.154 â€” Branch Prices. HQ ONLY, the mirror image of
+                  {/* v1.13.154 — Branch Prices. HQ ONLY, the mirror image of
                       Quick Price: that one is branch-side and prices the branch
                       you are in, this one prices a branch you are not in. */}
                   {hq && hasPageAccess('Items') && (
@@ -884,12 +884,12 @@ const Layout = () => {
                       <FiDollarSign className="nav-icon" /> <span>Branch Prices</span>
                     </div>
                   )}
-                  {/* v1.8.9 â€” at HQ, the Store group keeps only Item Details
+                  {/* v1.8.9 — at HQ, the Store group keeps only Item Details
                       + Categories and Units (HQ-owned data pushed to branches).
                       Everything else here (GRN, SIV, Sales Damages, Bin Card,
-                      Stock Count, Incoming Stock, Inter-Branch Transfers â€¦)
+                      Stock Count, Incoming Stock, Inter-Branch Transfers …)
                       is branch-side operational. Hidden when !hq is false. */}
-                  {/* v1.8.29 â€” GRN hidden on branches TEMPORARILY until
+                  {/* v1.8.29 — GRN hidden on branches TEMPORARILY until
                       HQ purchase-order flow is wired up. Branch will only
                       receive stock via Inter-Branch Transfer or HQ PO. */}
                   {false && !hq && showLegacyProcurement && hasPageAccess('GRN') && (
@@ -907,14 +907,14 @@ const Layout = () => {
                       <FiCornerDownLeft className="nav-icon" /> <span>Sales Damages</span>
                     </div>
                   )}
-                  {/* v1.13.67 â€” Empty Voucher Controller. Records customer
+                  {/* v1.13.67 — Empty Voucher Controller. Records customer
                       empties returned + issues bearer slips redeemable at POS. */}
                   {!hq && hasPageAccess('EmptyVouchers') && (
                     <div className={`nav-item ${isActive('/store/empty-vouchers') ? 'active' : ''}`} onClick={() => navigate('/store/empty-vouchers')}>
                       <FiPackage className="nav-icon" /> <span>Empty Vouchers</span>
                     </div>
                   )}
-                  {/* v1.8.29 â€” Store > Inventory ('Store Stock card')
+                  {/* v1.8.29 — Store > Inventory ('Store Stock card')
                       hidden on branches TEMPORARILY until HQ flow stabilises.
                       Re-enable when stock-receipt-via-HQ is fully working. */}
                   {false && !hq && hasPageAccess('Inventory') && (
@@ -922,14 +922,14 @@ const Layout = () => {
                       <FiList className="nav-icon" /> <span>{t('inventory')}</span>
                     </div>
                   )}
-                  {/* v1.8.29 â€” Store > Bin Card hidden on branches per
+                  {/* v1.8.29 — Store > Bin Card hidden on branches per
                       user request. Route still works for direct URL access. */}
                   {false && !hq && hasPageAccess('BinCard') && (
                     <div className={`nav-item ${isActive('/stock/bin-card') ? 'active' : ''}`} onClick={() => navigate('/stock/bin-card')}>
                       <FiList className="nav-icon" /> <span>{t('binCard')}</span>
                     </div>
                   )}
-                  {/* Stock Adjustment â€” replaced by Stock Reconciliation (Store floor). Hidden but route still works in case of legacy access. */}
+                  {/* Stock Adjustment — replaced by Stock Reconciliation (Store floor). Hidden but route still works in case of legacy access. */}
                   {false && hasPageAccess('StockAdjustment') && (
                     <div className={`nav-item ${isActive('/stock/adjustments') ? 'active' : ''}`} onClick={() => navigate('/stock/adjustments')}>
                       <FiSliders className="nav-icon" /> <span>{t('stockAdjustment')}</span>
@@ -940,14 +940,14 @@ const Layout = () => {
                       <FiCheckCircle className="nav-icon" /> <span>Stock Reconciliation</span>
                     </div>
                   )}
-                  {/* v1.8.29 â€” Categories and Units hidden on branches
+                  {/* v1.8.29 — Categories and Units hidden on branches
                       (HQ-owned data; branch never edits it). Visible at HQ. */}
                   {hq && hasPageAccess('Categories') && (
                     <div className={`nav-item ${isActive('/stock/categories') ? 'active' : ''}`} onClick={() => navigate('/stock/categories')}>
                       <FiList className="nav-icon" /> <span>Categories and Units</span>
                     </div>
                   )}
-                  {/* v1.8.29 â€” Expiry Report + Stock Count hidden on
+                  {/* v1.8.29 — Expiry Report + Stock Count hidden on
                       branches per user request. Permanent (to be removed). */}
                   {false && !hq && hasPageAccess('ExpiryReport') && (
                     <div className={`nav-item ${isActive('/stock/expiry-report') ? 'active' : ''}`} onClick={() => navigate('/stock/expiry-report')}>
@@ -977,8 +977,8 @@ const Layout = () => {
           )}
 
           {/* Accounting Group.
-              v1.8.9 â€” Originally hidden on HQ (no per-tenant till).
-              v1.8.61 â€” HQ now needs Cash Book + HQ Deposits inbox, so the
+              v1.8.9 — Originally hidden on HQ (no per-tenant till).
+              v1.8.61 — HQ now needs Cash Book + HQ Deposits inbox, so the
               group renders on HQ too. Per-item visibility flags below keep
               HQ from seeing branch-only entries (Cash Receipt / PV /
               Receivables / Profit Report). */}
@@ -993,7 +993,7 @@ const Layout = () => {
               </div>
               {openGroups.accounting && (
                 <div className="nav-children">
-                  {/* v1.9.25 â€” HQ Cash Position relocated from the flat
+                  {/* v1.9.25 — HQ Cash Position relocated from the flat
                       top-level into the Accounting group. */}
                   {hq && hasPageAccess('HQCashPosition') && (
                     <div className={`nav-item ${isActive('/hq/cash-position') ? 'active' : ''}`} onClick={() => navigate('/hq/cash-position')}>
@@ -1002,8 +1002,8 @@ const Layout = () => {
                   )}
                   {/* Cash Receipt / Payment Voucher.
                       v1.8.9 hid these on HQ under the assumption that HQ
-                      had no till of its own â€” only Branch â†’ HQ deposits.
-                      v1.10.40 â€” HQ does run a real till (its own opening
+                      had no till of its own — only Branch → HQ deposits.
+                      v1.10.40 — HQ does run a real till (its own opening
                       balance, its own Cash Book with USD/FRA/K columns).
                       CR + PV are the two entry points that FEED that
                       Cash Book, so hiding them on HQ made it impossible
@@ -1027,8 +1027,8 @@ const Layout = () => {
                       <FiClipboard className="nav-icon" /> <span>{t('cashBook')}</span>
                     </div>
                   )}
-                  {/* v1.8.59 â€” Branch â†’ HQ Cash Deposit workflow.
-                      Merged INTO Cash Book as a tab (v1.13.11) â€” this
+                  {/* v1.8.59 — Branch → HQ Cash Deposit workflow.
+                      Merged INTO Cash Book as a tab (v1.13.11) — this
                       standalone menu item is hidden but the route stays
                       wired for direct-URL access. */}
                   {false && hasPageAccess('CashBook') && (
@@ -1041,14 +1041,14 @@ const Layout = () => {
                       <FiDollarSign className="nav-icon" /> <span>Currency Rates</span>
                     </div>
                   )}
-                  {/* v1.8.29 â€” Account Payables hidden on branches per
+                  {/* v1.8.29 — Account Payables hidden on branches per
                       user request (branch doesn't manage supplier AP). */}
                   {hq && showLegacyProcurement && hasPageAccess('AccountPayables') && (
                     <div className={`nav-item ${isActive('/accounting/account-payables') ? 'active' : ''}`} onClick={() => navigate('/accounting/account-payables')}>
                       <FiFileText className="nav-icon" /> <span>{t('accountPayables')}</span>
                     </div>
                   )}
-                  {/* v1.13.30 â€” AP approval queue for the Storeâ†’Accountsâ†’Financeâ†’Cashier chain. */}
+                  {/* v1.13.30 — AP approval queue for the Store→Accounts→Finance→Cashier chain. */}
                   {hq && hasPageAccess('APConfirm', 'APCheck', 'APApprove', 'APPay') && (
                     <div className={`nav-item ${isActive('/accounting/ap-approvals') ? 'active' : ''}`} onClick={() => navigate('/accounting/ap-approvals')}>
                       <FiCheckCircle className="nav-icon" /> <span>AP Approvals</span>
@@ -1059,7 +1059,7 @@ const Layout = () => {
                       <FiFileText className="nav-icon" /> <span>Account Receivables</span>
                     </div>
                   )}
-                  {/* 2026-09-04 â€” branches get Credit Notes too. The damage is
+                  {/* 2026-09-04 — branches get Credit Notes too. The damage is
                       seen at the depot, so the depot raises the note; HQ still
                       confirms it before it reduces anything, via AP Approvals.
                       Previously HQ-only, which meant a depot had to phone in a
@@ -1094,9 +1094,9 @@ const Layout = () => {
                       <FiTrendingUp className="nav-icon" /> <span>Profit Report</span>
                     </div>
                   )}
-                  {/* v1.13.62 â€” HQ Consolidated Profit. Group Net across all
+                  {/* v1.13.62 — HQ Consolidated Profit. Group Net across all
                       branches, all in K (Kelete is K-only), minus HQ overhead.
-                      HQ-only. 2026-09-15 â€” gated by the HQConsolidatedProfit permission. */}
+                      HQ-only. 2026-09-15 — gated by the HQConsolidatedProfit permission. */}
                   {hq && hasPageAccess('HQConsolidatedProfit') && (
                     <div className={`nav-item ${isActive('/hq/consolidated-profit') ? 'active' : ''}`} onClick={() => navigate('/hq/consolidated-profit')}>
                       <FiTrendingUp className="nav-icon" /> <span>HQ Consolidated Profit</span>
@@ -1108,7 +1108,7 @@ const Layout = () => {
           )}
 
           {/* Suppliers & Customers Group.
-              v1.9.25 â€” Group now renders on HQ too so HQ Suppliers can live
+              v1.9.25 — Group now renders on HQ too so HQ Suppliers can live
               inside it instead of as a flat top-level entry. Branch shows
               Customers (and legacy Suppliers when enabled); HQ shows HQ
               Suppliers. */}
@@ -1128,7 +1128,7 @@ const Layout = () => {
                       <FiUsers className="nav-icon" /> <span>HQ Suppliers</span>
                     </div>
                   )}
-                  {/* v1.8.29 â€” branch Suppliers hidden per user request
+                  {/* v1.8.29 — branch Suppliers hidden per user request
                       (HQ owns the supplier master + AP). */}
                   {false && !hq && showLegacyProcurement && hasPageAccess('Suppliers') && (
                     <div className={`nav-item ${isActive('/suppliers-customers/suppliers') ? 'active' : ''}`} onClick={() => navigate('/suppliers-customers/suppliers')}>
@@ -1145,14 +1145,14 @@ const Layout = () => {
             </>
           )}
 
-          {/* Approvals â€” admin-only top-level entry. Red badge shows the
+          {/* Approvals — admin-only top-level entry. Red badge shows the
               count of pending discount requests. Polled every 10s in the
-              useEffect above. v1.8.9 â€” hidden at HQ (discount requests
+              useEffect above. v1.8.9 — hidden at HQ (discount requests
               originate at branches, never at HQ). */}
-          {/* 2026-09-03 â€” Approvals hidden: Red Sea does not use the discount
+          {/* 2026-09-03 — Approvals hidden: Red Sea does not use the discount
               approval flow, and Red Sea gives no discounts to anyone. Route stays
               wired for direct-URL access. Never had a permission of its own, so
-              there is no key to revoke â€” hiding it here is the whole switch. */}
+              there is no key to revoke — hiding it here is the whole switch. */}
           {false && !hq && !collapsed && user?.role === 'Administrator' && (
             <div
               className={`nav-item ${isActive('/approvals/discounts') ? 'active' : ''}`}
@@ -1170,7 +1170,7 @@ const Layout = () => {
             </div>
           )}
 
-          {/* Settings Group â€” All Access users only */}
+          {/* Settings Group — All Access users only */}
           {!collapsed && isAllAccess() && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/settings']) ? 'active' : ''}`} onClick={() => toggleGroup('settings')}>
@@ -1185,7 +1185,7 @@ const Layout = () => {
                   <div className={`nav-item ${isActive('/settings/profile') ? 'active' : ''}`} onClick={() => navigate('/settings/profile')}>
                     <FiUser className="nav-icon" /> <span>{t('profile')}</span>
                   </div>
-                  {/* v1.8.29 + v1.8.37 â€” passcode gate via in-app modal
+                  {/* v1.8.29 + v1.8.37 — passcode gate via in-app modal
                       (window.prompt is silently blocked by Electron, so
                       the click used to do nothing). */}
                   <div className={`nav-item ${isActive('/settings/system') ? 'active' : ''}`} onClick={() => openPasscodeGate('/settings/system', 'System Settings')}>
@@ -1227,7 +1227,7 @@ const Layout = () => {
                 <p>{user?.role}</p>
               </div>
             </div>
-            {/* 2026-09-13 â€” every user can change their own password here. */}
+            {/* 2026-09-13 — every user can change their own password here. */}
             <button className="logout-btn" onClick={() => setShowChangePassword(true)}>
               <FiLock /> Change password
             </button>
@@ -1242,7 +1242,7 @@ const Layout = () => {
 
       {/* Main Content */}
       <div className="main-content">
-        {/* HQ sea-teal stripe â€” unmistakable "you are in HQ mode" cue. Only
+        {/* HQ sea-teal stripe — unmistakable "you are in HQ mode" cue. Only
             rendered on the bare keletezm.com host; branch subdomains never
             show it. Thin 3px bar so it doesn't steal real estate. */}
         {hq && (
@@ -1296,7 +1296,7 @@ const Layout = () => {
                 </div>
               )}
             </div>
-            {/* Refresh Page â€” remounts the current route (via Outlet key bump)
+            {/* Refresh Page — remounts the current route (via Outlet key bump)
                 so its useEffects re-run and the page re-fetches the latest
                 data. Lighter than window.location.reload(): no full app reboot,
                 no token loss, no deep-path 404 on Electron. */}
@@ -1343,7 +1343,7 @@ const Layout = () => {
                     >
                       <span style={{ fontSize: 18 }}>{lang.flag}</span>
                       <span>{lang.label}</span>
-                      {language === lang.code && <span style={{ marginLeft: 'auto', color: '#2563eb' }}>âœ“</span>}
+                      {language === lang.code && <span style={{ marginLeft: 'auto', color: '#2563eb' }}>✓</span>}
                     </div>
                   ))}
                 </div>
@@ -1352,7 +1352,7 @@ const Layout = () => {
 
             <div className="hide-on-mobile"><SyncStatus /></div>
 
-            {/* 2026-09-14 â€” the bell was a fixed "2". It now shows unread
+            {/* 2026-09-14 — the bell was a fixed "2". It now shows unread
                 messages and opens Messages. */}
             <button className="notification-btn hide-on-mobile" onClick={() => navigate('/messages')}
               title={chatUnread ? `${chatUnread} unread message${chatUnread === 1 ? '' : 's'}` : 'Messages'}>
@@ -1370,7 +1370,7 @@ const Layout = () => {
         <Outlet key={refreshKey} />
       </div>
 
-      {/* 2026-09-14 â€” new message pop-up (see the Messages notifications effect). */}
+      {/* 2026-09-14 — new message pop-up (see the Messages notifications effect). */}
       {chatToast && (
         <div role="status" aria-live="polite"
           onClick={() => { const id = chatToast.conversation_id; setChatToast(null); navigate(`/messages?c=${id}`); }}
@@ -1382,7 +1382,7 @@ const Layout = () => {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
               {chatToast.from}
-              <span style={{ fontWeight: 400, color: '#64748b' }}> Â· {chatToast.group || chatToast.place}</span>
+              <span style={{ fontWeight: 400, color: '#64748b' }}> · {chatToast.group || chatToast.place}</span>
             </div>
             <div style={{ fontSize: 13, color: '#334155', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {chatToast.preview}
@@ -1390,21 +1390,21 @@ const Layout = () => {
           </div>
           <button type="button" aria-label="Dismiss" onClick={(e) => { e.stopPropagation(); setChatToast(null); }}
             style={{ border: 0, background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
-            Ã—
+            ×
           </button>
         </div>
       )}
 
-      {/* 2026-09-18 â€” the depot's expense waiting for (or answered by) HQ.
+      {/* 2026-09-18 — the depot's expense waiting for (or answered by) HQ.
           Bottom-left, so it never sits on top of the stock notice. */}
       {!hq && expenseReq && (() => {
         const st = String(expenseReq.status || '').toLowerCase();
         const amt = `K${(parseFloat(expenseReq.amount) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const meta = st === 'approved'
-          ? { bg: '#dcfce7', line: '#15803d', ink: '#14532d', title: 'Expense approved by HQ', text: `${amt} Â· ${expenseReq.category || 'Expense'} â€” tap to save the voucher` }
+          ? { bg: '#dcfce7', line: '#15803d', ink: '#14532d', title: 'Expense approved by HQ', text: `${amt} · ${expenseReq.category || 'Expense'} — tap to save the voucher` }
           : st === 'rejected'
-          ? { bg: '#fff1f2', line: '#b91c1c', ink: '#7f1d1d', title: 'Expense rejected by HQ', text: `${amt} Â· ${expenseReq.rejection_reason || 'No reason given'}` }
-          : { bg: '#fef2f2', line: '#dc2626', ink: '#991b1b', title: 'Waiting for HQ approval', text: `${amt} Â· ${expenseReq.category || 'Expense'} â€” no other expense until this is answered` };
+          ? { bg: '#fff1f2', line: '#b91c1c', ink: '#7f1d1d', title: 'Expense rejected by HQ', text: `${amt} · ${expenseReq.rejection_reason || 'No reason given'}` }
+          : { bg: '#fef2f2', line: '#dc2626', ink: '#991b1b', title: 'Waiting for HQ approval', text: `${amt} · ${expenseReq.category || 'Expense'} — no other expense until this is answered` };
         const clear = async (e) => {
           e.stopPropagation();
           if (st === 'pending' && !window.confirm('Withdraw this request? The voucher will not be saved.')) return;
@@ -1415,7 +1415,7 @@ const Layout = () => {
         return (
           <div role="status" aria-live="polite"
             style={{ position: 'fixed', left: 18, bottom: 18, zIndex: 4000, width: 320, maxWidth: 'calc(100vw - 36px)' }}>
-            {/* 2026-09-21 â€” back to the screen it was raised on. An expense
+            {/* 2026-09-21 — back to the screen it was raised on. An expense
                 raised on the Cash Report was approved and then opened on the
                 Payment Voucher page, which is not where the cashier was
                 working and not where the voucher belongs. A request carrying
@@ -1440,7 +1440,7 @@ const Layout = () => {
               {st !== 'approved' && (
                 <button type="button" aria-label="Dismiss" onClick={clear}
                   style={{ border: 0, background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
-                  Ã—
+                  ×
                 </button>
               )}
             </div>
@@ -1448,12 +1448,12 @@ const Layout = () => {
         );
       })()}
 
-      {/* 2026-09-15 â€” incoming stock / inter-branch transfer notice. The big
+      {/* 2026-09-15 — incoming stock / inter-branch transfer notice. The big
           dark one (like the POS change screen) when the cashier is free; the
           small corner card while they are mid-sale, or after "Later". */}
       {(() => {
         const { stock, transfers, grns = [] } = incoming;
-        // 2026-09-19 â€” the same notice now serves HQ, for the other direction:
+        // 2026-09-19 — the same notice now serves HQ, for the other direction:
         // deliveries a depot has confirmed, waiting to be turned into a GRN.
         if (noticePhase === 'none' || (!stock.length && !transfers.length && !grns.length)) return null;
         const showBig = noticePhase === 'big' && !posBusy;
@@ -1465,7 +1465,7 @@ const Layout = () => {
         };
         const rows = [
           ...stock.map((p) => ({ key: `p${p.id}`, kind: 'stock', ref: p.purchase_number,
-            from: p.supplier_name ? `HQ Â· ${p.supplier_name}` : 'HQ',
+            from: p.supplier_name ? `HQ · ${p.supplier_name}` : 'HQ',
             items: `${p.lines} item${Number(p.lines) === 1 ? '' : 's'}`, date: fmtDate(p.date) })),
           ...transfers.map((t) => ({ key: `t${t.id}`, kind: 'transfer', ref: t.transfer_number,
             from: t.from_name || t.from_slug,
@@ -1500,11 +1500,11 @@ const Layout = () => {
                   {shown.map((r) => (
                     <div key={r.key} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', background: '#f9fafb' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
-                        <span style={{ fontWeight: 700, color: '#0f172a' }}>{r.kind === 'stock' ? 'From HQ' : r.kind === 'grn' ? 'Confirmed' : 'Transfer'} Â· {r.ref}</span>
+                        <span style={{ fontWeight: 700, color: '#0f172a' }}>{r.kind === 'stock' ? 'From HQ' : r.kind === 'grn' ? 'Confirmed' : 'Transfer'} · {r.ref}</span>
                         <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{r.date}</span>
                       </div>
                       <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
-                        {r.kind === 'stock' ? r.from : `From ${r.from}`} Â· {r.items}
+                        {r.kind === 'stock' ? r.from : `From ${r.from}`} · {r.items}
                       </div>
                     </div>
                   ))}
@@ -1547,7 +1547,7 @@ const Layout = () => {
           <div role="status" aria-live="polite" ref={cardRef}
             onPointerDown={startCardDrag} onPointerMove={onCardDrag}
             onPointerUp={endCardDrag} onPointerCancel={endCardDrag}
-            // 2026-09-18 â€” draggable: at bottom-right it covers Pay on the POS
+            // 2026-09-18 — draggable: at bottom-right it covers Pay on the POS
             // screen. Once moved it stays where the cashier left it on this
             // till. touchAction none so a drag on a touch screen moves the card
             // instead of scrolling the page under it.
@@ -1563,7 +1563,7 @@ const Layout = () => {
                 text: `${stock.length} deliver${stock.length === 1 ? 'y' : 'ies'} waiting to be received` },
               transfers.length > 0 && { path: '/stock/transfers?tab=incoming', title: 'Inter-branch transfer',
                 text: `${transfers.length} transfer${transfers.length === 1 ? '' : 's'} waiting to be received` },
-              // 2026-09-19 â€” HQ's card: a depot has confirmed a delivery and
+              // 2026-09-19 — HQ's card: a depot has confirmed a delivery and
               // it needs turning into a GRN before there is any payable.
               grns.length > 0 && { path: '/hq/confirm-grn', title: 'Delivery confirmed by a depot',
                 text: `${grns.length} waiting to become a GRN` },
@@ -1583,7 +1583,7 @@ const Layout = () => {
                 </div>
                 <button type="button" aria-label="Dismiss" onClick={(e) => { e.stopPropagation(); setCornerClosed(true); }}
                   style={{ border: 0, background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
-                  Ã—
+                  ×
                 </button>
               </div>
             ))}
@@ -1591,7 +1591,7 @@ const Layout = () => {
         );
       })()}
 
-      {/* v1.8.37 â€” in-app passcode modal. Replaces window.prompt which
+      {/* v1.8.37 — in-app passcode modal. Replaces window.prompt which
           Electron silently blocks. Renders only when passcodeGate state
           is non-null (set by openPasscodeGate on a gated nav click). */}
       {passcodeGate && (
@@ -1627,7 +1627,7 @@ const Layout = () => {
 
 // Tiny red pill rendered to the right of a sidebar entry when there's
 // pending work. Numbers >99 collapse to "99+" so the pill stays compact.
-// 2026-09-14 â€” a short two-note chime for a new message, made with Web Audio
+// 2026-09-14 — a short two-note chime for a new message, made with Web Audio
 // so there is no sound file to ship. Silently does nothing where audio is
 // blocked (a browser that has not seen a click on the page yet).
 function playChatSound() {

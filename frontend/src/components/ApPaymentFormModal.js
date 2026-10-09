@@ -1,8 +1,8 @@
-// ApPaymentFormModal â€” shared "Record Payment" modal for supplier
+// ApPaymentFormModal — shared "Record Payment" modal for supplier
 // (Account Payable) payments. Used by Account Payables and the GRN page
 // so both produce identical ap_payment rows (split + attachment).
 //
-// Same pattern as PaymentVoucherFormModal â€” encapsulates its own form
+// Same pattern as PaymentVoucherFormModal — encapsulates its own form
 // state, error handling, and API call; parents pass a supplier context
 // and an onSaved callback.
 import React, { useEffect, useState } from 'react';
@@ -14,7 +14,7 @@ import { useCurrency } from '../context/CurrencyContext';
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
-// v1.10.78 â€” form state carries BOTH shapes. HQ uses usd/fra/k (like PV);
+// v1.10.78 — form state carries BOTH shapes. HQ uses usd/fra/k (like PV);
 // Liquor branches use cash/bank/momo. Only the active set gets values
 // filled in; the other set stays blank and is dropped from the payload.
 const emptyForm = {
@@ -27,11 +27,11 @@ const emptyForm = {
 
 export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, defaultDate, defaultDescription }) {
   const { symbol: curSym, isLiquorStyle: rawLiquorStyle } = useCurrency();
-  // v1.10.78 â€” HQ (bare host) renders the PV-style USD / FRA / K fields
+  // v1.10.78 — HQ (bare host) renders the PV-style USD / FRA / K fields
   // regardless of tenant settings. Matches CashReceipt.js v1.10.68 +
   // PaymentVoucherFormModal.js pattern.
   const onHq = isHqHost();
-  // v1.13.46 â€” Kelete HQ is K-only (no tri-currency branches), so drop
+  // v1.13.46 — Kelete HQ is K-only (no tri-currency branches), so drop
   // the Kelete-era `&& !onHq` override that forced USD / FRA / K fields
   // on the HQ host. Business settings drive isLiquorStyle correctly.
   const isLiquorStyle = rawLiquorStyle;
@@ -39,9 +39,9 @@ export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, d
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // v1.10.111 â€” supplier balances can be in USD, K, or FRA (each supplier
+  // v1.10.111 — supplier balances can be in USD, K, or FRA (each supplier
   // has its own native currency, returned per-row by the backend as
-  // supplier.currency â€” see AccountPayables.js:496 for the same mapping).
+  // supplier.currency — see AccountPayables.js:496 for the same mapping).
   // Use it for BOTH the outstanding-balance display AND the total row,
   // instead of the tenant-wide curSym which gave FLAMINGO's K13,110
   // outstanding an incorrect "$" prefix.
@@ -55,11 +55,11 @@ export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, d
   useEffect(() => {
     if (!open || !supplier) return;
     const outstanding = parseFloat(supplier.balance) > 0 ? parseFloat(supplier.balance).toFixed(2) : '';
-    // v1.10.111 â€” auto-fill the box matching the supplier's native
-    // currency (K â†’ k_amount, FRA â†’ fra_amount, else usd_amount).
+    // v1.10.111 — auto-fill the box matching the supplier's native
+    // currency (K → k_amount, FRA → fra_amount, else usd_amount).
     // Cashier no longer has to move the value from USD to K by hand.
     setForm({
-      // Pre-fill Cash â€” the commonest drawer. The cashier moves it to Bank or
+      // Pre-fill Cash — the commonest drawer. The cashier moves it to Bank or
       // Mobile Money if that is where the money actually went. The old
       // per-currency pre-fill is gone with the currency fields.
       cash_amount: outstanding,
@@ -78,13 +78,13 @@ export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, d
 
   if (!open || !supplier) return null;
 
-  // 2026-08-29 â€” the drawers, everywhere, HQ included.
+  // 2026-08-29 — the drawers, everywhere, HQ included.
   //
   // HQ used to be offered USD / FRA / K. Red Sea trades in Kwacha only, so two
   // of those could never be used and the third told us nothing about where the
   // money actually came from. Meanwhile the AP Approvals screen DID ask (Paid
   // From: Cash / Bank / MoMo), so the same payment was recorded two different
-  // ways depending on which screen you started from â€” and the Cash Book, which
+  // ways depending on which screen you started from — and the Cash Book, which
   // adds the three tiles together, counted such a payment twice.
   //
   // One question, one shape: which drawer did the money leave?
@@ -110,7 +110,7 @@ export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, d
         invoice_attachment: form.invoice_attachment || null,
       };
       // Drawer amounts ONLY. Sending a currency amount as well would have the
-      // Cash Book count this payment twice â€” once in the drawer tile, once in
+      // Cash Book count this payment twice — once in the drawer tile, once in
       // the currency tile that borrows the same column.
       payload.cash_amount = parseFloat(form.cash_amount || 0) || 0;
       payload.bank_amount = parseFloat(form.bank_amount || 0) || 0;
@@ -160,7 +160,7 @@ export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, d
                   </div>
                 ))}
               </div>
-              {/* v1.10.111 â€” Total row removed per user (was confusing when
+              {/* v1.10.111 — Total row removed per user (was confusing when
                   the tenant sym differed from supplier sym; auto-fill already
                   makes the intended amount obvious in the currency field). */}
             </div>
