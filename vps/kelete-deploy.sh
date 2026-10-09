@@ -15,9 +15,9 @@
 
 set -e
 
-REPO=/var/www/kelete-pos-tenant
+REPO=/var/www/kelete-fuel
 BRANCH=main
-PM2_PROCESS=kelete-tenant
+PM2_PROCESS=kelete-fuel
 LOCK=/tmp/kelete-deploy.lock
 
 # Only one instance at a time — cron can fire while a previous run is

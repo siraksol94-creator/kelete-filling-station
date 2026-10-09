@@ -12,7 +12,7 @@ export HOME=/root
 NVM_BINS=$(ls -d $HOME/.nvm/versions/node/*/bin 2>/dev/null | tr '\n' ':')
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:${NVM_BINS}${PATH:-}"
 
-DIR=/var/www/kelete-pos-tenant
+DIR=/var/www/kelete-fuel
 LOG=/var/log/kelete-deploy.log
 LOCK=/tmp/kelete-deploy.lock
 
