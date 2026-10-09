@@ -28,14 +28,14 @@ router.get('/:id', auth, (req, res) => {
 
 router.post('/', auth, (req, res) => {
   try {
-    const { code, name, fuel_grade_id, capacity_litres, current_volume = 0, low_stock_litres = 1000, branch_id = null } = req.body;
+    const { code, name, fuel_grade_id, capacity_litres, current_volume = 0, low_stock_litres = 1000, vessel_count = 1, branch_id = null } = req.body;
     if (!code || !name || !fuel_grade_id || !capacity_litres) {
       return res.status(400).json({ error: 'code, name, fuel_grade_id, capacity_litres are required' });
     }
     const info = db.prepare(`
-      INSERT INTO tanks (code, name, fuel_grade_id, capacity_litres, current_volume, low_stock_litres, branch_id)
-      VALUES (?,?,?,?,?,?,?)
-    `).run(code.trim(), name.trim(), Number(fuel_grade_id), Number(capacity_litres), Number(current_volume) || 0, Number(low_stock_litres) || 0, branch_id);
+      INSERT INTO tanks (code, name, fuel_grade_id, capacity_litres, current_volume, low_stock_litres, vessel_count, branch_id)
+      VALUES (?,?,?,?,?,?,?,?)
+    `).run(code.trim(), name.trim(), Number(fuel_grade_id), Number(capacity_litres), Number(current_volume) || 0, Number(low_stock_litres) || 0, Math.max(1, Math.min(6, Number(vessel_count) || 1)), branch_id);
     res.status(201).json(db.prepare('SELECT * FROM tanks WHERE id = ?').get(info.lastInsertRowid));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -48,8 +48,8 @@ router.put('/:id', auth, (req, res) => {
     db.prepare(`
       UPDATE tanks SET
         code = ?, name = ?, fuel_grade_id = ?, capacity_litres = ?,
-        current_volume = ?, low_stock_litres = ?, branch_id = ?, status = ?,
-        updated_at = datetime('now')
+        current_volume = ?, low_stock_litres = ?, vessel_count = ?,
+        branch_id = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
       b.code ?? existing.code,
@@ -58,6 +58,7 @@ router.put('/:id', auth, (req, res) => {
       b.capacity_litres != null ? Number(b.capacity_litres) : existing.capacity_litres,
       b.current_volume != null ? Number(b.current_volume) : existing.current_volume,
       b.low_stock_litres != null ? Number(b.low_stock_litres) : existing.low_stock_litres,
+      b.vessel_count != null ? Math.max(1, Math.min(6, Number(b.vessel_count) || 1)) : (existing.vessel_count || 1),
       b.branch_id ?? existing.branch_id,
       b.status ?? existing.status,
       req.params.id

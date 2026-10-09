@@ -26,6 +26,7 @@ function initFuelSchema(db) {
       capacity_litres   REAL NOT NULL,
       current_volume    REAL NOT NULL DEFAULT 0,
       low_stock_litres  REAL DEFAULT 1000,
+      vessel_count      INTEGER NOT NULL DEFAULT 1,
       branch_id         INTEGER,
       status            TEXT NOT NULL DEFAULT 'Active',
       sync_id           TEXT,
@@ -166,6 +167,13 @@ function initFuelSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_nozzles_pump ON nozzles(pump_id);
     CREATE INDEX IF NOT EXISTS idx_tanks_fuel_grade ON tanks(fuel_grade_id);
   `);
+
+  // Idempotent column add for pre-existing tanks tables. vessel_count
+  // controls how the tank is drawn (1 = single cylinder, 2+ = joined
+  // vessels sharing one level — a logical merge of multiple physical
+  // tanks). Data-model stays as one row; the number is UI-only.
+  try { db.exec('ALTER TABLE tanks ADD COLUMN vessel_count INTEGER NOT NULL DEFAULT 1'); }
+  catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
 }
 
 module.exports = { initFuelSchema };

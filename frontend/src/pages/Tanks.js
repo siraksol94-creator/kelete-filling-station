@@ -3,39 +3,74 @@ import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiActivity, FiAlertTriangle
 import { getTanks, createTank, updateTank, deleteTank, dipTank, getFuelGrades } from '../services/fuelApi';
 import { S } from './fuelStyles';
 
-// Vertical tank drawn as SVG. Fuel fills from the bottom, with a subtle wave
-// on top and gauge marks on the side. Width 70px, height 130px.
-function TankSvg({ pct, color, low }) {
-  const w = 70, h = 130;
-  const padTop = 10, padBottom = 8;
+// Vertical tank drawn as SVG, supporting 1-6 vessels sharing one fluid level.
+// Vessels sit side by side and are joined at the bottom by a connecting pipe
+// (U/W-shape for 2/3 vessels, etc.) so the operator reads "physically
+// plumbed together" at a glance. The % label floats in the centre.
+function TankSvg({ pct, color, low, vesselCount = 1 }) {
+  const n = Math.max(1, Math.min(6, Number(vesselCount) || 1));
+  const vesselW = 54;
+  const gap = n > 1 ? 14 : 0;
+  const padTop = 12, padBottom = 10;
+  const h = 150;
   const innerH = h - padTop - padBottom;
-  const fillH = (pct / 100) * innerH;
+  const w = n * vesselW + (n - 1) * gap + 8;
+  const fillH = Math.max(0, (pct / 100) * innerH);
   const fillY = h - padBottom - fillH;
+  const gradId = `g-${color.replace('#', '')}-${n}-${vesselW}`;
+  const vessels = Array.from({ length: n }, (_, i) => ({ x: 4 + i * (vesselW + gap) }));
+
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ flexShrink: 0 }}>
       <defs>
-        <linearGradient id={`g-${color.replace('#', '')}`} x1="0" x2="0" y1="0" y2="1">
+        <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0%" stopColor={color} stopOpacity="0.95" />
           <stop offset="100%" stopColor={color} stopOpacity="0.65" />
         </linearGradient>
+        {/* Clip-paths so the gradient fill never spills outside each cylinder */}
+        {vessels.map((v, i) => (
+          <clipPath key={i} id={`${gradId}-c${i}`}>
+            <rect x={v.x} y={padTop} width={vesselW} height={innerH} rx="8" />
+          </clipPath>
+        ))}
       </defs>
-      {/* Tank body outline */}
-      <rect x="4" y={padTop} width={w - 8} height={innerH} rx="8" fill="#f9fafb" stroke="#d1d5db" strokeWidth="1.5" />
-      {/* Fuel fill */}
-      {fillH > 1 && (
-        <rect x="5" y={fillY} width={w - 10} height={fillH - 1} rx="6" fill={`url(#g-${color.replace('#', '')})`} />
+
+      {/* Connecting pipe between vessels (only when 2+) */}
+      {n > 1 && (
+        <rect
+          x={vessels[0].x + vesselW / 2}
+          y={h - padBottom - 6}
+          width={vessels[n - 1].x + vesselW / 2 - (vessels[0].x + vesselW / 2)}
+          height="8"
+          fill="#9ca3af"
+          rx="2"
+        />
       )}
-      {/* Top cap / lid line */}
-      <rect x="18" y={padTop - 6} width={w - 36} height="6" rx="2" fill="#9ca3af" />
-      {/* Gauge ticks on the right side */}
-      {[25, 50, 75].map(p => {
-        const ty = h - padBottom - (p / 100) * innerH;
-        return <line key={p} x1={w - 10} x2={w - 4} y1={ty} y2={ty} stroke="#9ca3af" strokeWidth="1" />;
-      })}
-      {/* Percentage label centered in the tank */}
-      <text x={w / 2} y={h / 2 + 4} textAnchor="middle" fontSize="13" fontWeight="700" fill={pct > 55 ? '#fff' : color}>
+
+      {/* Each vessel: outline, fluid fill, lid cap, gauge ticks */}
+      {vessels.map((v, i) => (
+        <g key={i}>
+          {/* Lid cap on top */}
+          <rect x={v.x + vesselW * 0.25} y={padTop - 6} width={vesselW * 0.5} height="6" rx="2" fill="#9ca3af" />
+          {/* Body outline */}
+          <rect x={v.x} y={padTop} width={vesselW} height={innerH} rx="8" fill="#f9fafb" stroke="#d1d5db" strokeWidth="1.5" />
+          {/* Fluid fill, clipped to this vessel */}
+          {fillH > 1 && (
+            <rect x={v.x} y={fillY} width={vesselW} height={fillH} fill={`url(#${gradId})`} clipPath={`url(#${gradId}-c${i})`} />
+          )}
+          {/* Gauge ticks on the right edge */}
+          {[25, 50, 75].map(p => {
+            const ty = h - padBottom - (p / 100) * innerH;
+            return <line key={p} x1={v.x + vesselW - 6} x2={v.x + vesselW - 1} y1={ty} y2={ty} stroke="#9ca3af" strokeWidth="1" />;
+          })}
+        </g>
+      ))}
+
+      {/* Big centred percentage overlay */}
+      <text x={w / 2} y={h / 2 + 5} textAnchor="middle" fontSize={n > 1 ? 18 : 14} fontWeight="800" fill={pct > 55 ? '#fff' : color} style={{ paintOrder: 'stroke', stroke: '#fff', strokeWidth: n > 1 ? 2 : 0 }}>
         {pct.toFixed(0)}%
       </text>
+
       {low && (
         <circle cx={w - 8} cy={padTop + 2} r="4" fill="#dc2626" stroke="#fff" strokeWidth="1.5" />
       )}
@@ -43,7 +78,7 @@ function TankSvg({ pct, color, low }) {
   );
 }
 
-const emptyForm = { code: '', name: '', fuel_grade_id: '', capacity_litres: '', current_volume: 0, low_stock_litres: 1000, status: 'Active' };
+const emptyForm = { code: '', name: '', fuel_grade_id: '', capacity_litres: '', current_volume: 0, low_stock_litres: 1000, vessel_count: 1, status: 'Active' };
 
 export default function Tanks() {
   const [rows, setRows] = useState([]);
@@ -124,7 +159,7 @@ export default function Tanks() {
 
               {/* Tank visual */}
               <div style={{ display: 'flex', gap: 14, alignItems: 'stretch', marginTop: 4 }}>
-                <TankSvg pct={pct} color={color} low={low} />
+                <TankSvg pct={pct} color={color} low={low} vesselCount={t.vessel_count || 1} />
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.4 }}>Current</div>
                   <div style={{ fontSize: 26, fontWeight: 800, color: color, lineHeight: 1.1, marginTop: 2 }}>
@@ -175,6 +210,16 @@ export default function Tanks() {
                 <label style={S.lbl}>Capacity (L) *<input type="number" value={form.capacity_litres} onChange={e => setForm({ ...form, capacity_litres: e.target.value })} required style={S.input} /></label>
                 <label style={S.lbl}>Current Volume (L)<input type="number" value={form.current_volume} onChange={e => setForm({ ...form, current_volume: e.target.value })} style={S.input} /></label>
                 <label style={S.lbl}>Low Stock Alert (L)<input type="number" value={form.low_stock_litres} onChange={e => setForm({ ...form, low_stock_litres: e.target.value })} style={S.input} /></label>
+                <label style={S.lbl}>Connected Vessels
+                  <select value={form.vessel_count || 1} onChange={e => setForm({ ...form, vessel_count: Number(e.target.value) })} style={S.input}>
+                    <option value={1}>1 — Single tank</option>
+                    <option value={2}>2 — Twin (U-shape)</option>
+                    <option value={3}>3 — Triple</option>
+                    <option value={4}>4 — Quad</option>
+                    <option value={5}>5</option>
+                    <option value={6}>6</option>
+                  </select>
+                </label>
                 <label style={S.lbl}>Status
                   <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={S.input}>
                     <option>Active</option><option>Inactive</option>
