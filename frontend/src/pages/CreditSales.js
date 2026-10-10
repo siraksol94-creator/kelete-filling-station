@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter, FiPrinter } from 'react-icons/fi';
 import { getAllTickets, addShiftCreditSale, deleteShiftCreditSale, getShifts, getNozzles } from '../services/fuelApi';
-import { getCustomers } from '../services/api';
+import { getCustomers, getSettings } from '../services/api';
 import { S } from './fuelStyles';
 import { printTicket, printTicketList } from './ticketPrint';
+import keleteLogo from '../assets/kelete-logo.png';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -18,6 +19,8 @@ export function TicketsPage({ method }) {
   const [customers, setCustomers] = useState([]);
   const [nozzles, setNozzles] = useState([]);
   const [openShifts, setOpenShifts] = useState([]);
+  const [seller, setSeller] = useState({});
+  const logoUrl = useMemo(() => new URL(keleteLogo, window.location.origin).href, []);
   const [filter, setFilter] = useState({ from: today(), to: today(), customer_id: '', attendant_user_id: '' });
   const [showForm, setShowForm] = useState(false);
   const emptyForm = { shift_id: '', customer_id: '', customer_name: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' };
@@ -27,13 +30,15 @@ export function TicketsPage({ method }) {
 
   const load = async () => {
     try {
-      const [tks, cs, sh, nz] = await Promise.all([
+      const [tks, cs, sh, nz, st] = await Promise.all([
         getAllTickets({ method, ...stripEmpty(filter) }),
         getCustomers(),
         getShifts({ status: 'Open' }),
         getNozzles(),
+        getSettings().catch(() => ({ data: {} })),
       ]);
       setRows(tks.data || []); setCustomers(cs.data || []); setOpenShifts(sh.data || []); setNozzles(nz.data || []);
+      setSeller(st.data?.business || {});
     } catch (e) {}
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter.from, filter.to, filter.customer_id, filter.attendant_user_id]);
@@ -67,7 +72,7 @@ export function TicketsPage({ method }) {
         grade_name: g?.grade_name || '',
       };
       setShowForm(false); setForm(emptyForm); await load();
-      printTicket(saved, method);
+      printTicket(saved, method, seller, logoUrl);
     } catch (ex) { setErr(ex.response?.data?.error || ex.message || 'Save failed'); }
     finally { setSaving(false); }
   };
@@ -83,7 +88,7 @@ export function TicketsPage({ method }) {
       <div style={S.header}>
         <h2 style={S.h2}><FiCreditCard /> {isCard ? '1Card Sales (Engen)' : 'Credit Sales (Receivables)'}</h2>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => printTicketList(rows, method, filter)} style={S.btnSecondary} disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
+          <button onClick={() => printTicketList(rows, method, filter, seller, logoUrl)} style={S.btnSecondary} disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
           <button onClick={() => { setForm(emptyForm); setErr(''); setShowForm(true); }} style={S.btnPrimary}><FiPlus /> New {isCard ? '1Card' : 'Credit'} Ticket</button>
         </div>
       </div>
@@ -135,7 +140,7 @@ export function TicketsPage({ method }) {
                 <td style={S.td}>{r.receipt_number || '-'}</td>
                 <td style={S.td}>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <button onClick={() => printTicket(r, method)} style={S.iconBtn} title="Print receipt"><FiPrinter /></button>
+                    <button onClick={() => printTicket(r, method, seller, logoUrl)} style={S.iconBtn} title="Print invoice"><FiPrinter /></button>
                     <button onClick={() => remove(r)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>
                   </div>
                 </td>

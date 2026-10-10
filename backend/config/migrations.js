@@ -234,6 +234,7 @@ function initTenantDb(db) {
       business_phone   TEXT,
       business_email   TEXT,
       business_address TEXT,
+      tpin             TEXT,
       tax_rate         REAL DEFAULT 0,
       updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
     );
@@ -969,6 +970,9 @@ function initTenantDb(db) {
   // K5,000 everywhere to start; editable per depot in System Settings.
   // 0 or NULL = no limit. HQ is never limited (checked by host, not here).
   addCol('business_settings', 'daily_expense_limit', 'REAL NOT NULL DEFAULT 5000');
+
+  // 2026-10-10 — TPIN on company profile; appears on fuel credit invoices.
+  addCol('business_settings', 'tpin', 'TEXT');
 
   // A voucher that would take the day over the limit is not saved. The depot
   // sends it here for HQ to approve; on approval the voucher can be saved

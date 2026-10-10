@@ -11,7 +11,7 @@ const Profile = () => {
 
   const [form, setForm] = useState({
     // Company
-    businessName: '', businessPhone: '', businessEmail: '', businessAddress: '',
+    businessName: '', businessPhone: '', businessEmail: '', businessAddress: '', tpin: '',
     // My Account
     firstName: '', lastName: '', email: '', phone: '', address: '', role: '',
   });
@@ -26,6 +26,7 @@ const Profile = () => {
         businessPhone:   b.business_phone   || '',
         businessEmail:   b.business_email   || '',
         businessAddress: b.business_address || '',
+        tpin:            b.tpin             || '',
         firstName: u.first_name || '',
         lastName:  u.last_name  || '',
         email:     u.email      || '',
@@ -47,6 +48,7 @@ const Profile = () => {
         business_phone:   form.businessPhone,
         business_email:   form.businessEmail,
         business_address: form.businessAddress,
+        tpin:             form.tpin,
       });
       alert('Company info saved.');
     } catch { alert('Failed to save. Please try again.'); }
@@ -128,8 +130,12 @@ const Profile = () => {
                 </p>
                 <div className="form-grid">
                   <div className="form-group">
-                    <label>Business Name</label>
-                    <input type="text" name="businessName" value={form.businessName} onChange={handleChange} />
+                    <label>Registered Name</label>
+                    <input type="text" name="businessName" value={form.businessName} onChange={handleChange} placeholder="e.g. Kelete Investments" />
+                  </div>
+                  <div className="form-group">
+                    <label>TPIN</label>
+                    <input type="text" name="tpin" value={form.tpin} onChange={handleChange} placeholder="e.g. 1002581703" />
                   </div>
                   <div className="form-group">
                     <label>Business Phone</label>
@@ -140,8 +146,8 @@ const Profile = () => {
                     <input type="email" name="businessEmail" value={form.businessEmail} onChange={handleChange} />
                   </div>
                   <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label>Business Address</label>
-                    <input type="text" name="businessAddress" value={form.businessAddress} onChange={handleChange} />
+                    <label>Physical Address <small style={{ color: '#9ca3af', fontWeight: 400 }}>(this branch)</small></label>
+                    <input type="text" name="businessAddress" value={form.businessAddress} onChange={handleChange} placeholder="e.g. Ben Bella Road, Lusaka" />
                   </div>
                 </div>
               </div>

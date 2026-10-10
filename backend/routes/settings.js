@@ -75,7 +75,7 @@ function normaliseCurrencies(input) {
 
 router.put('/business', auth, (req, res) => {
   try {
-    const { business_name, business_phone, business_email, business_address, tax_rate, single_location_mode, block_oversell, currencies,
+    const { business_name, business_phone, business_email, business_address, tpin, tax_rate, single_location_mode, block_oversell, currencies,
             receipt_printer_type, receipt_printer_name, receipt_printer_ip, receipt_printer_port,
             default_crate_deposit, currency_mode, workflow_mode,
             legacy_procurement_enabled,
@@ -107,6 +107,7 @@ router.put('/business', auth, (req, res) => {
       if (business_phone   !== undefined) { sets.push('business_phone=?');        vals.push(business_phone); }
       if (business_email   !== undefined) { sets.push('business_email=?');        vals.push(business_email); }
       if (business_address !== undefined) { sets.push('business_address=?');      vals.push(business_address); }
+      if (tpin             !== undefined) { sets.push('tpin=?');                  vals.push((tpin || '').trim() || null); }
       if (tax_rate         !== undefined) { sets.push('tax_rate=?');              vals.push(tax_rate); }
       if (single_location_mode !== undefined) {
         const slm = (single_location_mode === true || single_location_mode === 1 || single_location_mode === '1') ? 1 : 0;
