@@ -416,6 +416,63 @@ router.post('/:id/finalize', auth, (req, res) => {
   try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// Hard-delete a shift and everything downstream. Requires the caller's
+// own password (must be Administrator role).
+//
+// What gets removed/reversed:
+//   - shift_nozzle_readings       → ON DELETE CASCADE
+//     + reverses nozzles.current_meter_reading back to opening_reading
+//     + adds litres_sold back to tanks.current_volume
+//   - shift_credit_sales          → ON DELETE CASCADE
+//     + soft-deletes each row's linked orders (AR stops showing them)
+//   - shift_dips                  → ON DELETE CASCADE (no side-effect)
+//   - fuel_sales                  → explicit DELETE (legacy table, no cascade)
+//   - attendant_shifts            → the shift itself
+router.post('/:id/delete', auth, async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    if (!password) return res.status(400).json({ error: 'Password required' });
+    const bcrypt = require('bcrypt');
+    const admin = db.prepare("SELECT id, password, role FROM users WHERE id = ? AND deleted_at IS NULL").get(req.user?.id);
+    if (!admin) return res.status(401).json({ error: 'User not found' });
+    if (admin.role !== 'Administrator') return res.status(403).json({ error: 'Only administrators can delete shifts' });
+    if (!(await bcrypt.compare(String(password), admin.password))) {
+      return res.status(401).json({ error: 'Wrong password' });
+    }
+
+    const tx = db.transaction(() => {
+      const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
+      if (!shift) throw new Error('Shift not found');
+
+      // Reverse nozzle meter + tank volume side-effects of the close
+      const readings = db.prepare('SELECT * FROM shift_nozzle_readings WHERE shift_id = ?').all(req.params.id);
+      const updNozzle = db.prepare("UPDATE nozzles SET current_meter_reading = ?, updated_at = datetime('now') WHERE id = ?");
+      const updTank   = db.prepare("UPDATE tanks SET current_volume = current_volume + ?, updated_at = datetime('now') WHERE id = ?");
+      for (const r of readings) {
+        updNozzle.run(Number(r.opening_reading || 0), r.nozzle_id);
+        const litres = Number(r.litres_sold || 0);
+        if (litres > 0) {
+          const noz = db.prepare('SELECT tank_id FROM nozzles WHERE id = ?').get(r.nozzle_id);
+          if (noz?.tank_id) updTank.run(litres, noz.tank_id);
+        }
+      }
+
+      // Soft-delete the AR orders created from credit tickets
+      const sales = db.prepare('SELECT linked_order_id FROM shift_credit_sales WHERE shift_id = ? AND linked_order_id IS NOT NULL').all(req.params.id);
+      const softDelOrder = db.prepare("UPDATE orders SET deleted_at = datetime('now'), updated_at = datetime('now'), synced = 0 WHERE id = ?");
+      for (const s of sales) softDelOrder.run(s.linked_order_id);
+
+      // Legacy POS-style fuel_sales rows (no cascade)
+      db.prepare('DELETE FROM fuel_sales WHERE shift_id = ?').run(req.params.id);
+
+      // The shift itself (cascades handle shift_nozzle_readings / shift_credit_sales / shift_dips)
+      db.prepare('DELETE FROM attendant_shifts WHERE id = ?').run(req.params.id);
+    });
+    tx();
+    res.json({ message: 'Shift deleted' });
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
 // Reopen a closed shift (e.g. a credit sale was missed and the attendant
 // needs to add it before finalising for the day). Does NOT touch any
 // readings/payments already saved — just flips status back to Open so

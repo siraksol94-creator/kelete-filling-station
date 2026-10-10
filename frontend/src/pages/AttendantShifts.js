@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText, FiEdit, FiUnlock } from 'react-icons/fi';
-import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getPumpsWithNozzles, addShiftCreditSale, reopenShift } from '../services/fuelApi';
+import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getPumpsWithNozzles, addShiftCreditSale, reopenShift, deleteShift } from '../services/fuelApi';
 import { getUsers, getCustomers } from '../services/api';
 import { S } from './fuelStyles';
 
@@ -248,21 +248,42 @@ export default function AttendantShifts() {
                 <td style={S.tdR}>K {Number(s.actual_cash || 0).toFixed(2)}</td>
                 <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>
                 <td style={S.td}>
-                  {s.status === 'Open' ? (
-                    <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close (Meters)</button>
-                  ) : (
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
-                      <button
-                        onClick={async () => {
-                          if (!window.confirm(`Reopen shift #${s.id} for ${s.attendant_name}? Readings & payments stay saved; you can add missed Credit/1Card tickets then finalise again in Fuel Cash Report.`)) return;
-                          try { await reopenShift(s.id); await load(); }
-                          catch (e) { alert('Reopen failed: ' + (e.response?.data?.error || e.message)); }
-                        }}
-                        style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}
-                      ><FiUnlock /> Reopen</button>
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    {s.status === 'Open' ? (
+                      <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close (Meters)</button>
+                    ) : (
+                      <>
+                        <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm(`Reopen shift #${s.id} for ${s.attendant_name}? Readings & payments stay saved; you can add missed Credit/1Card tickets then finalise again in Fuel Cash Report.`)) return;
+                            try { await reopenShift(s.id); await load(); }
+                            catch (e) { alert('Reopen failed: ' + (e.response?.data?.error || e.message)); }
+                          }}
+                          style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}
+                        ><FiUnlock /> Reopen</button>
+                      </>
+                    )}
+                    <button
+                      onClick={async () => {
+                        if (!window.confirm(
+                          `Permanently delete shift #${s.id} (${s.attendant_name})?\n\n` +
+                          `This will also delete ALL connected data:\n` +
+                          `  • Nozzle readings (meter + tank volumes will be reversed)\n` +
+                          `  • Credit sales (Account Receivables orders will be removed)\n` +
+                          `  • 1Card sales\n` +
+                          `  • Dip readings\n` +
+                          `  • Cash reconciliation for this shift\n\n` +
+                          `This cannot be undone.`
+                        )) return;
+                        const pwd = window.prompt('Enter your admin password to confirm:');
+                        if (!pwd) return;
+                        try { await deleteShift(s.id, pwd); await load(); }
+                        catch (e) { alert('Delete failed: ' + (e.response?.data?.error || e.message)); }
+                      }}
+                      style={{ ...S.btnSecondary, color: '#b91c1c', borderColor: '#fecaca', background: '#fef2f2' }}
+                    ><FiTrash2 /> Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}
