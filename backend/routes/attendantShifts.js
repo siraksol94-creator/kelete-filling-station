@@ -491,12 +491,15 @@ router.post('/:id/close', auth, (req, res) => {
       const testing = Number(r.testing_litres || 0);
       const litresSold = Math.max(closing - base.opening_reading - testing, 0);
       const expected = Number((litresSold * base.price_per_litre).toFixed(2));
+      const prevLitres = Number(base.litres_sold || 0);  // 0 on first close
       updReading.run(closing, testing, litresSold, expected, base.id);
       grossSales += expected;
 
       const noz = db.prepare('SELECT * FROM nozzles WHERE id = ?').get(base.nozzle_id);
       updNozzle.run(closing, base.nozzle_id);
-      updTank.run(litresSold, noz.tank_id);
+      // Apply only the DELTA so a Reopen → re-Close doesn't drain the tank twice.
+      const deltaLitres = litresSold - prevLitres;
+      if (deltaLitres !== 0) updTank.run(deltaLitres, noz.tank_id);
     }
 
     // 2. Batch credit sales (if any were submitted with the close rather
@@ -518,7 +521,10 @@ router.post('/:id/close', auth, (req, res) => {
       if (cs.fleet_customer_id) updFleet.run(amt, cs.fleet_customer_id);
     }
 
-    // 3. Dip readings per tank → compare to book volume
+    // 3. Dip readings per tank → compare to book volume. Clear any prior
+    //    dips for this shift first so Reopen → re-Close replaces rather
+    //    than duplicates.
+    db.prepare('DELETE FROM shift_dips WHERE shift_id = ?').run(req.params.id);
     const insDip = db.prepare(`
       INSERT INTO shift_dips (shift_id, tank_id, dip_litres, reading_litres, variance)
       VALUES (?,?,?,?,?)

@@ -73,19 +73,28 @@ export default function AttendantShifts() {
     try {
       const full = (await getShift(sh.id)).data;
       setClosingShift(full);
-      // Leave Closing empty so the operator must type the real meter value;
-      // pre-filling with the opening made every row calculate 0 and hid the
-      // bug when a stale snapshot pre-dated the actual opening.
+      // Prefill from saved readings/dips so a Reopen → Close doesn't ask
+      // the attendant to retype what was already captured. Empty for a
+      // first-time close so the operator must type the real meter value.
       const init = {};
-      (full.readings || []).forEach(r => { init[r.id] = { closing_reading: '' }; });
-      // Only tanks tied to this shift's nozzles need dips entered
+      (full.readings || []).forEach(r => {
+        const prev = r.closing_reading != null && Number(r.closing_reading) > 0 ? String(r.closing_reading) : '';
+        init[r.id] = { closing_reading: prev };
+      });
       const tankIds = Array.from(new Set((full.readings || []).map(r => r.tank_id).filter(Boolean)));
       const dipsInit = {};
       tankIds.forEach(tid => { dipsInit[tid] = ''; });
+      (full.dips || []).forEach(d => {
+        if (d.dip_litres != null) dipsInit[d.tank_id] = String(d.dip_litres);
+      });
       setCd({
         readings: init, credit_sales: [], dips: dipsInit,
-        payment_cash: '', payment_swipes: '', payment_1card: '', payment_mobile: '', payment_other: '',
-        notes: '',
+        payment_cash:   full.payment_cash   ? String(full.payment_cash)   : '',
+        payment_swipes: full.payment_swipes ? String(full.payment_swipes) : '',
+        payment_1card:  full.payment_1card  ? String(full.payment_1card)  : '',
+        payment_mobile: full.payment_mobile ? String(full.payment_mobile) : '',
+        payment_other:  full.payment_other  ? String(full.payment_other)  : '',
+        notes: full.notes || '',
       });
       setErr('');
     } catch (e) {}
