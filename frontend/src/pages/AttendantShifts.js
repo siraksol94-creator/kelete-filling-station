@@ -407,34 +407,9 @@ export default function AttendantShifts() {
                   </tbody>
                 </table>
 
-                {/* ── Section 2: dip readings per tank ────────────────── */}
-                <SectionHeader title="2. Dip Readings per Tank" />
-                <table style={S.table}>
-                  <thead><tr>
-                    <th style={S.th}>Tank</th>
-                    <th style={{ ...S.th, textAlign: 'right' }}>Reading (book)</th>
-                    <th style={{ ...S.th, textAlign: 'right' }}>Dip *</th>
-                    <th style={{ ...S.th, textAlign: 'right' }}>Variance</th>
-                  </tr></thead>
-                  <tbody>
-                    {dipReconciliation.map(d => (
-                      <tr key={d.tank_id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={S.td}><strong>{d.tank?.code || d.tank_id}</strong> <span style={{ color: '#9ca3af' }}>— {d.tank?.grade_name}</span></td>
-                        <td style={S.tdR}>{d.reading != null ? fmtNum(d.reading, 2) : '-'}</td>
-                        <td style={S.tdR}>
-                          <input type="number" step="0.01" value={cd.dips[d.tank_id] ?? ''} onChange={e => setCd({ ...cd, dips: { ...cd.dips, [d.tank_id]: e.target.value } })} style={{ ...S.input, width: 120, textAlign: 'right' }} />
-                        </td>
-                        <td style={{ ...S.tdR, color: d.variance == null ? '#9ca3af' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#16a34a')) }}>
-                          {d.variance != null ? fmtNum(d.variance, 2) : '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
                 <div style={{ marginTop: 16, padding: 12, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 13, color: '#1e3a8a' }}>
                   <strong>Gross from meters: K {fmtNum(grossSales, 2)}</strong><br />
-                  Payment reconciliation (cash, mobile money, swipes) happens next in <strong>Fuel Cash Report</strong>.
+                  Payment reconciliation happens in <strong>Fuel Cash Report</strong>. Dip readings now live on the <strong>Tank Dips</strong> page (one per tank per day, not per shift).
                 </div>
 
                 <label style={{ ...S.lbl, marginTop: 16 }}>Notes

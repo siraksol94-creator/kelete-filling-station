@@ -34,6 +34,45 @@ function initFuelSchema(db) {
       updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
+    -- Bin-card ledger for tanks. Every change to a tank's volume (opening,
+    -- fuel delivery, shift-close sale, manual adjustment, dip-driven
+    -- adjustment) writes exactly one row here. tanks.current_volume is a
+    -- cache = sum(litres) for the tank. Nothing updates current_volume
+    -- without a matching movement, so the ledger is the audit trail.
+    CREATE TABLE IF NOT EXISTS tank_movements (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      tank_id        INTEGER NOT NULL REFERENCES tanks(id) ON DELETE CASCADE,
+      movement_date  TEXT NOT NULL DEFAULT (date('now')),
+      type           TEXT NOT NULL,   -- 'opening' | 'delivery' | 'sale' | 'adjustment' | 'dip_adjustment' | 'reversal'
+      litres         REAL NOT NULL,   -- signed: + in, - out
+      ref_table      TEXT,            -- e.g. 'fuel_deliveries', 'attendant_shifts', 'tank_dips'
+      ref_id         INTEGER,
+      notes          TEXT,
+      created_by     INTEGER REFERENCES users(id),
+      created_at     TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_tank_movements_tank_date ON tank_movements(tank_id, movement_date);
+
+    -- One dip measurement per tank per day. Taken at opening or by a
+    -- supervisor, not per shift. Variance = measured - book_volume at the
+    -- moment of save. An admin can later click "Post Adjustment" which
+    -- writes a tank_movements row of type='dip_adjustment' and sets
+    -- posted_adjustment_id so the dip can't be re-posted.
+    CREATE TABLE IF NOT EXISTS tank_dips (
+      id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+      tank_id                INTEGER NOT NULL REFERENCES tanks(id) ON DELETE CASCADE,
+      dip_date               TEXT NOT NULL DEFAULT (date('now')),
+      measured_litres        REAL NOT NULL,
+      book_litres            REAL NOT NULL,
+      variance               REAL NOT NULL,
+      taken_by_user_id       INTEGER REFERENCES users(id),
+      posted_adjustment_id   INTEGER REFERENCES tank_movements(id),
+      notes                  TEXT,
+      created_at             TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at             TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date ON tank_dips(tank_id, dip_date);
+
     CREATE TABLE IF NOT EXISTS pumps (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       code        TEXT NOT NULL,
@@ -231,6 +270,40 @@ function initFuelSchema(db) {
     try { db.exec(`ALTER TABLE shift_credit_sales ADD COLUMN ${col}`); }
     catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
   }
+
+  // Backfill: every pre-existing tank's current_volume becomes an
+  // 'opening' row in tank_movements so the ledger invariant
+  // "current_volume == SUM(litres)" holds for day one.
+  try {
+    const tanks = db.prepare(`
+      SELECT t.id, t.current_volume
+        FROM tanks t
+       WHERE NOT EXISTS (SELECT 1 FROM tank_movements m WHERE m.tank_id = t.id)
+    `).all();
+    const ins = db.prepare(`
+      INSERT INTO tank_movements (tank_id, movement_date, type, litres, notes)
+      VALUES (?, date('now'), 'opening', ?, 'Backfilled opening balance')
+    `);
+    for (const t of tanks) if (Number(t.current_volume || 0) !== 0) ins.run(t.id, Number(t.current_volume));
+  } catch (e) { /* schema may still be initialising for a brand-new tenant */ }
 }
+
+// Record a signed litres movement + keep tanks.current_volume in step.
+// All writers go through this: fuel deliveries (+), shift close (-),
+// tank create opening (+), dip adjustments (±), shift delete reversal.
+// Transaction-safe to call from inside db.transaction() blocks.
+function recordTankMovement(db, { tank_id, litres, type, ref_table = null, ref_id = null, notes = '', created_by = null, movement_date = null }) {
+  if (!tank_id || !type) throw new Error('tank_id + type required');
+  const l = Number(litres);
+  if (!isFinite(l)) throw new Error('litres must be a number');
+  const info = db.prepare(`
+    INSERT INTO tank_movements (tank_id, movement_date, type, litres, ref_table, ref_id, notes, created_by)
+    VALUES (?, COALESCE(?, date('now')), ?, ?, ?, ?, ?, ?)
+  `).run(tank_id, movement_date, type, l, ref_table, ref_id, notes || null, created_by);
+  db.prepare("UPDATE tanks SET current_volume = current_volume + ?, updated_at = datetime('now') WHERE id = ?").run(l, tank_id);
+  return info.lastInsertRowid;
+}
+
+module.exports = { initFuelSchema, recordTankMovement };
 
 module.exports = { initFuelSchema };

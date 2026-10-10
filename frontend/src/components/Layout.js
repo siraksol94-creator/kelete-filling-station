@@ -14,7 +14,7 @@ import { isTerminal58 } from '../utils/receipt58';
 import { FiGrid, FiShoppingCart, FiPackage, FiFileText, FiDollarSign, FiUsers, FiSettings,
          FiChevronDown, FiLogOut, FiSearch, FiBell, FiMenu, FiDownload, FiUpload, FiList,
          FiBook, FiCreditCard, FiClipboard, FiUser, FiUserPlus, FiSliders, FiGlobe, FiCloud, FiTool,
-         FiCornerDownLeft, FiCornerUpLeft, FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiCheckCircle, FiTag, FiRefreshCw, FiTruck, FiInbox, FiSend, FiDownloadCloud, FiHardDrive, FiLock, FiMessageSquare } from 'react-icons/fi';
+         FiCornerDownLeft, FiCornerUpLeft, FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiCheckCircle, FiTag, FiRefreshCw, FiTruck, FiInbox, FiSend, FiDownloadCloud, FiHardDrive, FiLock, FiMessageSquare, FiActivity } from 'react-icons/fi';
 import ChangePasswordModal from './ChangePasswordModal';
 
 const LANGUAGES = [
@@ -694,6 +694,9 @@ const Layout = () => {
                   </div>
                   <div className={`nav-item ${isActive('/fuel/tanks') ? 'active' : ''}`} onClick={() => navigate('/fuel/tanks')}>
                     <FiHardDrive className="nav-icon" /> <span>Tanks</span>
+                  </div>
+                  <div className={`nav-item ${isActive('/fuel/tank-dips') ? 'active' : ''}`} onClick={() => navigate('/fuel/tank-dips')}>
+                    <FiActivity className="nav-icon" /> <span>Tank Dips</span>
                   </div>
                   <div className={`nav-item ${isActive('/fuel/pumps') ? 'active' : ''}`} onClick={() => navigate('/fuel/pumps')}>
                     <FiSliders className="nav-icon" /> <span>Pumps &amp; Nozzles</span>

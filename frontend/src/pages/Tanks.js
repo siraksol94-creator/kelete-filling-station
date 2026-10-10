@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiActivity, FiAlertTriangle } from 'react-icons/fi';
-import { getTanks, createTank, updateTank, deleteTank, dipTank, getFuelGrades } from '../services/fuelApi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle } from 'react-icons/fi';
+import { getTanks, createTank, updateTank, deleteTank, getFuelGrades } from '../services/fuelApi';
 import { S } from './fuelStyles';
 
 // Vertical tank drawn as SVG, supporting 1-6 vessels sharing one fluid level.
@@ -104,9 +104,6 @@ export default function Tanks() {
   const [form, setForm] = useState(emptyForm);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
-  const [dipFor, setDipFor] = useState(null);
-  const [dipVal, setDipVal] = useState('');
-
   const load = async () => {
     try {
       const [t, g] = await Promise.all([getTanks(), getFuelGrades()]);
@@ -134,14 +131,6 @@ export default function Tanks() {
     catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
   };
 
-  const submitDip = async (e) => {
-    e.preventDefault();
-    try {
-      const resp = await dipTank(dipFor.id, { measured_litres: Number(dipVal) });
-      alert(`Dip recorded: previous ${resp.data.previous_volume} L, new ${resp.data.new_volume} L, variance ${resp.data.variance.toFixed(2)} L`);
-      setDipFor(null); setDipVal(''); await load();
-    } catch (ex) { alert(ex.response?.data?.error || 'Dip failed'); }
-  };
 
   return (
     <div style={S.page}>
@@ -166,7 +155,6 @@ export default function Tanks() {
                   <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{t.name}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 2 }}>
-                  <button onClick={() => { setDipFor(t); setDipVal(String(vol || '')); }} style={S.iconBtn} title="Record dip"><FiActivity /></button>
                   <button onClick={() => openEdit(t)} style={S.iconBtn} title="Edit"><FiEdit2 /></button>
                   <button onClick={() => remove(t)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>
                 </div>
@@ -224,7 +212,12 @@ export default function Tanks() {
                   </select>
                 </label>
                 <label style={S.lbl}>Capacity (L) *<input type="number" value={form.capacity_litres} onChange={e => setForm({ ...form, capacity_litres: e.target.value })} required style={S.input} /></label>
-                <label style={S.lbl}>Current Volume (L)<input type="number" value={form.current_volume} onChange={e => setForm({ ...form, current_volume: e.target.value })} style={S.input} /></label>
+                {!editingId && (
+                  <label style={S.lbl}>Opening Balance (L)
+                    <input type="number" value={form.current_volume} onChange={e => setForm({ ...form, current_volume: e.target.value })} style={S.input} />
+                    <small style={{ color: '#9ca3af', fontSize: 11 }}>Posted as an 'opening' ledger row. Edit later via Tank Dips, not here.</small>
+                  </label>
+                )}
                 <label style={S.lbl}>Low Stock Alert (L)<input type="number" value={form.low_stock_litres} onChange={e => setForm({ ...form, low_stock_litres: e.target.value })} style={S.input} /></label>
                 <label style={S.lbl}>Connected Vessels
                   <select value={form.vessel_count || 1} onChange={e => setForm({ ...form, vessel_count: Number(e.target.value) })} style={S.input}>
@@ -251,28 +244,6 @@ export default function Tanks() {
         </div>
       )}
 
-      {dipFor && (
-        <div style={S.backdrop} onClick={() => setDipFor(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={S.modalHeader}>
-              <h3 style={{ margin: 0 }}>Dip Reading: {dipFor.code}</h3>
-              <button onClick={() => setDipFor(null)} style={S.iconBtn}><FiX /></button>
-            </div>
-            <form onSubmit={submitDip}>
-              <div style={{ padding: 20 }}>
-                <p style={{ marginTop: 0, color: '#6b7280' }}>Book volume: <strong>{Number(dipFor.current_volume).toFixed(2)} L</strong></p>
-                <label style={S.lbl}>Measured volume (L) *
-                  <input type="number" step="0.01" value={dipVal} onChange={e => setDipVal(e.target.value)} required autoFocus style={S.input} />
-                </label>
-              </div>
-              <div style={S.modalFooter}>
-                <button type="button" onClick={() => setDipFor(null)} style={S.btnSecondary}>Cancel</button>
-                <button type="submit" style={S.btnPrimary}>Record Dip</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

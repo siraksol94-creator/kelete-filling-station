@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth } = require('../middleware/auth');
+const { recordTankMovement } = require('../config/fuelSchema');
 
 function nextDeliveryNumber() {
   const row = db.prepare("SELECT COUNT(*) AS c FROM fuel_deliveries WHERE delivery_number LIKE 'FD-%'").get();
@@ -73,10 +74,14 @@ router.post('/', auth, (req, res) => {
       req.user?.id || null, notes
     );
 
-    // Update tank volume and weighted-average cost on fuel_grade
-    const newVolume = (tank.current_volume || 0) + litres;
-    db.prepare('UPDATE tanks SET current_volume = ?, updated_at = datetime(\'now\') WHERE id = ?')
-      .run(newVolume, tank_id);
+    // Bin-card: inbound delivery → +litres ledger row, cache updated inside.
+    recordTankMovement(db, {
+      tank_id, litres, type: 'delivery',
+      ref_table: 'fuel_deliveries', ref_id: info.lastInsertRowid,
+      notes: `Delivery ${number}`,
+      created_by: req.user?.id || null,
+      movement_date: delivery_date || null,
+    });
 
     const grade = db.prepare('SELECT * FROM fuel_grades WHERE id = ?').get(tank.fuel_grade_id);
     if (grade) {
@@ -97,9 +102,13 @@ router.delete('/:id', auth, (req, res) => {
   const tx = db.transaction(() => {
     const row = db.prepare('SELECT * FROM fuel_deliveries WHERE id = ?').get(req.params.id);
     if (!row) throw new Error('Not found');
-    // reverse tank volume
-    db.prepare('UPDATE tanks SET current_volume = current_volume - ? WHERE id = ?')
-      .run(row.litres_delivered, row.tank_id);
+    // Reversal row (keeps the delivery row traceable as cancelled)
+    recordTankMovement(db, {
+      tank_id: row.tank_id, litres: -Number(row.litres_delivered || 0),
+      type: 'reversal', ref_table: 'fuel_deliveries', ref_id: row.id,
+      notes: `Reversed delivery ${row.delivery_number}`,
+      created_by: req.user?.id || null,
+    });
     db.prepare('DELETE FROM fuel_deliveries WHERE id = ?').run(req.params.id);
     return { message: 'Deleted and tank volume reversed' };
   });

@@ -13,6 +13,13 @@ export const createTank         = (d)       => api.post('/tanks', d);
 export const updateTank         = (id, d)   => api.put(`/tanks/${id}`, d);
 export const deleteTank         = (id)      => api.delete(`/tanks/${id}`);
 export const dipTank            = (id, d)   => api.post(`/tanks/${id}/dip`, d);
+export const getTankBinCard     = (id, p)   => api.get(`/tanks/${id}/bin-card`, { params: p });
+
+// Tank Dips — one per tank per day
+export const getTankDips        = (date)    => api.get('/tank-dips', { params: { date } });
+export const saveTankDip        = (d)       => api.post('/tank-dips', d);
+export const postTankDipAdjustment = (id)   => api.post(`/tank-dips/${id}/post-adjustment`);
+export const deleteTankDip      = (id)      => api.delete(`/tank-dips/${id}`);
 
 // Pumps + nozzles
 export const getPumpsWithNozzles = ()        => api.get('/pumps');

@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const db = require('../config/database');
+const { recordTankMovement } = require('../config/fuelSchema');
 const { auth } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
@@ -133,16 +134,18 @@ router.get('/day-summary', auth, (req, res) => {
        ORDER BY p.code, fg.name
     `).all(...shiftIds);
 
-    // Per-grade dip vs reading (read = litres sold through nozzles of that grade)
-    const perGrade = shiftIds.length === 0 ? [] : db.prepare(`
+    // Per-grade dip vs reading. Dips now live on tank_dips (one per tank
+    // per day) rather than shift_dips (which was per shift). Sum each
+    // grade's measured dips for the given date.
+    const perGrade = db.prepare(`
       SELECT fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
-             COALESCE(SUM(d.dip_litres), 0) AS dip_total
-        FROM shift_dips d
+             COALESCE(SUM(d.measured_litres), 0) AS dip_total
+        FROM tank_dips d
         JOIN tanks t ON t.id = d.tank_id
         JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
-       WHERE d.shift_id IN (${placeholders})
+       WHERE d.dip_date = DATE(?)
        GROUP BY fg.id
-    `).all(...shiftIds);
+    `).all(date);
 
     const readingByGrade = shiftIds.length === 0 ? [] : db.prepare(`
       SELECT fg.id AS grade_id, COALESCE(SUM(snr.litres_sold), 0) AS reading_total
@@ -447,13 +450,19 @@ router.post('/:id/delete', auth, async (req, res) => {
       // Reverse nozzle meter + tank volume side-effects of the close
       const readings = db.prepare('SELECT * FROM shift_nozzle_readings WHERE shift_id = ?').all(req.params.id);
       const updNozzle = db.prepare("UPDATE nozzles SET current_meter_reading = ?, updated_at = datetime('now') WHERE id = ?");
-      const updTank   = db.prepare("UPDATE tanks SET current_volume = current_volume + ?, updated_at = datetime('now') WHERE id = ?");
       for (const r of readings) {
         updNozzle.run(Number(r.opening_reading || 0), r.nozzle_id);
         const litres = Number(r.litres_sold || 0);
         if (litres > 0) {
           const noz = db.prepare('SELECT tank_id FROM nozzles WHERE id = ?').get(r.nozzle_id);
-          if (noz?.tank_id) updTank.run(litres, noz.tank_id);
+          if (noz?.tank_id) {
+            recordTankMovement(db, {
+              tank_id: noz.tank_id, litres, type: 'reversal',
+              ref_table: 'attendant_shifts', ref_id: Number(req.params.id),
+              notes: `Reversed sales for deleted shift #${req.params.id}`,
+              created_by: req.user?.id || null,
+            });
+          }
         }
       }
 
@@ -536,7 +545,6 @@ router.post('/:id/close', auth, (req, res) => {
        WHERE id = ?
     `);
     const updNozzle = db.prepare('UPDATE nozzles SET current_meter_reading = ?, updated_at = datetime(\'now\') WHERE id = ?');
-    const updTank   = db.prepare('UPDATE tanks SET current_volume = current_volume - ?, updated_at = datetime(\'now\') WHERE id = ?');
 
     for (const r of readings) {
       const base = db.prepare('SELECT * FROM shift_nozzle_readings WHERE id = ?').get(r.id);
@@ -554,9 +562,19 @@ router.post('/:id/close', auth, (req, res) => {
 
       const noz = db.prepare('SELECT * FROM nozzles WHERE id = ?').get(base.nozzle_id);
       updNozzle.run(closing, base.nozzle_id);
-      // Apply only the DELTA so a Reopen → re-Close doesn't drain the tank twice.
+      // Bin-card: outbound sale → one ledger row per nozzle per shift close
+      // (negative litres). Delta semantics preserved so Reopen → re-Close
+      // doesn't double-drain: the previous close's row stays, and we post
+      // only the difference.
       const deltaLitres = litresSold - prevLitres;
-      if (deltaLitres !== 0) updTank.run(deltaLitres, noz.tank_id);
+      if (deltaLitres !== 0) {
+        recordTankMovement(db, {
+          tank_id: noz.tank_id, litres: -deltaLitres,
+          type: 'sale', ref_table: 'attendant_shifts', ref_id: Number(req.params.id),
+          notes: `Shift #${req.params.id} close · nozzle ${base.nozzle_id}`,
+          created_by: req.user?.id || null,
+        });
+      }
     }
 
     // 2. Batch credit sales (if any were submitted with the close rather
