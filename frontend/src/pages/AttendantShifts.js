@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText } from 'react-icons/fi';
-import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getFleetCustomers } from '../services/fuelApi';
+import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getFleetCustomers, getPumpsWithNozzles } from '../services/fuelApi';
 import { getUsers } from '../services/api';
 import { S } from './fuelStyles';
 
@@ -10,6 +10,7 @@ export default function AttendantShifts() {
   const [nozzles, setNozzles] = useState([]);
   const [tanks, setTanks] = useState([]);
   const [fleet, setFleet] = useState([]);
+  const [pumps, setPumps] = useState([]);     // [{id, code, name, nozzles: [...]}]
 
   const [openForm, setOpenForm] = useState(null);
   const [closingShift, setClosingShift] = useState(null);
@@ -25,12 +26,13 @@ export default function AttendantShifts() {
 
   const load = async () => {
     try {
-      const [sh, u, n, t, fl] = await Promise.all([getShifts(), getUsers(), getNozzles(), getTanks(), getFleetCustomers()]);
+      const [sh, u, n, t, fl, p] = await Promise.all([getShifts(), getUsers(), getNozzles(), getTanks(), getFleetCustomers(), getPumpsWithNozzles()]);
       setShifts(sh.data || []);
       setUsers((u.data || []).filter(x => x.status === 'Active'));
       setNozzles(n.data || []);
       setTanks(t.data || []);
       setFleet(fl.data || []);
+      setPumps(p.data || []);
     } catch (e) {}
   };
   useEffect(() => { load(); }, []);
@@ -201,21 +203,37 @@ export default function AttendantShifts() {
                   </select>
                 </label>
                 <div style={{ marginTop: 16 }}>
-                  <strong style={{ fontSize: 13, color: '#374151' }}>Nozzles for this attendant *</strong>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-                    {nozzles.map(n => (
-                      <label key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 10, border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer' }}>
-                        <input type="checkbox" checked={openForm.nozzle_ids.includes(n.id)} onChange={e => {
-                          const list = e.target.checked ? [...openForm.nozzle_ids, n.id] : openForm.nozzle_ids.filter(x => x !== n.id);
-                          setOpenForm({ ...openForm, nozzle_ids: list });
-                        }} />
-                        <div>
-                          <div><strong>{n.pump_code}-{n.code}</strong></div>
-                          <div style={{ fontSize: 12, color: '#6b7280' }}>{n.grade_name} @ {Number(n.current_meter_reading).toFixed(2)} L</div>
-                        </div>
-                      </label>
-                    ))}
-                    {nozzles.length === 0 && <div style={{ color: '#6b7280', fontSize: 13 }}>No nozzles configured.</div>}
+                  <strong style={{ fontSize: 13, color: '#374151' }}>Pumps for this attendant *</strong>
+                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    {pumps.map(p => {
+                      const pumpNozIds = (p.nozzles || []).map(n => n.id);
+                      const allIn = pumpNozIds.length > 0 && pumpNozIds.every(id => openForm.nozzle_ids.includes(id));
+                      return (
+                        <label key={p.id} style={{ display: 'flex', alignItems: 'start', gap: 10, padding: 12, border: `1.5px solid ${allIn ? '#2563eb' : '#e5e7eb'}`, borderRadius: 8, cursor: 'pointer', background: allIn ? '#eff6ff' : '#fff' }}>
+                          <input type="checkbox" checked={allIn} onChange={e => {
+                            const next = e.target.checked
+                              ? Array.from(new Set([...openForm.nozzle_ids, ...pumpNozIds]))
+                              : openForm.nozzle_ids.filter(id => !pumpNozIds.includes(id));
+                            setOpenForm({ ...openForm, nozzle_ids: next });
+                          }} style={{ marginTop: 3 }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontWeight: 700, fontSize: 14 }}>{p.code} <span style={{ color: '#6b7280', fontWeight: 500 }}>— {p.name}</span></div>
+                            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                              {(p.nozzles || []).map(n => (
+                                <span key={n.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6' }}>
+                                  <strong>{n.code}</strong>
+                                  <span style={{ color: n.grade_color || '#9ca3af' }}>·</span>
+                                  <span>{n.grade_name}</span>
+                                </span>
+                              ))}
+                              {(p.nozzles || []).length === 0 && <span style={{ fontStyle: 'italic' }}>no nozzles</span>}
+                            </div>
+                          </div>
+                        </label>
+                      );
+                    })}
+                    {pumps.length === 0 && <div style={{ color: '#6b7280', fontSize: 13 }}>No pumps configured.</div>}
                   </div>
                 </div>
               </div>
@@ -255,7 +273,7 @@ export default function AttendantShifts() {
                   <tbody>
                     {liveNozzleRows.map(r => (
                       <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={S.td}><strong>{r.pump_code}-{r.nozzle_code}</strong></td>
+                        <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
                         <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                         <td style={S.tdR}>{Number(r.opening_reading).toFixed(2)}</td>
                         <td style={S.tdR}>
@@ -427,7 +445,7 @@ export default function AttendantShifts() {
                 <tbody>
                   {(viewShift.readings || []).map(r => (
                     <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={S.td}><strong>{r.pump_code}-{r.nozzle_code}</strong></td>
+                      <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
                       <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                       <td style={S.tdR}>{Number(r.opening_reading).toFixed(2)}</td>
                       <td style={S.tdR}>{Number(r.closing_reading || 0).toFixed(2)}</td>
