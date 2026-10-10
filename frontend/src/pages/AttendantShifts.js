@@ -4,6 +4,22 @@ import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getFl
 import { getUsers } from '../services/api';
 import { S } from './fuelStyles';
 
+// Thousands separator for display (handles partial typing like "384343."
+// so the user can still key a decimal point without the formatter eating it).
+function formatThousands(v) {
+  if (v === '' || v == null) return '';
+  const s = String(v);
+  const [intPart, decPart] = s.split('.');
+  const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return decPart !== undefined ? `${withCommas}.${decPart}` : withCommas;
+}
+
+function fmtNum(n, dec = 2) {
+  const num = Number(n);
+  if (!isFinite(num)) return '-';
+  return num.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
 export default function AttendantShifts() {
   const [shifts, setShifts] = useState([]);
   const [users, setUsers] = useState([]);
@@ -289,26 +305,31 @@ export default function AttendantShifts() {
                       <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6', background: r.invalid ? '#fef2f2' : undefined }}>
                         <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
                         <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
-                        <td style={S.tdR}>{Number(r.opening_reading).toFixed(2)}</td>
+                        <td style={S.tdR}>{fmtNum(r.opening_reading, 2)}</td>
                         <td style={S.tdR}>
-                          <input type="number" step="0.01"
-                            value={cd.readings[r.id]?.closing_reading ?? ''}
-                            onChange={e => setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: e.target.value } } })}
+                          <input type="text" inputMode="decimal"
+                            value={formatThousands(cd.readings[r.id]?.closing_reading ?? '')}
+                            onChange={e => {
+                              const raw = e.target.value.replace(/,/g, '');
+                              if (raw === '' || /^\d*\.?\d*$/.test(raw)) {
+                                setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: raw } } });
+                              }
+                            }}
                             required
                             placeholder="type closing"
-                            style={{ ...S.input, width: 130, textAlign: 'right', borderColor: r.invalid ? '#dc2626' : undefined }} />
+                            style={{ ...S.input, width: 140, textAlign: 'right', borderColor: r.invalid ? '#dc2626' : undefined }} />
                           {r.invalid && <div style={{ color: '#dc2626', fontSize: 11, marginTop: 2 }}>closing &lt; opening</div>}
                         </td>
-                        <td style={S.tdR}><strong>{r.sold.toFixed(2)}</strong></td>
-                        <td style={S.tdR}>K {Number(r.price_per_litre).toFixed(2)}</td>
-                        <td style={S.tdR}><strong>K {r.amt.toFixed(2)}</strong></td>
+                        <td style={S.tdR}><strong>{fmtNum(r.sold, 2)}</strong></td>
+                        <td style={S.tdR}>K {fmtNum(r.price_per_litre, 2)}</td>
+                        <td style={S.tdR}><strong>K {fmtNum(r.amt, 2)}</strong></td>
                       </tr>
                     ))}
                     <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
                       <td colSpan={4} style={{ ...S.td, textAlign: 'right' }}>TOTAL READING SALES</td>
-                      <td style={S.tdR}>{liveNozzleRows.reduce((s, r) => s + r.sold, 0).toFixed(2)}</td>
+                      <td style={S.tdR}>{fmtNum(liveNozzleRows.reduce((s, r) => s + r.sold, 0), 2)}</td>
                       <td style={S.td}></td>
-                      <td style={S.tdR}>K {grossSales.toFixed(2)}</td>
+                      <td style={S.tdR}>K {fmtNum(grossSales, 2)}</td>
                     </tr>
                   </tbody>
                 </table>
