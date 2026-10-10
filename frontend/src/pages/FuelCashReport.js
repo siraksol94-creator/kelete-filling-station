@@ -110,17 +110,45 @@ export default function FuelCashReport() {
       )}
 
       {summary && (rows.length > 0 || (summary.pumpGrades || []).length > 0) && (
-        <DaySummaryPanel summary={summary} />
+        <DaySummaryPanel summary={summary} liveOverride={liveTotals(rows, inputs)} />
       )}
     </div>
   );
 }
 
+// Sum what the user is CURRENTLY typing in the per-shift inputs so the
+// Day Summary totals move in real time (backend summary is the saved
+// baseline, we just substitute mobile/swipes/cash with the live typed
+// values and recompute deductions + variance).
+function liveTotals(rows, inputs) {
+  const num = v => Number(v || 0);
+  let mobile = 0, swipes = 0, cash = 0;
+  for (const r of rows) {
+    const ip = inputs[r.id] || {};
+    mobile += num(ip.payment_mobile !== '' ? ip.payment_mobile : r.payment_mobile);
+    swipes += num(ip.payment_swipes !== '' ? ip.payment_swipes : r.payment_swipes);
+    cash   += num(ip.payment_cash   !== '' ? ip.payment_cash   : r.payment_cash);
+  }
+  return { mobile, swipes, cash };
+}
+
 function fmtK(n)   { return 'K ' + Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtL(n)   { return Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L'; }
 
-function DaySummaryPanel({ summary }) {
+function DaySummaryPanel({ summary, liveOverride }) {
   const { pumpGrades = [], dips = [], credits = [], onecards = [], deductions = {}, totals = {} } = summary;
+
+  // Swap in the live typed amounts (if any) and recompute totals so the
+  // panel updates as the operator types mobile/swipes/actual-cash per shift.
+  const mobileMoney = liveOverride ? liveOverride.mobile : Number(deductions.mobile_money || 0);
+  const swipesAmt   = liveOverride ? liveOverride.swipes : Number(deductions.swipes || 0);
+  const cashInHand  = liveOverride ? liveOverride.cash   : Number(totals.cash_in_hand || 0);
+  const creditTotal = Number(deductions.credit_total || 0);
+  const onecardTotal = Number(deductions.onecard_total || 0);
+  const totalDeductions = mobileMoney + swipesAmt + creditTotal + onecardTotal;
+  const gross = Number(totals.gross || 0);
+  const expectedCash = Math.max(0, gross - totalDeductions);
+  const variance = Number((cashInHand - expectedCash).toFixed(2));
 
   // Group pumpGrades by pump for display
   const byPump = {};
@@ -181,10 +209,10 @@ function DaySummaryPanel({ summary }) {
         {/* Column 3: Deductions + Cash */}
         <div style={col}>
           <div style={colTitle}>Deductions &amp; Cash</div>
-          <div style={line}><span>Swipes</span><span>{fmtK(deductions.swipes)}</span></div>
-          <div style={line}><span>Mobile Money</span><span>{fmtK(deductions.mobile_money)}</span></div>
+          <div style={line}><span>Swipes</span><span>{fmtK(swipesAmt)}</span></div>
+          <div style={line}><span>Mobile Money</span><span>{fmtK(mobileMoney)}</span></div>
 
-          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Engen 1Card</span><span>{fmtK(deductions.onecard_total)}</span></div>
+          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Engen 1Card</span><span>{fmtK(onecardTotal)}</span></div>
           {onecards.map((c, i) => (
             <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#6b7280' }}>
               <span>{c.customer_name}{c.card_number ? ` (${c.card_number})` : ''}</span>
@@ -192,7 +220,7 @@ function DaySummaryPanel({ summary }) {
             </div>
           ))}
 
-          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Credit</span><span>{fmtK(deductions.credit_total)}</span></div>
+          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Credit</span><span>{fmtK(creditTotal)}</span></div>
           {credits.map((c, i) => (
             <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#6b7280' }}>
               <span>{c.customer_name}</span>
@@ -200,15 +228,15 @@ function DaySummaryPanel({ summary }) {
             </div>
           ))}
 
-          <div style={totLine}><span>TOTAL DEDUCTIONS</span><span>{fmtK(deductions.total)}</span></div>
+          <div style={totLine}><span>TOTAL DEDUCTIONS</span><span>{fmtK(totalDeductions)}</span></div>
           <div style={{ ...totLine, borderTop: 'none', marginTop: 4 }}>
             <span>EXPECTED CASH</span>
-            <span style={{ color: '#2563eb' }}>{fmtK(totals.expected_cash)}</span>
+            <span style={{ color: '#2563eb' }}>{fmtK(expectedCash)}</span>
           </div>
-          <div style={{ ...line, fontWeight: 700, fontSize: 14 }}><span>CASH IN HAND</span><span>{fmtK(totals.cash_in_hand)}</span></div>
+          <div style={{ ...line, fontWeight: 700, fontSize: 14 }}><span>CASH IN HAND</span><span>{fmtK(cashInHand)}</span></div>
           <div style={{ ...line, fontWeight: 700, fontSize: 14 }}>
             <span>VARIANCE</span>
-            <span style={{ color: Math.abs(totals.variance || 0) < 0.01 ? '#111' : (totals.variance < 0 ? '#dc2626' : '#16a34a') }}>{fmtK(totals.variance)}</span>
+            <span style={{ color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a') }}>{fmtK(variance)}</span>
           </div>
         </div>
       </div>
