@@ -82,13 +82,17 @@ function initFuelSchema(db) {
       updated_at         TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
-    -- Credit sale tickets issued during a shift (CAA 3626, IDC-style
-    -- paper receipts). Posts to the fleet customer's receivable ledger.
+    -- Per-transaction non-cash sales inside a shift. payment_method
+    -- distinguishes 'Credit' (posts to fleet customer's receivable ledger)
+    -- from '1Card' (Engen fuel-card, reconciled against Engen's statement).
+    -- Mobile Money + Swipes stay as lump sums on attendant_shifts.
     CREATE TABLE IF NOT EXISTS shift_credit_sales (
       id                    INTEGER PRIMARY KEY AUTOINCREMENT,
       shift_id              INTEGER NOT NULL REFERENCES attendant_shifts(id) ON DELETE CASCADE,
+      payment_method        TEXT NOT NULL DEFAULT 'Credit',
       fleet_customer_id     INTEGER REFERENCES fleet_customers(id),
       customer_name         TEXT NOT NULL,
+      card_number           TEXT,
       vehicle_registration  TEXT,
       fuel_grade_id         INTEGER REFERENCES fuel_grades(id),
       litres                REAL NOT NULL,
@@ -214,6 +218,15 @@ function initFuelSchema(db) {
   for (const col of ['payment_cash', 'payment_swipes', 'payment_1card', 'payment_mobile', 'payment_other']) {
     try { db.exec(`ALTER TABLE attendant_shifts ADD COLUMN ${col} REAL DEFAULT 0`); }
     catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  }
+  // Idempotent column adds for the new per-transaction fields
+  for (const col of [
+    "payment_method TEXT NOT NULL DEFAULT 'Credit'",
+    'card_number TEXT',
+  ]) {
+    const name = col.split(' ')[0];
+    try { db.exec(`ALTER TABLE shift_credit_sales ADD COLUMN ${col}`); }
+    catch (e) { if (!/duplicate column/i.test(e.message)) throw e; void name; }
   }
 }
 

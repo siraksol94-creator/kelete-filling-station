@@ -129,21 +129,26 @@ router.post('/:id/credit-sales', auth, (req, res) => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
     if (shift.status !== 'Open') throw new Error('Shift already closed');
-    const { fleet_customer_id = null, customer_name, vehicle_registration = '',
-            fuel_grade_id = null, litres, price_per_litre, amount = null,
+    const { payment_method = 'Credit',
+            fleet_customer_id = null, customer_name, card_number = '',
+            vehicle_registration = '', fuel_grade_id = null,
+            litres, price_per_litre, amount = null,
             receipt_number = '', notes = '' } = req.body;
+    const method = String(payment_method).trim() || 'Credit';
     if (!customer_name || !(Number(litres) > 0)) throw new Error('customer_name and litres are required');
     const ppl = Number(price_per_litre) || 0;
     const amt = amount != null ? Number(amount) : Number((Number(litres) * ppl).toFixed(2));
     const info = db.prepare(`
       INSERT INTO shift_credit_sales (
-        shift_id, fleet_customer_id, customer_name, vehicle_registration,
-        fuel_grade_id, litres, price_per_litre, amount, receipt_number, notes
-      ) VALUES (?,?,?,?,?,?,?,?,?,?)
-    `).run(req.params.id, fleet_customer_id, customer_name.trim(), vehicle_registration,
-           fuel_grade_id, Number(litres), ppl, amt, receipt_number, notes);
-    // Post immediately to the fleet customer's receivable ledger if attached
-    if (fleet_customer_id) {
+        shift_id, payment_method, fleet_customer_id, customer_name, card_number,
+        vehicle_registration, fuel_grade_id, litres, price_per_litre, amount,
+        receipt_number, notes
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+    `).run(req.params.id, method, fleet_customer_id, customer_name.trim(), card_number,
+           vehicle_registration, fuel_grade_id, Number(litres), ppl, amt, receipt_number, notes);
+    // Only 'Credit' posts to the fleet-customer receivable ledger. '1Card'
+    // reconciles against Engen's statement, not an internal customer balance.
+    if (method === 'Credit' && fleet_customer_id) {
       db.prepare('UPDATE fleet_customers SET current_balance = current_balance + ?, updated_at = datetime(\'now\') WHERE id = ?')
         .run(amt, fleet_customer_id);
     }
@@ -156,7 +161,7 @@ router.delete('/credit-sales/:cid', auth, (req, res) => {
   const tx = db.transaction(() => {
     const cs = db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(req.params.cid);
     if (!cs) throw new Error('Not found');
-    if (cs.fleet_customer_id) {
+    if (cs.payment_method === 'Credit' && cs.fleet_customer_id) {
       db.prepare('UPDATE fleet_customers SET current_balance = current_balance - ? WHERE id = ?').run(cs.amount, cs.fleet_customer_id);
     }
     db.prepare('DELETE FROM shift_credit_sales WHERE id = ?').run(req.params.cid);
@@ -245,14 +250,16 @@ router.post('/:id/close', auth, (req, res) => {
       insDip.run(req.params.id, d.tank_id, Number(d.dip_litres), reading, variance);
     }
 
-    // 4. Sum credit sales for this shift (includes any inserted during the
-    //    shift via the per-ticket endpoint plus the batch above)
-    const creditTotal = db.prepare('SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ?').get(req.params.id).t;
+    // 4. Sum per-method ticket totals for this shift. Credit (receivables)
+    //    and 1Card (Engen pre-paid card) are both auto-summed from the
+    //    shift_credit_sales ledger — the attendant doesn't type them.
+    const creditTotal  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;
+    const onecardTotal = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(req.params.id).t;
 
-    // 5. Expected cash = gross - all non-cash deductions
-    const nonCashDeductions = Number(payment_swipes || 0) + Number(payment_1card || 0)
-                            + Number(payment_mobile || 0) + Number(payment_other || 0)
-                            + Number(creditTotal || 0);
+    // 5. Expected cash = gross - all non-cash deductions. Only Mobile Money
+    //    and Swipes come in as typed numbers; Credit + 1Card are computed.
+    const nonCashDeductions = Number(payment_swipes || 0) + Number(payment_mobile || 0)
+                            + Number(creditTotal) + Number(onecardTotal);
     const expectedCash = Number((grossSales - nonCashDeductions).toFixed(2));
     const variance = Number((Number(payment_cash || 0) - expectedCash).toFixed(2));
 
@@ -265,8 +272,8 @@ router.post('/:id/close', auth, (req, res) => {
              notes = COALESCE(?, notes), updated_at = datetime('now')
        WHERE id = ?
     `).run(req.user?.id || null, expectedCash, Number(payment_cash) || 0, variance,
-           Number(payment_cash) || 0, Number(payment_swipes) || 0, Number(payment_1card) || 0,
-           Number(payment_mobile) || 0, Number(payment_other) || 0,
+           Number(payment_cash) || 0, Number(payment_swipes) || 0, Number(onecardTotal),
+           Number(payment_mobile) || 0, Number(creditTotal),
            notes || null, req.params.id);
 
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);

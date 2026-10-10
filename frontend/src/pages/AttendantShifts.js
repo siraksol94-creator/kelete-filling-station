@@ -39,9 +39,11 @@ export default function AttendantShifts() {
   });
   const [err, setErr] = useState('');
   const [viewShift, setViewShift] = useState(null);
-  // Quick credit-ticket modal (during an open shift)
+  // Quick ticket modal (during an open shift). payment_method decides
+  // which flavour (Credit = fleet receivable, 1Card = Engen pre-paid card).
   const [ticketShift, setTicketShift] = useState(null);  // {id, attendant_name}
-  const [ticket, setTicket] = useState({ customer_name: '', fleet_customer_id: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+  const [ticketMethod, setTicketMethod] = useState('Credit');
+  const [ticket, setTicket] = useState({ customer_name: '', fleet_customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
   const [savingTicket, setSavingTicket] = useState(false);
 
   const load = async () => {
@@ -113,9 +115,13 @@ export default function AttendantShifts() {
     });
   }, [closingShift, cd.readings]);
 
-  const grossSales   = useMemo(() => liveNozzleRows.reduce((s, r) => s + r.amt, 0), [liveNozzleRows]);
-  const creditTotal  = useMemo(() => cd.credit_sales.reduce((s, c) => s + (Number(c.litres) * Number(c.price_per_litre || 0)), 0), [cd.credit_sales]);
-  const nonCash      = Number(cd.payment_swipes || 0) + Number(cd.payment_1card || 0) + Number(cd.payment_mobile || 0) + Number(cd.payment_other || 0) + creditTotal;
+  const grossSales = useMemo(() => liveNozzleRows.reduce((s, r) => s + r.amt, 0), [liveNozzleRows]);
+  // Credit + 1Card totals come from the tickets already logged on this shift
+  // (via the Credit/1Card buttons during the day). Attendant doesn't type them.
+  const existingTickets = closingShift?.credit_sales || [];
+  const creditTotal  = useMemo(() => existingTickets.filter(c => (c.payment_method || 'Credit') === 'Credit').reduce((s, c) => s + Number(c.amount), 0), [existingTickets]);
+  const onecardTotal = useMemo(() => existingTickets.filter(c => c.payment_method === '1Card').reduce((s, c) => s + Number(c.amount), 0), [existingTickets]);
+  const nonCash      = Number(cd.payment_swipes || 0) + Number(cd.payment_mobile || 0) + creditTotal + onecardTotal;
   const expectedCash = Math.max(0, grossSales - nonCash);
   const variance     = Number(cd.payment_cash || 0) - expectedCash;
 
@@ -153,15 +159,17 @@ export default function AttendantShifts() {
       if (!ticket.customer_name) throw new Error('Customer name is required');
       if (!(Number(ticket.litres) > 0)) throw new Error('Litres must be > 0');
       await addShiftCreditSale(ticketShift.id, {
+        payment_method: ticketMethod,
         customer_name: ticket.customer_name.trim(),
-        fleet_customer_id: ticket.fleet_customer_id || null,
+        fleet_customer_id: ticketMethod === 'Credit' ? (ticket.fleet_customer_id || null) : null,
+        card_number: ticket.card_number || '',
         vehicle_registration: ticket.vehicle_registration || '',
         fuel_grade_id: ticket.fuel_grade_id || null,
         litres: Number(ticket.litres),
         price_per_litre: Number(ticket.price_per_litre || 0),
         receipt_number: ticket.receipt_number || '',
       });
-      setTicketShift(null);
+      setTicketShift(null); await load();
     } catch (ex) { setErr(ex.response?.data?.error || ex.message || 'Save failed'); }
     finally { setSavingTicket(false); }
   };
@@ -232,11 +240,15 @@ export default function AttendantShifts() {
                 <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>
                 <td style={S.td}>
                   {s.status === 'Open' ? (
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <button onClick={() => {
-                        setTicketShift(s);
-                        setTicket({ customer_name: '', fleet_customer_id: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
-                      }} style={{ ...S.btnSecondary, padding: '6px 12px' }}><FiEdit /> Credit Ticket</button>
+                        setTicketShift(s); setTicketMethod('Credit');
+                        setTicket({ customer_name: '', fleet_customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+                      }} style={{ ...S.btnSecondary, padding: '6px 10px' }}>+ Credit</button>
+                      <button onClick={() => {
+                        setTicketShift(s); setTicketMethod('1Card');
+                        setTicket({ customer_name: '', fleet_customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+                      }} style={{ ...S.btnSecondary, padding: '6px 10px' }}>+ 1Card</button>
                       <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close</button>
                     </div>
                   ) : (
@@ -365,63 +377,39 @@ export default function AttendantShifts() {
                   </tbody>
                 </table>
 
-                {/* ── Section 2: credit sales ──────────────────────── */}
-                <SectionHeader title="2. Credit Sales (Receivables)" action={
-                  <button type="button" onClick={addCreditSale} style={S.btnSecondary}><FiPlus /> Add Ticket</button>
-                } />
-                {cd.credit_sales.length === 0 ? (
+                {/* ── Section 2: Credit + 1Card ticket summaries (read-only) ── */}
+                <SectionHeader title="2. Credit & 1Card Tickets (logged during shift)" />
+                {existingTickets.length === 0 ? (
                   <div style={{ padding: 16, color: '#9ca3af', fontSize: 13, textAlign: 'center', border: '1px dashed #e5e7eb', borderRadius: 6 }}>
-                    No credit tickets. Click "+ Add Ticket" for each paper receipt (CAA 3626, IDC, etc.)
+                    No tickets logged. Cancel this close, click "+ Credit" or "+ 1Card" on the shift row to add tickets, then close.
                   </div>
                 ) : (
                   <table style={S.table}>
                     <thead><tr>
-                      <th style={S.th}>Customer *</th><th style={S.th}>Vehicle</th>
+                      <th style={S.th}>Method</th><th style={S.th}>Customer / Card</th><th style={S.th}>Vehicle</th>
                       <th style={S.th}>Grade</th>
-                      <th style={{ ...S.th, textAlign: 'right' }}>Litres *</th>
+                      <th style={{ ...S.th, textAlign: 'right' }}>Litres</th>
                       <th style={{ ...S.th, textAlign: 'right' }}>K/L</th>
                       <th style={{ ...S.th, textAlign: 'right' }}>Amount</th>
-                      <th style={S.th}>Receipt #</th><th style={S.th}></th>
+                      <th style={S.th}>Receipt #</th>
                     </tr></thead>
                     <tbody>
-                      {cd.credit_sales.map((c, i) => {
-                        const amt = Number(c.litres || 0) * Number(c.price_per_litre || 0);
-                        return (
-                          <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                            <td style={S.td}>
-                              <input list="fleet-list" value={c.customer_name} onChange={e => {
-                                const match = fleet.find(f => f.name === e.target.value);
-                                updCreditSale(i, { customer_name: e.target.value, fleet_customer_id: match?.id || '' });
-                              }} style={{ ...S.input, minWidth: 150 }} placeholder="Type or pick…" />
-                              <datalist id="fleet-list">
-                                {fleet.map(f => <option key={f.id} value={f.name} />)}
-                              </datalist>
-                            </td>
-                            <td style={S.td}><input value={c.vehicle_registration} onChange={e => updCreditSale(i, { vehicle_registration: e.target.value.toUpperCase() })} style={{ ...S.input, width: 100 }} /></td>
-                            <td style={S.td}>
-                              <select value={c.fuel_grade_id} onChange={e => {
-                                const nz = nozzles.find(n => Number(n.grade_id || n.fuel_grade_id || 0) === Number(e.target.value));
-                                const price = nz?.price_per_litre || c.price_per_litre;
-                                updCreditSale(i, { fuel_grade_id: e.target.value, price_per_litre: price });
-                              }} style={{ ...S.input, width: 110 }}>
-                                <option value="">—</option>
-                                {Array.from(new Map(nozzles.map(n => [n.grade_id || n.fuel_grade_id, n])).values()).map(n => (
-                                  <option key={n.grade_id || n.fuel_grade_id} value={n.grade_id || n.fuel_grade_id}>{n.grade_name}</option>
-                                ))}
-                              </select>
-                            </td>
-                            <td style={S.tdR}><input type="number" step="0.01" value={c.litres} onChange={e => updCreditSale(i, { litres: e.target.value })} style={{ ...S.input, width: 80, textAlign: 'right' }} /></td>
-                            <td style={S.tdR}><input type="number" step="0.01" value={c.price_per_litre} onChange={e => updCreditSale(i, { price_per_litre: e.target.value })} style={{ ...S.input, width: 80, textAlign: 'right' }} /></td>
-                            <td style={S.tdR}><strong>K {amt.toFixed(2)}</strong></td>
-                            <td style={S.td}><input value={c.receipt_number} onChange={e => updCreditSale(i, { receipt_number: e.target.value })} style={{ ...S.input, width: 90 }} /></td>
-                            <td style={S.td}><button type="button" onClick={() => rmCreditSale(i)} style={S.iconBtnDanger}><FiTrash2 /></button></td>
-                          </tr>
-                        );
-                      })}
+                      {existingTickets.map(c => (
+                        <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <td style={S.td}><span style={S.pill(c.payment_method === '1Card' ? '#f59e0b' : '#2563eb')}>{c.payment_method || 'Credit'}</span></td>
+                          <td style={S.td}><strong>{c.customer_name}</strong>{c.card_number ? ` · ${c.card_number}` : ''}</td>
+                          <td style={S.td}>{c.vehicle_registration || '-'}</td>
+                          <td style={S.td}>{c.grade_name || '-'}</td>
+                          <td style={S.tdR}>{fmtNum(c.litres, 2)}</td>
+                          <td style={S.tdR}>K {fmtNum(c.price_per_litre, 2)}</td>
+                          <td style={S.tdR}><strong>K {fmtNum(c.amount, 2)}</strong></td>
+                          <td style={S.td}>{c.receipt_number || '-'}</td>
+                        </tr>
+                      ))}
                       <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
-                        <td colSpan={5} style={{ ...S.td, textAlign: 'right' }}>TOTAL CREDIT</td>
-                        <td style={S.tdR}>K {creditTotal.toFixed(2)}</td>
-                        <td colSpan={2} style={S.td}></td>
+                        <td colSpan={6} style={{ ...S.td, textAlign: 'right' }}>CREDIT · 1CARD TOTALS</td>
+                        <td style={S.tdR}>K {fmtNum(creditTotal + onecardTotal, 2)}</td>
+                        <td style={S.td}></td>
                       </tr>
                     </tbody>
                   </table>
@@ -432,11 +420,10 @@ export default function AttendantShifts() {
                   <div>
                     <SectionHeader title="3. Payment Breakdown" />
                     <PayRow label="Cash *" value={cd.payment_cash} onChange={v => setCd({ ...cd, payment_cash: v })} highlight />
-                    <PayRow label="Swipes" value={cd.payment_swipes} onChange={v => setCd({ ...cd, payment_swipes: v })} />
-                    <PayRow label="Engen 1Card" value={cd.payment_1card} onChange={v => setCd({ ...cd, payment_1card: v })} />
                     <PayRow label="Mobile Money" value={cd.payment_mobile} onChange={v => setCd({ ...cd, payment_mobile: v })} />
-                    <PayRow label="Other" value={cd.payment_other} onChange={v => setCd({ ...cd, payment_other: v })} />
+                    <PayRow label="Swipes" value={cd.payment_swipes} onChange={v => setCd({ ...cd, payment_swipes: v })} />
                     <PayRow label="Credit (auto)" value={creditTotal.toFixed(2)} readOnly />
+                    <PayRow label="1Card (auto)" value={onecardTotal.toFixed(2)} readOnly />
                   </div>
 
                   <div>
@@ -487,26 +474,37 @@ export default function AttendantShifts() {
         </div>
       )}
 
-      {/* ── Quick credit-ticket modal (during an open shift) ─────────── */}
+      {/* ── Quick ticket modal (Credit OR 1Card during an open shift) ── */}
       {ticketShift && (
         <div style={S.backdrop} onClick={() => setTicketShift(null)}>
-          <div style={{ ...S.modal, width: 'min(540px, 95vw)' }} onClick={e => e.stopPropagation()}>
+          <div style={{ ...S.modal, width: 'min(560px, 95vw)' }} onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
-              <h3 style={{ margin: 0 }}>Credit Ticket — {ticketShift.attendant_name}</h3>
+              <h3 style={{ margin: 0 }}>{ticketMethod === '1Card' ? 'Engen 1Card Ticket' : 'Credit Ticket'} — {ticketShift.attendant_name}</h3>
               <button onClick={() => setTicketShift(null)} style={S.iconBtn}><FiX /></button>
             </div>
             <form onSubmit={submitTicket}>
               {err && <div style={S.errBox}>{err}</div>}
               <div style={S.formGrid}>
-                <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Customer *
-                  <input list="ticket-fleet-list" value={ticket.customer_name} onChange={e => {
-                    const match = fleet.find(f => f.name === e.target.value);
-                    setTicket({ ...ticket, customer_name: e.target.value, fleet_customer_id: match?.id || '' });
-                  }} required style={S.input} placeholder="Type or pick a fleet customer…" />
-                  <datalist id="ticket-fleet-list">
-                    {fleet.map(f => <option key={f.id} value={f.name} />)}
-                  </datalist>
-                </label>
+                {ticketMethod === 'Credit' ? (
+                  <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Customer *
+                    <input list="ticket-fleet-list" value={ticket.customer_name} onChange={e => {
+                      const match = fleet.find(f => f.name === e.target.value);
+                      setTicket({ ...ticket, customer_name: e.target.value, fleet_customer_id: match?.id || '' });
+                    }} required style={S.input} placeholder="Type or pick a fleet customer…" />
+                    <datalist id="ticket-fleet-list">
+                      {fleet.map(f => <option key={f.id} value={f.name} />)}
+                    </datalist>
+                  </label>
+                ) : (
+                  <>
+                    <label style={S.lbl}>Card Holder *
+                      <input value={ticket.customer_name} onChange={e => setTicket({ ...ticket, customer_name: e.target.value })} required style={S.input} placeholder="Name on 1Card" />
+                    </label>
+                    <label style={S.lbl}>Card Number
+                      <input value={ticket.card_number} onChange={e => setTicket({ ...ticket, card_number: e.target.value })} style={S.input} placeholder="last 4 or full" />
+                    </label>
+                  </>
+                )}
                 <label style={S.lbl}>Vehicle
                   <input value={ticket.vehicle_registration} onChange={e => setTicket({ ...ticket, vehicle_registration: e.target.value.toUpperCase() })} style={S.input} placeholder="e.g. CAA 3626" />
                 </label>
