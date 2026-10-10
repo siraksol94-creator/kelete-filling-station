@@ -531,26 +531,38 @@ export default function AttendantShifts() {
                 </tbody>
               </table>
 
-              {(viewShift.credit_sales || []).length > 0 && (
-                <>
-                  <h4 style={{ marginTop: 20 }}>Credit Sales</h4>
-                  <table style={S.table}>
-                    <thead><tr><th style={S.th}>Customer</th><th style={S.th}>Vehicle</th><th style={S.th}>Grade</th><th style={{ ...S.th, textAlign: 'right' }}>Litres</th><th style={{ ...S.th, textAlign: 'right' }}>Amount</th><th style={S.th}>Receipt</th></tr></thead>
-                    <tbody>
-                      {viewShift.credit_sales.map(c => (
-                        <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={S.td}>{c.customer_name}</td>
-                          <td style={S.td}>{c.vehicle_registration || '-'}</td>
-                          <td style={S.td}>{c.grade_name || '-'}</td>
-                          <td style={S.tdR}>{Number(c.litres).toFixed(2)}</td>
-                          <td style={S.tdR}>K {Number(c.amount).toFixed(2)}</td>
-                          <td style={S.td}>{c.receipt_number || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </>
-              )}
+              {['Credit', '1Card'].map(method => {
+                const rows = (viewShift.credit_sales || []).filter(c => (c.payment_method || 'Credit') === method);
+                if (rows.length === 0) return null;
+                const heading = method === '1Card' ? 'Engen 1Card Sales' : 'Credit Sales';
+                return (
+                  <React.Fragment key={method}>
+                    <h4 style={{ marginTop: 20 }}>{heading}</h4>
+                    <table style={S.table}>
+                      <thead><tr>
+                        <th style={S.th}>{method === '1Card' ? 'Card Holder' : 'Customer'}</th>
+                        <th style={S.th}>{method === '1Card' ? 'Card #' : 'Vehicle'}</th>
+                        <th style={S.th}>Grade</th>
+                        <th style={{ ...S.th, textAlign: 'right' }}>Litres</th>
+                        <th style={{ ...S.th, textAlign: 'right' }}>Amount</th>
+                        <th style={S.th}>Receipt</th>
+                      </tr></thead>
+                      <tbody>
+                        {rows.map(c => (
+                          <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            <td style={S.td}>{c.customer_name}</td>
+                            <td style={S.td}>{(method === '1Card' ? c.card_number : c.vehicle_registration) || '-'}</td>
+                            <td style={S.td}>{c.grade_name || '-'}</td>
+                            <td style={S.tdR}>{Number(c.litres).toFixed(2)}</td>
+                            <td style={S.tdR}>K {Number(c.amount).toFixed(2)}</td>
+                            <td style={S.td}>{c.receipt_number || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </React.Fragment>
+                );
+              })}
 
               <h4 style={{ marginTop: 20 }}>Reconciliation</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
@@ -560,7 +572,7 @@ export default function AttendantShifts() {
                   <PayRow label="Engen 1Card" value={Number(viewShift.payment_1card || 0).toFixed(2)} readOnly />
                   <PayRow label="Mobile Money" value={Number(viewShift.payment_mobile || 0).toFixed(2)} readOnly />
                   <PayRow label="Other" value={Number(viewShift.payment_other || 0).toFixed(2)} readOnly />
-                  <PayRow label="Credit Total" value={(viewShift.credit_sales || []).reduce((s, c) => s + Number(c.amount), 0).toFixed(2)} readOnly />
+                  <PayRow label="Credit Total" value={(viewShift.credit_sales || []).filter(c => (c.payment_method || 'Credit') === 'Credit').reduce((s, c) => s + Number(c.amount), 0).toFixed(2)} readOnly />
                 </div>
                 <div>
                   <Tile label="Expected Cash" value={`K ${Number(viewShift.expected_cash || 0).toFixed(2)}`} highlight />
