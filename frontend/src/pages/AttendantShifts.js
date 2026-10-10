@@ -51,8 +51,11 @@ export default function AttendantShifts() {
     try {
       const full = (await getShift(sh.id)).data;
       setClosingShift(full);
+      // Leave Closing empty so the operator must type the real meter value;
+      // pre-filling with the opening made every row calculate 0 and hid the
+      // bug when a stale snapshot pre-dated the actual opening.
       const init = {};
-      (full.readings || []).forEach(r => { init[r.id] = { closing_reading: r.opening_reading, testing_litres: 0 }; });
+      (full.readings || []).forEach(r => { init[r.id] = { closing_reading: '' }; });
       // Only tanks tied to this shift's nozzles need dips entered
       const tankIds = Array.from(new Set((full.readings || []).map(r => r.tank_id).filter(Boolean)));
       const dipsInit = {};
@@ -70,11 +73,12 @@ export default function AttendantShifts() {
   const liveNozzleRows = useMemo(() => {
     if (!closingShift) return [];
     return (closingShift.readings || []).map(r => {
-      const c = Number(cd.readings[r.id]?.closing_reading ?? r.opening_reading);
-      const t = Number(cd.readings[r.id]?.testing_litres || 0);
-      const sold = Math.max(c - r.opening_reading - t, 0);
+      const rawC = cd.readings[r.id]?.closing_reading;
+      const c = rawC === '' || rawC == null ? null : Number(rawC);
+      const invalid = c != null && c < r.opening_reading;
+      const sold = c != null && !invalid ? Math.max(c - r.opening_reading, 0) : 0;
       const amt = sold * r.price_per_litre;
-      return { ...r, closing: c, testing: t, sold, amt };
+      return { ...r, closing: c, sold, amt, invalid };
     });
   }, [closingShift, cd.readings]);
 
@@ -113,7 +117,7 @@ export default function AttendantShifts() {
   const submitClose = async (e) => {
     e.preventDefault(); setErr('');
     const readings = Object.entries(cd.readings).map(([id, r]) => ({
-      id: Number(id), closing_reading: Number(r.closing_reading), testing_litres: Number(r.testing_litres || 0),
+      id: Number(id), closing_reading: Number(r.closing_reading), testing_litres: 0,
     }));
     const credit_sales_batch = cd.credit_sales
       .filter(c => c.customer_name && Number(c.litres) > 0)
@@ -265,26 +269,24 @@ export default function AttendantShifts() {
                     <th style={S.th}>Nozzle</th><th style={S.th}>Grade</th>
                     <th style={{ ...S.th, textAlign: 'right' }}>Opening</th>
                     <th style={{ ...S.th, textAlign: 'right' }}>Closing *</th>
-                    <th style={{ ...S.th, textAlign: 'right' }}>Testing</th>
                     <th style={{ ...S.th, textAlign: 'right' }}>Litres</th>
                     <th style={{ ...S.th, textAlign: 'right' }}>K/L</th>
                     <th style={{ ...S.th, textAlign: 'right' }}>Amount</th>
                   </tr></thead>
                   <tbody>
                     {liveNozzleRows.map(r => (
-                      <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                      <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6', background: r.invalid ? '#fef2f2' : undefined }}>
                         <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
                         <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                         <td style={S.tdR}>{Number(r.opening_reading).toFixed(2)}</td>
                         <td style={S.tdR}>
-                          <input type="number" step="0.01" value={cd.readings[r.id]?.closing_reading ?? ''} onChange={e => setCd({
-                            ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: e.target.value } }
-                          })} required style={{ ...S.input, width: 120, textAlign: 'right' }} />
-                        </td>
-                        <td style={S.tdR}>
-                          <input type="number" step="0.01" value={cd.readings[r.id]?.testing_litres ?? 0} onChange={e => setCd({
-                            ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], testing_litres: e.target.value } }
-                          })} style={{ ...S.input, width: 80, textAlign: 'right' }} />
+                          <input type="number" step="0.01"
+                            value={cd.readings[r.id]?.closing_reading ?? ''}
+                            onChange={e => setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: e.target.value } } })}
+                            required
+                            placeholder="type closing"
+                            style={{ ...S.input, width: 130, textAlign: 'right', borderColor: r.invalid ? '#dc2626' : undefined }} />
+                          {r.invalid && <div style={{ color: '#dc2626', fontSize: 11, marginTop: 2 }}>closing &lt; opening</div>}
                         </td>
                         <td style={S.tdR}><strong>{r.sold.toFixed(2)}</strong></td>
                         <td style={S.tdR}>K {Number(r.price_per_litre).toFixed(2)}</td>
@@ -292,7 +294,7 @@ export default function AttendantShifts() {
                       </tr>
                     ))}
                     <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
-                      <td colSpan={5} style={{ ...S.td, textAlign: 'right' }}>TOTAL READING SALES</td>
+                      <td colSpan={4} style={{ ...S.td, textAlign: 'right' }}>TOTAL READING SALES</td>
                       <td style={S.tdR}>{liveNozzleRows.reduce((s, r) => s + r.sold, 0).toFixed(2)}</td>
                       <td style={S.td}></td>
                       <td style={S.tdR}>K {grossSales.toFixed(2)}</td>
