@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiDollarSign, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
-import { getDailyRollup, finalizeShift } from '../services/fuelApi';
+import { getDailyRollup, finalizeShift, getDaySummary } from '../services/fuelApi';
 import { S } from './fuelStyles';
 
 const today = () => new Date().toISOString().slice(0, 10);
@@ -8,6 +8,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 export default function FuelCashReport() {
   const [date, setDate] = useState(today());
   const [rows, setRows] = useState([]);
+  const [summary, setSummary] = useState(null);
   // per-shift inputs: { [shiftId]: { payment_mobile, payment_swipes, payment_cash } }
   const [inputs, setInputs] = useState({});
   const [saving, setSaving] = useState(null);  // shiftId being saved
@@ -16,8 +17,9 @@ export default function FuelCashReport() {
   const load = async () => {
     setMsg('');
     try {
-      const r = await getDailyRollup(date);
+      const [r, sm] = await Promise.all([getDailyRollup(date), getDaySummary(date)]);
       setRows(r.data || []);
+      setSummary(sm.data || null);
       // Prefill inputs from already-saved values (so closed shifts show their reconciled amounts)
       const init = {};
       for (const s of (r.data || [])) {
@@ -106,6 +108,110 @@ export default function FuelCashReport() {
           })}
         </div>
       )}
+
+      {summary && (rows.length > 0 || (summary.pumpGrades || []).length > 0) && (
+        <DaySummaryPanel summary={summary} />
+      )}
+    </div>
+  );
+}
+
+function fmtK(n)   { return 'K ' + Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtL(n)   { return Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L'; }
+
+function DaySummaryPanel({ summary }) {
+  const { pumpGrades = [], dips = [], credits = [], onecards = [], deductions = {}, totals = {} } = summary;
+
+  // Group pumpGrades by pump for display
+  const byPump = {};
+  for (const r of pumpGrades) {
+    const k = r.pump_id;
+    if (!byPump[k]) byPump[k] = { pump_code: r.pump_code, pump_name: r.pump_name, items: [] };
+    byPump[k].items.push(r);
+  }
+  const pumpList = Object.values(byPump);
+  const fuelTotal = pumpGrades.reduce((s, r) => s + Number(r.amount || 0), 0);
+
+  const col = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16 };
+  const colTitle = { fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, paddingBottom: 8, borderBottom: '2px solid #e5e7eb' };
+  const line = { display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 };
+  const totLine = { ...line, marginTop: 8, paddingTop: 8, borderTop: '1px solid #e5e7eb', fontWeight: 700, fontSize: 14 };
+
+  return (
+    <div style={{ marginTop: 20 }}>
+      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 10 }}>Day Summary</h3>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+
+        {/* Column 1: Fuel Sales per Pump × Grade */}
+        <div style={col}>
+          <div style={colTitle}>Fuel Sales</div>
+          {pumpList.length === 0 ? <div style={{ fontSize: 13, color: '#9ca3af' }}>No readings.</div> : pumpList.map(p => (
+            <div key={p.pump_code} style={{ marginBottom: 8 }}>
+              {p.items.map(it => (
+                <div key={it.grade_id} style={line}>
+                  <span>{p.pump_code} {it.grade_name}</span>
+                  <span style={{ color: '#6b7280' }}>{fmtL(it.litres)}</span>
+                  <span style={{ fontWeight: 600, minWidth: 90, textAlign: 'right' }}>{fmtK(it.amount)}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+          <div style={totLine}>
+            <span>TOTAL FUEL SALES</span>
+            <span style={{ color: '#2563eb' }}>{fmtK(fuelTotal)}</span>
+          </div>
+        </div>
+
+        {/* Column 2: Dip vs Reading per grade */}
+        <div style={col}>
+          <div style={colTitle}>Dip vs Reading</div>
+          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#9ca3af' }}>No dips.</div> : dips.map(d => {
+            const varColor = Math.abs(d.variance) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#16a34a');
+            return (
+              <div key={d.grade_id} style={{ marginBottom: 10 }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color || '#111', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Dip</span><span>{fmtL(d.dip_total)}</span></div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Read</span><span>{fmtL(d.reading_total)}</span></div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Variance</span><span style={{ color: varColor, fontWeight: 600 }}>{fmtL(d.variance)}</span></div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Column 3: Deductions + Cash */}
+        <div style={col}>
+          <div style={colTitle}>Deductions &amp; Cash</div>
+          <div style={line}><span>Swipes</span><span>{fmtK(deductions.swipes)}</span></div>
+          <div style={line}><span>Mobile Money</span><span>{fmtK(deductions.mobile_money)}</span></div>
+
+          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Engen 1Card</span><span>{fmtK(deductions.onecard_total)}</span></div>
+          {onecards.map((c, i) => (
+            <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#6b7280' }}>
+              <span>{c.customer_name}{c.card_number ? ` (${c.card_number})` : ''}</span>
+              <span>{fmtK(c.total)}</span>
+            </div>
+          ))}
+
+          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Credit</span><span>{fmtK(deductions.credit_total)}</span></div>
+          {credits.map((c, i) => (
+            <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#6b7280' }}>
+              <span>{c.customer_name}</span>
+              <span>{fmtK(c.total)}</span>
+            </div>
+          ))}
+
+          <div style={totLine}><span>TOTAL DEDUCTIONS</span><span>{fmtK(deductions.total)}</span></div>
+          <div style={{ ...totLine, borderTop: 'none', marginTop: 4 }}>
+            <span>EXPECTED CASH</span>
+            <span style={{ color: '#2563eb' }}>{fmtK(totals.expected_cash)}</span>
+          </div>
+          <div style={{ ...line, fontWeight: 700, fontSize: 14 }}><span>CASH IN HAND</span><span>{fmtK(totals.cash_in_hand)}</span></div>
+          <div style={{ ...line, fontWeight: 700, fontSize: 14 }}>
+            <span>VARIANCE</span>
+            <span style={{ color: Math.abs(totals.variance || 0) < 0.01 ? '#111' : (totals.variance < 0 ? '#dc2626' : '#16a34a') }}>{fmtK(totals.variance)}</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

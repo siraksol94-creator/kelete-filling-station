@@ -99,6 +99,108 @@ router.get('/daily-rollup', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Day summary: everything the Fuel Cash Report bottom panel needs — fuel
+// sales broken down per pump × grade, dip-vs-reading per grade, deductions
+// (mobile money + swipes typed on shifts, plus 1Card and credit totals
+// per customer from the ticket ledger), and the station totals for the
+// date. One trip to the backend so the UI doesn't have to shred it.
+router.get('/day-summary', auth, (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ error: 'date (YYYY-MM-DD) is required' });
+
+    const shifts = db.prepare(`
+      SELECT id, status, payment_cash, payment_mobile, payment_swipes, expected_cash
+        FROM attendant_shifts
+       WHERE DATE(opened_at) = DATE(?)
+    `).all(date);
+    const shiftIds = shifts.map(s => s.id);
+    const placeholders = shiftIds.map(() => '?').join(',') || "''";
+
+    // Per pump × grade fuel sales (from nozzle readings)
+    const pumpGrades = shiftIds.length === 0 ? [] : db.prepare(`
+      SELECT p.id AS pump_id, p.code AS pump_code, p.name AS pump_name,
+             fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
+             COALESCE(SUM(snr.litres_sold), 0) AS litres,
+             COALESCE(SUM(snr.expected_cash), 0) AS amount
+        FROM shift_nozzle_readings snr
+        JOIN nozzles n ON n.id = snr.nozzle_id
+        JOIN pumps p ON p.id = n.pump_id
+        LEFT JOIN tanks t ON t.id = n.tank_id
+        LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+       WHERE snr.shift_id IN (${placeholders})
+       GROUP BY p.id, fg.id
+       ORDER BY p.code, fg.name
+    `).all(...shiftIds);
+
+    // Per-grade dip vs reading (read = litres sold through nozzles of that grade)
+    const perGrade = shiftIds.length === 0 ? [] : db.prepare(`
+      SELECT fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
+             COALESCE(SUM(d.dip_litres), 0) AS dip_total
+        FROM shift_dips d
+        JOIN tanks t ON t.id = d.tank_id
+        JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+       WHERE d.shift_id IN (${placeholders})
+       GROUP BY fg.id
+    `).all(...shiftIds);
+
+    const readingByGrade = shiftIds.length === 0 ? [] : db.prepare(`
+      SELECT fg.id AS grade_id, COALESCE(SUM(snr.litres_sold), 0) AS reading_total
+        FROM shift_nozzle_readings snr
+        JOIN nozzles n ON n.id = snr.nozzle_id
+        JOIN tanks t ON t.id = n.tank_id
+        JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+       WHERE snr.shift_id IN (${placeholders})
+       GROUP BY fg.id
+    `).all(...shiftIds);
+    const readMap = Object.fromEntries(readingByGrade.map(r => [r.grade_id, r.reading_total]));
+    const dips = perGrade.map(g => ({
+      ...g,
+      reading_total: Number(readMap[g.grade_id] || 0),
+      variance: Number(g.dip_total) - Number(readMap[g.grade_id] || 0),
+    }));
+
+    // Per-customer breakdown (credit + 1card)
+    const credits = shiftIds.length === 0 ? [] : db.prepare(`
+      SELECT customer_name, COALESCE(SUM(amount), 0) AS total
+        FROM shift_credit_sales
+       WHERE shift_id IN (${placeholders}) AND payment_method = 'Credit'
+       GROUP BY customer_name
+       ORDER BY customer_name
+    `).all(...shiftIds);
+
+    const onecards = shiftIds.length === 0 ? [] : db.prepare(`
+      SELECT customer_name, card_number, COALESCE(SUM(amount), 0) AS total
+        FROM shift_credit_sales
+       WHERE shift_id IN (${placeholders}) AND payment_method = '1Card'
+       GROUP BY customer_name, card_number
+       ORDER BY customer_name
+    `).all(...shiftIds);
+
+    // Totals
+    const grossRow = shiftIds.length === 0 ? { t: 0 } : db.prepare(`
+      SELECT COALESCE(SUM(expected_cash), 0) AS t
+        FROM shift_nozzle_readings
+       WHERE shift_id IN (${placeholders})
+    `).get(...shiftIds);
+    const gross = Number(grossRow.t);
+    const mobileMoney = shifts.reduce((s, x) => s + Number(x.payment_mobile || 0), 0);
+    const swipes      = shifts.reduce((s, x) => s + Number(x.payment_swipes || 0), 0);
+    const creditTotal = credits.reduce((s, r) => s + Number(r.total), 0);
+    const onecardTotal = onecards.reduce((s, r) => s + Number(r.total), 0);
+    const totalDeductions = mobileMoney + swipes + creditTotal + onecardTotal;
+    const expectedCash = Math.max(0, gross - totalDeductions);
+    const cashInHand   = shifts.reduce((s, x) => s + Number(x.payment_cash || 0), 0);
+    const variance     = Number((cashInHand - expectedCash).toFixed(2));
+
+    res.json({
+      pumpGrades, dips, credits, onecards,
+      deductions: { mobile_money: mobileMoney, swipes, onecard_total: onecardTotal, credit_total: creditTotal, total: totalDeductions },
+      totals: { gross, expected_cash: expectedCash, cash_in_hand: cashInHand, variance },
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.get('/:id', auth, (req, res) => {
   const row = db.prepare(`
     SELECT s.*, u.first_name || ' ' || u.last_name AS attendant_name
