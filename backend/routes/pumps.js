@@ -53,7 +53,8 @@ router.get('/nozzles/list', auth, (req, res) => {
   try {
     const rows = db.prepare(`
       SELECT n.*, p.code AS pump_code, p.name AS pump_name,
-             t.code AS tank_code, fg.code AS grade_code, fg.name AS grade_name, fg.color AS grade_color,
+             t.code AS tank_code, fg.id AS grade_id, fg.code AS grade_code,
+             fg.name AS grade_name, fg.color AS grade_color,
              fg.selling_price AS price_per_litre
         FROM nozzles n
         LEFT JOIN pumps p ON p.id = n.pump_id
