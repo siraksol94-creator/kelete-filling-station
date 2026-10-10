@@ -28,9 +28,6 @@ function fmtDate(d)  {
 export function printTicket(t, method, seller = {}, logoUrl = '') {
   const isCard = method === '1Card';
   const title = isCard ? 'ENGEN 1CARD INVOICE' : 'CREDIT INVOICE';
-  const terms = isCard
-    ? 'Charged to Engen 1Card. Reconciled against Engen monthly statement.'
-    : 'Payable on account per agreed credit terms. All disputes within 7 days.';
   const html = `
 <!doctype html><html><head><meta charset="utf-8"><title>${invNo(t.id)}</title>
 <style>
@@ -64,7 +61,6 @@ export function printTicket(t, method, seller = {}, logoUrl = '') {
   .totals td.lbl { color: #6b7280; text-align: right; }
   .totals td.val { text-align: right; font-weight: 700; }
   .totals tr.grand td { font-size: 15px; border-top: 2px solid #1e3a8a; background: #eef2ff; color: #1e3a8a; }
-  .terms { margin-top: 16px; padding: 10px 12px; background: #fffbeb; border-left: 4px solid #f59e0b; font-size: 11px; color: #78350f; }
   .sigs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 40px; }
   .sig .line { border-top: 1px solid #111; margin-bottom: 4px; }
   .sig .cap { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -132,8 +128,6 @@ export function printTicket(t, method, seller = {}, logoUrl = '') {
         <tr class="grand"><td class="lbl">TOTAL DUE</td><td class="val">${K(t.amount)}</td></tr>
       </table>
     </div>
-
-    <div class="terms">${terms}</div>
 
     <div class="sigs">
       <div class="sig"><div class="line"></div><div class="cap">Authorised by</div></div>
