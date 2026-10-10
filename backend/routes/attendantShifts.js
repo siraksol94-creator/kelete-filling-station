@@ -300,8 +300,16 @@ function ensureProductForGrade(gradeId, syncCfg, tenantId, userSyncId) {
 }
 
 function nextOrderNumber(tenantId) {
-  const row = db.prepare("SELECT COUNT(*) AS c FROM orders WHERE tenant_id = ? AND deleted_at IS NULL").get(tenantId);
-  return `FUEL-${String(row.c + 1).padStart(7, '0')}`;
+  // Pick MAX suffix across ALL FUEL-* orders (including soft-deleted),
+  // otherwise deleting a ticket drops the count and the next ticket
+  // collides with the retired order_number (UNIQUE constraint fires).
+  const row = db.prepare(`
+    SELECT MAX(CAST(SUBSTR(order_number, 6) AS INTEGER)) AS maxN
+      FROM orders
+     WHERE tenant_id = ? AND order_number LIKE 'FUEL-%'
+  `).get(tenantId);
+  const next = (Number(row?.maxN) || 0) + 1;
+  return `FUEL-${String(next).padStart(7, '0')}`;
 }
 
 router.post('/:id/credit-sales', auth, (req, res) => {
