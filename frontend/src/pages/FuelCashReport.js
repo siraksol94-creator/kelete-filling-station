@@ -160,6 +160,18 @@ function DaySummaryPanel({ summary, liveOverride }) {
   const pumpList = Object.values(byPump);
   const fuelTotal = pumpGrades.reduce((s, r) => s + Number(r.amount || 0), 0);
 
+  // Per-grade day totals (Petrol / Diesel / etc.) rolled up across every
+  // pump so the operator can see 'how much fuel of each kind went out today'
+  // in one glance, not spread over Pump 1/2/3 lines.
+  const byGrade = {};
+  for (const r of pumpGrades) {
+    if (!r.grade_id) continue;
+    if (!byGrade[r.grade_id]) byGrade[r.grade_id] = { grade_id: r.grade_id, grade_name: r.grade_name, grade_color: r.grade_color, litres: 0, amount: 0 };
+    byGrade[r.grade_id].litres += Number(r.litres || 0);
+    byGrade[r.grade_id].amount += Number(r.amount || 0);
+  }
+  const gradeList = Object.values(byGrade).sort((a, b) => (a.grade_name || '').localeCompare(b.grade_name || ''));
+
   const col = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16 };
   const colTitle = { fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, paddingBottom: 8, borderBottom: '2px solid #e5e7eb' };
   const line = { display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 };
@@ -168,6 +180,22 @@ function DaySummaryPanel({ summary, liveOverride }) {
   return (
     <div style={{ marginTop: 20 }}>
       <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 10 }}>Day Summary</h3>
+
+      {/* Per-grade totals banner — the 'how much Petrol / Diesel today' answer */}
+      {gradeList.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(gradeList.length, 4)}, 1fr)`, gap: 12, marginBottom: 12 }}>
+          {gradeList.map(g => (
+            <div key={g.grade_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${g.grade_color || '#2563eb'}`, borderRadius: 8, padding: 14 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Total {g.grade_name} Sold
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#111', marginTop: 4 }}>{fmtL(g.litres)}</div>
+              <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{fmtK(g.amount)}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
 
         {/* Column 1: Fuel Sales per Pump × Grade */}
