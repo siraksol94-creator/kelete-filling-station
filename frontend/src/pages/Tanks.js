@@ -94,7 +94,28 @@ function TankSvg({ pct, color, low, vesselCount = 1 }) {
   );
 }
 
-const emptyForm = { code: '', name: '', fuel_grade_id: '', capacity_litres: '', current_volume: 0, low_stock_litres: 1000, vessel_count: 1, status: 'Active' };
+const emptyForm = { code: '', name: '', fuel_grade_id: '', capacity_litres: '', current_volume: 0, low_stock_litres: 1000, vessel_count: 1, group_code: '', status: 'Active' };
+
+// Collapse tanks sharing a group_code into a single visual card. Tanks
+// with no group_code render alone; tanks with the same group_code show
+// as one plumbed-together card (sum capacity + sum volume + member list).
+function groupTanks(rows) {
+  const standalone = [];
+  const byGroup = {};
+  for (const t of rows) {
+    const g = (t.group_code || '').trim();
+    if (!g) standalone.push({ key: `t${t.id}`, members: [t] });
+    else {
+      if (!byGroup[g]) byGroup[g] = { key: `g${g}`, members: [] };
+      byGroup[g].members.push(t);
+    }
+  }
+  // Groups first (alphabetical by code), then standalone (by tank code)
+  const groups = Object.values(byGroup).sort((a, b) => (a.members[0].group_code || '').localeCompare(b.members[0].group_code || ''));
+  for (const g of groups) g.members.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+  standalone.sort((a, b) => (a.members[0].code || '').localeCompare(b.members[0].code || ''));
+  return [...groups, ...standalone];
+}
 
 export default function Tanks() {
   const [rows, setRows] = useState([]);
@@ -139,31 +160,40 @@ export default function Tanks() {
         <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20, marginBottom: 20 }}>
-        {rows.map(t => {
-          const cap = Number(t.capacity_litres) || 0;
-          const vol = Number(t.current_volume) || 0;
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
+        {groupTanks(rows).map(group => {
+          const members = group.members;
+          const first = members[0];
+          const cap = members.reduce((s, t) => s + (Number(t.capacity_litres) || 0), 0);
+          const vol = members.reduce((s, t) => s + (Number(t.current_volume) || 0), 0);
           const pct = cap > 0 ? Math.min(100, Math.max(0, (vol / cap) * 100)) : 0;
-          const low = vol <= (t.low_stock_litres || 0);
-          const color = low ? '#dc2626' : (t.grade_color || '#2563eb');
+          const lowThreshold = members.reduce((s, t) => s + (Number(t.low_stock_litres) || 0), 0);
+          const low = vol <= lowThreshold;
+          const color = low ? '#dc2626' : (first.grade_color || '#2563eb');
+          const isGroup = members.length > 1;
           return (
-            <div key={t.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-              {/* Header: code + grade pill + action icons */}
+            <div key={group.key} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: '#111' }}>{t.code}</div>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{t.name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#111' }}>
+                    {isGroup ? members.map(m => m.code).join(' + ') : first.code}
+                    {isGroup && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: '#eef2ff', color: '#4338ca', borderRadius: 10, fontWeight: 700 }}>GROUP {first.group_code}</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    {isGroup ? `${members.length} tanks plumbed together` : first.name}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: 2 }}>
-                  <button onClick={() => openEdit(t)} style={S.iconBtn} title="Edit"><FiEdit2 /></button>
-                  <button onClick={() => remove(t)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>
+                  {members.map(m => (
+                    <button key={m.id} onClick={() => openEdit(m)} style={S.iconBtn} title={`Edit ${m.code}`}><FiEdit2 /></button>
+                  ))}
+                  {!isGroup && <button onClick={() => remove(first)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>}
                 </div>
               </div>
-              <div style={{ marginBottom: 10 }}><span style={S.pill(t.grade_color || '#6b7280')}>{t.grade_name || '-'}</span></div>
+              <div style={{ marginBottom: 10 }}><span style={S.pill(first.grade_color || '#6b7280')}>{first.grade_name || '-'}</span></div>
 
-              {/* Tank visual */}
               <div style={{ display: 'flex', gap: 14, alignItems: 'stretch', marginTop: 4 }}>
-                <TankSvg pct={pct} color={color} low={low} vesselCount={t.vessel_count || 1} />
+                <TankSvg pct={pct} color={color} low={low} vesselCount={members.length} />
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.4 }}>Current</div>
                   <div style={{ fontSize: 26, fontWeight: 800, color: color, lineHeight: 1.1, marginTop: 2 }}>
@@ -178,9 +208,17 @@ export default function Tanks() {
                 </div>
               </div>
 
+              {isGroup && (
+                <div style={{ marginTop: 12, fontSize: 11, color: '#6b7280' }}>
+                  Per tank:&nbsp;{members.map((m, i) => (
+                    <span key={m.id}>{i > 0 ? ' · ' : ''}<strong style={{ color: '#374151' }}>{m.code}</strong>&nbsp;{Number(m.current_volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}L</span>
+                  ))}
+                </div>
+              )}
+
               {low && (
                 <div style={{ marginTop: 12, padding: '8px 10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#991b1b', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <FiAlertTriangle /> LOW STOCK — below {t.low_stock_litres} L
+                  <FiAlertTriangle /> LOW STOCK — below {lowThreshold} L
                 </div>
               )}
             </div>
@@ -219,15 +257,9 @@ export default function Tanks() {
                   </label>
                 )}
                 <label style={S.lbl}>Low Stock Alert (L)<input type="number" value={form.low_stock_litres} onChange={e => setForm({ ...form, low_stock_litres: e.target.value })} style={S.input} /></label>
-                <label style={S.lbl}>Connected Vessels
-                  <select value={form.vessel_count || 1} onChange={e => setForm({ ...form, vessel_count: Number(e.target.value) })} style={S.input}>
-                    <option value={1}>1 — Single tank</option>
-                    <option value={2}>2 — Twin (U-shape)</option>
-                    <option value={3}>3 — Triple</option>
-                    <option value={4}>4 — Quad</option>
-                    <option value={5}>5</option>
-                    <option value={6}>6</option>
-                  </select>
+                <label style={S.lbl}>Group Code
+                  <input value={form.group_code || ''} onChange={e => setForm({ ...form, group_code: e.target.value.toUpperCase() })} style={S.input} placeholder="e.g. A — leave blank if standalone" />
+                  <small style={{ color: '#9ca3af', fontSize: 11 }}>Tanks sharing the same code are shown as one plumbed card. T1+T4=A, T2+T3=B, etc.</small>
                 </label>
                 <label style={S.lbl}>Status
                   <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={S.input}>

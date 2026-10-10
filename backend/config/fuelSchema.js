@@ -253,6 +253,14 @@ function initFuelSchema(db) {
   try { db.exec('ALTER TABLE tanks ADD COLUMN vessel_count INTEGER NOT NULL DEFAULT 1'); }
   catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
 
+  // Plumbing group — tanks sharing a group_code are physically connected
+  // at the bottom so fuel balances between them. They stay SEPARATE rows
+  // (so deliveries and nozzle sales still attribute to the specific
+  // tank), but the UI renders them as one card and the dip is a shared
+  // measurement allocated proportionally across members.
+  try { db.exec('ALTER TABLE tanks ADD COLUMN group_code TEXT'); }
+  catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+
   // Payment-breakdown columns added later — safe to ALTER on upgrade.
   for (const col of ['payment_cash', 'payment_swipes', 'payment_1card', 'payment_mobile', 'payment_other']) {
     try { db.exec(`ALTER TABLE attendant_shifts ADD COLUMN ${col} REAL DEFAULT 0`); }

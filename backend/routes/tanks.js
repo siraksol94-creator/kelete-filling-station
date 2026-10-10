@@ -62,16 +62,16 @@ router.get('/:id/bin-card', auth, (req, res) => {
 
 router.post('/', auth, (req, res) => {
   const tx = db.transaction(() => {
-    const { code, name, fuel_grade_id, capacity_litres, current_volume = 0, low_stock_litres = 1000, vessel_count = 1, branch_id = null } = req.body;
+    const { code, name, fuel_grade_id, capacity_litres, current_volume = 0, low_stock_litres = 1000, vessel_count = 1, group_code = null, branch_id = null } = req.body;
     if (!code || !name || !fuel_grade_id || !capacity_litres) {
       throw new Error('code, name, fuel_grade_id, capacity_litres are required');
     }
     // Create with ZERO current_volume; opening balance goes in through the
     // ledger so there's a traceable 'opening' row with a date and user.
     const info = db.prepare(`
-      INSERT INTO tanks (code, name, fuel_grade_id, capacity_litres, current_volume, low_stock_litres, vessel_count, branch_id)
-      VALUES (?,?,?,?,?,?,?,?)
-    `).run(code.trim(), name.trim(), Number(fuel_grade_id), Number(capacity_litres), 0, Number(low_stock_litres) || 0, Math.max(1, Math.min(6, Number(vessel_count) || 1)), branch_id);
+      INSERT INTO tanks (code, name, fuel_grade_id, capacity_litres, current_volume, low_stock_litres, vessel_count, group_code, branch_id)
+      VALUES (?,?,?,?,?,?,?,?,?)
+    `).run(code.trim(), name.trim(), Number(fuel_grade_id), Number(capacity_litres), 0, Number(low_stock_litres) || 0, Math.max(1, Math.min(6, Number(vessel_count) || 1)), (group_code || '').trim() || null, branch_id);
     const openingLitres = Number(current_volume) || 0;
     if (openingLitres !== 0) {
       recordTankMovement(db, {
@@ -96,7 +96,7 @@ router.put('/:id', auth, (req, res) => {
     db.prepare(`
       UPDATE tanks SET
         code = ?, name = ?, fuel_grade_id = ?, capacity_litres = ?,
-        low_stock_litres = ?, vessel_count = ?,
+        low_stock_litres = ?, vessel_count = ?, group_code = ?,
         branch_id = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
     `).run(
@@ -106,6 +106,7 @@ router.put('/:id', auth, (req, res) => {
       b.capacity_litres != null ? Number(b.capacity_litres) : existing.capacity_litres,
       b.low_stock_litres != null ? Number(b.low_stock_litres) : existing.low_stock_litres,
       b.vessel_count != null ? Math.max(1, Math.min(6, Number(b.vessel_count) || 1)) : (existing.vessel_count || 1),
+      b.group_code !== undefined ? ((b.group_code || '').trim() || null) : existing.group_code,
       b.branch_id ?? existing.branch_id,
       b.status ?? existing.status,
       req.params.id
