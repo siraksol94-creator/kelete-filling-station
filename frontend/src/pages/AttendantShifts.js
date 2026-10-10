@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText, FiEdit } from 'react-icons/fi';
-import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getFleetCustomers, getPumpsWithNozzles, addShiftCreditSale } from '../services/fuelApi';
-import { getUsers } from '../services/api';
+import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getPumpsWithNozzles, addShiftCreditSale } from '../services/fuelApi';
+import { getUsers, getCustomers } from '../services/api';
 import { S } from './fuelStyles';
 
 // Thousands separator for display (handles partial typing like "384343."
@@ -25,7 +25,7 @@ export default function AttendantShifts() {
   const [users, setUsers] = useState([]);
   const [nozzles, setNozzles] = useState([]);
   const [tanks, setTanks] = useState([]);
-  const [fleet, setFleet] = useState([]);
+  const [customers, setCustomers] = useState([]);   // from the standard customers table (same as Account Receivables)
   const [pumps, setPumps] = useState([]);     // [{id, code, name, nozzles: [...]}]
 
   const [openForm, setOpenForm] = useState(null);
@@ -43,17 +43,17 @@ export default function AttendantShifts() {
   // which flavour (Credit = fleet receivable, 1Card = Engen pre-paid card).
   const [ticketShift, setTicketShift] = useState(null);  // {id, attendant_name}
   const [ticketMethod, setTicketMethod] = useState('Credit');
-  const [ticket, setTicket] = useState({ customer_name: '', fleet_customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+  const [ticket, setTicket] = useState({ customer_name: '', customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
   const [savingTicket, setSavingTicket] = useState(false);
 
   const load = async () => {
     try {
-      const [sh, u, n, t, fl, p] = await Promise.all([getShifts(), getUsers(), getNozzles(), getTanks(), getFleetCustomers(), getPumpsWithNozzles()]);
+      const [sh, u, n, t, cs, p] = await Promise.all([getShifts(), getUsers(), getNozzles(), getTanks(), getCustomers(), getPumpsWithNozzles()]);
       setShifts(sh.data || []);
       setUsers((u.data || []).filter(x => x.status === 'Active'));
       setNozzles(n.data || []);
       setTanks(t.data || []);
-      setFleet(fl.data || []);
+      setCustomers(cs.data || []);
       setPumps(p.data || []);
     } catch (e) {}
   };
@@ -161,7 +161,7 @@ export default function AttendantShifts() {
       await addShiftCreditSale(ticketShift.id, {
         payment_method: ticketMethod,
         customer_name: ticket.customer_name.trim(),
-        fleet_customer_id: ticketMethod === 'Credit' ? (ticket.fleet_customer_id || null) : null,
+        customer_id: ticketMethod === 'Credit' ? (ticket.customer_id || null) : null,
         card_number: ticket.card_number || '',
         vehicle_registration: ticket.vehicle_registration || '',
         fuel_grade_id: ticket.fuel_grade_id || null,
@@ -243,11 +243,11 @@ export default function AttendantShifts() {
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                       <button onClick={() => {
                         setTicketShift(s); setTicketMethod('Credit');
-                        setTicket({ customer_name: '', fleet_customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+                        setTicket({ customer_name: '', customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
                       }} style={{ ...S.btnSecondary, padding: '6px 10px' }}>+ Credit</button>
                       <button onClick={() => {
                         setTicketShift(s); setTicketMethod('1Card');
-                        setTicket({ customer_name: '', fleet_customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+                        setTicket({ customer_name: '', customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
                       }} style={{ ...S.btnSecondary, padding: '6px 10px' }}>+ 1Card</button>
                       <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close</button>
                     </div>
@@ -487,12 +487,12 @@ export default function AttendantShifts() {
               <div style={S.formGrid}>
                 {ticketMethod === 'Credit' ? (
                   <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Customer *
-                    <input list="ticket-fleet-list" value={ticket.customer_name} onChange={e => {
-                      const match = fleet.find(f => f.name === e.target.value);
-                      setTicket({ ...ticket, customer_name: e.target.value, fleet_customer_id: match?.id || '' });
-                    }} required style={S.input} placeholder="Type or pick a fleet customer…" />
-                    <datalist id="ticket-fleet-list">
-                      {fleet.map(f => <option key={f.id} value={f.name} />)}
+                    <input list="ticket-customer-list" value={ticket.customer_name} onChange={e => {
+                      const match = customers.find(c => c.name === e.target.value);
+                      setTicket({ ...ticket, customer_name: e.target.value, customer_id: match?.id || '' });
+                    }} required style={S.input} placeholder="Type or pick a customer (same list as Suppliers & Customers)" />
+                    <datalist id="ticket-customer-list">
+                      {customers.map(c => <option key={c.id} value={c.name} />)}
                     </datalist>
                   </label>
                 ) : (

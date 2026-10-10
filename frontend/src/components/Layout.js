@@ -692,9 +692,9 @@ const Layout = () => {
                   <div className={`nav-item ${isActive('/fuel/grades') ? 'active' : ''}`} onClick={() => navigate('/fuel/grades')}>
                     <FiTag className="nav-icon" /> <span>Fuel Grades</span>
                   </div>
-                  <div className={`nav-item ${isActive('/fuel/fleet') ? 'active' : ''}`} onClick={() => navigate('/fuel/fleet')}>
-                    <FiTruck className="nav-icon" /> <span>Fleet Customers</span>
-                  </div>
+                  {/* Fleet Customers removed — fuel credit customers now live in the
+                      standard Suppliers & Customers → Customers page, so credit sales
+                      post straight to the existing Account Receivables ledger. */}
                 </div>
               )}
             </>

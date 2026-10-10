@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth } = require('../middleware/auth');
+const syncConfig = require('../config/syncConfig');
+const { randomUUID } = require('crypto');
 
 router.get('/', auth, (req, res) => {
   try {
@@ -124,34 +126,98 @@ router.post('/open', auth, (req, res) => {
 
 // Add a credit sale (receivable ticket) to an open shift during the shift.
 // Also usable in batch at close by submitting them with the close call.
+// Lazy-get the products row for a fuel grade so credit sales can insert a
+// matching order_items line. Keeps the fuel grade and the "product" (what
+// Account Receivables sees) in lock-step without needing a seed script.
+function ensureProductForGrade(gradeId, syncCfg, tenantId, userSyncId) {
+  if (!gradeId) return null;
+  const grade = db.prepare('SELECT * FROM fuel_grades WHERE id = ?').get(gradeId);
+  if (!grade) return null;
+  const existing = db.prepare('SELECT id, sync_id FROM products WHERE LOWER(code) = LOWER(?) AND deleted_at IS NULL AND tenant_id = ?')
+    .get(`FUEL-${grade.code}`, tenantId);
+  if (existing) return existing;
+  const info = db.prepare(`
+    INSERT INTO products (code, name, unit, cost_price, selling_price, current_stock, min_stock,
+                           sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
+  `).run(`FUEL-${grade.code}`, grade.name, grade.unit || 'L', grade.cost_price || 0,
+         grade.selling_price || 0, 0, 0,
+         randomUUID(), tenantId, syncCfg.branchId, syncCfg.deviceId);
+  return { id: info.lastInsertRowid, sync_id: db.prepare('SELECT sync_id FROM products WHERE id = ?').get(info.lastInsertRowid).sync_id };
+}
+
+function nextOrderNumber(tenantId) {
+  const row = db.prepare("SELECT COUNT(*) AS c FROM orders WHERE tenant_id = ? AND deleted_at IS NULL").get(tenantId);
+  return `FUEL-${String(row.c + 1).padStart(7, '0')}`;
+}
+
 router.post('/:id/credit-sales', auth, (req, res) => {
   const tx = db.transaction(() => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
     if (shift.status !== 'Open') throw new Error('Shift already closed');
     const { payment_method = 'Credit',
-            fleet_customer_id = null, customer_name, card_number = '',
+            customer_id = null, customer_name, card_number = '',
             vehicle_registration = '', fuel_grade_id = null,
             litres, price_per_litre, amount = null,
-            receipt_number = '', notes = '' } = req.body;
+            receipt_number = '', notes = '', date = null } = req.body;
     const method = String(payment_method).trim() || 'Credit';
     if (!customer_name || !(Number(litres) > 0)) throw new Error('customer_name and litres are required');
     const ppl = Number(price_per_litre) || 0;
-    const amt = amount != null ? Number(amount) : Number((Number(litres) * ppl).toFixed(2));
+    const qty = Number(litres);
+    const amt = amount != null ? Number(amount) : Number((qty * ppl).toFixed(2));
+
+    // Resolve the standard customer row (sync_id is what Account Receivables joins on)
+    let customer = null;
+    if (customer_id) {
+      customer = db.prepare('SELECT id, sync_id, name FROM customers WHERE id = ? AND deleted_at IS NULL').get(customer_id);
+    }
+
+    let linkedOrderId = null;
+    // 'Credit' routes through the standard AR plumbing by writing an order
+    // + line item. '1Card' is tracked only in shift_credit_sales (Engen
+    // reconciliation is monthly, not a Kelete customer receivable).
+    if (method === 'Credit' && customer) {
+      const syncCfg = syncConfig.getConfig();
+      const tenantId = req.user.tenantId;
+      const userSyncId = db.prepare('SELECT sync_id FROM users WHERE id = ?').get(req.user.id)?.sync_id || null;
+      const product = ensureProductForGrade(fuel_grade_id, syncCfg, tenantId, userSyncId);
+      const orderNumber = nextOrderNumber(tenantId);
+      const orderSyncId = randomUUID();
+      const info = db.prepare(`
+        INSERT INTO orders (order_number, customer_name, customer_id, customer_sync_id,
+                            subtotal, tax_amount, total_amount, discount,
+                            amount_received, cash_received,
+                            payment_method, created_by, created_by_sync_id,
+                            status, sync_id, tenant_id, branch_id, device_id, synced,
+                            created_at, updated_at)
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
+      `).run(orderNumber, customer.name, customer.id, customer.sync_id,
+             amt, 0, amt, 0,
+             0, 0,
+             'Credit', req.user.id, userSyncId,
+             null, orderSyncId, tenantId, syncCfg.branchId, syncCfg.deviceId);
+      linkedOrderId = info.lastInsertRowid;
+      if (product) {
+        db.prepare(`
+          INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
+          VALUES (?,?,?,?,?,?)
+        `).run(linkedOrderId, product.id, db.prepare('SELECT name FROM fuel_grades WHERE id = ?').get(fuel_grade_id)?.name || 'Fuel', qty, ppl, amt);
+      }
+    }
+
     const info = db.prepare(`
       INSERT INTO shift_credit_sales (
-        shift_id, payment_method, fleet_customer_id, customer_name, card_number,
-        vehicle_registration, fuel_grade_id, litres, price_per_litre, amount,
-        receipt_number, notes
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
-    `).run(req.params.id, method, fleet_customer_id, customer_name.trim(), card_number,
-           vehicle_registration, fuel_grade_id, Number(litres), ppl, amt, receipt_number, notes);
-    // Only 'Credit' posts to the fleet-customer receivable ledger. '1Card'
-    // reconciles against Engen's statement, not an internal customer balance.
-    if (method === 'Credit' && fleet_customer_id) {
-      db.prepare('UPDATE fleet_customers SET current_balance = current_balance + ?, updated_at = datetime(\'now\') WHERE id = ?')
-        .run(amt, fleet_customer_id);
-    }
+        shift_id, payment_method, customer_id, customer_sync_id, customer_name,
+        card_number, vehicle_registration, fuel_grade_id,
+        litres, price_per_litre, amount, receipt_number, notes,
+        linked_order_id, date
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+    `).run(req.params.id, method, customer?.id || null, customer?.sync_id || null, customer_name.trim(),
+           card_number, vehicle_registration, fuel_grade_id,
+           qty, ppl, amt, receipt_number, notes,
+           linkedOrderId, date || new Date().toISOString().slice(0, 10));
+
     return db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(info.lastInsertRowid);
   });
   try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
@@ -161,8 +227,11 @@ router.delete('/credit-sales/:cid', auth, (req, res) => {
   const tx = db.transaction(() => {
     const cs = db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(req.params.cid);
     if (!cs) throw new Error('Not found');
-    if (cs.payment_method === 'Credit' && cs.fleet_customer_id) {
-      db.prepare('UPDATE fleet_customers SET current_balance = current_balance - ? WHERE id = ?').run(cs.amount, cs.fleet_customer_id);
+    // Soft-delete the linked order so AR stops counting it (no hard delete —
+    // sync peers would re-create it on next pull)
+    if (cs.linked_order_id) {
+      db.prepare("UPDATE orders SET deleted_at = datetime('now'), updated_at = datetime('now'), synced = 0 WHERE id = ?")
+        .run(cs.linked_order_id);
     }
     db.prepare('DELETE FROM shift_credit_sales WHERE id = ?').run(req.params.cid);
     return { message: 'Deleted' };

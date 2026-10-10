@@ -223,10 +223,13 @@ function initFuelSchema(db) {
   for (const col of [
     "payment_method TEXT NOT NULL DEFAULT 'Credit'",
     'card_number TEXT',
+    'customer_id INTEGER',                 // → customers.id (standard AR path)
+    'customer_sync_id TEXT',               // → customers.sync_id (for orders join)
+    'linked_order_id INTEGER',             // the credit sale's corresponding orders row
+    'date TEXT',                           // the business date of the sale
   ]) {
-    const name = col.split(' ')[0];
     try { db.exec(`ALTER TABLE shift_credit_sales ADD COLUMN ${col}`); }
-    catch (e) { if (!/duplicate column/i.test(e.message)) throw e; void name; }
+    catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
   }
 }
 
