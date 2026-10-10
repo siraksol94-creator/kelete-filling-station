@@ -69,10 +69,21 @@ export default function AttendantShifts() {
     } catch (e) {}
   };
 
-  // Live calculations
+  // Live calculations. Rows sorted so Petrol lands first (P1, P2, ... P8),
+  // then Diesel (D1, D2, ...), then anything else (K/A for paraffin etc.),
+  // each group ordered by the numeric part of the nozzle code.
   const liveNozzleRows = useMemo(() => {
     if (!closingShift) return [];
-    return (closingShift.readings || []).map(r => {
+    const groupOrder = { P: 0, D: 1, K: 2 };
+    const sorted = [...(closingShift.readings || [])].sort((a, b) => {
+      const ag = groupOrder[(a.nozzle_code || '').charAt(0).toUpperCase()] ?? 9;
+      const bg = groupOrder[(b.nozzle_code || '').charAt(0).toUpperCase()] ?? 9;
+      if (ag !== bg) return ag - bg;
+      const an = parseInt(String(a.nozzle_code).replace(/\D/g, ''), 10) || 0;
+      const bn = parseInt(String(b.nozzle_code).replace(/\D/g, ''), 10) || 0;
+      return an - bn;
+    });
+    return sorted.map(r => {
       const rawC = cd.readings[r.id]?.closing_reading;
       const c = rawC === '' || rawC == null ? null : Number(rawC);
       const invalid = c != null && c < r.opening_reading;
