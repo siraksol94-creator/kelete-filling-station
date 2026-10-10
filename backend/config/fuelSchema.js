@@ -313,5 +313,3 @@ function recordTankMovement(db, { tank_id, litres, type, ref_table = null, ref_i
 }
 
 module.exports = { initFuelSchema, recordTankMovement };
-
-module.exports = { initFuelSchema };
