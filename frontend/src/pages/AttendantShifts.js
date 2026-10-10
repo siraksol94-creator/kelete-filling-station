@@ -240,17 +240,7 @@ export default function AttendantShifts() {
                 <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>
                 <td style={S.td}>
                   {s.status === 'Open' ? (
-                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <button onClick={() => {
-                        setTicketShift(s); setTicketMethod('Credit');
-                        setTicket({ customer_name: '', customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
-                      }} style={{ ...S.btnSecondary, padding: '6px 10px' }}>+ Credit</button>
-                      <button onClick={() => {
-                        setTicketShift(s); setTicketMethod('1Card');
-                        setTicket({ customer_name: '', customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
-                      }} style={{ ...S.btnSecondary, padding: '6px 10px' }}>+ 1Card</button>
-                      <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close</button>
-                    </div>
+                    <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close (Meters)</button>
                   ) : (
                     <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
                   )}
@@ -377,88 +367,34 @@ export default function AttendantShifts() {
                   </tbody>
                 </table>
 
-                {/* ── Section 2: Credit + 1Card ticket summaries (read-only) ── */}
-                <SectionHeader title="2. Credit & 1Card Tickets (logged during shift)" />
-                {existingTickets.length === 0 ? (
-                  <div style={{ padding: 16, color: '#9ca3af', fontSize: 13, textAlign: 'center', border: '1px dashed #e5e7eb', borderRadius: 6 }}>
-                    No tickets logged. Cancel this close, click "+ Credit" or "+ 1Card" on the shift row to add tickets, then close.
-                  </div>
-                ) : (
-                  <table style={S.table}>
-                    <thead><tr>
-                      <th style={S.th}>Method</th><th style={S.th}>Customer / Card</th><th style={S.th}>Vehicle</th>
-                      <th style={S.th}>Grade</th>
-                      <th style={{ ...S.th, textAlign: 'right' }}>Litres</th>
-                      <th style={{ ...S.th, textAlign: 'right' }}>K/L</th>
-                      <th style={{ ...S.th, textAlign: 'right' }}>Amount</th>
-                      <th style={S.th}>Receipt #</th>
-                    </tr></thead>
-                    <tbody>
-                      {existingTickets.map(c => (
-                        <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={S.td}><span style={S.pill(c.payment_method === '1Card' ? '#f59e0b' : '#2563eb')}>{c.payment_method || 'Credit'}</span></td>
-                          <td style={S.td}><strong>{c.customer_name}</strong>{c.card_number ? ` · ${c.card_number}` : ''}</td>
-                          <td style={S.td}>{c.vehicle_registration || '-'}</td>
-                          <td style={S.td}>{c.grade_name || '-'}</td>
-                          <td style={S.tdR}>{fmtNum(c.litres, 2)}</td>
-                          <td style={S.tdR}>K {fmtNum(c.price_per_litre, 2)}</td>
-                          <td style={S.tdR}><strong>K {fmtNum(c.amount, 2)}</strong></td>
-                          <td style={S.td}>{c.receipt_number || '-'}</td>
-                        </tr>
-                      ))}
-                      <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
-                        <td colSpan={6} style={{ ...S.td, textAlign: 'right' }}>CREDIT · 1CARD TOTALS</td>
-                        <td style={S.tdR}>K {fmtNum(creditTotal + onecardTotal, 2)}</td>
-                        <td style={S.td}></td>
+                {/* ── Section 2: dip readings per tank ────────────────── */}
+                <SectionHeader title="2. Dip Readings per Tank" />
+                <table style={S.table}>
+                  <thead><tr>
+                    <th style={S.th}>Tank</th>
+                    <th style={{ ...S.th, textAlign: 'right' }}>Reading (book)</th>
+                    <th style={{ ...S.th, textAlign: 'right' }}>Dip *</th>
+                    <th style={{ ...S.th, textAlign: 'right' }}>Variance</th>
+                  </tr></thead>
+                  <tbody>
+                    {dipReconciliation.map(d => (
+                      <tr key={d.tank_id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={S.td}><strong>{d.tank?.code || d.tank_id}</strong> <span style={{ color: '#9ca3af' }}>— {d.tank?.grade_name}</span></td>
+                        <td style={S.tdR}>{d.reading != null ? fmtNum(d.reading, 2) : '-'}</td>
+                        <td style={S.tdR}>
+                          <input type="number" step="0.01" value={cd.dips[d.tank_id] ?? ''} onChange={e => setCd({ ...cd, dips: { ...cd.dips, [d.tank_id]: e.target.value } })} style={{ ...S.input, width: 120, textAlign: 'right' }} />
+                        </td>
+                        <td style={{ ...S.tdR, color: d.variance == null ? '#9ca3af' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#16a34a')) }}>
+                          {d.variance != null ? fmtNum(d.variance, 2) : '-'}
+                        </td>
                       </tr>
-                    </tbody>
-                  </table>
-                )}
+                    ))}
+                  </tbody>
+                </table>
 
-                {/* ── Section 3: payment breakdown + dips side by side ── */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginTop: 16 }}>
-                  <div>
-                    <SectionHeader title="3. Payment Breakdown" />
-                    <PayRow label="Cash *" value={cd.payment_cash} onChange={v => setCd({ ...cd, payment_cash: v })} highlight />
-                    <PayRow label="Mobile Money" value={cd.payment_mobile} onChange={v => setCd({ ...cd, payment_mobile: v })} />
-                    <PayRow label="Swipes" value={cd.payment_swipes} onChange={v => setCd({ ...cd, payment_swipes: v })} />
-                    <PayRow label="Credit (auto)" value={creditTotal.toFixed(2)} readOnly />
-                    <PayRow label="1Card (auto)" value={onecardTotal.toFixed(2)} readOnly />
-                  </div>
-
-                  <div>
-                    <SectionHeader title="4. Dip Readings per Tank" />
-                    <table style={S.table}>
-                      <thead><tr>
-                        <th style={S.th}>Tank</th>
-                        <th style={{ ...S.th, textAlign: 'right' }}>Reading (book)</th>
-                        <th style={{ ...S.th, textAlign: 'right' }}>Dip *</th>
-                        <th style={{ ...S.th, textAlign: 'right' }}>Variance</th>
-                      </tr></thead>
-                      <tbody>
-                        {dipReconciliation.map(d => (
-                          <tr key={d.tank_id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                            <td style={S.td}><strong>{d.tank?.code || d.tank_id}</strong> <span style={{ color: '#9ca3af' }}>— {d.tank?.grade_name}</span></td>
-                            <td style={S.tdR}>{d.reading != null ? d.reading.toFixed(2) : '-'}</td>
-                            <td style={S.tdR}>
-                              <input type="number" step="0.01" value={cd.dips[d.tank_id] ?? ''} onChange={e => setCd({ ...cd, dips: { ...cd.dips, [d.tank_id]: e.target.value } })} style={{ ...S.input, width: 90, textAlign: 'right' }} />
-                            </td>
-                            <td style={{ ...S.tdR, color: d.variance == null ? '#9ca3af' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#16a34a')) }}>
-                              {d.variance != null ? d.variance.toFixed(2) : '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* ── Summary tiles ─────────────────────────────────── */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginTop: 20 }}>
-                  <Tile label="Gross Sales" value={`K ${grossSales.toFixed(2)}`} />
-                  <Tile label="Non-Cash + Credit" value={`K ${nonCash.toFixed(2)}`} />
-                  <Tile label="Expected Cash" value={`K ${expectedCash.toFixed(2)}`} highlight />
-                  <Tile label="Variance" value={`K ${variance.toFixed(2)}`} color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a')} />
+                <div style={{ marginTop: 16, padding: 12, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 13, color: '#1e3a8a' }}>
+                  <strong>Gross from meters: K {fmtNum(grossSales, 2)}</strong><br />
+                  Payment reconciliation (cash, mobile money, swipes) happens next in <strong>Fuel Cash Report</strong>.
                 </div>
 
                 <label style={{ ...S.lbl, marginTop: 16 }}>Notes
@@ -467,7 +403,7 @@ export default function AttendantShifts() {
               </div>
               <div style={S.modalFooter}>
                 <button type="button" onClick={() => setClosingShift(null)} style={S.btnSecondary}>Cancel</button>
-                <button type="submit" style={S.btnPrimary}><FiCheckCircle /> Close Shift</button>
+                <button type="submit" style={S.btnPrimary}><FiCheckCircle /> Save Meters</button>
               </div>
             </form>
           </div>

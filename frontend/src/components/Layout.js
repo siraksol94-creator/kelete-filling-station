@@ -680,6 +680,15 @@ const Layout = () => {
                   <div className={`nav-item ${isActive('/fuel/shifts') ? 'active' : ''}`} onClick={() => navigate('/fuel/shifts')}>
                     <FiClipboard className="nav-icon" /> <span>Attendant Shifts</span>
                   </div>
+                  <div className={`nav-item ${isActive('/fuel/credit-sales') ? 'active' : ''}`} onClick={() => navigate('/fuel/credit-sales')}>
+                    <FiCreditCard className="nav-icon" /> <span>Credit Sales</span>
+                  </div>
+                  <div className={`nav-item ${isActive('/fuel/onecard-sales') ? 'active' : ''}`} onClick={() => navigate('/fuel/onecard-sales')}>
+                    <FiCreditCard className="nav-icon" /> <span>1Card Sales</span>
+                  </div>
+                  <div className={`nav-item ${isActive('/fuel/cash-report') ? 'active' : ''}`} onClick={() => navigate('/fuel/cash-report')}>
+                    <FiDollarSign className="nav-icon" /> <span>Fuel Cash Report</span>
+                  </div>
                   <div className={`nav-item ${isActive('/fuel/deliveries') ? 'active' : ''}`} onClick={() => navigate('/fuel/deliveries')}>
                     <FiDownload className="nav-icon" /> <span>Fuel Deliveries</span>
                   </div>
@@ -692,9 +701,6 @@ const Layout = () => {
                   <div className={`nav-item ${isActive('/fuel/grades') ? 'active' : ''}`} onClick={() => navigate('/fuel/grades')}>
                     <FiTag className="nav-icon" /> <span>Fuel Grades</span>
                   </div>
-                  {/* Fleet Customers removed — fuel credit customers now live in the
-                      standard Suppliers & Customers → Customers page, so credit sales
-                      post straight to the existing Account Receivables ledger. */}
                 </div>
               )}
             </>

@@ -223,6 +223,97 @@ router.post('/:id/credit-sales', auth, (req, res) => {
   try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// List all credit/1card tickets across every shift (standalone pages).
+// Query params: method=Credit|1Card, from=YYYY-MM-DD, to=YYYY-MM-DD,
+// customer_id, attendant_user_id, shift_id
+router.get('/all-tickets', auth, (req, res) => {
+  try {
+    const { method, from, to, customer_id, attendant_user_id, shift_id } = req.query;
+    const where = [];
+    const params = [];
+    if (method)             { where.push("cs.payment_method = ?"); params.push(method); }
+    if (from)               { where.push("COALESCE(cs.date, DATE(cs.created_at)) >= ?"); params.push(from); }
+    if (to)                 { where.push("COALESCE(cs.date, DATE(cs.created_at)) <= ?"); params.push(to); }
+    if (customer_id)        { where.push("cs.customer_id = ?"); params.push(customer_id); }
+    if (attendant_user_id)  { where.push("s.attendant_user_id = ?"); params.push(attendant_user_id); }
+    if (shift_id)           { where.push("cs.shift_id = ?"); params.push(shift_id); }
+    const sql = `
+      SELECT cs.*,
+             s.attendant_user_id, u.first_name || ' ' || u.last_name AS attendant_name, s.status AS shift_status, s.opened_at,
+             fg.name AS grade_name, fg.color AS grade_color
+        FROM shift_credit_sales cs
+        LEFT JOIN attendant_shifts s ON s.id = cs.shift_id
+        LEFT JOIN users u ON u.id = s.attendant_user_id
+        LEFT JOIN fuel_grades fg ON fg.id = cs.fuel_grade_id
+       ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+       ORDER BY cs.created_at DESC
+       LIMIT 1000
+    `;
+    res.json(db.prepare(sql).all(...params));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Daily reconciliation data for the Fuel Cash Report page: per shift, roll
+// up gross from nozzle readings + credit + 1card totals from the ticket
+// ledger. Open AND closed shifts included.
+router.get('/daily-rollup', auth, (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ error: 'date (YYYY-MM-DD) is required' });
+    const shifts = db.prepare(`
+      SELECT s.*, u.first_name || ' ' || u.last_name AS attendant_name
+        FROM attendant_shifts s
+        LEFT JOIN users u ON u.id = s.attendant_user_id
+       WHERE DATE(s.opened_at) = DATE(?)
+       ORDER BY s.opened_at
+    `).all(date);
+    for (const s of shifts) {
+      // Gross: for an open shift use the live sum from nozzle readings (what
+      // the attendant would see on close); for a closed shift that number is
+      // already baked into expected_cash + the payment columns.
+      const nozzleGross = db.prepare(`
+        SELECT COALESCE(SUM(expected_cash), 0) AS t FROM shift_nozzle_readings WHERE shift_id = ?
+      `).get(s.id).t;
+      s.gross_from_nozzles = nozzleGross;
+      s.credit_total  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(s.id).t;
+      s.onecard_total = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(s.id).t;
+    }
+    res.json(shifts);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Finalize a shift's cash reconciliation (called by Fuel Cash Report).
+// Requires nozzle readings to be already saved (gross known). Takes the
+// typed payment amounts (Cash, Mobile Money, Swipes). Expected cash is
+// derived from gross minus (mobile + swipes + credit + 1card).
+router.post('/:id/finalize', auth, (req, res) => {
+  const tx = db.transaction(() => {
+    const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
+    if (!shift) throw new Error('Shift not found');
+    const { payment_cash = 0, payment_mobile = 0, payment_swipes = 0, notes = '' } = req.body;
+    const gross = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(req.params.id).t;
+    const credit  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;
+    const onecard = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(req.params.id).t;
+    const nonCash = Number(payment_mobile) + Number(payment_swipes) + credit + onecard;
+    const expectedCash = Number((gross - nonCash).toFixed(2));
+    const variance = Number((Number(payment_cash) - expectedCash).toFixed(2));
+    db.prepare(`
+      UPDATE attendant_shifts
+         SET status = 'Closed', closed_at = COALESCE(closed_at, datetime('now')), closed_by = COALESCE(closed_by, ?),
+             expected_cash = ?, actual_cash = ?, variance = ?,
+             payment_cash = ?, payment_mobile = ?, payment_swipes = ?,
+             payment_1card = ?, payment_other = ?,
+             notes = COALESCE(?, notes), updated_at = datetime('now')
+       WHERE id = ?
+    `).run(req.user?.id || null, expectedCash, Number(payment_cash), variance,
+           Number(payment_cash), Number(payment_mobile), Number(payment_swipes),
+           Number(onecard), Number(credit),
+           notes || null, req.params.id);
+    return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
+  });
+  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
 router.delete('/credit-sales/:cid', auth, (req, res) => {
   const tx = db.transaction(() => {
     const cs = db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(req.params.cid);
