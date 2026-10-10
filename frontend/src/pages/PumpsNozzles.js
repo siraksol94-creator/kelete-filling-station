@@ -3,6 +3,47 @@ import { FiPlus, FiEdit2, FiTrash2, FiX, FiZap } from 'react-icons/fi';
 import { getPumpsWithNozzles, createPump, updatePump, deletePump, createNozzle, updateNozzle, deleteNozzle, getTanks } from '../services/fuelApi';
 import { S } from './fuelStyles';
 
+// Tanks sharing a group_code are plumbed together. For the Tank picker
+// we show one entry per group (labelled "T1 + T4 — PETROL (Group A)")
+// and store the tank_id of the first member. Standalone tanks appear
+// as individual entries.
+function tankPickerOptions(tanks) {
+  const groups = {};
+  const singles = [];
+  for (const t of tanks) {
+    const g = (t.group_code || '').trim();
+    if (!g) singles.push(t);
+    else {
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(t);
+    }
+  }
+  const groupOpts = Object.entries(groups)
+    .map(([code, members]) => {
+      members.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+      const label = `${members.map(m => m.code).join(' + ')} — ${members[0].grade_name || '—'}  (Group ${code})`;
+      return { value: members[0].id, label, _sort: code };
+    })
+    .sort((a, b) => a._sort.localeCompare(b._sort));
+  const singleOpts = singles
+    .sort((a, b) => (a.code || '').localeCompare(b.code || ''))
+    .map(t => ({ value: t.id, label: `${t.code} — ${t.grade_name || '—'}` }));
+  return [...groupOpts, ...singleOpts];
+}
+
+// For the nozzle table: if the nozzle's tank is in a group, show the
+// group's combined label (T1 + T4) instead of the single tank code so
+// the visual matches the Tanks page.
+function tankLabelForNozzle(n, tanks) {
+  const t = tanks.find(x => Number(x.id) === Number(n.tank_id));
+  if (!t) return n.tank_code || '-';
+  const g = (t.group_code || '').trim();
+  if (!g) return t.code;
+  const members = tanks.filter(x => (x.group_code || '').trim() === g)
+    .sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+  return members.map(m => m.code).join(' + ');
+}
+
 export default function PumpsNozzles() {
   const [pumps, setPumps] = useState([]);
   const [tanks, setTanks] = useState([]);
@@ -80,7 +121,7 @@ export default function PumpsNozzles() {
                 {(p.nozzles || []).map(n => (
                   <tr key={n.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={S.td}><strong>{n.code}</strong></td>
-                    <td style={S.td}>{n.tank_code}</td>
+                    <td style={S.td}>{tankLabelForNozzle(n, tanks)}</td>
                     <td style={S.td}><span style={S.pill(n.grade_color || '#6b7280')}>{n.grade_name || '-'}</span></td>
                     <td style={S.tdR}>{Number(n.current_meter_reading).toFixed(2)} L</td>
                     <td style={S.tdR}>K {Number(n.price_per_litre || 0).toFixed(2)}</td>
@@ -129,7 +170,7 @@ export default function PumpsNozzles() {
                 <label style={S.lbl}>Tank *
                   <select value={nozForm.tank_id} onChange={e => setNozForm({ ...nozForm, tank_id: e.target.value })} required style={S.input}>
                     <option value="">-- select --</option>
-                    {tanks.map(t => <option key={t.id} value={t.id}>{t.code} - {t.grade_name}</option>)}
+                    {tankPickerOptions(tanks).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 </label>
                 <label style={S.lbl}>Meter Reading (L)<input type="number" step="0.01" value={nozForm.current_meter_reading} onChange={e => setNozForm({ ...nozForm, current_meter_reading: e.target.value })} style={S.input} /></label>
