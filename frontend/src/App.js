@@ -96,7 +96,7 @@ import PumpsNozzles from './pages/PumpsNozzles';
 import FleetCustomers from './pages/FleetCustomers';
 import FuelDeliveries from './pages/FuelDeliveries';
 import AttendantShifts from './pages/AttendantShifts';
-import FuelPOS from './pages/FuelPOS';
+// FuelPOS removed — fuel sales happen at shift close, not per-transaction
 
 const isWeb = !navigator.userAgent.toLowerCase().includes('electron');
 
@@ -421,7 +421,6 @@ function AppRoutes() {
         <Route path="settings/backups" element={<PermRoute allAccessOnly adminOnly><Backups /></PermRoute>} />
         <Route path="approvals/discounts" element={<PermRoute allAccessOnly adminOnly><PendingApprovals /></PermRoute>} />
         {/* Kelete fuel-station modules */}
-        <Route path="fuel/pos"           element={<FuelPOS />} />
         <Route path="fuel/shifts"        element={<AttendantShifts />} />
         <Route path="fuel/deliveries"    element={<FuelDeliveries />} />
         <Route path="fuel/tanks"         element={<Tanks />} />

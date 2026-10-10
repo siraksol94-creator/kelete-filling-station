@@ -69,10 +69,45 @@ function initFuelSchema(db) {
       expected_cash      REAL DEFAULT 0,
       actual_cash        REAL DEFAULT 0,
       variance           REAL DEFAULT 0,
+      -- Payment breakdown entered at close. Sum of these + credit sales
+      -- (summed from shift_credit_sales) must equal gross nozzle sales.
+      payment_cash       REAL DEFAULT 0,
+      payment_swipes     REAL DEFAULT 0,
+      payment_1card      REAL DEFAULT 0,
+      payment_mobile     REAL DEFAULT 0,
+      payment_other      REAL DEFAULT 0,
       notes              TEXT,
       sync_id            TEXT,
       created_at         TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at         TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    -- Credit sale tickets issued during a shift (CAA 3626, IDC-style
+    -- paper receipts). Posts to the fleet customer's receivable ledger.
+    CREATE TABLE IF NOT EXISTS shift_credit_sales (
+      id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+      shift_id              INTEGER NOT NULL REFERENCES attendant_shifts(id) ON DELETE CASCADE,
+      fleet_customer_id     INTEGER REFERENCES fleet_customers(id),
+      customer_name         TEXT NOT NULL,
+      vehicle_registration  TEXT,
+      fuel_grade_id         INTEGER REFERENCES fuel_grades(id),
+      litres                REAL NOT NULL,
+      price_per_litre       REAL NOT NULL,
+      amount                REAL NOT NULL,
+      receipt_number        TEXT,
+      notes                 TEXT,
+      created_at            TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    -- Dip-vs-reading reconciliation per tank per shift close.
+    CREATE TABLE IF NOT EXISTS shift_dips (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      shift_id        INTEGER NOT NULL REFERENCES attendant_shifts(id) ON DELETE CASCADE,
+      tank_id         INTEGER NOT NULL REFERENCES tanks(id),
+      dip_litres      REAL NOT NULL,
+      reading_litres  REAL,
+      variance        REAL,
+      created_at      TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
     CREATE TABLE IF NOT EXISTS shift_nozzle_readings (
@@ -174,6 +209,12 @@ function initFuelSchema(db) {
   // tanks). Data-model stays as one row; the number is UI-only.
   try { db.exec('ALTER TABLE tanks ADD COLUMN vessel_count INTEGER NOT NULL DEFAULT 1'); }
   catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+
+  // Payment-breakdown columns added later — safe to ALTER on upgrade.
+  for (const col of ['payment_cash', 'payment_swipes', 'payment_1card', 'payment_mobile', 'payment_other']) {
+    try { db.exec(`ALTER TABLE attendant_shifts ADD COLUMN ${col} REAL DEFAULT 0`); }
+    catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  }
 }
 
 module.exports = { initFuelSchema };

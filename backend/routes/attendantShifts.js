@@ -56,13 +56,31 @@ router.get('/:id', auth, (req, res) => {
   if (!row) return res.status(404).json({ error: 'Not found' });
   row.readings = db.prepare(`
     SELECT snr.*, n.code AS nozzle_code, p.code AS pump_code,
-           fg.name AS grade_name, fg.color AS grade_color
+           n.tank_id, t.code AS tank_code,
+           fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color
       FROM shift_nozzle_readings snr
       LEFT JOIN nozzles n ON n.id = snr.nozzle_id
       LEFT JOIN pumps p ON p.id = n.pump_id
       LEFT JOIN tanks t ON t.id = n.tank_id
       LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
      WHERE snr.shift_id = ?
+  `).all(req.params.id);
+  row.credit_sales = db.prepare(`
+    SELECT cs.*, fc.name AS fleet_customer_name,
+           fg.name AS grade_name, fg.color AS grade_color
+      FROM shift_credit_sales cs
+      LEFT JOIN fleet_customers fc ON fc.id = cs.fleet_customer_id
+      LEFT JOIN fuel_grades fg ON fg.id = cs.fuel_grade_id
+     WHERE cs.shift_id = ?
+     ORDER BY cs.id
+  `).all(req.params.id);
+  row.dips = db.prepare(`
+    SELECT d.*, t.code AS tank_code, t.name AS tank_name,
+           fg.name AS grade_name, fg.color AS grade_color
+      FROM shift_dips d
+      LEFT JOIN tanks t ON t.id = d.tank_id
+      LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+     WHERE d.shift_id = ?
   `).all(req.params.id);
   res.json(row);
 });
@@ -104,16 +122,71 @@ router.post('/open', auth, (req, res) => {
   try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// Close a shift: closing meter per nozzle, testing litres, actual cash in
+// Add a credit sale (receivable ticket) to an open shift during the shift.
+// Also usable in batch at close by submitting them with the close call.
+router.post('/:id/credit-sales', auth, (req, res) => {
+  const tx = db.transaction(() => {
+    const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
+    if (!shift) throw new Error('Shift not found');
+    if (shift.status !== 'Open') throw new Error('Shift already closed');
+    const { fleet_customer_id = null, customer_name, vehicle_registration = '',
+            fuel_grade_id = null, litres, price_per_litre, amount = null,
+            receipt_number = '', notes = '' } = req.body;
+    if (!customer_name || !(Number(litres) > 0)) throw new Error('customer_name and litres are required');
+    const ppl = Number(price_per_litre) || 0;
+    const amt = amount != null ? Number(amount) : Number((Number(litres) * ppl).toFixed(2));
+    const info = db.prepare(`
+      INSERT INTO shift_credit_sales (
+        shift_id, fleet_customer_id, customer_name, vehicle_registration,
+        fuel_grade_id, litres, price_per_litre, amount, receipt_number, notes
+      ) VALUES (?,?,?,?,?,?,?,?,?,?)
+    `).run(req.params.id, fleet_customer_id, customer_name.trim(), vehicle_registration,
+           fuel_grade_id, Number(litres), ppl, amt, receipt_number, notes);
+    // Post immediately to the fleet customer's receivable ledger if attached
+    if (fleet_customer_id) {
+      db.prepare('UPDATE fleet_customers SET current_balance = current_balance + ?, updated_at = datetime(\'now\') WHERE id = ?')
+        .run(amt, fleet_customer_id);
+    }
+    return db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(info.lastInsertRowid);
+  });
+  try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
+router.delete('/credit-sales/:cid', auth, (req, res) => {
+  const tx = db.transaction(() => {
+    const cs = db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(req.params.cid);
+    if (!cs) throw new Error('Not found');
+    if (cs.fleet_customer_id) {
+      db.prepare('UPDATE fleet_customers SET current_balance = current_balance - ? WHERE id = ?').run(cs.amount, cs.fleet_customer_id);
+    }
+    db.prepare('DELETE FROM shift_credit_sales WHERE id = ?').run(req.params.cid);
+    return { message: 'Deleted' };
+  });
+  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
+// Close a shift with the full reconciliation: nozzle closings, payment
+// breakdown, credit-sale tickets (optional batch), dip readings per tank.
+// Expected cash = gross nozzle sales - (swipes + 1card + mobile + other + credits).
+// Cash variance = payment_cash - expected cash.
 router.post('/:id/close', auth, (req, res) => {
   const tx = db.transaction(() => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
     if (shift.status !== 'Open') throw new Error('Shift already closed');
-    const { readings = [], actual_cash = 0, notes = '' } = req.body;
+
+    const {
+      readings = [],
+      payment_cash = 0, payment_swipes = 0, payment_1card = 0,
+      payment_mobile = 0, payment_other = 0,
+      credit_sales_batch = [],  // optional: insert these in one shot
+      dips = [],                // [{tank_id, dip_litres}]
+      notes = '',
+    } = req.body;
     if (!Array.isArray(readings) || readings.length === 0) throw new Error('readings array is required');
 
-    let expectedCash = 0;
+    // 1. Nozzle closings → gross sales + per-nozzle updates
+    let grossSales = 0;
     const updReading = db.prepare(`
       UPDATE shift_nozzle_readings
          SET closing_reading = ?, testing_litres = ?, litres_sold = ?, expected_cash = ?
@@ -126,26 +199,75 @@ router.post('/:id/close', auth, (req, res) => {
       const base = db.prepare('SELECT * FROM shift_nozzle_readings WHERE id = ?').get(r.id);
       if (!base) throw new Error('Reading not found: ' + r.id);
       const closing = Number(r.closing_reading);
-      if (!isFinite(closing) || closing < base.opening_reading) throw new Error(`Closing reading < opening for nozzle reading ${r.id}`);
+      if (!isFinite(closing) || closing < base.opening_reading) {
+        throw new Error(`Closing < opening for nozzle reading ${r.id}`);
+      }
       const testing = Number(r.testing_litres || 0);
       const litresSold = Math.max(closing - base.opening_reading - testing, 0);
       const expected = Number((litresSold * base.price_per_litre).toFixed(2));
       updReading.run(closing, testing, litresSold, expected, base.id);
-      expectedCash += expected;
+      grossSales += expected;
 
-      // bump nozzle meter + decrement tank volume
       const noz = db.prepare('SELECT * FROM nozzles WHERE id = ?').get(base.nozzle_id);
       updNozzle.run(closing, base.nozzle_id);
       updTank.run(litresSold, noz.tank_id);
     }
 
-    const variance = Number((Number(actual_cash) - expectedCash).toFixed(2));
+    // 2. Batch credit sales (if any were submitted with the close rather
+    //    than inserted individually during the shift)
+    const insCredit = db.prepare(`
+      INSERT INTO shift_credit_sales (
+        shift_id, fleet_customer_id, customer_name, vehicle_registration,
+        fuel_grade_id, litres, price_per_litre, amount, receipt_number, notes
+      ) VALUES (?,?,?,?,?,?,?,?,?,?)
+    `);
+    const updFleet = db.prepare('UPDATE fleet_customers SET current_balance = current_balance + ?, updated_at = datetime(\'now\') WHERE id = ?');
+    for (const cs of credit_sales_batch) {
+      if (!cs.customer_name || !(Number(cs.litres) > 0)) continue;
+      const ppl = Number(cs.price_per_litre) || 0;
+      const amt = cs.amount != null ? Number(cs.amount) : Number((Number(cs.litres) * ppl).toFixed(2));
+      insCredit.run(req.params.id, cs.fleet_customer_id || null, cs.customer_name.trim(),
+        cs.vehicle_registration || '', cs.fuel_grade_id || null, Number(cs.litres), ppl, amt,
+        cs.receipt_number || '', cs.notes || '');
+      if (cs.fleet_customer_id) updFleet.run(amt, cs.fleet_customer_id);
+    }
+
+    // 3. Dip readings per tank → compare to book volume
+    const insDip = db.prepare(`
+      INSERT INTO shift_dips (shift_id, tank_id, dip_litres, reading_litres, variance)
+      VALUES (?,?,?,?,?)
+    `);
+    for (const d of dips) {
+      if (!d.tank_id || d.dip_litres == null) continue;
+      const tank = db.prepare('SELECT current_volume FROM tanks WHERE id = ?').get(d.tank_id);
+      const reading = tank ? Number(tank.current_volume) : null;
+      const variance = reading != null ? Number((Number(d.dip_litres) - reading).toFixed(2)) : null;
+      insDip.run(req.params.id, d.tank_id, Number(d.dip_litres), reading, variance);
+    }
+
+    // 4. Sum credit sales for this shift (includes any inserted during the
+    //    shift via the per-ticket endpoint plus the batch above)
+    const creditTotal = db.prepare('SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ?').get(req.params.id).t;
+
+    // 5. Expected cash = gross - all non-cash deductions
+    const nonCashDeductions = Number(payment_swipes || 0) + Number(payment_1card || 0)
+                            + Number(payment_mobile || 0) + Number(payment_other || 0)
+                            + Number(creditTotal || 0);
+    const expectedCash = Number((grossSales - nonCashDeductions).toFixed(2));
+    const variance = Number((Number(payment_cash || 0) - expectedCash).toFixed(2));
+
     db.prepare(`
       UPDATE attendant_shifts
          SET status = 'Closed', closed_at = datetime('now'), closed_by = ?,
-             expected_cash = ?, actual_cash = ?, variance = ?, notes = COALESCE(?, notes), updated_at = datetime('now')
+             expected_cash = ?, actual_cash = ?, variance = ?,
+             payment_cash = ?, payment_swipes = ?, payment_1card = ?,
+             payment_mobile = ?, payment_other = ?,
+             notes = COALESCE(?, notes), updated_at = datetime('now')
        WHERE id = ?
-    `).run(req.user?.id || null, expectedCash, Number(actual_cash) || 0, variance, notes || null, req.params.id);
+    `).run(req.user?.id || null, expectedCash, Number(payment_cash) || 0, variance,
+           Number(payment_cash) || 0, Number(payment_swipes) || 0, Number(payment_1card) || 0,
+           Number(payment_mobile) || 0, Number(payment_other) || 0,
+           notes || null, req.params.id);
 
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });

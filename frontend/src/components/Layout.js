@@ -677,9 +677,6 @@ const Layout = () => {
               </div>
               {openGroups.fuel && (
                 <div className="nav-children">
-                  <div className={`nav-item ${isActive('/fuel/pos') ? 'active' : ''}`} onClick={() => navigate('/fuel/pos')}>
-                    <FiDollarSign className="nav-icon" /> <span>Fuel POS</span>
-                  </div>
                   <div className={`nav-item ${isActive('/fuel/shifts') ? 'active' : ''}`} onClick={() => navigate('/fuel/shifts')}>
                     <FiClipboard className="nav-icon" /> <span>Attendant Shifts</span>
                   </div>
