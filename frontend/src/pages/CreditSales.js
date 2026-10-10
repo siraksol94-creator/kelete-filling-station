@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter, FiPrinter } from 'react-icons/fi';
 import { getAllTickets, addShiftCreditSale, deleteShiftCreditSale, getShifts, getNozzles } from '../services/fuelApi';
 import { getCustomers } from '../services/api';
 import { S } from './fuelStyles';
+import { printTicket, printTicketList } from './ticketPrint';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -46,7 +47,7 @@ export function TicketsPage({ method }) {
     e.preventDefault(); setErr(''); setSaving(true);
     try {
       if (!form.shift_id) throw new Error('Pick an open shift / attendant');
-      await addShiftCreditSale(form.shift_id, {
+      const res = await addShiftCreditSale(form.shift_id, {
         payment_method: method,
         customer_name: form.customer_name.trim(),
         customer_id: !isCard ? (form.customer_id || null) : null,
@@ -57,7 +58,16 @@ export function TicketsPage({ method }) {
         price_per_litre: Number(form.price_per_litre || 0),
         receipt_number: form.receipt_number || '',
       });
+      // Enrich the backend row with the human labels we already have in
+      // state so the receipt reads properly without a round-trip
+      const sh = openShifts.find(s => Number(s.id) === Number(form.shift_id));
+      const g  = grades.find(x => Number(x.grade_id) === Number(form.fuel_grade_id));
+      const saved = { ...(res.data || {}),
+        attendant_name: sh?.attendant_name || '',
+        grade_name: g?.grade_name || '',
+      };
       setShowForm(false); setForm(emptyForm); await load();
+      printTicket(saved, method);
     } catch (ex) { setErr(ex.response?.data?.error || ex.message || 'Save failed'); }
     finally { setSaving(false); }
   };
@@ -72,7 +82,10 @@ export function TicketsPage({ method }) {
     <div style={S.page}>
       <div style={S.header}>
         <h2 style={S.h2}><FiCreditCard /> {isCard ? '1Card Sales (Engen)' : 'Credit Sales (Receivables)'}</h2>
-        <button onClick={() => { setForm(emptyForm); setErr(''); setShowForm(true); }} style={S.btnPrimary}><FiPlus /> New {isCard ? '1Card' : 'Credit'} Ticket</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button onClick={() => printTicketList(rows, method, filter)} style={S.btnSecondary} disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
+          <button onClick={() => { setForm(emptyForm); setErr(''); setShowForm(true); }} style={S.btnPrimary}><FiPlus /> New {isCard ? '1Card' : 'Credit'} Ticket</button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -120,7 +133,12 @@ export function TicketsPage({ method }) {
                 <td style={S.tdR}>K {Number(r.price_per_litre).toFixed(2)}</td>
                 <td style={S.tdR}><strong>K {Number(r.amount).toFixed(2)}</strong></td>
                 <td style={S.td}>{r.receipt_number || '-'}</td>
-                <td style={S.td}><button onClick={() => remove(r)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button></td>
+                <td style={S.td}>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <button onClick={() => printTicket(r, method)} style={S.iconBtn} title="Print receipt"><FiPrinter /></button>
+                    <button onClick={() => remove(r)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>
+                  </div>
+                </td>
               </tr>
             ))}
             {rows.length === 0 && <tr><td colSpan={10} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No tickets in this range.</td></tr>}
