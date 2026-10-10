@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText } from 'react-icons/fi';
-import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getFleetCustomers, getPumpsWithNozzles } from '../services/fuelApi';
+import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText, FiEdit } from 'react-icons/fi';
+import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getFleetCustomers, getPumpsWithNozzles, addShiftCreditSale } from '../services/fuelApi';
 import { getUsers } from '../services/api';
 import { S } from './fuelStyles';
 
@@ -39,6 +39,10 @@ export default function AttendantShifts() {
   });
   const [err, setErr] = useState('');
   const [viewShift, setViewShift] = useState(null);
+  // Quick credit-ticket modal (during an open shift)
+  const [ticketShift, setTicketShift] = useState(null);  // {id, attendant_name}
+  const [ticket, setTicket] = useState({ customer_name: '', fleet_customer_id: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+  const [savingTicket, setSavingTicket] = useState(false);
 
   const load = async () => {
     try {
@@ -141,6 +145,27 @@ export default function AttendantShifts() {
   const updCreditSale = (i, patch) => setCd({ ...cd, credit_sales: cd.credit_sales.map((c, idx) => idx === i ? { ...c, ...patch } : c) });
   const rmCreditSale  = (i) => setCd({ ...cd, credit_sales: cd.credit_sales.filter((_, idx) => idx !== i) });
 
+  // Submit a single credit ticket to the open shift. Posts to the fleet
+  // customer's receivable ledger immediately via the dedicated endpoint.
+  const submitTicket = async (e) => {
+    e.preventDefault(); setErr(''); setSavingTicket(true);
+    try {
+      if (!ticket.customer_name) throw new Error('Customer name is required');
+      if (!(Number(ticket.litres) > 0)) throw new Error('Litres must be > 0');
+      await addShiftCreditSale(ticketShift.id, {
+        customer_name: ticket.customer_name.trim(),
+        fleet_customer_id: ticket.fleet_customer_id || null,
+        vehicle_registration: ticket.vehicle_registration || '',
+        fuel_grade_id: ticket.fuel_grade_id || null,
+        litres: Number(ticket.litres),
+        price_per_litre: Number(ticket.price_per_litre || 0),
+        receipt_number: ticket.receipt_number || '',
+      });
+      setTicketShift(null);
+    } catch (ex) { setErr(ex.response?.data?.error || ex.message || 'Save failed'); }
+    finally { setSavingTicket(false); }
+  };
+
   const submitClose = async (e) => {
     e.preventDefault(); setErr('');
     const readings = Object.entries(cd.readings).map(([id, r]) => ({
@@ -207,7 +232,13 @@ export default function AttendantShifts() {
                 <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>
                 <td style={S.td}>
                   {s.status === 'Open' ? (
-                    <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close</button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => {
+                        setTicketShift(s);
+                        setTicket({ customer_name: '', fleet_customer_id: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
+                      }} style={{ ...S.btnSecondary, padding: '6px 12px' }}><FiEdit /> Credit Ticket</button>
+                      <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close</button>
+                    </div>
                   ) : (
                     <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
                   )}
@@ -450,6 +481,62 @@ export default function AttendantShifts() {
               <div style={S.modalFooter}>
                 <button type="button" onClick={() => setClosingShift(null)} style={S.btnSecondary}>Cancel</button>
                 <button type="submit" style={S.btnPrimary}><FiCheckCircle /> Close Shift</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Quick credit-ticket modal (during an open shift) ─────────── */}
+      {ticketShift && (
+        <div style={S.backdrop} onClick={() => setTicketShift(null)}>
+          <div style={{ ...S.modal, width: 'min(540px, 95vw)' }} onClick={e => e.stopPropagation()}>
+            <div style={S.modalHeader}>
+              <h3 style={{ margin: 0 }}>Credit Ticket — {ticketShift.attendant_name}</h3>
+              <button onClick={() => setTicketShift(null)} style={S.iconBtn}><FiX /></button>
+            </div>
+            <form onSubmit={submitTicket}>
+              {err && <div style={S.errBox}>{err}</div>}
+              <div style={S.formGrid}>
+                <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Customer *
+                  <input list="ticket-fleet-list" value={ticket.customer_name} onChange={e => {
+                    const match = fleet.find(f => f.name === e.target.value);
+                    setTicket({ ...ticket, customer_name: e.target.value, fleet_customer_id: match?.id || '' });
+                  }} required style={S.input} placeholder="Type or pick a fleet customer…" />
+                  <datalist id="ticket-fleet-list">
+                    {fleet.map(f => <option key={f.id} value={f.name} />)}
+                  </datalist>
+                </label>
+                <label style={S.lbl}>Vehicle
+                  <input value={ticket.vehicle_registration} onChange={e => setTicket({ ...ticket, vehicle_registration: e.target.value.toUpperCase() })} style={S.input} placeholder="e.g. CAA 3626" />
+                </label>
+                <label style={S.lbl}>Receipt #
+                  <input value={ticket.receipt_number} onChange={e => setTicket({ ...ticket, receipt_number: e.target.value })} style={S.input} />
+                </label>
+                <label style={S.lbl}>Grade
+                  <select value={ticket.fuel_grade_id} onChange={e => {
+                    const nz = nozzles.find(n => Number(n.grade_id || n.fuel_grade_id || 0) === Number(e.target.value));
+                    setTicket({ ...ticket, fuel_grade_id: e.target.value, price_per_litre: nz?.price_per_litre || ticket.price_per_litre });
+                  }} style={S.input}>
+                    <option value="">—</option>
+                    {Array.from(new Map(nozzles.map(n => [n.grade_id || n.fuel_grade_id, n])).values()).map(n => (
+                      <option key={n.grade_id || n.fuel_grade_id} value={n.grade_id || n.fuel_grade_id}>{n.grade_name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label style={S.lbl}>Litres *
+                  <input type="number" step="0.01" value={ticket.litres} onChange={e => setTicket({ ...ticket, litres: e.target.value })} required style={S.input} />
+                </label>
+                <label style={S.lbl}>K/L
+                  <input type="number" step="0.01" value={ticket.price_per_litre} onChange={e => setTicket({ ...ticket, price_per_litre: e.target.value })} style={S.input} />
+                </label>
+                <label style={S.lbl}>Amount
+                  <input value={`K ${(Number(ticket.litres || 0) * Number(ticket.price_per_litre || 0)).toFixed(2)}`} readOnly style={{ ...S.input, background: '#f3f4f6', fontWeight: 700 }} />
+                </label>
+              </div>
+              <div style={S.modalFooter}>
+                <button type="button" onClick={() => setTicketShift(null)} style={S.btnSecondary}>Cancel</button>
+                <button type="submit" disabled={savingTicket} style={S.btnPrimary}>{savingTicket ? 'Saving…' : 'Save Ticket'}</button>
               </div>
             </form>
           </div>
