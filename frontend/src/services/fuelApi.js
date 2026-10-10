@@ -45,6 +45,7 @@ export const getCurrentShift    = ()        => api.get('/attendant-shifts/curren
 export const getShift           = (id)      => api.get(`/attendant-shifts/${id}`);
 export const openShift          = (d)       => api.post('/attendant-shifts/open', d);
 export const closeShift         = (id, d)   => api.post(`/attendant-shifts/${id}/close`, d);
+export const reopenShift        = (id)      => api.post(`/attendant-shifts/${id}/reopen`);
 export const addShiftCreditSale = (id, d)   => api.post(`/attendant-shifts/${id}/credit-sales`, d);
 export const deleteShiftCreditSale = (cid)  => api.delete(`/attendant-shifts/credit-sales/${cid}`);
 export const getAllTickets      = (params)  => api.get('/attendant-shifts/all-tickets', { params });

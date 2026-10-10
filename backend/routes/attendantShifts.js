@@ -408,6 +408,25 @@ router.post('/:id/finalize', auth, (req, res) => {
   try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// Reopen a closed shift (e.g. a credit sale was missed and the attendant
+// needs to add it before finalising for the day). Does NOT touch any
+// readings/payments already saved — just flips status back to Open so
+// the Credit/1Card ticket pages let the user post to it.
+router.post('/:id/reopen', auth, (req, res) => {
+  try {
+    const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
+    if (!shift) return res.status(404).json({ error: 'Shift not found' });
+    if (shift.status === 'Open') return res.json({ message: 'Already open', shift });
+    db.prepare(`
+      UPDATE attendant_shifts
+         SET status = 'Open', closed_at = NULL, closed_by = NULL,
+             updated_at = datetime('now')
+       WHERE id = ?
+    `).run(req.params.id);
+    res.json({ message: 'Reopened', shift: db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id) });
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+
 router.delete('/credit-sales/:cid', auth, (req, res) => {
   const tx = db.transaction(() => {
     const cs = db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(req.params.cid);

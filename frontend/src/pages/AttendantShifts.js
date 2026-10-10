@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText, FiEdit } from 'react-icons/fi';
-import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getPumpsWithNozzles, addShiftCreditSale } from '../services/fuelApi';
+import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText, FiEdit, FiUnlock } from 'react-icons/fi';
+import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getPumpsWithNozzles, addShiftCreditSale, reopenShift } from '../services/fuelApi';
 import { getUsers, getCustomers } from '../services/api';
 import { S } from './fuelStyles';
 
@@ -242,7 +242,17 @@ export default function AttendantShifts() {
                   {s.status === 'Open' ? (
                     <button onClick={() => beginClose(s)} style={{ ...S.btnDanger, padding: '6px 12px' }}><FiStopCircle /> Close (Meters)</button>
                   ) : (
-                    <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
+                      <button
+                        onClick={async () => {
+                          if (!window.confirm(`Reopen shift #${s.id} for ${s.attendant_name}? Readings & payments stay saved; you can add missed Credit/1Card tickets then finalise again in Fuel Cash Report.`)) return;
+                          try { await reopenShift(s.id); await load(); }
+                          catch (e) { alert('Reopen failed: ' + (e.response?.data?.error || e.message)); }
+                        }}
+                        style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}
+                      ><FiUnlock /> Reopen</button>
+                    </div>
                   )}
                 </td>
               </tr>
