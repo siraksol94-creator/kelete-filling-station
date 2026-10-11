@@ -128,8 +128,7 @@ export default function Tanks() {
   useEffect(() => {
     const want = location.pathname.includes('tank-dips') ? 'dips' : 'tanks';
     if (want !== tab) setTab(want);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, tab]);
 
   const switchTab = (t) => {
     setTab(t);
