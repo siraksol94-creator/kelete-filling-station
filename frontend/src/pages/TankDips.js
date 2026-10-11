@@ -84,16 +84,16 @@ export default function TankDips({ embedded = false } = {}) {
 
       {msg && <div style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, marginBottom: 12, fontSize: 13, color: '#166534' }}>{msg}</div>}
 
-      <div style={S.card}>
-        <table style={S.table}>
+      <div style={{ ...S.card, overflowX: 'auto' }}>
+        <table style={{ ...S.table, minWidth: 820 }}>
           <thead><tr>
-            <th style={S.th}>Tank / Group</th>
-            <th style={S.th}>Grade</th>
-            <th style={{ ...S.th, textAlign: 'right' }}>Book (L)</th>
-            <th style={{ ...S.th, textAlign: 'right' }}>Measured (L) *</th>
-            <th style={{ ...S.th, textAlign: 'right' }}>Variance</th>
+            <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Tank / Group</th>
+            <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Grade</th>
+            <th style={{ ...S.th, textAlign: 'right', whiteSpace: 'nowrap' }}>Book (L)</th>
+            <th style={{ ...S.th, textAlign: 'right', whiteSpace: 'nowrap' }}>Measured (L) *</th>
+            <th style={{ ...S.th, textAlign: 'right', whiteSpace: 'nowrap' }}>Variance</th>
             <th style={S.th}>Notes</th>
-            <th style={S.th}>Taken by</th>
+            <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Taken by</th>
             <th style={S.th}></th>
           </tr></thead>
           <tbody>
@@ -106,20 +106,19 @@ export default function TankDips({ embedded = false } = {}) {
               const fullyPosted = row.posted_count === row.member_count && row.member_count > 0;
               return (
                 <tr key={key} style={{ borderBottom: '1px solid #f3f4f6', background: fullyPosted ? '#f9fafb' : '#fff' }}>
-                  <td style={S.td}>
+                  <td style={{ ...S.td, whiteSpace: 'nowrap' }}>
                     <strong>{row.tank_code}</strong>
-                    {row.is_group && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: '#eef2ff', color: '#4338ca', borderRadius: 10, fontWeight: 700 }}>GROUP</span>}
                     <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 2 }}>{row.tank_name}</div>
                   </td>
-                  <td style={S.td}><span style={S.pill(row.grade_color || '#6b7280')}>{row.grade_name || '-'}</span></td>
-                  <td style={S.tdR}>{fmtL(row.book_volume)}</td>
+                  <td style={S.td}><span style={{ ...S.pill(row.grade_color || '#6b7280'), whiteSpace: 'nowrap' }}>{row.grade_name || '-'}</span></td>
+                  <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{fmtL(row.book_volume)}</td>
                   <td style={S.tdR}>
                     <input type="number" step="0.01" value={ip.measured || ''}
                       disabled={fullyPosted}
                       onChange={e => setEdits({ ...edits, [key]: { ...ip, measured: e.target.value } })}
                       style={{ ...S.input, width: 140, textAlign: 'right', background: fullyPosted ? '#f3f4f6' : '#fff' }} />
                   </td>
-                  <td style={{ ...S.tdR, color: vColor, fontWeight: 600 }}>
+                  <td style={{ ...S.tdR, color: vColor, fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {liveVariance != null ? (liveVariance >= 0 ? '+' : '') + liveVariance.toFixed(2) + ' L' : '—'}
                   </td>
                   <td style={S.td}>
