@@ -78,7 +78,7 @@ export default function FuelCashReport() {
             const closed = s.status === 'Closed';
             return (
               <div key={s.id} style={S.card}>
-                <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between' }}>
+                <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                   <div>
                     <strong style={{ fontSize: 16 }}>{s.attendant_name}</strong>
                     <div style={{ fontSize: 12, color: '#6b7280' }}>Shift #{s.id} · opened {s.opened_at} · <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span></div>
@@ -89,7 +89,7 @@ export default function FuelCashReport() {
                     </button>
                   </div>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 12, padding: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, padding: 16 }}>
                   <StatCell label="Gross" value={`K ${gross.toFixed(2)}`} />
                   <StatCell label="Credit (auto)" value={`K ${credit.toFixed(2)}`} />
                   <StatCell label="1Card (auto)" value={`K ${onecard.toFixed(2)}`} />
@@ -183,7 +183,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
 
       {/* Per-grade totals banner — the 'how much Petrol / Diesel today' answer */}
       {gradeList.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(gradeList.length, 4)}, 1fr)`, gap: 12, marginBottom: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
           {gradeList.map(g => (
             <div key={g.grade_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${g.grade_color || '#2563eb'}`, borderRadius: 8, padding: 14 }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -196,7 +196,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
 
         {/* Column 1: Fuel Sales per Pump × Grade */}
         <div style={col}>
