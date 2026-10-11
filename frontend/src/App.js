@@ -99,7 +99,6 @@ import AttendantShifts from './pages/AttendantShifts';
 import CreditSales from './pages/CreditSales';
 import OneCardSales from './pages/OneCardSales';
 import FuelCashReport from './pages/FuelCashReport';
-import TankDips from './pages/TankDips';
 // FuelPOS removed — fuel sales happen at shift close, not per-transaction
 
 const isWeb = !navigator.userAgent.toLowerCase().includes('electron');
@@ -429,7 +428,9 @@ function AppRoutes() {
         <Route path="fuel/credit-sales"  element={<CreditSales />} />
         <Route path="fuel/onecard-sales" element={<OneCardSales />} />
         <Route path="fuel/cash-report"   element={<FuelCashReport />} />
-        <Route path="fuel/tank-dips"     element={<TankDips />} />
+        {/* Tank Dips URL still works for bookmarks but renders the Tanks
+            page (which detects the path and opens the Dips tab). */}
+        <Route path="fuel/tank-dips"     element={<Tanks />} />
         <Route path="fuel/deliveries"    element={<FuelDeliveries />} />
         <Route path="fuel/tanks"         element={<Tanks />} />
         <Route path="fuel/pumps"         element={<PumpsNozzles />} />

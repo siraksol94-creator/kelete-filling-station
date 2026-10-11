@@ -262,9 +262,19 @@ function DaySummaryPanel({ summary, liveOverride }) {
             <span style={{ color: '#2563eb' }}>{fmtK(expectedCash)}</span>
           </div>
           <div style={{ ...line, fontWeight: 700, fontSize: 14 }}><span>CASH IN HAND</span><span>{fmtK(cashInHand)}</span></div>
-          <div style={{ ...line, fontWeight: 700, fontSize: 14 }}>
-            <span>VARIANCE</span>
-            <span style={{ color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a') }}>{fmtK(variance)}</span>
+
+          {/* Variance called out so it's never missed below the fold */}
+          <div style={{
+            marginTop: 10, padding: '10px 12px', borderRadius: 8,
+            background: Math.abs(variance) < 0.01 ? '#f3f4f6' : (variance < 0 ? '#fef2f2' : '#f0fdf4'),
+            border: '1px solid ' + (Math.abs(variance) < 0.01 ? '#e5e7eb' : (variance < 0 ? '#fecaca' : '#bbf7d0')),
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: '0.5px' }}>VARIANCE</span>
+            <span style={{
+              fontSize: 18, fontWeight: 800,
+              color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a'),
+            }}>{fmtK(variance)}</span>
           </div>
         </div>
       </div>
