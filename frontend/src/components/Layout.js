@@ -692,11 +692,8 @@ const Layout = () => {
                   <div className={`nav-item ${isActive('/fuel/deliveries') ? 'active' : ''}`} onClick={() => navigate('/fuel/deliveries')}>
                     <FiDownload className="nav-icon" /> <span>Fuel Deliveries</span>
                   </div>
-                  <div className={`nav-item ${isActive('/fuel/tanks') ? 'active' : ''}`} onClick={() => navigate('/fuel/tanks')}>
+                  <div className={`nav-item ${isActive('/fuel/tanks') || isActive('/fuel/tank-dips') ? 'active' : ''}`} onClick={() => navigate('/fuel/tanks')}>
                     <FiHardDrive className="nav-icon" /> <span>Tanks</span>
-                  </div>
-                  <div className={`nav-item ${isActive('/fuel/tank-dips') ? 'active' : ''}`} onClick={() => navigate('/fuel/tank-dips')}>
-                    <FiActivity className="nav-icon" /> <span>Tank Dips</span>
                   </div>
                   <div className={`nav-item ${isActive('/fuel/pumps') ? 'active' : ''}`} onClick={() => navigate('/fuel/pumps')}>
                     <FiSliders className="nav-icon" /> <span>Pumps &amp; Nozzles</span>

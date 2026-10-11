@@ -7,7 +7,7 @@ import { S } from './fuelStyles';
 const today = () => new Date().toISOString().slice(0, 10);
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
 
-export default function TankDips() {
+export default function TankDips({ embedded = false } = {}) {
   const { user } = useAuth();
   const isAdmin = user?.role === 'Administrator';
   const [date, setDate] = useState(today());
@@ -67,11 +67,11 @@ export default function TankDips() {
     finally { setSaving(null); }
   };
 
-  return (
-    <div style={S.page}>
-      <div style={S.header}>
-        <h2 style={S.h2}><FiActivity /> Tank Dips</h2>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+  const body = (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
+        {!embedded && <h2 style={S.h2}><FiActivity /> Tank Dips</h2>}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: embedded ? 'auto' : 0 }}>
           <label style={S.lbl}>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} style={S.input} /></label>
           <button onClick={load} style={S.btnSecondary}><FiRefreshCw /> Refresh</button>
         </div>
@@ -157,6 +157,7 @@ export default function TankDips() {
           </tbody>
         </table>
       </div>
-    </div>
+    </>
   );
+  return embedded ? body : <div style={S.page}>{body}</div>;
 }

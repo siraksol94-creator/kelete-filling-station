@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle } from 'react-icons/fi';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle, FiActivity } from 'react-icons/fi';
 import { getTanks, createTank, updateTank, deleteTank, getFuelGrades } from '../services/fuelApi';
 import { S } from './fuelStyles';
+import TankDips from './TankDips';
 
 // Vertical tank drawn as SVG, supporting 1-6 vessels sharing one fluid level.
 // Vessels sit side by side and are joined at the bottom by a connecting pipe
@@ -118,6 +120,22 @@ function groupTanks(rows) {
 }
 
 export default function Tanks() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  // /fuel/tank-dips lands straight on the Dips tab; everything else = Tanks.
+  const initialTab = location.pathname.includes('tank-dips') ? 'dips' : 'tanks';
+  const [tab, setTab] = useState(initialTab);
+  useEffect(() => {
+    const want = location.pathname.includes('tank-dips') ? 'dips' : 'tanks';
+    if (want !== tab) setTab(want);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  const switchTab = (t) => {
+    setTab(t);
+    navigate(t === 'dips' ? '/fuel/tank-dips' : '/fuel/tanks', { replace: true });
+  };
+
   const [rows, setRows] = useState([]);
   const [grades, setGrades] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -153,13 +171,29 @@ export default function Tanks() {
   };
 
 
+  const tabBtn = (id, label, icon) => (
+    <button type="button" onClick={() => switchTab(id)} style={{
+      padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+      background: tab === id ? '#fff' : 'transparent',
+      color: tab === id ? '#2563eb' : '#6b7280',
+      border: 'none', borderBottom: `3px solid ${tab === id ? '#2563eb' : 'transparent'}`,
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+    }}>{icon} {label}</button>
+  );
+
   return (
     <div style={S.page}>
       <div style={S.header}>
         <h2 style={S.h2}><FiDatabase /> Tanks</h2>
-        <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>
+        {tab === 'tanks' && <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>}
       </div>
 
+      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 16, display: 'flex', gap: 2 }}>
+        {tabBtn('tanks', 'Tanks',     <FiDatabase size={15} />)}
+        {tabBtn('dips',  'Tank Dips', <FiActivity size={15} />)}
+      </div>
+
+      {tab === 'dips' ? <TankDips embedded /> : (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
         {groupTanks(rows).map(group => {
           const members = group.members;
@@ -230,8 +264,9 @@ export default function Tanks() {
           </div>
         )}
       </div>
+      )}
 
-      {showForm && (
+      {tab === 'tanks' && showForm && (
         <div style={S.backdrop} onClick={() => setShowForm(false)}>
           <div style={S.modal} onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
