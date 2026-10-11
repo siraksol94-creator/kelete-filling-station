@@ -108,6 +108,22 @@ export default function TankLedger({ embedded = false } = {}) {
                 <th style={{ ...S.th, whiteSpace: 'nowrap' }}>By</th>
               </tr></thead>
               <tbody>
+                {/* Pre-range starting line: shows OPENING BEFORE as the
+                    first row of the table even when the real OPENING
+                    movement is dated before 'From'. Without this a tank
+                    with historical stock looked empty. */}
+                {Number(data.opening_before) !== 0 && (
+                  <tr style={{ borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
+                    <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontStyle: 'italic' }}>&lt; {fmtDate(from)}</td>
+                    <td style={S.td}>
+                      <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 10, background: '#eef2ff', color: '#4338ca', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>OPENING BEFORE</span>
+                    </td>
+                    <td style={{ ...S.tdR, whiteSpace: 'nowrap', color: '#6b7280' }}>—</td>
+                    <td style={{ ...S.tdR, whiteSpace: 'nowrap', fontWeight: 700 }}>{fmtL(data.opening_before)}</td>
+                    <td style={{ ...S.td, color: '#6b7280', fontStyle: 'italic' }}>Carried over from before this date range</td>
+                    <td style={S.td}>—</td>
+                  </tr>
+                )}
                 {(data.rows || []).map(r => {
                   const t = TYPE_COLORS[r.type] || TYPE_COLORS.adjustment;
                   const positive = Number(r.litres) >= 0;
@@ -126,7 +142,7 @@ export default function TankLedger({ embedded = false } = {}) {
                     </tr>
                   );
                 })}
-                {(data.rows || []).length === 0 && (
+                {(data.rows || []).length === 0 && Number(data.opening_before) === 0 && (
                   <tr><td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No movements in this date range.</td></tr>
                 )}
               </tbody>
