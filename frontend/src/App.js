@@ -428,9 +428,10 @@ function AppRoutes() {
         <Route path="fuel/credit-sales"  element={<CreditSales />} />
         <Route path="fuel/onecard-sales" element={<OneCardSales />} />
         <Route path="fuel/cash-report"   element={<FuelCashReport />} />
-        {/* Tank Dips URL still works for bookmarks but renders the Tanks
-            page (which detects the path and opens the Dips tab). */}
+        {/* Tank Dips and Tank Ledger URLs are bookmarkable but render
+            the Tanks page (which detects the path and opens the right tab). */}
         <Route path="fuel/tank-dips"     element={<Tanks />} />
+        <Route path="fuel/tank-ledger"   element={<Tanks />} />
         <Route path="fuel/deliveries"    element={<FuelDeliveries />} />
         <Route path="fuel/tanks"         element={<Tanks />} />
         <Route path="fuel/pumps"         element={<PumpsNozzles />} />

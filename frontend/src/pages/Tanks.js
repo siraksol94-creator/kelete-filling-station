@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle, FiActivity } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle, FiActivity, FiBook } from 'react-icons/fi';
 import { getTanks, createTank, updateTank, deleteTank, getFuelGrades } from '../services/fuelApi';
 import { S } from './fuelStyles';
 import TankDips from './TankDips';
+import TankLedger from './TankLedger';
 
 // Vertical tank drawn as SVG, supporting 1-6 vessels sharing one fluid level.
 // Vessels sit side by side and are joined at the bottom by a connecting pipe
@@ -122,17 +123,18 @@ function groupTanks(rows) {
 export default function Tanks() {
   const location = useLocation();
   const navigate = useNavigate();
-  // /fuel/tank-dips lands straight on the Dips tab; everything else = Tanks.
-  const initialTab = location.pathname.includes('tank-dips') ? 'dips' : 'tanks';
-  const [tab, setTab] = useState(initialTab);
+  // /fuel/tank-dips → Dips tab, /fuel/tank-ledger → Ledger tab, else Tanks.
+  const tabFromPath = p => p.includes('tank-dips') ? 'dips' : (p.includes('tank-ledger') ? 'ledger' : 'tanks');
+  const [tab, setTab] = useState(tabFromPath(location.pathname));
   useEffect(() => {
-    const want = location.pathname.includes('tank-dips') ? 'dips' : 'tanks';
+    const want = tabFromPath(location.pathname);
     if (want !== tab) setTab(want);
   }, [location.pathname, tab]);
 
   const switchTab = (t) => {
     setTab(t);
-    navigate(t === 'dips' ? '/fuel/tank-dips' : '/fuel/tanks', { replace: true });
+    const path = t === 'dips' ? '/fuel/tank-dips' : (t === 'ledger' ? '/fuel/tank-ledger' : '/fuel/tanks');
+    navigate(path, { replace: true });
   };
 
   const [rows, setRows] = useState([]);
@@ -187,12 +189,13 @@ export default function Tanks() {
         {tab === 'tanks' && <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>}
       </div>
 
-      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 16, display: 'flex', gap: 2 }}>
-        {tabBtn('tanks', 'Tanks',     <FiDatabase size={15} />)}
-        {tabBtn('dips',  'Tank Dips', <FiActivity size={15} />)}
+      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 16, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        {tabBtn('tanks',  'Tanks',       <FiDatabase size={15} />)}
+        {tabBtn('dips',   'Tank Dips',   <FiActivity size={15} />)}
+        {tabBtn('ledger', 'Tank Ledger', <FiBook size={15} />)}
       </div>
 
-      {tab === 'dips' ? <TankDips embedded /> : (
+      {tab === 'dips' ? <TankDips embedded /> : tab === 'ledger' ? <TankLedger embedded /> : (
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
         {groupTanks(rows).map(group => {
           const members = group.members;
