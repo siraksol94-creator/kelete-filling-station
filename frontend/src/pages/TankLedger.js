@@ -78,6 +78,42 @@ export default function TankLedger({ embedded = false } = {}) {
     return out;
   }, [tanks]);
 
+  // When viewing a plumbed group, collapse rows that share the same date
+  // AND type into one aggregated row (the dip adjustment Group C posted
+  // as -48.51 L on T5 and -51.49 L on T6 becomes one -100.00 L row).
+  // Running balance is recomputed over the collapsed list.
+  const displayRows = (() => {
+    const rows = data?.rows || [];
+    if (!data?.tank?.group_code) return rows;
+    const buckets = new Map();
+    const order = [];
+    for (const r of rows) {
+      const key = `${(r.movement_date || '').slice(0, 10)}|${r.type}`;
+      if (!buckets.has(key)) {
+        buckets.set(key, { ...r, litres: 0, tank_codes: new Set(), notes_set: new Set(), by_set: new Set() });
+        order.push(key);
+      }
+      const b = buckets.get(key);
+      b.litres += Number(r.litres || 0);
+      if (r.tank_code) b.tank_codes.add(r.tank_code);
+      if (r.notes) b.notes_set.add(r.notes);
+      if (r.created_by_name) b.by_set.add(r.created_by_name);
+    }
+    let running = Number(data.opening_before || 0);
+    return order.map(k => {
+      const b = buckets.get(k);
+      running += Number(b.litres);
+      return {
+        ...b,
+        litres: Number(b.litres.toFixed(2)),
+        balance_after: Number(running.toFixed(2)),
+        tank_code: Array.from(b.tank_codes).sort().join(' + '),
+        notes: Array.from(b.notes_set).join(' · '),
+        created_by_name: Array.from(b.by_set).join(', '),
+      };
+    });
+  })();
+
   const body = (
     <>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 16 }}>
@@ -133,11 +169,11 @@ export default function TankLedger({ embedded = false } = {}) {
                     <td style={S.td}>—</td>
                   </tr>
                 )}
-                {(data.rows || []).map(r => {
+                {displayRows.map((r, idx) => {
                   const t = TYPE_COLORS[r.type] || TYPE_COLORS.adjustment;
                   const positive = Number(r.litres) >= 0;
                   return (
-                    <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={r.id ?? `agg-${idx}`} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ ...S.td, whiteSpace: 'nowrap' }}>{fmtDate(r.movement_date)}</td>
                       {data.tank?.group_code && <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontSize: 12 }}>{r.tank_code || '—'}</td>}
                       <td style={S.td}>
@@ -152,7 +188,7 @@ export default function TankLedger({ embedded = false } = {}) {
                     </tr>
                   );
                 })}
-                {(data.rows || []).length === 0 && Number(data.opening_before) === 0 && (
+                {displayRows.length === 0 && Number(data.opening_before) === 0 && (
                   <tr><td colSpan={data.tank?.group_code ? 7 : 6} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No movements in this date range.</td></tr>
                 )}
               </tbody>
