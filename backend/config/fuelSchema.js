@@ -61,6 +61,7 @@ function initFuelSchema(db) {
     CREATE TABLE IF NOT EXISTS tank_dips (
       id                     INTEGER PRIMARY KEY AUTOINCREMENT,
       tank_id                INTEGER NOT NULL REFERENCES tanks(id) ON DELETE CASCADE,
+      shift_id               INTEGER REFERENCES attendant_shifts(id) ON DELETE CASCADE,
       dip_date               TEXT NOT NULL DEFAULT (date('now')),
       measured_litres        REAL NOT NULL,
       book_litres            REAL NOT NULL,
@@ -71,17 +72,32 @@ function initFuelSchema(db) {
       created_at             TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at             TEXT NOT NULL DEFAULT (datetime('now'))
     );
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date ON tank_dips(tank_id, dip_date);
+    -- Legacy per-day unique kept for installs that pre-date per-shift dips;
+    -- new rows carry shift_id and are uniquely indexed below.
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date
+      ON tank_dips(tank_id, dip_date) WHERE shift_id IS NULL;
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_shift
+      ON tank_dips(tank_id, shift_id) WHERE shift_id IS NOT NULL;
 
-    -- End-of-day sign-off by an Administrator. When a day is approved:
-    --   1. Every un-posted tank_dips row for that date is auto-posted
-    --      (writes dip_adjustment ledger rows, book moves to measured)
-    --   2. The day's attendant_shifts cash fields are locked for editing
-    -- Un-approve reverses the lock but leaves ledger adjustments intact
-    -- (an admin would reverse those manually if needed).
+    -- Legacy per-day approvals (kept for migration). New approvals live
+    -- on fuel_shift_approvals so day + night shifts can be closed off
+    -- independently — matching the paper flow.
     CREATE TABLE IF NOT EXISTS fuel_day_approvals (
       id              INTEGER PRIMARY KEY AUTOINCREMENT,
       approval_date   TEXT NOT NULL UNIQUE,
+      approved_by     INTEGER REFERENCES users(id),
+      approved_at     TEXT NOT NULL DEFAULT (datetime('now')),
+      notes           TEXT
+    );
+
+    -- Per-shift sign-off. When a shift is approved:
+    --   1. Every un-posted tank_dips row for that shift auto-posts as
+    --      a dip_adjustment ledger entry (book moves to measured)
+    --   2. The shift's cash fields are locked for editing
+    -- Un-approve reverses the lock but leaves ledger adjustments intact.
+    CREATE TABLE IF NOT EXISTS fuel_shift_approvals (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      shift_id        INTEGER NOT NULL UNIQUE REFERENCES attendant_shifts(id) ON DELETE CASCADE,
       approved_by     INTEGER REFERENCES users(id),
       approved_at     TEXT NOT NULL DEFAULT (datetime('now')),
       notes           TEXT
@@ -292,6 +308,11 @@ function initFuelSchema(db) {
     try { db.exec(`ALTER TABLE shift_credit_sales ADD COLUMN ${col}`); }
     catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
   }
+
+  // Back-migrate: tank_dips gains a shift_id so we can scope dips per
+  // shift (DAY vs NIGHT). Legacy rows keep shift_id NULL.
+  try { db.exec('ALTER TABLE tank_dips ADD COLUMN shift_id INTEGER'); }
+  catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
 
   // Backfill: every pre-existing tank's current_volume becomes an
   // 'opening' row in tank_movements so the ledger invariant

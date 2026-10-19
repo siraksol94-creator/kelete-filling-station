@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock, FiAlertCircle } from 'react-icons/fi';
-import { getDailyRollup, finalizeShift, getDaySummary, getDayApproval, approveDay, unApproveDay } from '../services/fuelApi';
+import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock } from 'react-icons/fi';
+import { getDailyRollup, finalizeShift, getDaySummary, approveShift, unApproveShift } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 
@@ -12,20 +12,18 @@ export default function FuelCashReport() {
   const [date, setDate] = useState(today());
   const [rows, setRows] = useState([]);
   const [summary, setSummary] = useState(null);
-  const [approval, setApproval] = useState(null);  // { approved_by_name, approved_at, notes } or null
-  // per-shift inputs: { [shiftId]: { payment_mobile, payment_swipes, payment_cash } }
+  // Approval is now PER SHIFT; each row's .approval field carries it.
   const [inputs, setInputs] = useState({});
   const [saving, setSaving] = useState(null);  // shiftId being saved
-  const [approving, setApproving] = useState(false);
+  const [approving, setApproving] = useState(null);  // shiftId being (un)approved
   const [msg, setMsg] = useState('');
 
   const load = async () => {
     setMsg('');
     try {
-      const [r, sm, ap] = await Promise.all([getDailyRollup(date), getDaySummary(date), getDayApproval(date).catch(() => ({ data: null }))]);
+      const [r, sm] = await Promise.all([getDailyRollup(date), getDaySummary(date)]);
       setRows(r.data || []);
       setSummary(sm.data || null);
-      setApproval(ap.data || null);
       // Prefill inputs from already-saved values (so closed shifts show their reconciled amounts)
       const init = {};
       for (const s of (r.data || [])) {
@@ -41,34 +39,33 @@ export default function FuelCashReport() {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [date]);
 
-  const approve = async () => {
-    const openShifts = rows.filter(r => r.status === 'Open').length;
-    if (openShifts > 0) { setMsg(`${openShifts} shift(s) still Open — close + finalize all shifts first.`); return; }
+  const approve = async (s) => {
+    if (s.status === 'Open') { setMsg(`Shift #${s.id} still Open — close + finalize first.`); return; }
     if (!window.confirm(
-      `Approve ${date}?\n\n` +
+      `Approve shift #${s.id} (${s.attendant_name})?\n\n` +
       `This will:\n` +
-      `  • Auto-post every un-posted dip adjustment for the day (book volumes move to the dip-measured values).\n` +
-      `  • Lock Mobile Money / Swipes / Actual Cash inputs across all shifts for the day.\n\n` +
+      `  • Auto-post every un-posted dip for this shift as a ledger adjustment (book volumes move to the dip-measured values).\n` +
+      `  • Lock Mobile Money / Swipes / Actual Cash on this shift.\n\n` +
       `To change anything afterwards you must Un-approve first.`
     )) return;
-    setApproving(true); setMsg('');
+    setApproving(s.id); setMsg('');
     try {
-      const r = await approveDay(date);
+      const r = await approveShift(s.id);
       await load();
-      setMsg(`Day ${date} approved. ${r.data.dips_posted} dip adjustment(s) posted.`);
+      setMsg(`Shift #${s.id} approved. ${r.data.dips_posted} dip adjustment(s) posted.`);
     } catch (e) { setMsg('Approve failed: ' + (e.response?.data?.error || e.message)); }
-    finally { setApproving(false); }
+    finally { setApproving(null); }
   };
 
-  const unApprove = async () => {
+  const unApprove = async (s) => {
     if (!window.confirm(
-      `Un-approve ${date}?\n\n` +
+      `Un-approve shift #${s.id}?\n\n` +
       `Cash inputs re-open for editing. Posted dip adjustments on the ledger are NOT reversed — if you need to undo those post a manual counter-adjustment in Tank Ledger.`
     )) return;
-    setApproving(true); setMsg('');
-    try { await unApproveDay(date); await load(); setMsg(`Day ${date} un-approved. Cash fields editable again.`); }
+    setApproving(s.id); setMsg('');
+    try { await unApproveShift(s.id); await load(); setMsg(`Shift #${s.id} un-approved. Cash fields editable again.`); }
     catch (e) { setMsg('Un-approve failed: ' + (e.response?.data?.error || e.message)); }
-    finally { setApproving(false); }
+    finally { setApproving(null); }
   };
 
   const finalize = async (s) => {
@@ -97,23 +94,6 @@ export default function FuelCashReport() {
         </div>
       </div>
 
-      {/* Day approval banner */}
-      {approval ? (
-        <div style={{ padding: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#166534' }}>
-            <FiShield /> <strong>Approved</strong> by {approval.approved_by_name || '—'} on {(approval.approved_at || '').replace('T', ' ').slice(0, 16)}
-          </div>
-          {isAdmin && <button onClick={unApprove} disabled={approving} style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}><FiUnlock /> Un-approve</button>}
-        </div>
-      ) : rows.length > 0 && (
-        <div style={{ padding: 12, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#92400e' }}>
-            <FiAlertCircle /> <strong>Pending Review</strong> — not yet approved. Dips will auto-post on approval.
-          </div>
-          {isAdmin && <button onClick={approve} disabled={approving} style={{ ...S.btnPrimary, background: '#16a34a' }}><FiShield /> {approving ? 'Approving…' : 'Approve Day'}</button>}
-        </div>
-      )}
-
       {msg && <div style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{msg}</div>}
 
       {rows.length === 0 ? (
@@ -134,24 +114,38 @@ export default function FuelCashReport() {
                 <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                   <div>
                     <strong style={{ fontSize: 16 }}>{s.attendant_name}</strong>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>Shift #{s.id} · opened {s.opened_at} · <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span></div>
+                    <div style={{ fontSize: 12, color: '#6b7280' }}>
+                      Shift #{s.id} · opened {s.opened_at} ·{' '}
+                      <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span>
+                      {s.approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 6 }}>APPROVED · {s.approval.approved_by_name || '—'}</span>}
+                    </div>
                   </div>
                   <div>
-                    <button onClick={() => finalize(s)} disabled={saving === s.id || !!approval} style={S.btnPrimary} title={approval ? 'Day is approved — un-approve first' : ''}>
+                    <button onClick={() => finalize(s)} disabled={saving === s.id || !!s.approval} style={S.btnPrimary} title={s.approval ? 'Shift is approved — un-approve first' : ''}>
                       <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
                     </button>
+                    {isAdmin && !s.approval && closed && (
+                      <button onClick={() => approve(s)} disabled={approving === s.id} style={{ ...S.btnPrimary, background: '#16a34a', marginLeft: 6 }} title="Approve this shift — posts dips, locks cash">
+                        <FiShield /> {approving === s.id ? 'Approving…' : 'Approve'}
+                      </button>
+                    )}
+                    {isAdmin && s.approval && (
+                      <button onClick={() => unApprove(s)} disabled={approving === s.id} style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb', marginLeft: 6 }}>
+                        <FiUnlock /> Un-approve
+                      </button>
+                    )}
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, padding: 16 }}>
                   <StatCell label="Gross" value={`K ${gross.toFixed(2)}`} />
                   <StatCell label="Credit (auto)" value={`K ${credit.toFixed(2)}`} />
                   <StatCell label="1Card (auto)" value={`K ${onecard.toFixed(2)}`} />
-                  <StatCell label="Mobile Money" input value={ip.payment_mobile}
+                  <StatCell label="Mobile Money" input locked={!!s.approval} value={ip.payment_mobile}
                     onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_mobile: v } })} />
-                  <StatCell label="Swipes" input value={ip.payment_swipes}
+                  <StatCell label="Swipes" input locked={!!s.approval} value={ip.payment_swipes}
                     onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_swipes: v } })} />
                   <StatCell label="Expected Cash" value={`K ${expected.toFixed(2)}`} highlight />
-                  <StatCell label="Actual Cash *" input value={ip.payment_cash}
+                  <StatCell label="Actual Cash *" input locked={!!s.approval} value={ip.payment_cash}
                     onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_cash: v } })} />
                   <StatCell label="Variance" value={`K ${variance.toFixed(2)}`}
                     color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a')} />
@@ -388,12 +382,16 @@ function DaySummaryPanel({ summary, liveOverride }) {
   );
 }
 
-function StatCell({ label, value, input, onChange, highlight, color }) {
+function StatCell({ label, value, input, onChange, highlight, color, locked }) {
   return (
     <div>
-      <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>{label}</div>
+      <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>{label}{locked && <span title="Shift approved — un-approve to edit" style={{ marginLeft: 4 }}>🔒</span>}</div>
       {input ? (
-        <input type="number" step="0.01" value={value || ''} onChange={e => onChange(e.target.value)} style={{ ...S.input, width: '100%', fontWeight: 700, textAlign: 'right' }} />
+        <input type="number" step="0.01" value={value || ''}
+          readOnly={locked}
+          onChange={e => onChange(e.target.value)}
+          title={locked ? 'Shift approved — un-approve on this card to edit' : ''}
+          style={{ ...S.input, width: '100%', fontWeight: 700, textAlign: 'right', background: locked ? '#f3f4f6' : undefined, cursor: locked ? 'not-allowed' : undefined }} />
       ) : (
         <div style={{ fontSize: 18, fontWeight: 700, color: color || (highlight ? '#2563eb' : '#111') }}>{value}</div>
       )}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiActivity, FiRefreshCw, FiCheckCircle, FiClock } from 'react-icons/fi';
-import { getTankDips, saveTankDip } from '../services/fuelApi';
+import { getTankDips, saveTankDip, getShifts } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 
@@ -11,6 +11,8 @@ export default function TankDips({ embedded = false } = {}) {
   const { user } = useAuth();   // kept for future per-user controls
   void user;
   const [date, setDate] = useState(today());
+  const [shifts, setShifts] = useState([]);
+  const [shiftId, setShiftId] = useState('');
   const [rows, setRows] = useState([]);
   // keyed by join of tank_ids so groups and standalone tanks each have a stable row key
   const [edits, setEdits] = useState({});
@@ -19,10 +21,28 @@ export default function TankDips({ embedded = false } = {}) {
 
   const rowKey = r => r.tank_ids.join('-');
 
+  // When the date changes, pull the shifts on that date and default-pick
+  // the first Open one, or (if all closed) the last-opened one.
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await getShifts({ date });
+        const list = (r.data || []).filter(s => (s.opened_at || '').slice(0, 10) === date);
+        setShifts(list);
+        if (list.length > 0) {
+          const open = list.find(s => s.status === 'Open');
+          setShiftId(String((open || list[list.length - 1]).id));
+        } else {
+          setShiftId('');
+        }
+      } catch (e) { setShifts([]); setShiftId(''); }
+    })();
+  }, [date]);
+
   const load = async () => {
     setMsg('');
     try {
-      const r = await getTankDips(date);
+      const r = await getTankDips(shiftId ? { shift_id: shiftId } : { date });
       setRows(r.data?.rows || []);
       const seed = {};
       for (const row of (r.data?.rows || [])) {
@@ -34,15 +54,16 @@ export default function TankDips({ embedded = false } = {}) {
       setEdits(seed);
     } catch (e) { setMsg('Load failed: ' + (e.response?.data?.error || e.message)); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [date]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [date, shiftId]);
 
   const save = async (row) => {
     const key = rowKey(row);
     const ip = edits[key] || {};
     if (ip.measured === '' || ip.measured == null) { setMsg('Enter measured litres first.'); return; }
+    if (!shiftId) { setMsg('Pick a shift first — dips are now scoped per shift.'); return; }
     setSaving(key); setMsg('');
     try {
-      await saveTankDip({ tank_ids: row.tank_ids, dip_date: date, measured_litres: Number(ip.measured), notes: ip.notes || '' });
+      await saveTankDip({ tank_ids: row.tank_ids, shift_id: Number(shiftId), dip_date: date, measured_litres: Number(ip.measured), notes: ip.notes || '' });
       await load();
       setMsg(`Dip saved for ${row.tank_code}.`);
     } catch (e) { setMsg('Save failed: ' + (e.response?.data?.error || e.message)); }
@@ -56,15 +77,25 @@ export default function TankDips({ embedded = false } = {}) {
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
         {!embedded && <h2 style={S.h2}><FiActivity /> Tank Dips</h2>}
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: embedded ? 'auto' : 0 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: embedded ? 'auto' : 0, flexWrap: 'wrap' }}>
           <label style={S.lbl}>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} style={S.input} /></label>
+          <label style={S.lbl}>Shift
+            <select value={shiftId} onChange={e => setShiftId(e.target.value)} style={{ ...S.input, minWidth: 240 }}>
+              {shifts.length === 0 && <option value="">No shifts on this date</option>}
+              {shifts.map(s => (
+                <option key={s.id} value={s.id}>
+                  #{s.id} {s.attendant_name || ''} ({s.status}) — opened {(s.opened_at || '').slice(11, 16)}
+                </option>
+              ))}
+            </select>
+          </label>
           <button onClick={load} style={S.btnSecondary}><FiRefreshCw /> Refresh</button>
         </div>
       </div>
 
       <div style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 12, color: '#1e3a8a' }}>
-        One dip per tank (or per plumbed group) per day. For plumbed groups the measured value is the shared fluid level; the system splits it proportionally into each member tank's ledger.
-        Dips auto-post when an <strong>Administrator approves the day</strong> on Fuel Cash Report. Until then they sit as pending checks and do not change the book volume.
+        One dip per tank (or per plumbed group) per <strong>SHIFT</strong> (DAY and NIGHT reconcile independently). Plumbed groups' measured value is the shared fluid level — split proportionally into each member tank's ledger.
+        Dips auto-post when an <strong>Administrator approves the SHIFT</strong> on Fuel Cash Report. Until then they sit as pending checks and do not change the book volume.
       </div>
 
       {msg && <div style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, marginBottom: 12, fontSize: 13, color: '#166534' }}>{msg}</div>}

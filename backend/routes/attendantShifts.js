@@ -95,6 +95,12 @@ router.get('/daily-rollup', auth, (req, res) => {
       s.gross_from_nozzles = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(s.id).t;
       s.credit_total  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(s.id).t;
       s.onecard_total = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(s.id).t;
+      s.approval = db.prepare(`
+        SELECT a.*, u.first_name || ' ' || u.last_name AS approved_by_name
+          FROM fuel_shift_approvals a
+          LEFT JOIN users u ON u.id = a.approved_by
+         WHERE a.shift_id = ?
+      `).get(s.id) || null;
     }
     res.json(shifts);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -453,10 +459,10 @@ router.post('/:id/finalize', auth, (req, res) => {
   const tx = db.transaction(() => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
-    // Lock: once the day is approved, cash fields are frozen. Admin
-    // would need to un-approve the day on Fuel Cash Report to edit.
-    const approved = db.prepare('SELECT 1 FROM fuel_day_approvals WHERE approval_date = DATE(?)').get(shift.opened_at);
-    if (approved) throw new Error('Day is approved — un-approve on Fuel Cash Report first.');
+    // Lock: once this shift is approved, cash fields are frozen. Admin
+    // would need to un-approve the shift on Fuel Cash Report to edit.
+    const approved = db.prepare('SELECT 1 FROM fuel_shift_approvals WHERE shift_id = ?').get(shift.id);
+    if (approved) throw new Error('Shift is approved — un-approve on Fuel Cash Report first.');
     const { payment_cash = 0, payment_mobile = 0, payment_swipes = 0, notes = '' } = req.body;
     const gross = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(req.params.id).t;
     const credit  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;

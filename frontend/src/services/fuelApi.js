@@ -16,16 +16,18 @@ export const dipTank            = (id, d)   => api.post(`/tanks/${id}/dip`, d);
 export const getTankBinCard     = (id, p)   => api.get(`/tanks/${id}/bin-card`, { params: p });
 export const getTankGroupBinCard = (code, p) => api.get(`/tanks/group/${code}/bin-card`, { params: p });
 
-// Tank Dips — one per tank per day
-export const getTankDips        = (date)    => api.get('/tank-dips', { params: { date } });
+// Tank Dips — one per tank per SHIFT (shift_id). Falls back to a date
+// filter when no shift context is passed (legacy).
+export const getTankDips        = (params)  => api.get('/tank-dips', { params: typeof params === 'string' ? { date: params } : (params || {}) });
 export const saveTankDip        = (d)       => api.post('/tank-dips', d);
 export const postTankDipAdjustment = (id)   => api.post(`/tank-dips/${id}/post-adjustment`);
 export const deleteTankDip      = (id)      => api.delete(`/tank-dips/${id}`);
 
-// Fuel day approvals — Admin sign-off that EOD-approves dips + locks cash
-export const getDayApproval     = (date)    => api.get(`/fuel-day-approvals/${date}`);
-export const approveDay         = (date, n) => api.post(`/fuel-day-approvals/${date}/approve`, { notes: n || '' });
-export const unApproveDay       = (date)    => api.post(`/fuel-day-approvals/${date}/un-approve`);
+// Fuel shift approvals — Admin sign-off per SHIFT (DAY / NIGHT). On
+// approve: auto-posts the shift's dips as ledger adjustments and locks
+// its cash fields.
+export const approveShift       = (shiftId, n) => api.post(`/fuel-shift-approvals/${shiftId}/approve`, { notes: n || '' });
+export const unApproveShift     = (shiftId)    => api.post(`/fuel-shift-approvals/${shiftId}/un-approve`);
 
 // Pumps + nozzles
 export const getPumpsWithNozzles = ()        => api.get('/pumps');

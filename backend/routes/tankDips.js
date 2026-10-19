@@ -9,26 +9,45 @@ const db = require('../config/database');
 const { auth } = require('../middleware/auth');
 const { recordTankMovement } = require('../config/fuelSchema');
 
-// Dip grid for a date: every active tank with the day's dip (if any) +
-// current book volume + variance.
+// Dip grid scoped to ONE SHIFT (preferred) or a date (legacy fallback).
+// With shift_id: joins tank_dips on d.shift_id = ? so DAY and NIGHT shift
+// get their own grids. Without shift_id: falls back to the per-date rows
+// where shift_id IS NULL (legacy data).
 router.get('/', auth, (req, res) => {
   try {
+    const shiftId = req.query.shift_id ? Number(req.query.shift_id) : null;
     const date = req.query.date || new Date().toISOString().slice(0, 10);
-    const perTank = db.prepare(`
-      SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name,
-             t.group_code,
-             t.current_volume AS book_volume,
-             fg.name AS grade_name, fg.color AS grade_color,
-             d.id AS dip_id, d.measured_litres, d.variance, d.posted_adjustment_id,
-             d.notes AS dip_notes,
-             u.first_name || ' ' || u.last_name AS taken_by_name
-        FROM tanks t
-        LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
-        LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = ?
-        LEFT JOIN users u ON u.id = d.taken_by_user_id
-       WHERE t.status != 'Deleted'
-       ORDER BY t.group_code, t.code
-    `).all(date);
+    const perTank = shiftId
+      ? db.prepare(`
+          SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name,
+                 t.group_code,
+                 t.current_volume AS book_volume,
+                 fg.name AS grade_name, fg.color AS grade_color,
+                 d.id AS dip_id, d.measured_litres, d.variance, d.posted_adjustment_id,
+                 d.notes AS dip_notes,
+                 u.first_name || ' ' || u.last_name AS taken_by_name
+            FROM tanks t
+            LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+            LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.shift_id = ?
+            LEFT JOIN users u ON u.id = d.taken_by_user_id
+           WHERE t.status != 'Deleted'
+           ORDER BY t.group_code, t.code
+        `).all(shiftId)
+      : db.prepare(`
+          SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name,
+                 t.group_code,
+                 t.current_volume AS book_volume,
+                 fg.name AS grade_name, fg.color AS grade_color,
+                 d.id AS dip_id, d.measured_litres, d.variance, d.posted_adjustment_id,
+                 d.notes AS dip_notes,
+                 u.first_name || ' ' || u.last_name AS taken_by_name
+            FROM tanks t
+            LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+            LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = ? AND d.shift_id IS NULL
+            LEFT JOIN users u ON u.id = d.taken_by_user_id
+           WHERE t.status != 'Deleted'
+           ORDER BY t.group_code, t.code
+        `).all(date);
 
     // Collapse members of a group into a single row. The group row carries
     // combined book volume, combined measured (sum of member dips), and
@@ -100,34 +119,48 @@ router.get('/', auth, (req, res) => {
 // level, split proportionally across members by their current book).
 router.post('/', auth, (req, res) => {
   const tx = db.transaction(() => {
-    const { tank_id, tank_ids, dip_date, measured_litres, notes = '' } = req.body;
+    const { tank_id, tank_ids, shift_id, dip_date, measured_litres, notes = '' } = req.body;
     const ids = Array.isArray(tank_ids) && tank_ids.length > 0 ? tank_ids.map(Number) : (tank_id ? [Number(tank_id)] : []);
     if (ids.length === 0 || measured_litres == null) {
       throw new Error('tank_id (or tank_ids) and measured_litres are required');
     }
-    const date = dip_date || new Date().toISOString().slice(0, 10);
+    const sid = shift_id ? Number(shift_id) : null;
+    // Dip date derives from the shift's opened_at when a shift_id was
+    // passed; falls back to request field or today.
+    let date = dip_date || new Date().toISOString().slice(0, 10);
+    if (sid) {
+      const sh = db.prepare('SELECT opened_at FROM attendant_shifts WHERE id = ?').get(sid);
+      if (!sh) throw new Error('Shift not found');
+      date = String(sh.opened_at || '').slice(0, 10) || date;
+      // Refuse if the shift has already been approved (dips are posted,
+      // ledger has moved — editing would break the audit chain).
+      const approved = db.prepare('SELECT 1 FROM fuel_shift_approvals WHERE shift_id = ?').get(sid);
+      if (approved) throw new Error('Shift is approved — un-approve on Fuel Cash Report first.');
+    }
     const totalMeasured = Number(measured_litres);
 
     const members = db.prepare(`SELECT id, current_volume FROM tanks WHERE id IN (${ids.map(() => '?').join(',')})`).all(...ids);
     if (members.length !== ids.length) throw new Error('One or more tanks not found');
     const groupBook = members.reduce((s, m) => s + Number(m.current_volume || 0), 0);
 
-    // Refuse if ANY member's dip is already posted — editing one half of
-    // a plumbed pair would break the ledger invariant.
+    const existingSql = sid
+      ? 'SELECT id, posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND shift_id = ?'
+      : 'SELECT id, posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND dip_date = ? AND shift_id IS NULL';
+    const existingParams = (tankId) => sid ? [tankId, sid] : [tankId, date];
+
+    // Refuse if ANY member's dip in this scope is already posted.
     for (const id of ids) {
-      const ex = db.prepare('SELECT posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND dip_date = ?').get(id, date);
-      if (ex?.posted_adjustment_id) throw new Error('Dip already posted for a tank in this group — cannot edit');
+      const ex = db.prepare(existingSql).get(...existingParams(id));
+      if (ex?.posted_adjustment_id) throw new Error('Dip already posted for a tank in this scope — cannot edit');
     }
 
     const results = [];
     for (const m of members) {
-      // Proportional allocation when the group has book volume; equal
-      // split when all members are at zero (can happen on day one).
       const share = groupBook > 0 ? (Number(m.current_volume) / groupBook) : (1 / members.length);
       const measured = Number((totalMeasured * share).toFixed(4));
       const book = Number(m.current_volume);
       const variance = Number((measured - book).toFixed(2));
-      const existing = db.prepare('SELECT id FROM tank_dips WHERE tank_id = ? AND dip_date = ?').get(m.id, date);
+      const existing = db.prepare(existingSql).get(...existingParams(m.id));
       if (existing) {
         db.prepare(`
           UPDATE tank_dips
@@ -138,9 +171,9 @@ router.post('/', auth, (req, res) => {
         results.push(existing.id);
       } else {
         const info = db.prepare(`
-          INSERT INTO tank_dips (tank_id, dip_date, measured_litres, book_litres, variance, taken_by_user_id, notes)
-          VALUES (?,?,?,?,?,?,?)
-        `).run(m.id, date, measured, book, variance, req.user?.id || null, notes || null);
+          INSERT INTO tank_dips (tank_id, shift_id, dip_date, measured_litres, book_litres, variance, taken_by_user_id, notes)
+          VALUES (?,?,?,?,?,?,?,?)
+        `).run(m.id, sid, date, measured, book, variance, req.user?.id || null, notes || null);
         results.push(info.lastInsertRowid);
       }
     }

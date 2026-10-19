@@ -109,6 +109,7 @@ app.use('/api/fuel-grades',      require('./routes/fuelGrades'));
 app.use('/api/tanks',            require('./routes/tanks'));
 app.use('/api/tank-dips',        require('./routes/tankDips'));
 app.use('/api/fuel-day-approvals', require('./routes/fuelDayApprovals'));
+app.use('/api/fuel-shift-approvals', require('./routes/fuelShiftApprovals'));
 app.use('/api/pumps',            require('./routes/pumps'));
 app.use('/api/fleet-customers',  require('./routes/fleetCustomers'));
 app.use('/api/fuel-deliveries',  require('./routes/fuelDeliveries'));
