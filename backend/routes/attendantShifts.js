@@ -95,12 +95,13 @@ router.get('/daily-rollup', auth, (req, res) => {
       s.gross_from_nozzles = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(s.id).t;
       s.credit_total  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(s.id).t;
       s.onecard_total = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(s.id).t;
+      s.shift_type = s.shift_type || 'DAY';
       s.approval = db.prepare(`
         SELECT a.*, u.first_name || ' ' || u.last_name AS approved_by_name
           FROM fuel_shift_approvals a
           LEFT JOIN users u ON u.id = a.approved_by
-         WHERE a.shift_id = ?
-      `).get(s.id) || null;
+         WHERE a.approval_date = DATE(?) AND a.shift_type = ?
+      `).get(date, s.shift_type) || null;
     }
     res.json(shifts);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -310,7 +311,7 @@ router.get('/:id', auth, (req, res) => {
 // Open a shift: attendant + list of nozzle_ids to assign (opening meter is snapshotted from each nozzle)
 router.post('/open', auth, (req, res) => {
   const tx = db.transaction(() => {
-    const { attendant_user_id, nozzle_ids = [], branch_id = null, notes = '' } = req.body;
+    const { attendant_user_id, nozzle_ids = [], branch_id = null, notes = '', shift_type = null } = req.body;
     if (!attendant_user_id) throw new Error('attendant_user_id is required');
     if (!Array.isArray(nozzle_ids) || nozzle_ids.length === 0) throw new Error('nozzle_ids (array) is required');
 
@@ -318,10 +319,19 @@ router.post('/open', auth, (req, res) => {
     const open = db.prepare("SELECT id FROM attendant_shifts WHERE attendant_user_id = ? AND status = 'Open'").get(attendant_user_id);
     if (open) throw new Error('Attendant already has an open shift');
 
+    // Default DAY/NIGHT by current hour if the UI didn't supply one.
+    const inferType = () => {
+      const h = new Date().getHours();
+      return (h >= 6 && h < 18) ? 'DAY' : 'NIGHT';
+    };
+    const t = (shift_type && ['DAY', 'NIGHT'].includes(String(shift_type).toUpperCase()))
+      ? String(shift_type).toUpperCase()
+      : inferType();
+
     const info = db.prepare(`
-      INSERT INTO attendant_shifts (attendant_user_id, branch_id, opened_by, notes)
-      VALUES (?,?,?,?)
-    `).run(attendant_user_id, branch_id, req.user?.id || null, notes);
+      INSERT INTO attendant_shifts (attendant_user_id, branch_id, opened_by, notes, shift_type)
+      VALUES (?,?,?,?,?)
+    `).run(attendant_user_id, branch_id, req.user?.id || null, notes, t);
     const shiftId = info.lastInsertRowid;
 
     const insReading = db.prepare(`
@@ -459,10 +469,14 @@ router.post('/:id/finalize', auth, (req, res) => {
   const tx = db.transaction(() => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
-    // Lock: once this shift is approved, cash fields are frozen. Admin
-    // would need to un-approve the shift on Fuel Cash Report to edit.
-    const approved = db.prepare('SELECT 1 FROM fuel_shift_approvals WHERE shift_id = ?').get(shift.id);
-    if (approved) throw new Error('Shift is approved — un-approve on Fuel Cash Report first.');
+    // Lock: once this shift's (date, shift_type) window is approved,
+    // cash fields are frozen. Admin would need to un-approve on Fuel
+    // Cash Report first.
+    const approved = db.prepare(`
+      SELECT 1 FROM fuel_shift_approvals
+       WHERE approval_date = DATE(?) AND shift_type = COALESCE(?, 'DAY')
+    `).get(shift.opened_at, shift.shift_type);
+    if (approved) throw new Error(`${shift.shift_type || 'DAY'} shift is approved — un-approve on Fuel Cash Report first.`);
     const { payment_cash = 0, payment_mobile = 0, payment_swipes = 0, notes = '' } = req.body;
     const gross = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(req.params.id).t;
     const credit  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;

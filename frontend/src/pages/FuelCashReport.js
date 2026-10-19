@@ -39,31 +39,33 @@ export default function FuelCashReport() {
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [date]);
 
-  const approve = async (s) => {
-    if (s.status === 'Open') { setMsg(`Shift #${s.id} still Open — close + finalize first.`); return; }
+  const approve = async (shiftType) => {
+    const windowShifts = rows.filter(r => (r.shift_type || 'DAY') === shiftType);
+    if (windowShifts.length === 0) { setMsg(`No ${shiftType} shifts to approve.`); return; }
+    if (windowShifts.some(r => r.status === 'Open')) { setMsg(`Close + finalize all ${shiftType} shifts first.`); return; }
     if (!window.confirm(
-      `Approve shift #${s.id} (${s.attendant_name})?\n\n` +
+      `Approve ${shiftType} shift of ${date}?\n\n` +
       `This will:\n` +
-      `  • Auto-post every un-posted dip for this shift as a ledger adjustment (book volumes move to the dip-measured values).\n` +
-      `  • Lock Mobile Money / Swipes / Actual Cash on this shift.\n\n` +
+      `  • Auto-post every un-posted dip for ${shiftType} as a ledger adjustment.\n` +
+      `  • Lock Mobile Money / Swipes / Actual Cash on EVERY ${shiftType} attendant.\n\n` +
       `To change anything afterwards you must Un-approve first.`
     )) return;
-    setApproving(s.id); setMsg('');
+    setApproving(shiftType); setMsg('');
     try {
-      const r = await approveShift(s.id);
+      const r = await approveShift(date, shiftType);
       await load();
-      setMsg(`Shift #${s.id} approved. ${r.data.dips_posted} dip adjustment(s) posted.`);
+      setMsg(`${shiftType} shift approved. ${r.data.dips_posted} dip adjustment(s) posted.`);
     } catch (e) { setMsg('Approve failed: ' + (e.response?.data?.error || e.message)); }
     finally { setApproving(null); }
   };
 
-  const unApprove = async (s) => {
+  const unApprove = async (shiftType) => {
     if (!window.confirm(
-      `Un-approve shift #${s.id}?\n\n` +
-      `Cash inputs re-open for editing. Posted dip adjustments on the ledger are NOT reversed — if you need to undo those post a manual counter-adjustment in Tank Ledger.`
+      `Un-approve ${shiftType} shift of ${date}?\n\n` +
+      `Cash inputs re-open for editing on every ${shiftType} attendant. Posted dip adjustments on the ledger are NOT reversed — if you need to undo those post a manual counter-adjustment in Tank Ledger.`
     )) return;
-    setApproving(s.id); setMsg('');
-    try { await unApproveShift(s.id); await load(); setMsg(`Shift #${s.id} un-approved. Cash fields editable again.`); }
+    setApproving(shiftType); setMsg('');
+    try { await unApproveShift(date, shiftType); await load(); setMsg(`${shiftType} shift un-approved.`); }
     catch (e) { setMsg('Un-approve failed: ' + (e.response?.data?.error || e.message)); }
     finally { setApproving(null); }
   };
@@ -99,61 +101,77 @@ export default function FuelCashReport() {
       {rows.length === 0 ? (
         <div style={{ ...S.card, padding: 40, textAlign: 'center', color: '#6b7280' }}>No shifts for this date.</div>
       ) : (
-        <div style={{ display: 'grid', gap: 16 }}>
-          {rows.map(s => {
-            const ip = inputs[s.id] || {};
-            const gross = Number(s.gross_from_nozzles || 0);
-            const credit = Number(s.credit_total || 0);
-            const onecard = Number(s.onecard_total || 0);
-            const nonCash = Number(ip.payment_mobile || 0) + Number(ip.payment_swipes || 0) + credit + onecard;
-            const expected = Math.max(0, gross - nonCash);
-            const variance = Number(ip.payment_cash || 0) - expected;
-            const closed = s.status === 'Closed';
-            return (
-              <div key={s.id} style={S.card}>
-                <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                  <div>
-                    <strong style={{ fontSize: 16 }}>{s.attendant_name}</strong>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>
-                      Shift #{s.id} · opened {s.opened_at} ·{' '}
-                      <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span>
-                      {s.approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 6 }}>APPROVED · {s.approval.approved_by_name || '—'}</span>}
-                    </div>
-                  </div>
-                  <div>
-                    <button onClick={() => finalize(s)} disabled={saving === s.id || !!s.approval} style={S.btnPrimary} title={s.approval ? 'Shift is approved — un-approve first' : ''}>
-                      <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
+        ['DAY', 'NIGHT'].map(shiftType => {
+          const windowShifts = rows.filter(r => (r.shift_type || 'DAY') === shiftType);
+          if (windowShifts.length === 0) return null;
+          const approval = windowShifts.find(r => r.approval)?.approval || null;
+          return (
+            <div key={shiftType} style={{ marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: shiftType === 'DAY' ? '#2563eb' : '#4338ca', letterSpacing: '1px' }}>
+                  {shiftType} SHIFT · {windowShifts.length} attendant{windowShifts.length !== 1 ? 's' : ''}
+                  {approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 8, letterSpacing: 0 }}>APPROVED · {approval.approved_by_name || '—'}</span>}
+                </h3>
+                {isAdmin && (
+                  approval ? (
+                    <button onClick={() => unApprove(shiftType)} disabled={approving === shiftType} style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}>
+                      <FiUnlock /> Un-approve {shiftType}
                     </button>
-                    {isAdmin && !s.approval && closed && (
-                      <button onClick={() => approve(s)} disabled={approving === s.id} style={{ ...S.btnPrimary, background: '#16a34a', marginLeft: 6 }} title="Approve this shift — posts dips, locks cash">
-                        <FiShield /> {approving === s.id ? 'Approving…' : 'Approve'}
-                      </button>
-                    )}
-                    {isAdmin && s.approval && (
-                      <button onClick={() => unApprove(s)} disabled={approving === s.id} style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb', marginLeft: 6 }}>
-                        <FiUnlock /> Un-approve
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, padding: 16 }}>
-                  <StatCell label="Gross" value={`K ${gross.toFixed(2)}`} />
-                  <StatCell label="Credit (auto)" value={`K ${credit.toFixed(2)}`} />
-                  <StatCell label="1Card (auto)" value={`K ${onecard.toFixed(2)}`} />
-                  <StatCell label="Mobile Money" input locked={!!s.approval} value={ip.payment_mobile}
-                    onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_mobile: v } })} />
-                  <StatCell label="Swipes" input locked={!!s.approval} value={ip.payment_swipes}
-                    onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_swipes: v } })} />
-                  <StatCell label="Expected Cash" value={`K ${expected.toFixed(2)}`} highlight />
-                  <StatCell label="Actual Cash *" input locked={!!s.approval} value={ip.payment_cash}
-                    onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_cash: v } })} />
-                  <StatCell label="Variance" value={`K ${variance.toFixed(2)}`}
-                    color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a')} />
-                </div>
+                  ) : (
+                    <button onClick={() => approve(shiftType)} disabled={approving === shiftType || windowShifts.some(r => r.status === 'Open')} style={{ ...S.btnPrimary, background: '#16a34a' }} title={windowShifts.some(r => r.status === 'Open') ? 'Close + finalize all ' + shiftType + ' shifts first' : ''}>
+                      <FiShield /> {approving === shiftType ? 'Approving…' : `Approve ${shiftType}`}
+                    </button>
+                  )
+                )}
               </div>
-            );
-          })}
-        </div>
+              <div style={{ display: 'grid', gap: 16 }}>
+                {windowShifts.map(s => {
+                  const ip = inputs[s.id] || {};
+                  const gross = Number(s.gross_from_nozzles || 0);
+                  const credit = Number(s.credit_total || 0);
+                  const onecard = Number(s.onecard_total || 0);
+                  const nonCash = Number(ip.payment_mobile || 0) + Number(ip.payment_swipes || 0) + credit + onecard;
+                  const expected = Math.max(0, gross - nonCash);
+                  const variance = Number(ip.payment_cash || 0) - expected;
+                  const closed = s.status === 'Closed';
+                  return (
+                    <div key={s.id} style={S.card}>
+                      <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+                        <div>
+                          <strong style={{ fontSize: 16 }}>{s.attendant_name}</strong>
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>
+                            Shift #{s.id} · opened {s.opened_at} ·{' '}
+                            <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span>
+                            {s.approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 6 }}>LOCKED</span>}
+                          </div>
+                        </div>
+                        <div>
+                          <button onClick={() => finalize(s)} disabled={saving === s.id || !!s.approval} style={S.btnPrimary} title={s.approval ? `${shiftType} shift approved — un-approve first` : ''}>
+                            <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, padding: 16 }}>
+                        <StatCell label="Gross" value={`K ${gross.toFixed(2)}`} />
+                        <StatCell label="Credit (auto)" value={`K ${credit.toFixed(2)}`} />
+                        <StatCell label="1Card (auto)" value={`K ${onecard.toFixed(2)}`} />
+                        <StatCell label="Mobile Money" input locked={!!s.approval} value={ip.payment_mobile}
+                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_mobile: v } })} />
+                        <StatCell label="Swipes" input locked={!!s.approval} value={ip.payment_swipes}
+                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_swipes: v } })} />
+                        <StatCell label="Expected Cash" value={`K ${expected.toFixed(2)}`} highlight />
+                        <StatCell label="Actual Cash *" input locked={!!s.approval} value={ip.payment_cash}
+                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_cash: v } })} />
+                        <StatCell label="Variance" value={`K ${variance.toFixed(2)}`}
+                          color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a')} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })
       )}
 
       {summary && (rows.length > 0 || (summary.pumpGrades || []).length > 0) && (

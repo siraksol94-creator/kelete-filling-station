@@ -23,11 +23,11 @@ export const saveTankDip        = (d)       => api.post('/tank-dips', d);
 export const postTankDipAdjustment = (id)   => api.post(`/tank-dips/${id}/post-adjustment`);
 export const deleteTankDip      = (id)      => api.delete(`/tank-dips/${id}`);
 
-// Fuel shift approvals — Admin sign-off per SHIFT (DAY / NIGHT). On
-// approve: auto-posts the shift's dips as ledger adjustments and locks
-// its cash fields.
-export const approveShift       = (shiftId, n) => api.post(`/fuel-shift-approvals/${shiftId}/approve`, { notes: n || '' });
-export const unApproveShift     = (shiftId)    => api.post(`/fuel-shift-approvals/${shiftId}/un-approve`);
+// Fuel shift approvals — Admin sign-off per (date, DAY|NIGHT). On
+// approve: auto-posts that shift window's dips as ledger adjustments
+// and locks every attendant in the window.
+export const approveShift       = (date, type, n) => api.post(`/fuel-shift-approvals/${date}/${type}/approve`, { notes: n || '' });
+export const unApproveShift     = (date, type)    => api.post(`/fuel-shift-approvals/${date}/${type}/un-approve`);
 
 // Pumps + nozzles
 export const getPumpsWithNozzles = ()        => api.get('/pumps');

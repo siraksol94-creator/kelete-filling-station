@@ -9,15 +9,14 @@ const db = require('../config/database');
 const { auth } = require('../middleware/auth');
 const { recordTankMovement } = require('../config/fuelSchema');
 
-// Dip grid scoped to ONE SHIFT (preferred) or a date (legacy fallback).
-// With shift_id: joins tank_dips on d.shift_id = ? so DAY and NIGHT shift
-// get their own grids. Without shift_id: falls back to the per-date rows
-// where shift_id IS NULL (legacy data).
+// Dip grid scoped to ONE SHIFT WINDOW: (date, shift_type) where
+// shift_type is 'DAY' or 'NIGHT'. Legacy fallback: no shift_type → the
+// old per-date rows where shift_type IS NULL.
 router.get('/', auth, (req, res) => {
   try {
-    const shiftId = req.query.shift_id ? Number(req.query.shift_id) : null;
     const date = req.query.date || new Date().toISOString().slice(0, 10);
-    const perTank = shiftId
+    const t = req.query.shift_type ? String(req.query.shift_type).toUpperCase() : null;
+    const perTank = t
       ? db.prepare(`
           SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name,
                  t.group_code,
@@ -28,11 +27,11 @@ router.get('/', auth, (req, res) => {
                  u.first_name || ' ' || u.last_name AS taken_by_name
             FROM tanks t
             LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
-            LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.shift_id = ?
+            LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?) AND d.shift_type = ?
             LEFT JOIN users u ON u.id = d.taken_by_user_id
            WHERE t.status != 'Deleted'
            ORDER BY t.group_code, t.code
-        `).all(shiftId)
+        `).all(date, t)
       : db.prepare(`
           SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name,
                  t.group_code,
@@ -43,7 +42,7 @@ router.get('/', auth, (req, res) => {
                  u.first_name || ' ' || u.last_name AS taken_by_name
             FROM tanks t
             LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
-            LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = ? AND d.shift_id IS NULL
+            LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?) AND d.shift_type IS NULL
             LEFT JOIN users u ON u.id = d.taken_by_user_id
            WHERE t.status != 'Deleted'
            ORDER BY t.group_code, t.code
@@ -119,23 +118,18 @@ router.get('/', auth, (req, res) => {
 // level, split proportionally across members by their current book).
 router.post('/', auth, (req, res) => {
   const tx = db.transaction(() => {
-    const { tank_id, tank_ids, shift_id, dip_date, measured_litres, notes = '' } = req.body;
+    const { tank_id, tank_ids, shift_type, dip_date, measured_litres, notes = '' } = req.body;
     const ids = Array.isArray(tank_ids) && tank_ids.length > 0 ? tank_ids.map(Number) : (tank_id ? [Number(tank_id)] : []);
     if (ids.length === 0 || measured_litres == null) {
       throw new Error('tank_id (or tank_ids) and measured_litres are required');
     }
-    const sid = shift_id ? Number(shift_id) : null;
-    // Dip date derives from the shift's opened_at when a shift_id was
-    // passed; falls back to request field or today.
-    let date = dip_date || new Date().toISOString().slice(0, 10);
-    if (sid) {
-      const sh = db.prepare('SELECT opened_at FROM attendant_shifts WHERE id = ?').get(sid);
-      if (!sh) throw new Error('Shift not found');
-      date = String(sh.opened_at || '').slice(0, 10) || date;
-      // Refuse if the shift has already been approved (dips are posted,
-      // ledger has moved — editing would break the audit chain).
-      const approved = db.prepare('SELECT 1 FROM fuel_shift_approvals WHERE shift_id = ?').get(sid);
-      if (approved) throw new Error('Shift is approved — un-approve on Fuel Cash Report first.');
+    const t = shift_type ? String(shift_type).toUpperCase() : null;
+    if (t && !['DAY', 'NIGHT'].includes(t)) throw new Error('shift_type must be DAY or NIGHT');
+    const date = dip_date || new Date().toISOString().slice(0, 10);
+
+    if (t) {
+      const approved = db.prepare('SELECT 1 FROM fuel_shift_approvals WHERE approval_date = DATE(?) AND shift_type = ?').get(date, t);
+      if (approved) throw new Error(`${t} shift is approved — un-approve on Fuel Cash Report first.`);
     }
     const totalMeasured = Number(measured_litres);
 
@@ -143,10 +137,10 @@ router.post('/', auth, (req, res) => {
     if (members.length !== ids.length) throw new Error('One or more tanks not found');
     const groupBook = members.reduce((s, m) => s + Number(m.current_volume || 0), 0);
 
-    const existingSql = sid
-      ? 'SELECT id, posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND shift_id = ?'
-      : 'SELECT id, posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND dip_date = ? AND shift_id IS NULL';
-    const existingParams = (tankId) => sid ? [tankId, sid] : [tankId, date];
+    const existingSql = t
+      ? 'SELECT id, posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND dip_date = DATE(?) AND shift_type = ?'
+      : 'SELECT id, posted_adjustment_id FROM tank_dips WHERE tank_id = ? AND dip_date = DATE(?) AND shift_type IS NULL';
+    const existingParams = (tankId) => t ? [tankId, date, t] : [tankId, date];
 
     // Refuse if ANY member's dip in this scope is already posted.
     for (const id of ids) {
@@ -171,9 +165,9 @@ router.post('/', auth, (req, res) => {
         results.push(existing.id);
       } else {
         const info = db.prepare(`
-          INSERT INTO tank_dips (tank_id, shift_id, dip_date, measured_litres, book_litres, variance, taken_by_user_id, notes)
+          INSERT INTO tank_dips (tank_id, shift_type, dip_date, measured_litres, book_litres, variance, taken_by_user_id, notes)
           VALUES (?,?,?,?,?,?,?,?)
-        `).run(m.id, sid, date, measured, book, variance, req.user?.id || null, notes || null);
+        `).run(m.id, t, date, measured, book, variance, req.user?.id || null, notes || null);
         results.push(info.lastInsertRowid);
       }
     }

@@ -305,15 +305,35 @@ function initFuelSchema(db) {
     catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
   }
 
-  // Back-migrate: tank_dips gains a shift_id so we can scope dips per
-  // shift (DAY vs NIGHT). Legacy rows keep shift_id NULL.
-  try { db.exec('ALTER TABLE tank_dips ADD COLUMN shift_id INTEGER'); }
-  catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  // Back-migrate: tank_dips + attendant_shifts + fuel_shift_approvals
+  // gain DAY/NIGHT scoping. A 'shift' here is a time window (not an
+  // attendant row), so dips and approvals group all attendants that
+  // worked that DAY or NIGHT. Legacy columns kept nullable for data
+  // migrated from the per-attendant model.
+  try { db.exec('ALTER TABLE tank_dips ADD COLUMN shift_id INTEGER'); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  try { db.exec('ALTER TABLE tank_dips ADD COLUMN shift_type TEXT'); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  try { db.exec('ALTER TABLE attendant_shifts ADD COLUMN shift_type TEXT'); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  try { db.exec('ALTER TABLE fuel_shift_approvals ADD COLUMN approval_date TEXT'); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+  try { db.exec('ALTER TABLE fuel_shift_approvals ADD COLUMN shift_type TEXT'); } catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
 
-  // Partial unique indexes — safe to create here because the ALTER above
-  // guarantees shift_id exists.
-  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date ON tank_dips(tank_id, dip_date) WHERE shift_id IS NULL"); } catch (_) {}
-  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_shift ON tank_dips(tank_id, shift_id) WHERE shift_id IS NOT NULL"); } catch (_) {}
+  // Partial unique indexes — created after the ALTERs so existing
+  // tenants don't abort migration before the columns exist.
+  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date ON tank_dips(tank_id, dip_date) WHERE shift_type IS NULL"); } catch (_) {}
+  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_shift ON tank_dips(tank_id, dip_date, shift_type) WHERE shift_type IS NOT NULL"); } catch (_) {}
+  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_fuel_shift_approvals_date_type ON fuel_shift_approvals(approval_date, shift_type) WHERE approval_date IS NOT NULL AND shift_type IS NOT NULL"); } catch (_) {}
+
+  // Default shift_type for existing open/closed attendant_shifts: infer
+  // from opened_at hour. DAY = 06:00-17:59, NIGHT = 18:00-05:59.
+  try {
+    db.exec(`
+      UPDATE attendant_shifts
+         SET shift_type = CASE
+           WHEN CAST(strftime('%H', opened_at) AS INTEGER) BETWEEN 6 AND 17 THEN 'DAY'
+           ELSE 'NIGHT'
+         END
+       WHERE shift_type IS NULL
+    `);
+  } catch (_) {}
 
   // Backfill: every pre-existing tank's current_volume becomes an
   // 'opening' row in tank_movements so the ledger invariant

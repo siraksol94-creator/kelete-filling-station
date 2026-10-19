@@ -1,51 +1,59 @@
-// Per-shift sign-off. One shift (DAY or NIGHT) is reconciled at a time:
-//   * tank dips captured for that shift auto-post as dip_adjustment
-//   * the shift's cash fields are locked for editing
-//   * un-approve clears the lock; posted adjustments stay (reverse manually)
+// Per-SHIFT sign-off keyed on (approval_date, shift_type). A "shift" is
+// the DAY or NIGHT time window, not an attendant. Approving the DAY
+// locks every attendant_shifts row in that DAY and auto-posts every
+// un-posted tank_dip for (date, 'DAY').
 
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth } = require('../middleware/auth');
 const { recordTankMovement } = require('../config/fuelSchema');
 
-router.get('/:shiftId', auth, (req, res) => {
+// GET /:date/:shiftType  →  current approval row or null
+router.get('/:date/:shiftType', auth, (req, res) => {
   try {
+    const t = String(req.params.shiftType || '').toUpperCase();
     const row = db.prepare(`
       SELECT a.*, u.first_name || ' ' || u.last_name AS approved_by_name
         FROM fuel_shift_approvals a
         LEFT JOIN users u ON u.id = a.approved_by
-       WHERE a.shift_id = ?
-    `).get(req.params.shiftId);
+       WHERE a.approval_date = DATE(?) AND a.shift_type = ?
+    `).get(req.params.date, t);
     res.json(row || null);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/:shiftId/approve', auth, (req, res) => {
+router.post('/:date/:shiftType/approve', auth, (req, res) => {
   if (req.user?.role !== 'Administrator') {
     return res.status(403).json({ error: 'Only administrators can approve a shift.' });
   }
-  const shiftId = Number(req.params.shiftId);
+  const date = req.params.date;
+  const t = String(req.params.shiftType || '').toUpperCase();
+  if (!['DAY', 'NIGHT'].includes(t)) return res.status(400).json({ error: 'shift_type must be DAY or NIGHT' });
   const { notes = '' } = req.body || {};
 
   const tx = db.transaction(() => {
-    const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(shiftId);
-    if (!shift) throw new Error('Shift not found');
-    if (shift.status === 'Open') throw new Error('Shift still Open — close + finalize before approving.');
-
-    const already = db.prepare('SELECT id FROM fuel_shift_approvals WHERE shift_id = ?').get(shiftId);
+    const already = db.prepare('SELECT id FROM fuel_shift_approvals WHERE approval_date = DATE(?) AND shift_type = ?').get(date, t);
     if (already) throw new Error('Shift already approved.');
 
-    // Auto-post every un-posted dip taken for this shift
+    // Refuse if any attendant_shift in this (date, shift_type) is still Open
+    const openCount = db.prepare(`
+      SELECT COUNT(*) AS c FROM attendant_shifts
+       WHERE DATE(opened_at) = DATE(?) AND COALESCE(shift_type, 'DAY') = ?
+         AND status = 'Open'
+    `).get(date, t).c;
+    if (openCount > 0) throw new Error(`${openCount} ${t} shift(s) still Open — close + finalize before approving.`);
+
+    // Auto-post every un-posted dip taken for this (date, shift_type)
     const pending = db.prepare(`
-      SELECT * FROM tank_dips WHERE shift_id = ? AND posted_adjustment_id IS NULL
-    `).all(shiftId);
+      SELECT * FROM tank_dips WHERE dip_date = DATE(?) AND shift_type = ? AND posted_adjustment_id IS NULL
+    `).all(date, t);
     let postedCount = 0;
     for (const dip of pending) {
       if (!Number(dip.variance)) continue;
       const movId = recordTankMovement(db, {
         tank_id: dip.tank_id, litres: Number(dip.variance), type: 'dip_adjustment',
         ref_table: 'tank_dips', ref_id: dip.id,
-        notes: `Shift #${shiftId} approval: measured ${dip.measured_litres} vs book ${dip.book_litres}`,
+        notes: `${t} shift approval ${date}: measured ${dip.measured_litres} vs book ${dip.book_litres}`,
         created_by: req.user?.id || null,
         movement_date: dip.dip_date,
       });
@@ -54,9 +62,9 @@ router.post('/:shiftId/approve', auth, (req, res) => {
     }
 
     const info = db.prepare(`
-      INSERT INTO fuel_shift_approvals (shift_id, approved_by, notes)
-      VALUES (?, ?, ?)
-    `).run(shiftId, req.user?.id || null, notes || null);
+      INSERT INTO fuel_shift_approvals (approval_date, shift_type, approved_by, notes)
+      VALUES (DATE(?), ?, ?, ?)
+    `).run(date, t, req.user?.id || null, notes || null);
 
     return {
       approval: db.prepare(`
@@ -71,12 +79,13 @@ router.post('/:shiftId/approve', auth, (req, res) => {
   try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-router.post('/:shiftId/un-approve', auth, (req, res) => {
+router.post('/:date/:shiftType/un-approve', auth, (req, res) => {
   if (req.user?.role !== 'Administrator') {
     return res.status(403).json({ error: 'Only administrators can un-approve.' });
   }
+  const t = String(req.params.shiftType || '').toUpperCase();
   try {
-    db.prepare('DELETE FROM fuel_shift_approvals WHERE shift_id = ?').run(req.params.shiftId);
+    db.prepare('DELETE FROM fuel_shift_approvals WHERE approval_date = DATE(?) AND shift_type = ?').run(req.params.date, t);
     res.json({ message: 'Shift un-approved. Posted dip adjustments were NOT reversed.' });
   } catch (e) { res.status(400).json({ error: e.message }); }
 });

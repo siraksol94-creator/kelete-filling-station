@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiActivity, FiRefreshCw, FiCheckCircle, FiClock } from 'react-icons/fi';
-import { getTankDips, saveTankDip, getShifts } from '../services/fuelApi';
+import { getTankDips, saveTankDip } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 
@@ -11,8 +11,9 @@ export default function TankDips({ embedded = false } = {}) {
   const { user } = useAuth();   // kept for future per-user controls
   void user;
   const [date, setDate] = useState(today());
-  const [shifts, setShifts] = useState([]);
-  const [shiftId, setShiftId] = useState('');
+  // DAY/NIGHT selector — defaults by current hour (06:00-17:59 = DAY).
+  const defaultType = () => (new Date().getHours() >= 6 && new Date().getHours() < 18) ? 'DAY' : 'NIGHT';
+  const [shiftType, setShiftType] = useState(defaultType());
   const [rows, setRows] = useState([]);
   // keyed by join of tank_ids so groups and standalone tanks each have a stable row key
   const [edits, setEdits] = useState({});
@@ -21,28 +22,10 @@ export default function TankDips({ embedded = false } = {}) {
 
   const rowKey = r => r.tank_ids.join('-');
 
-  // When the date changes, pull the shifts on that date and default-pick
-  // the first Open one, or (if all closed) the last-opened one.
-  useEffect(() => {
-    (async () => {
-      try {
-        const r = await getShifts({ date });
-        const list = (r.data || []).filter(s => (s.opened_at || '').slice(0, 10) === date);
-        setShifts(list);
-        if (list.length > 0) {
-          const open = list.find(s => s.status === 'Open');
-          setShiftId(String((open || list[list.length - 1]).id));
-        } else {
-          setShiftId('');
-        }
-      } catch (e) { setShifts([]); setShiftId(''); }
-    })();
-  }, [date]);
-
   const load = async () => {
     setMsg('');
     try {
-      const r = await getTankDips(shiftId ? { shift_id: shiftId } : { date });
+      const r = await getTankDips({ date, shift_type: shiftType });
       setRows(r.data?.rows || []);
       const seed = {};
       for (const row of (r.data?.rows || [])) {
@@ -54,16 +37,15 @@ export default function TankDips({ embedded = false } = {}) {
       setEdits(seed);
     } catch (e) { setMsg('Load failed: ' + (e.response?.data?.error || e.message)); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [date, shiftId]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [date, shiftType]);
 
   const save = async (row) => {
     const key = rowKey(row);
     const ip = edits[key] || {};
     if (ip.measured === '' || ip.measured == null) { setMsg('Enter measured litres first.'); return; }
-    if (!shiftId) { setMsg('Pick a shift first — dips are now scoped per shift.'); return; }
     setSaving(key); setMsg('');
     try {
-      await saveTankDip({ tank_ids: row.tank_ids, shift_id: Number(shiftId), dip_date: date, measured_litres: Number(ip.measured), notes: ip.notes || '' });
+      await saveTankDip({ tank_ids: row.tank_ids, shift_type: shiftType, dip_date: date, measured_litres: Number(ip.measured), notes: ip.notes || '' });
       await load();
       setMsg(`Dip saved for ${row.tank_code}.`);
     } catch (e) { setMsg('Save failed: ' + (e.response?.data?.error || e.message)); }
@@ -80,13 +62,9 @@ export default function TankDips({ embedded = false } = {}) {
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginLeft: embedded ? 'auto' : 0, flexWrap: 'wrap' }}>
           <label style={S.lbl}>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} style={S.input} /></label>
           <label style={S.lbl}>Shift
-            <select value={shiftId} onChange={e => setShiftId(e.target.value)} style={{ ...S.input, minWidth: 240 }}>
-              {shifts.length === 0 && <option value="">No shifts on this date</option>}
-              {shifts.map(s => (
-                <option key={s.id} value={s.id}>
-                  #{s.id} {s.attendant_name || ''} ({s.status}) — opened {(s.opened_at || '').slice(11, 16)}
-                </option>
-              ))}
+            <select value={shiftType} onChange={e => setShiftType(e.target.value)} style={{ ...S.input, minWidth: 140 }}>
+              <option value="DAY">DAY</option>
+              <option value="NIGHT">NIGHT</option>
             </select>
           </label>
           <button onClick={load} style={S.btnSecondary}><FiRefreshCw /> Refresh</button>

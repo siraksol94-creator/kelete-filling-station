@@ -222,7 +222,10 @@ export default function AttendantShifts() {
     <div style={S.page}>
       <div style={S.header}>
         <h2 style={S.h2}><FiClock /> Attendant Shifts</h2>
-        <button onClick={() => setOpenForm({ attendant_user_id: '', nozzle_ids: [] })} style={S.btnPrimary}><FiPlay /> Open Shift</button>
+        <button onClick={() => {
+          const h = new Date().getHours();
+          setOpenForm({ attendant_user_id: '', nozzle_ids: [], shift_type: (h >= 6 && h < 18) ? 'DAY' : 'NIGHT' });
+        }} style={S.btnPrimary}><FiPlay /> Open Shift</button>
       </div>
 
       <div style={S.card}>
@@ -240,7 +243,10 @@ export default function AttendantShifts() {
             {shifts.map(s => (
               <tr key={s.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={S.td}><span style={S.pill(s.status === 'Open' ? '#16a34a' : '#6b7280')}>{s.status}</span></td>
-                <td style={S.td}>{s.attendant_name || `#${s.attendant_user_id}`}</td>
+                <td style={S.td}>
+                  {s.attendant_name || `#${s.attendant_user_id}`}
+                  {s.shift_type && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: s.shift_type === 'NIGHT' ? '#eef2ff' : '#eff6ff', color: s.shift_type === 'NIGHT' ? '#4338ca' : '#1e3a8a', borderRadius: 10, fontWeight: 700 }}>{s.shift_type}</span>}
+                </td>
                 <td style={S.td}>{s.opened_at}</td>
                 <td style={S.td}>{s.closed_at || '-'}</td>
                 <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_other || 0)).toFixed(2)}</td>
@@ -300,12 +306,20 @@ export default function AttendantShifts() {
             <form onSubmit={submitOpen}>
               {err && <div style={S.errBox}>{err}</div>}
               <div style={{ padding: 20 }}>
-                <label style={S.lbl}>Attendant *
-                  <select value={openForm.attendant_user_id} onChange={e => setOpenForm({ ...openForm, attendant_user_id: e.target.value })} required style={S.input}>
-                    <option value="">-- select --</option>
-                    {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.role})</option>)}
-                  </select>
-                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                  <label style={S.lbl}>Attendant *
+                    <select value={openForm.attendant_user_id} onChange={e => setOpenForm({ ...openForm, attendant_user_id: e.target.value })} required style={S.input}>
+                      <option value="">-- select --</option>
+                      {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.role})</option>)}
+                    </select>
+                  </label>
+                  <label style={S.lbl}>Shift *
+                    <select value={openForm.shift_type || 'DAY'} onChange={e => setOpenForm({ ...openForm, shift_type: e.target.value })} required style={S.input}>
+                      <option value="DAY">DAY</option>
+                      <option value="NIGHT">NIGHT</option>
+                    </select>
+                  </label>
+                </div>
                 <div style={{ marginTop: 16 }}>
                   <strong style={{ fontSize: 13, color: '#374151' }}>Pumps for this attendant *</strong>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
