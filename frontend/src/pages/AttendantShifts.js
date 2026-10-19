@@ -380,17 +380,29 @@ export default function AttendantShifts() {
                         <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                         <td style={S.tdR}>{fmtNum(r.opening_reading, 2)}</td>
                         <td style={S.tdR}>
-                          <input type="text" inputMode="decimal"
-                            value={formatThousands(cd.readings[r.id]?.closing_reading ?? '')}
-                            onChange={e => {
-                              const raw = e.target.value.replace(/,/g, '');
-                              if (raw === '' || /^\d*\.?\d*$/.test(raw)) {
-                                setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: raw } } });
-                              }
-                            }}
-                            required
-                            placeholder="type closing"
-                            style={{ ...S.input, width: 140, textAlign: 'right', borderColor: r.invalid ? '#dc2626' : undefined }} />
+                          <div style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                            <input type="text" inputMode="decimal"
+                              value={formatThousands(cd.readings[r.id]?.closing_reading ?? '')}
+                              onChange={e => {
+                                const raw = e.target.value.replace(/,/g, '');
+                                if (raw === '' || /^\d*\.?\d*$/.test(raw)) {
+                                  setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: raw } } });
+                                }
+                              }}
+                              required
+                              placeholder="type closing"
+                              style={{ ...S.input, width: 140, textAlign: 'right', borderColor: r.invalid ? '#dc2626' : undefined }} />
+                            {/* Shortcut: no fuel sold on this nozzle — fill
+                                closing = opening so Save isn't blocked. */}
+                            {(cd.readings[r.id]?.closing_reading ?? '') === '' && (
+                              <button type="button"
+                                onClick={() => setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: String(r.opening_reading) } } })}
+                                title="No sales on this nozzle — use opening as closing"
+                                style={{ padding: '4px 8px', fontSize: 11, border: '1px solid #d1d5db', background: '#f9fafb', color: '#6b7280', borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                = opening
+                              </button>
+                            )}
+                          </div>
                           {r.invalid && <div style={{ color: '#dc2626', fontSize: 11, marginTop: 2 }}>closing &lt; opening</div>}
                         </td>
                         <td style={S.tdR}><strong>{fmtNum(r.sold, 2)}</strong></td>
