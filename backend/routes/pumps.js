@@ -5,10 +5,13 @@ const { auth } = require('../middleware/auth');
 // --- Pumps ---
 router.get('/', auth, (req, res) => {
   try {
+    const includeInactive = req.query.include_inactive === '1' || req.query.include_inactive === 'true';
+    const whereActive = includeInactive ? '' : "WHERE COALESCE(t.status, 'Active') = 'Active'";
     const pumps = db.prepare('SELECT * FROM pumps ORDER BY code').all();
-    // Carry tank status through so the UI can mark / hide nozzles whose
-    // tank has been deactivated (open shifts keep working; new shifts
-    // won't offer them).
+    // Default: only nozzles whose tank is Active. Deactivating a tank
+    // removes its nozzles from this list so Open Shift / edit screens
+    // don't offer them. Open shifts in progress are untouched (they
+    // reference nozzle_id directly, not via this query).
     const nozzles = db.prepare(`
       SELECT n.*, t.code AS tank_code, t.status AS tank_status,
              fg.name AS grade_name, fg.color AS grade_color,
@@ -16,6 +19,7 @@ router.get('/', auth, (req, res) => {
         FROM nozzles n
         LEFT JOIN tanks t ON t.id = n.tank_id
         LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+        ${whereActive}
        ORDER BY n.code
     `).all();
     const grouped = pumps.map(p => ({ ...p, nozzles: nozzles.filter(n => n.pump_id === p.id) }));
