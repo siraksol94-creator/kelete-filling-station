@@ -287,12 +287,17 @@ export default function Tanks() {
                   </select>
                 </label>
                 <label style={S.lbl}>Capacity (L) *<input type="number" value={form.capacity_litres} onChange={e => setForm({ ...form, capacity_litres: e.target.value })} required style={S.input} /></label>
-                {!editingId && (
-                  <label style={S.lbl}>Opening Balance (L)
-                    <input type="number" value={form.current_volume} onChange={e => setForm({ ...form, current_volume: e.target.value })} style={S.input} />
-                    <small style={{ color: '#9ca3af', fontSize: 11 }}>Posted as an 'opening' ledger row. Edit later via Tank Dips, not here.</small>
-                  </label>
-                )}
+                <label style={S.lbl}>Opening Balance (L)
+                  <input type="number" step="0.01"
+                    value={editingId ? (form.opening_litres ?? '') : (form.current_volume ?? '')}
+                    onChange={e => setForm(editingId ? { ...form, opening_litres: e.target.value } : { ...form, current_volume: e.target.value })}
+                    style={S.input} />
+                  <small style={{ color: '#9ca3af', fontSize: 11 }}>
+                    {editingId
+                      ? 'Edits the tank\'s opening ledger row and re-syncs current volume. Deliveries/sales/dips on top stay intact.'
+                      : 'Posted as the first \'opening\' ledger row.'}
+                  </small>
+                </label>
                 <label style={S.lbl}>Low Stock Alert (L)<input type="number" value={form.low_stock_litres} onChange={e => setForm({ ...form, low_stock_litres: e.target.value })} style={S.input} /></label>
                 <label style={S.lbl}>Group Code
                   <input value={form.group_code || ''} onChange={e => setForm({ ...form, group_code: e.target.value.toUpperCase() })} style={S.input} placeholder="e.g. A — leave blank if standalone" />

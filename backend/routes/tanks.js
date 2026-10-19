@@ -7,7 +7,10 @@ router.get('/', auth, (req, res) => {
   try {
     const rows = db.prepare(`
       SELECT t.*, fg.code AS grade_code, fg.name AS grade_name, fg.color AS grade_color,
-             fg.selling_price AS grade_selling_price
+             fg.selling_price AS grade_selling_price,
+             (SELECT m.litres FROM tank_movements m
+               WHERE m.tank_id = t.id AND m.type = 'opening'
+               ORDER BY m.movement_date, m.id LIMIT 1) AS opening_litres
         FROM tanks t
         LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
        ORDER BY t.code
@@ -132,13 +135,15 @@ router.post('/', auth, (req, res) => {
   try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-// Update: cannot change current_volume here (that's what the ledger is for).
-// Everything else (code, name, grade, capacity, low-stock threshold, etc.)
-// is identifying metadata and is safe to edit directly.
+// Update: metadata is safe to edit directly (code, name, grade, capacity,
+// low-stock threshold, group, status). opening_litres, if provided, edits
+// the tank's existing 'opening' ledger row (or inserts one when missing)
+// and re-syncs current_volume = SUM(tank_movements.litres). No adjustment
+// row is written — operators treat this as "fix the day-one baseline".
 router.put('/:id', auth, (req, res) => {
-  try {
+  const tx = db.transaction(() => {
     const existing = db.prepare('SELECT * FROM tanks WHERE id = ?').get(req.params.id);
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    if (!existing) throw new Error('Not found');
     const b = req.body;
     db.prepare(`
       UPDATE tanks SET
@@ -158,8 +163,26 @@ router.put('/:id', auth, (req, res) => {
       b.status ?? existing.status,
       req.params.id
     );
-    res.json(db.prepare('SELECT * FROM tanks WHERE id = ?').get(req.params.id));
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    if (b.opening_litres != null) {
+      const newOpening = Number(b.opening_litres) || 0;
+      const openRow = db.prepare("SELECT id, litres FROM tank_movements WHERE tank_id = ? AND type = 'opening' ORDER BY movement_date, id LIMIT 1").get(req.params.id);
+      if (openRow) {
+        db.prepare("UPDATE tank_movements SET litres = ?, notes = COALESCE(notes, 'Opening balance') WHERE id = ?").run(newOpening, openRow.id);
+      } else if (newOpening !== 0) {
+        db.prepare(`
+          INSERT INTO tank_movements (tank_id, movement_date, type, litres, notes, created_by)
+          VALUES (?, date('now'), 'opening', ?, 'Opening balance', ?)
+        `).run(req.params.id, newOpening, req.user?.id || null);
+      }
+      // Re-sync cached current_volume from the ledger
+      const sum = db.prepare('SELECT COALESCE(SUM(litres), 0) AS t FROM tank_movements WHERE tank_id = ?').get(req.params.id).t;
+      db.prepare("UPDATE tanks SET current_volume = ?, updated_at = datetime('now') WHERE id = ?").run(Number(sum), req.params.id);
+    }
+
+    return db.prepare('SELECT * FROM tanks WHERE id = ?').get(req.params.id);
+  });
+  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
 router.delete('/:id', auth, (req, res) => {
