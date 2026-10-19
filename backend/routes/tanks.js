@@ -5,6 +5,11 @@ const { recordTankMovement } = require('../config/fuelSchema');
 
 router.get('/', auth, (req, res) => {
   try {
+    // By default only Active tanks are returned so pickers / grids /
+    // dip screens don't show retired tanks. Pass ?include_inactive=1
+    // from the Tanks admin page to see everything.
+    const includeInactive = req.query.include_inactive === '1' || req.query.include_inactive === 'true';
+    const whereStatus = includeInactive ? '' : "WHERE t.status = 'Active'";
     const rows = db.prepare(`
       SELECT t.*, fg.code AS grade_code, fg.name AS grade_name, fg.color AS grade_color,
              fg.selling_price AS grade_selling_price,
@@ -13,6 +18,7 @@ router.get('/', auth, (req, res) => {
                ORDER BY m.movement_date, m.id LIMIT 1) AS opening_litres
         FROM tanks t
         LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+        ${whereStatus}
        ORDER BY t.code
     `).all();
     res.json(rows);

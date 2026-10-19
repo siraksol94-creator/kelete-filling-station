@@ -144,13 +144,14 @@ export default function Tanks() {
   const [form, setForm] = useState(emptyForm);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
+  const [showInactive, setShowInactive] = useState(false);
   const load = async () => {
     try {
-      const [t, g] = await Promise.all([getTanks(), getFuelGrades()]);
+      const [t, g] = await Promise.all([getTanks({ include_inactive: showInactive ? 1 : 0 }), getFuelGrades()]);
       setRows(t.data || []); setGrades(g.data || []);
     } catch (e) {}
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [showInactive]); // load reads showInactive from closure
 
   const openNew = () => { setEditingId(null); setForm(emptyForm); setErr(''); setShowForm(true); };
   const openEdit = (r) => { setEditingId(r.id); setForm({ ...r }); setErr(''); setShowForm(true); };
@@ -186,7 +187,15 @@ export default function Tanks() {
     <div style={S.page}>
       <div style={S.header}>
         <h2 style={S.h2}><FiDatabase /> Tanks</h2>
-        {tab === 'tanks' && <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>}
+        {tab === 'tanks' && (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+              <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
+              Show inactive
+            </label>
+            <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>
+          </div>
+        )}
       </div>
 
       <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 16, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -207,13 +216,15 @@ export default function Tanks() {
           const low = vol <= lowThreshold;
           const color = low ? '#dc2626' : (first.grade_color || '#2563eb');
           const isGroup = members.length > 1;
+          const anyInactive = members.some(m => m.status !== 'Active');
           return (
-            <div key={group.key} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div key={group.key} style={{ background: '#fff', border: anyInactive ? '1px dashed #d1d5db' : '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', opacity: anyInactive ? 0.65 : 1 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15, color: '#111' }}>
                     {isGroup ? members.map(m => m.code).join(' + ') : first.code}
                     {isGroup && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: '#eef2ff', color: '#4338ca', borderRadius: 10, fontWeight: 700 }}>GROUP {first.group_code}</span>}
+                    {anyInactive && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: '#f3f4f6', color: '#6b7280', borderRadius: 10, fontWeight: 700 }}>INACTIVE</span>}
                   </div>
                   <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                     {isGroup ? `${members.length} tanks plumbed together` : first.name}

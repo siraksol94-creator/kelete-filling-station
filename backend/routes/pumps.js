@@ -6,8 +6,12 @@ const { auth } = require('../middleware/auth');
 router.get('/', auth, (req, res) => {
   try {
     const pumps = db.prepare('SELECT * FROM pumps ORDER BY code').all();
+    // Carry tank status through so the UI can mark / hide nozzles whose
+    // tank has been deactivated (open shifts keep working; new shifts
+    // won't offer them).
     const nozzles = db.prepare(`
-      SELECT n.*, t.code AS tank_code, fg.name AS grade_name, fg.color AS grade_color,
+      SELECT n.*, t.code AS tank_code, t.status AS tank_status,
+             fg.name AS grade_name, fg.color AS grade_color,
              fg.selling_price AS price_per_litre
         FROM nozzles n
         LEFT JOIN tanks t ON t.id = n.tank_id
@@ -49,17 +53,23 @@ router.delete('/:id', auth, (req, res) => {
 });
 
 // --- Nozzles (nested under /api/pumps/nozzles) ---
+// By default returns ONLY nozzles whose tank is Active (so Open Shift
+// pickers etc. don't offer retired tanks). ?include_inactive=1 for admin.
 router.get('/nozzles/list', auth, (req, res) => {
   try {
+    const includeInactive = req.query.include_inactive === '1' || req.query.include_inactive === 'true';
+    const whereActive = includeInactive ? '' : "WHERE COALESCE(t.status, 'Active') = 'Active'";
     const rows = db.prepare(`
       SELECT n.*, p.code AS pump_code, p.name AS pump_name,
-             t.code AS tank_code, fg.id AS grade_id, fg.code AS grade_code,
+             t.code AS tank_code, t.status AS tank_status,
+             fg.id AS grade_id, fg.code AS grade_code,
              fg.name AS grade_name, fg.color AS grade_color,
              fg.selling_price AS price_per_litre
         FROM nozzles n
         LEFT JOIN pumps p ON p.id = n.pump_id
         LEFT JOIN tanks t ON t.id = n.tank_id
         LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+        ${whereActive}
        ORDER BY p.code, n.code
     `).all();
     res.json(rows);

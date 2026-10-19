@@ -190,7 +190,7 @@ router.get('/day-summary', auth, (req, res) => {
         FROM tanks t
         LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
         LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?)
-       WHERE t.status != 'Deleted'
+       WHERE t.status = 'Active'
        ORDER BY t.code
     `).all(date, date, date, date);
     // Normalise opening — prior dip wins (physical truth), else fall back

@@ -29,7 +29,7 @@ router.get('/', auth, (req, res) => {
             LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
             LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?) AND d.shift_type = ?
             LEFT JOIN users u ON u.id = d.taken_by_user_id
-           WHERE t.status != 'Deleted'
+           WHERE t.status = 'Active'
            ORDER BY t.group_code, t.code
         `).all(date, t)
       : db.prepare(`
@@ -44,7 +44,7 @@ router.get('/', auth, (req, res) => {
             LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
             LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?) AND d.shift_type IS NULL
             LEFT JOIN users u ON u.id = d.taken_by_user_id
-           WHERE t.status != 'Deleted'
+           WHERE t.status = 'Active'
            ORDER BY t.group_code, t.code
         `).all(date);
 
