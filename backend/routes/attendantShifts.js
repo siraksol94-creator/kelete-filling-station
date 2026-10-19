@@ -134,21 +134,21 @@ router.get('/day-summary', auth, (req, res) => {
        ORDER BY p.code, fg.name
     `).all(...shiftIds);
 
-    // Per-grade dip vs reading. Dips now live on tank_dips (one per tank
-    // per day) rather than shift_dips (which was per shift). Sum each
-    // grade's measured dips for the given date.
-    const perGrade = db.prepare(`
-      SELECT fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
-             COALESCE(SUM(d.measured_litres), 0) AS dip_total
-        FROM tank_dips d
-        JOIN tanks t ON t.id = d.tank_id
-        JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
-       WHERE d.dip_date = DATE(?)
-       GROUP BY fg.id
-    `).all(date);
-
+    // DIP vs READ per grade — two measurements of the SAME quantity
+    // (litres sold today) from two different sources:
+    //   READ = sum of nozzle meter deltas for the date (electronic)
+    //   DIP  = opening tank level + deliveries - closing tank level,
+    //          summed across all tanks of that grade (physical)
+    //   Variance = READ - DIP  (positive = meter counted more than
+    //              tank gave up; negative = tank lost more than meter)
+    //
+    // Opening tank level for the date = measured_litres from the most
+    // recent tank_dips row strictly BEFORE the date. If no prior dip
+    // exists for a tank, that tank is excluded from the comparison
+    // (we can't compute its drop).
     const readingByGrade = shiftIds.length === 0 ? [] : db.prepare(`
-      SELECT fg.id AS grade_id, COALESCE(SUM(snr.litres_sold), 0) AS reading_total
+      SELECT fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
+             COALESCE(SUM(snr.litres_sold), 0) AS reading_total
         FROM shift_nozzle_readings snr
         JOIN nozzles n ON n.id = snr.nozzle_id
         JOIN tanks t ON t.id = n.tank_id
@@ -156,12 +156,58 @@ router.get('/day-summary', auth, (req, res) => {
        WHERE snr.shift_id IN (${placeholders})
        GROUP BY fg.id
     `).all(...shiftIds);
-    const readMap = Object.fromEntries(readingByGrade.map(r => [r.grade_id, r.reading_total]));
-    const dips = perGrade.map(g => ({
-      ...g,
-      reading_total: Number(readMap[g.grade_id] || 0),
-      variance: Number(g.dip_total) - Number(readMap[g.grade_id] || 0),
-    }));
+    const readMap = Object.fromEntries(readingByGrade.map(r => [r.grade_id, { name: r.grade_name, color: r.grade_color, read: Number(r.reading_total) }]));
+
+    // Per-tank dip detail — the "TANK DIPS" strip at the top of the paper
+    // form. One row per tank with today's measured level, plus opening
+    // (= previous dip) and the computed drop so the UI can show both the
+    // raw dip and the day's physical sales per tank.
+    const tankDipsDetail = db.prepare(`
+      SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name, t.group_code,
+             fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
+             d.measured_litres AS closing_dip,
+             (
+               SELECT dp.measured_litres FROM tank_dips dp
+                WHERE dp.tank_id = t.id AND dp.dip_date < DATE(?)
+                ORDER BY dp.dip_date DESC LIMIT 1
+             ) AS opening_dip,
+             (
+               SELECT COALESCE(SUM(fd.litres_delivered), 0) FROM fuel_deliveries fd
+                WHERE fd.tank_id = t.id AND DATE(fd.delivery_date) = DATE(?)
+             ) AS deliveries
+        FROM tanks t
+        LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
+        LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?)
+       WHERE t.status != 'Deleted'
+       ORDER BY t.code
+    `).all(date, date, date);
+
+    // Roll per-tank drops into per-grade DIP totals, but only count tanks
+    // that have BOTH an opening and a closing dip (otherwise the drop is
+    // meaningless).
+    const dipByGrade = {};
+    for (const t of tankDipsDetail) {
+      if (t.closing_dip == null || t.opening_dip == null) continue;
+      if (!t.grade_id) continue;
+      const drop = Number(t.opening_dip) + Number(t.deliveries || 0) - Number(t.closing_dip);
+      if (!dipByGrade[t.grade_id]) dipByGrade[t.grade_id] = { name: t.grade_name, color: t.grade_color, dip: 0, counted_tanks: 0 };
+      dipByGrade[t.grade_id].dip += drop;
+      dipByGrade[t.grade_id].counted_tanks += 1;
+    }
+
+    // Final per-grade reconciliation — union of grades that had READ or DIP
+    const gradeIds = Array.from(new Set([...Object.keys(readMap), ...Object.keys(dipByGrade)]));
+    const dips = gradeIds.map(gid => {
+      const r = readMap[gid] || { read: 0 };
+      const d = dipByGrade[gid] || { dip: null, counted_tanks: 0 };
+      const name = r.name || d.name || '';
+      const color = r.color || d.color || '#6b7280';
+      const read_total = Number(r.read || 0);
+      const dip_total = d.dip == null ? null : Number(d.dip);
+      const variance = dip_total == null ? null : Number((read_total - dip_total).toFixed(2));
+      return { grade_id: Number(gid), grade_name: name, grade_color: color,
+               read_total, dip_total, variance, counted_tanks: d.counted_tanks };
+    });
 
     // Per-customer breakdown (credit + 1card)
     const credits = shiftIds.length === 0 ? [] : db.prepare(`
@@ -197,7 +243,7 @@ router.get('/day-summary', auth, (req, res) => {
     const variance     = Number((cashInHand - expectedCash).toFixed(2));
 
     res.json({
-      pumpGrades, dips, credits, onecards,
+      pumpGrades, dips, tank_dips_detail: tankDipsDetail, credits, onecards,
       deductions: { mobile_money: mobileMoney, swipes, onecard_total: onecardTotal, credit_total: creditTotal, total: totalDeductions },
       totals: { gross, expected_cash: expectedCash, cash_in_hand: cashInHand, variance },
     });

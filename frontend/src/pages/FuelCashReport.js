@@ -271,20 +271,36 @@ function DaySummaryPanel({ summary, liveOverride }) {
           </div>
         </div>
 
-        {/* Column 2: Dip vs Reading per grade */}
+        {/* Column 2: Dip vs Read reconciliation per grade + per-tank levels */}
         <div style={col}>
-          <div style={colTitle}>Dip vs Reading</div>
-          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#9ca3af' }}>No dips.</div> : dips.map(d => {
-            const varColor = Math.abs(d.variance) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#16a34a');
+          <div style={colTitle}>Dip vs Read (per grade)</div>
+          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 10 }}>No readings or dips.</div> : dips.map(d => {
+            const hasDip = d.dip_total != null;
+            const varColor = !hasDip ? '#9ca3af' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance >= 0 ? '#16a34a' : '#dc2626'));
             return (
-              <div key={d.grade_id} style={{ marginBottom: 10 }}>
+              <div key={d.grade_id} style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color || '#111', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Dip</span><span>{fmtL(d.dip_total)}</span></div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Read</span><span>{fmtL(d.reading_total)}</span></div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Variance</span><span style={{ color: varColor, fontWeight: 600 }}>{fmtL(d.variance)}</span></div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Read (meter)</span><span>{fmtL(d.read_total)}</span></div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Dip (physical)</span><span>{hasDip ? fmtL(d.dip_total) : <span style={{ color: '#9ca3af', fontSize: 11 }}>needs 2+ dips</span>}</span></div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Variance (R-D)</span><span style={{ color: varColor, fontWeight: 700 }}>{hasDip ? ((d.variance >= 0 ? '+' : '') + fmtL(d.variance)) : '—'}</span></div>
               </div>
             );
           })}
+
+          <div style={{ ...colTitle, marginTop: 4 }}>Tank Dips (per tank)</div>
+          {(summary.tank_dips_detail || []).length === 0 ? (
+            <div style={{ fontSize: 13, color: '#9ca3af' }}>No tanks.</div>
+          ) : (summary.tank_dips_detail || []).map(t => (
+            <div key={t.tank_id} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
+              <span>
+                <strong>{t.tank_code}</strong>
+                <span style={{ color: '#9ca3af', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
+              </span>
+              <span style={{ color: t.closing_dip == null ? '#9ca3af' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
+                {t.closing_dip != null ? fmtL(t.closing_dip) : <span style={{ fontSize: 11 }}>not dipped</span>}
+              </span>
+            </div>
+          ))}
         </div>
 
         {/* Column 3: Deductions + Cash */}
