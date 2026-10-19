@@ -1,25 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { FiDollarSign, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
-import { getDailyRollup, finalizeShift, getDaySummary } from '../services/fuelApi';
+import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock, FiAlertCircle } from 'react-icons/fi';
+import { getDailyRollup, finalizeShift, getDaySummary, getDayApproval, approveDay, unApproveDay } from '../services/fuelApi';
+import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
 export default function FuelCashReport() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Administrator';
   const [date, setDate] = useState(today());
   const [rows, setRows] = useState([]);
   const [summary, setSummary] = useState(null);
+  const [approval, setApproval] = useState(null);  // { approved_by_name, approved_at, notes } or null
   // per-shift inputs: { [shiftId]: { payment_mobile, payment_swipes, payment_cash } }
   const [inputs, setInputs] = useState({});
   const [saving, setSaving] = useState(null);  // shiftId being saved
+  const [approving, setApproving] = useState(false);
   const [msg, setMsg] = useState('');
 
   const load = async () => {
     setMsg('');
     try {
-      const [r, sm] = await Promise.all([getDailyRollup(date), getDaySummary(date)]);
+      const [r, sm, ap] = await Promise.all([getDailyRollup(date), getDaySummary(date), getDayApproval(date).catch(() => ({ data: null }))]);
       setRows(r.data || []);
       setSummary(sm.data || null);
+      setApproval(ap.data || null);
       // Prefill inputs from already-saved values (so closed shifts show their reconciled amounts)
       const init = {};
       for (const s of (r.data || [])) {
@@ -34,6 +40,36 @@ export default function FuelCashReport() {
     } catch (e) { setMsg('Load failed: ' + (e.response?.data?.error || e.message)); }
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [date]);
+
+  const approve = async () => {
+    const openShifts = rows.filter(r => r.status === 'Open').length;
+    if (openShifts > 0) { setMsg(`${openShifts} shift(s) still Open — close + finalize all shifts first.`); return; }
+    if (!window.confirm(
+      `Approve ${date}?\n\n` +
+      `This will:\n` +
+      `  • Auto-post every un-posted dip adjustment for the day (book volumes move to the dip-measured values).\n` +
+      `  • Lock Mobile Money / Swipes / Actual Cash inputs across all shifts for the day.\n\n` +
+      `To change anything afterwards you must Un-approve first.`
+    )) return;
+    setApproving(true); setMsg('');
+    try {
+      const r = await approveDay(date);
+      await load();
+      setMsg(`Day ${date} approved. ${r.data.dips_posted} dip adjustment(s) posted.`);
+    } catch (e) { setMsg('Approve failed: ' + (e.response?.data?.error || e.message)); }
+    finally { setApproving(false); }
+  };
+
+  const unApprove = async () => {
+    if (!window.confirm(
+      `Un-approve ${date}?\n\n` +
+      `Cash inputs re-open for editing. Posted dip adjustments on the ledger are NOT reversed — if you need to undo those post a manual counter-adjustment in Tank Ledger.`
+    )) return;
+    setApproving(true); setMsg('');
+    try { await unApproveDay(date); await load(); setMsg(`Day ${date} un-approved. Cash fields editable again.`); }
+    catch (e) { setMsg('Un-approve failed: ' + (e.response?.data?.error || e.message)); }
+    finally { setApproving(false); }
+  };
 
   const finalize = async (s) => {
     const ip = inputs[s.id] || {};
@@ -61,6 +97,23 @@ export default function FuelCashReport() {
         </div>
       </div>
 
+      {/* Day approval banner */}
+      {approval ? (
+        <div style={{ padding: 12, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#166534' }}>
+            <FiShield /> <strong>Approved</strong> by {approval.approved_by_name || '—'} on {(approval.approved_at || '').replace('T', ' ').slice(0, 16)}
+          </div>
+          {isAdmin && <button onClick={unApprove} disabled={approving} style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}><FiUnlock /> Un-approve</button>}
+        </div>
+      ) : rows.length > 0 && (
+        <div style={{ padding: 12, background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, marginBottom: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#92400e' }}>
+            <FiAlertCircle /> <strong>Pending Review</strong> — not yet approved. Dips will auto-post on approval.
+          </div>
+          {isAdmin && <button onClick={approve} disabled={approving} style={{ ...S.btnPrimary, background: '#16a34a' }}><FiShield /> {approving ? 'Approving…' : 'Approve Day'}</button>}
+        </div>
+      )}
+
       {msg && <div style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{msg}</div>}
 
       {rows.length === 0 ? (
@@ -84,7 +137,7 @@ export default function FuelCashReport() {
                     <div style={{ fontSize: 12, color: '#6b7280' }}>Shift #{s.id} · opened {s.opened_at} · <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span></div>
                   </div>
                   <div>
-                    <button onClick={() => finalize(s)} disabled={saving === s.id} style={S.btnPrimary}>
+                    <button onClick={() => finalize(s)} disabled={saving === s.id || !!approval} style={S.btnPrimary} title={approval ? 'Day is approved — un-approve first' : ''}>
                       <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
                     </button>
                   </div>

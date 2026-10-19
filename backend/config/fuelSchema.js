@@ -73,6 +73,20 @@ function initFuelSchema(db) {
     );
     CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date ON tank_dips(tank_id, dip_date);
 
+    -- End-of-day sign-off by an Administrator. When a day is approved:
+    --   1. Every un-posted tank_dips row for that date is auto-posted
+    --      (writes dip_adjustment ledger rows, book moves to measured)
+    --   2. The day's attendant_shifts cash fields are locked for editing
+    -- Un-approve reverses the lock but leaves ledger adjustments intact
+    -- (an admin would reverse those manually if needed).
+    CREATE TABLE IF NOT EXISTS fuel_day_approvals (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      approval_date   TEXT NOT NULL UNIQUE,
+      approved_by     INTEGER REFERENCES users(id),
+      approved_at     TEXT NOT NULL DEFAULT (datetime('now')),
+      notes           TEXT
+    );
+
     CREATE TABLE IF NOT EXISTS pumps (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       code        TEXT NOT NULL,

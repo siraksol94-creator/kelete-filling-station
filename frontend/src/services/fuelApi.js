@@ -21,6 +21,11 @@ export const saveTankDip        = (d)       => api.post('/tank-dips', d);
 export const postTankDipAdjustment = (id)   => api.post(`/tank-dips/${id}/post-adjustment`);
 export const deleteTankDip      = (id)      => api.delete(`/tank-dips/${id}`);
 
+// Fuel day approvals — Admin sign-off that EOD-approves dips + locks cash
+export const getDayApproval     = (date)    => api.get(`/fuel-day-approvals/${date}`);
+export const approveDay         = (date, n) => api.post(`/fuel-day-approvals/${date}/approve`, { notes: n || '' });
+export const unApproveDay       = (date)    => api.post(`/fuel-day-approvals/${date}/un-approve`);
+
 // Pumps + nozzles
 export const getPumpsWithNozzles = ()        => api.get('/pumps');
 export const createPump         = (d)       => api.post('/pumps', d);

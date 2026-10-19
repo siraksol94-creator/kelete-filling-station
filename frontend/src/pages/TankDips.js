@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FiActivity, FiRefreshCw, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { getTankDips, saveTankDip, postTankDipAdjustment } from '../services/fuelApi';
+import { FiActivity, FiRefreshCw, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { getTankDips, saveTankDip } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 
@@ -8,8 +8,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
 
 export default function TankDips({ embedded = false } = {}) {
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'Administrator';
+  const { user } = useAuth();   // kept for future per-user controls
+  void user;
   const [date, setDate] = useState(today());
   const [rows, setRows] = useState([]);
   // keyed by join of tank_ids so groups and standalone tanks each have a stable row key
@@ -49,23 +49,8 @@ export default function TankDips({ embedded = false } = {}) {
     finally { setSaving(null); }
   };
 
-  const postAdjustment = async (row) => {
-    const unposted = row.dip_rows.filter(d => !d.posted);
-    if (unposted.length === 0) { setMsg('Nothing to post.'); return; }
-    if (!window.confirm(
-      `Post dip adjustment for ${row.tank_code}?\n\n` +
-      `This writes ${unposted.length} ledger adjustment row(s) and moves the book volume to match the measured dip (${Number(row.measured_litres).toFixed(2)} L total, variance ${Number(row.variance).toFixed(2)} L).\n\n` +
-      `For a plumbed group the variance is split proportionally across member tanks.\n\n` +
-      `Cannot be undone from this page.`
-    )) return;
-    setSaving(rowKey(row)); setMsg('');
-    try {
-      for (const d of unposted) await postTankDipAdjustment(d.dip_id);
-      await load();
-      setMsg(`Adjustment posted for ${row.tank_code}.`);
-    } catch (e) { setMsg('Post failed: ' + (e.response?.data?.error || e.message)); }
-    finally { setSaving(null); }
-  };
+  // Per-dip Post Adjustment removed — dips now auto-post when the
+  // Administrator approves the day on Fuel Cash Report.
 
   const body = (
     <>
@@ -79,7 +64,7 @@ export default function TankDips({ embedded = false } = {}) {
 
       <div style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 12, color: '#1e3a8a' }}>
         One dip per tank (or per plumbed group) per day. For plumbed groups the measured value is the shared fluid level; the system splits it proportionally into each member tank's ledger.
-        A dip is a <strong>check</strong> — it does not change the book volume on its own. An Administrator can click <strong>Post Adjustment</strong> to accept the dip as truth.
+        Dips auto-post when an <strong>Administrator approves the day</strong> on Fuel Cash Report. Until then they sit as pending checks and do not change the book volume.
       </div>
 
       {msg && <div style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, marginBottom: 12, fontSize: 13, color: '#166534' }}>{msg}</div>}
@@ -135,16 +120,14 @@ export default function TankDips({ embedded = false } = {}) {
                         <FiCheckCircle size={12} /> Posted
                       </span>
                     ) : (
-                      <div style={{ display: 'flex', gap: 4 }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <button onClick={() => save(row)} disabled={saving === key} style={{ ...S.btnPrimary, padding: '6px 10px', fontSize: 12 }}>
                           {saving === key ? 'Saving…' : (row.dip_rows.length > 0 ? 'Update' : 'Save')}
                         </button>
-                        {isAdmin && row.dip_rows.length > 0 && Math.abs(Number(row.variance || 0)) >= 0.01 && (
-                          <button onClick={() => postAdjustment(row)}
-                            style={{ ...S.btnSecondary, padding: '6px 10px', fontSize: 12, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}
-                            title="Accept dip as new book volume — writes ledger adjustment(s)">
-                            <FiAlertCircle size={12} /> Post Adjustment
-                          </button>
+                        {row.dip_rows.length > 0 && (
+                          <span style={{ fontSize: 10, padding: '3px 7px', borderRadius: 10, background: '#fffbeb', color: '#92400e', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 3, whiteSpace: 'nowrap' }}>
+                            <FiClock size={11} /> Pending day approval
+                          </span>
                         )}
                       </div>
                     )}

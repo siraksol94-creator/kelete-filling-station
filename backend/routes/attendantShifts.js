@@ -395,6 +395,10 @@ router.post('/:id/finalize', auth, (req, res) => {
   const tx = db.transaction(() => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
+    // Lock: once the day is approved, cash fields are frozen. Admin
+    // would need to un-approve the day on Fuel Cash Report to edit.
+    const approved = db.prepare('SELECT 1 FROM fuel_day_approvals WHERE approval_date = DATE(?)').get(shift.opened_at);
+    if (approved) throw new Error('Day is approved — un-approve on Fuel Cash Report first.');
     const { payment_cash = 0, payment_mobile = 0, payment_swipes = 0, notes = '' } = req.body;
     const gross = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(req.params.id).t;
     const credit  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;
