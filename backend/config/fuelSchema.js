@@ -72,12 +72,8 @@ function initFuelSchema(db) {
       created_at             TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at             TEXT NOT NULL DEFAULT (datetime('now'))
     );
-    -- Legacy per-day unique kept for installs that pre-date per-shift dips;
-    -- new rows carry shift_id and are uniquely indexed below.
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date
-      ON tank_dips(tank_id, dip_date) WHERE shift_id IS NULL;
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_shift
-      ON tank_dips(tank_id, shift_id) WHERE shift_id IS NOT NULL;
+    -- Partial indexes referencing shift_id are created AFTER the ALTER
+    -- below (otherwise existing tenants that lack shift_id abort migration).
 
     -- Legacy per-day approvals (kept for migration). New approvals live
     -- on fuel_shift_approvals so day + night shifts can be closed off
@@ -313,6 +309,11 @@ function initFuelSchema(db) {
   // shift (DAY vs NIGHT). Legacy rows keep shift_id NULL.
   try { db.exec('ALTER TABLE tank_dips ADD COLUMN shift_id INTEGER'); }
   catch (e) { if (!/duplicate column/i.test(e.message)) throw e; }
+
+  // Partial unique indexes — safe to create here because the ALTER above
+  // guarantees shift_id exists.
+  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_date ON tank_dips(tank_id, dip_date) WHERE shift_id IS NULL"); } catch (_) {}
+  try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_tank_dips_tank_shift ON tank_dips(tank_id, shift_id) WHERE shift_id IS NOT NULL"); } catch (_) {}
 
   // Backfill: every pre-existing tank's current_volume becomes an
   // 'opening' row in tank_movements so the ledger invariant
