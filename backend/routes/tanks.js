@@ -60,6 +60,53 @@ router.get('/:id/bin-card', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Merged bin-card for a plumbed group. All member tanks' movements are
+// unioned and shown as one ledger (ref column notes the physical tank so
+// the audit trail isn't lost), with opening_before + current_volume
+// summed across members.
+router.get('/group/:code/bin-card', auth, (req, res) => {
+  try {
+    const code = String(req.params.code || '').trim().toUpperCase();
+    if (!code) return res.status(400).json({ error: 'group code required' });
+    const members = db.prepare("SELECT * FROM tanks WHERE UPPER(COALESCE(group_code, '')) = ? ORDER BY code").all(code);
+    if (members.length === 0) return res.status(404).json({ error: 'No tanks in group ' + code });
+    const ids = members.map(m => m.id);
+    const idList = ids.map(() => '?').join(',');
+    const { from = null, to = null } = req.query;
+    const whereRange = (from && to) ? "AND m.movement_date BETWEEN ? AND ?" : '';
+    const params = from && to ? [...ids, from, to] : [...ids];
+    const movements = db.prepare(`
+      SELECT m.*, u.first_name || ' ' || u.last_name AS created_by_name,
+             t.code AS tank_code
+        FROM tank_movements m
+        LEFT JOIN users u ON u.id = m.created_by
+        LEFT JOIN tanks t ON t.id = m.tank_id
+       WHERE m.tank_id IN (${idList}) ${whereRange}
+       ORDER BY m.movement_date, m.id
+    `).all(...params);
+    let openingBefore = 0;
+    if (from) {
+      openingBefore = db.prepare(`
+        SELECT COALESCE(SUM(litres), 0) AS t FROM tank_movements
+         WHERE tank_id IN (${idList}) AND movement_date < ?
+      `).get(...ids, from).t;
+    }
+    let running = Number(openingBefore);
+    const rows = movements.map(m => {
+      running += Number(m.litres);
+      return { ...m, balance_after: Number(running.toFixed(2)) };
+    });
+    const current = members.reduce((s, m) => s + Number(m.current_volume || 0), 0);
+    const codes = members.map(m => m.code).join(' + ');
+    res.json({
+      tank: { code: `GROUP ${code}`, name: `${codes} (plumbed)`, group_code: code, members },
+      opening_before: Number(openingBefore),
+      rows,
+      current_volume: Number(current.toFixed(2)),
+    });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 router.post('/', auth, (req, res) => {
   const tx = db.transaction(() => {
     const { code, name, fuel_grade_id, capacity_litres, current_volume = 0, low_stock_litres = 1000, vessel_count = 1, group_code = null, branch_id = null } = req.body;

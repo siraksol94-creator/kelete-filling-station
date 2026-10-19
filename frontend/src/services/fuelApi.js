@@ -14,6 +14,7 @@ export const updateTank         = (id, d)   => api.put(`/tanks/${id}`, d);
 export const deleteTank         = (id)      => api.delete(`/tanks/${id}`);
 export const dipTank            = (id, d)   => api.post(`/tanks/${id}/dip`, d);
 export const getTankBinCard     = (id, p)   => api.get(`/tanks/${id}/bin-card`, { params: p });
+export const getTankGroupBinCard = (code, p) => api.get(`/tanks/group/${code}/bin-card`, { params: p });
 
 // Tank Dips — one per tank per day
 export const getTankDips        = (date)    => api.get('/tank-dips', { params: { date } });

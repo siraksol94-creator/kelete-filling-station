@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCw, FiBook } from 'react-icons/fi';
-import { getTanks, getTankBinCard } from '../services/fuelApi';
+import { getTanks, getTankBinCard, getTankGroupBinCard } from '../services/fuelApi';
 import { S } from './fuelStyles';
 
 // Default range: today only. Backend returns an opening-before line + each
@@ -21,53 +21,60 @@ const TYPE_COLORS = {
 
 export default function TankLedger({ embedded = false } = {}) {
   const [tanks, setTanks] = useState([]);
-  const [tankId, setTankId] = useState('');
+  // selection = 'g:C' for a plumbed group or 't:5' for a standalone tank
+  const [selection, setSelection] = useState('');
   const [from, setFrom] = useState(today());
   const [to, setTo] = useState(today());
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState('');
 
-  // Load the tank list once; pick the first tank by default so the view
-  // isn't a blank screen on open.
   useEffect(() => {
     getTanks().then(r => {
       const list = r.data || [];
       setTanks(list);
-      if (list[0] && !tankId) setTankId(String(list[0].id));
+      if (!selection && list.length > 0) {
+        // Prefer a plumbed group if one exists, otherwise first tank
+        const firstGroup = list.find(t => (t.group_code || '').trim());
+        setSelection(firstGroup ? `g:${firstGroup.group_code.trim().toUpperCase()}` : `t:${list[0].id}`);
+      }
     }).catch(() => {});
   // eslint-disable-next-line
   }, []);
 
   const load = async () => {
-    if (!tankId) return;
+    if (!selection) return;
     setLoading(true); setErr('');
     try {
-      const r = await getTankBinCard(tankId, { from, to });
+      const [kind, key] = selection.split(':');
+      const r = kind === 'g'
+        ? await getTankGroupBinCard(key, { from, to })
+        : await getTankBinCard(key, { from, to });
       setData(r.data);
     } catch (e) { setErr(e.response?.data?.error || e.message); }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [tankId, from, to]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [selection, from, to]);
 
-  // Group tanks by group_code in the picker so the operator picks a plumbed
-  // pair as easily as a single tank — but still per-tank underneath because
-  // the ledger is per physical tank's inflows and outflows.
+  // Picker: one entry per PLUMBED GROUP (not per member) + one entry per
+  // standalone tank. Grouped tanks share one body of fluid so the ledger
+  // view shows them combined — the per-member split is just allocation.
   const tankOptions = useMemo(() => {
     const groups = {};
     const standalone = [];
     for (const t of tanks) {
-      const g = (t.group_code || '').trim();
+      const g = (t.group_code || '').trim().toUpperCase();
       if (!g) standalone.push(t);
       else { (groups[g] = groups[g] || []).push(t); }
     }
     const out = [];
     Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).forEach(([code, members]) => {
       members.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
-      for (const m of members) out.push({ id: m.id, label: `${m.code} — ${m.grade_name || ''}  (Group ${code})` });
+      const codes = members.map(m => m.code).join(' + ');
+      out.push({ value: `g:${code}`, label: `${codes} — ${members[0].grade_name || ''}  (Group ${code})` });
     });
     standalone.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
-    for (const t of standalone) out.push({ id: t.id, label: `${t.code} — ${t.grade_name || ''}` });
+    for (const t of standalone) out.push({ value: `t:${t.id}`, label: `${t.code} — ${t.grade_name || ''}` });
     return out;
   }, [tanks]);
 
@@ -75,9 +82,9 @@ export default function TankLedger({ embedded = false } = {}) {
     <>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 16 }}>
         {!embedded && <h2 style={{ ...S.h2, margin: 0 }}><FiBook /> Tank Ledger</h2>}
-        <label style={S.lbl}>Tank
-          <select value={tankId} onChange={e => setTankId(e.target.value)} style={{ ...S.input, minWidth: 220 }}>
-            {tankOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+        <label style={S.lbl}>Tank / Group
+          <select value={selection} onChange={e => setSelection(e.target.value)} style={{ ...S.input, minWidth: 260 }}>
+            {tankOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         </label>
         <label style={S.lbl}>From<input type="date" value={from} onChange={e => setFrom(e.target.value)} style={S.input} /></label>
@@ -98,9 +105,10 @@ export default function TankLedger({ embedded = false } = {}) {
           </div>
 
           <div style={{ ...S.card, overflowX: 'auto' }}>
-            <table style={{ ...S.table, minWidth: 720 }}>
+            <table style={{ ...S.table, minWidth: 760 }}>
               <thead><tr>
                 <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Date</th>
+                {data.tank?.group_code && <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Tank</th>}
                 <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Type</th>
                 <th style={{ ...S.th, textAlign: 'right', whiteSpace: 'nowrap' }}>Change</th>
                 <th style={{ ...S.th, textAlign: 'right', whiteSpace: 'nowrap' }}>Balance</th>
@@ -115,6 +123,7 @@ export default function TankLedger({ embedded = false } = {}) {
                 {Number(data.opening_before) !== 0 && (
                   <tr style={{ borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
                     <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontStyle: 'italic' }}>&lt; {fmtDate(from)}</td>
+                    {data.tank?.group_code && <td style={S.td}>—</td>}
                     <td style={S.td}>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 10, background: '#eef2ff', color: '#4338ca', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>OPENING BEFORE</span>
                     </td>
@@ -130,6 +139,7 @@ export default function TankLedger({ embedded = false } = {}) {
                   return (
                     <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ ...S.td, whiteSpace: 'nowrap' }}>{fmtDate(r.movement_date)}</td>
+                      {data.tank?.group_code && <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontSize: 12 }}>{r.tank_code || '—'}</td>}
                       <td style={S.td}>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 10, background: t.bg, color: t.fg, letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{t.label}</span>
                       </td>
@@ -143,7 +153,7 @@ export default function TankLedger({ embedded = false } = {}) {
                   );
                 })}
                 {(data.rows || []).length === 0 && Number(data.opening_before) === 0 && (
-                  <tr><td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No movements in this date range.</td></tr>
+                  <tr><td colSpan={data.tank?.group_code ? 7 : 6} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No movements in this date range.</td></tr>
                 )}
               </tbody>
             </table>
