@@ -288,19 +288,56 @@ function DaySummaryPanel({ summary, liveOverride }) {
           })}
 
           <div style={{ ...colTitle, marginTop: 4 }}>Tank Dips (per tank)</div>
-          {(summary.tank_dips_detail || []).length === 0 ? (
-            <div style={{ fontSize: 13, color: '#9ca3af' }}>No tanks.</div>
-          ) : (summary.tank_dips_detail || []).map(t => (
-            <div key={t.tank_id} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
-              <span>
-                <strong>{t.tank_code}</strong>
-                <span style={{ color: '#9ca3af', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
-              </span>
-              <span style={{ color: t.closing_dip == null ? '#9ca3af' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
-                {t.closing_dip != null ? fmtL(t.closing_dip) : <span style={{ fontSize: 11 }}>not dipped</span>}
-              </span>
-            </div>
-          ))}
+          {(() => {
+            const list = summary.tank_dips_detail || [];
+            if (list.length === 0) return <div style={{ fontSize: 13, color: '#9ca3af' }}>No tanks.</div>;
+            // Collapse plumbed group members (same group_code) into one
+            // visual line — code list, sum of measured levels, grade.
+            const groups = [];
+            const singles = [];
+            const byCode = {};
+            for (const t of list) {
+              const g = (t.group_code || '').trim();
+              if (!g) { singles.push(t); continue; }
+              if (!byCode[g]) {
+                byCode[g] = { group_code: g, members: [] };
+                groups.push(byCode[g]);
+              }
+              byCode[g].members.push(t);
+            }
+            const rows = [];
+            for (const g of groups) {
+              const anyDipped = g.members.some(m => m.closing_dip != null);
+              const total = anyDipped ? g.members.reduce((s, m) => s + Number(m.closing_dip || 0), 0) : null;
+              const codes = g.members.map(m => m.code || m.tank_code).join(' + ');
+              const first = g.members[0];
+              rows.push(
+                <div key={`g-${g.group_code}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
+                  <span>
+                    <strong>{codes}</strong>
+                    <span style={{ color: '#9ca3af', fontSize: 11, marginLeft: 4 }}>{first.grade_name || ''} · Group {g.group_code}</span>
+                  </span>
+                  <span style={{ color: total == null ? '#9ca3af' : '#111', fontWeight: total == null ? 400 : 600 }}>
+                    {total != null ? fmtL(total) : <span style={{ fontSize: 11 }}>not dipped</span>}
+                  </span>
+                </div>
+              );
+            }
+            for (const t of singles) {
+              rows.push(
+                <div key={`t-${t.tank_id}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
+                  <span>
+                    <strong>{t.tank_code}</strong>
+                    <span style={{ color: '#9ca3af', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
+                  </span>
+                  <span style={{ color: t.closing_dip == null ? '#9ca3af' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
+                    {t.closing_dip != null ? fmtL(t.closing_dip) : <span style={{ fontSize: 11 }}>not dipped</span>}
+                  </span>
+                </div>
+              );
+            }
+            return rows;
+          })()}
         </div>
 
         {/* Column 3: Deductions + Cash */}
