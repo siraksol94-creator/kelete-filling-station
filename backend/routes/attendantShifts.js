@@ -159,9 +159,10 @@ router.get('/day-summary', auth, (req, res) => {
     const readMap = Object.fromEntries(readingByGrade.map(r => [r.grade_id, { name: r.grade_name, color: r.grade_color, read: Number(r.reading_total) }]));
 
     // Per-tank dip detail — the "TANK DIPS" strip at the top of the paper
-    // form. One row per tank with today's measured level, plus opening
-    // (= previous dip) and the computed drop so the UI can show both the
-    // raw dip and the day's physical sales per tank.
+    // form. One row per tank with today's measured level, the opening
+    // baseline (previous dip when available, else the ledger's running
+    // balance at the start of the day), and today's deliveries so the
+    // UI can show the raw dip + the day's physical disappearance.
     const tankDipsDetail = db.prepare(`
       SELECT t.id AS tank_id, t.code AS tank_code, t.name AS tank_name, t.group_code,
              fg.id AS grade_id, fg.name AS grade_name, fg.color AS grade_color,
@@ -170,7 +171,11 @@ router.get('/day-summary', auth, (req, res) => {
                SELECT dp.measured_litres FROM tank_dips dp
                 WHERE dp.tank_id = t.id AND dp.dip_date < DATE(?)
                 ORDER BY dp.dip_date DESC LIMIT 1
-             ) AS opening_dip,
+             ) AS prior_dip,
+             (
+               SELECT COALESCE(SUM(m.litres), 0) FROM tank_movements m
+                WHERE m.tank_id = t.id AND m.movement_date < DATE(?)
+             ) AS ledger_opening,
              (
                SELECT COALESCE(SUM(fd.litres_delivered), 0) FROM fuel_deliveries fd
                 WHERE fd.tank_id = t.id AND DATE(fd.delivery_date) = DATE(?)
@@ -180,7 +185,14 @@ router.get('/day-summary', auth, (req, res) => {
         LEFT JOIN tank_dips d ON d.tank_id = t.id AND d.dip_date = DATE(?)
        WHERE t.status != 'Deleted'
        ORDER BY t.code
-    `).all(date, date, date);
+    `).all(date, date, date, date);
+    // Normalise opening — prior dip wins (physical truth), else fall back
+    // to the ledger balance at start of day (book truth) so day-one dips
+    // still produce a variance.
+    for (const t of tankDipsDetail) {
+      t.opening_dip = t.prior_dip != null ? Number(t.prior_dip) : Number(t.ledger_opening || 0);
+      t.opening_source = t.prior_dip != null ? 'dip' : 'ledger';
+    }
 
     // Roll per-tank drops into per-grade DIP totals, but only count tanks
     // that have BOTH an opening and a closing dip (otherwise the drop is
