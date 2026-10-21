@@ -24,9 +24,15 @@ export default function FuelGrades() {
   const save = async (e) => {
     e.preventDefault(); setErr(''); setSaving(true);
     try {
-      if (editingId) await updateFuelGrade(editingId, form);
-      else await createFuelGrade(form);
+      let synced = 0;
+      if (editingId) {
+        const r = await updateFuelGrade(editingId, form);
+        synced = Number(r.data?.synced_open_shift_readings || 0);
+      } else {
+        await createFuelGrade(form);
+      }
       setShowForm(false); await load();
+      if (synced > 0) alert(`Price saved. ${synced} nozzle reading(s) on OPEN shifts were updated to the new price.`);
     } catch (ex) { setErr(ex.response?.data?.error || 'Save failed'); }
     finally { setSaving(false); }
   };

@@ -30,10 +30,11 @@ router.post('/', auth, (req, res) => {
 });
 
 router.put('/:id', auth, (req, res) => {
-  try {
+  const tx = db.transaction(() => {
     const existing = db.prepare('SELECT * FROM fuel_grades WHERE id = ?').get(req.params.id);
-    if (!existing) return res.status(404).json({ error: 'Not found' });
+    if (!existing) throw new Error('Not found');
     const { code, name, unit, selling_price, cost_price, color, status, branch_id } = req.body;
+    const newPrice = selling_price != null ? Number(selling_price) : existing.selling_price;
     db.prepare(`
       UPDATE fuel_grades
          SET code = ?, name = ?, unit = ?, selling_price = ?, cost_price = ?,
@@ -43,15 +44,37 @@ router.put('/:id', auth, (req, res) => {
       (code ?? existing.code).toUpperCase(),
       name ?? existing.name,
       unit ?? existing.unit,
-      selling_price != null ? Number(selling_price) : existing.selling_price,
+      newPrice,
       cost_price != null ? Number(cost_price) : existing.cost_price,
       color ?? existing.color,
       status ?? existing.status,
       branch_id ?? existing.branch_id,
       req.params.id
     );
-    res.json(db.prepare('SELECT * FROM fuel_grades WHERE id = ?').get(req.params.id));
-  } catch (e) { res.status(500).json({ error: e.message }); }
+
+    // Auto-sync: when the selling price of this grade changes, update
+    // every OPEN shift's reading rows whose nozzle feeds a tank of this
+    // grade. All sales in those open shifts will now bill at the new
+    // price (an accepted trade-off: see UI confirmation).
+    let syncedShiftReadings = 0;
+    if (selling_price != null && Number(newPrice) !== Number(existing.selling_price)) {
+      const info = db.prepare(`
+        UPDATE shift_nozzle_readings
+           SET price_per_litre = ?
+         WHERE id IN (
+           SELECT snr.id
+             FROM shift_nozzle_readings snr
+             JOIN attendant_shifts s ON s.id = snr.shift_id
+             JOIN nozzles n ON n.id = snr.nozzle_id
+             JOIN tanks t ON t.id = n.tank_id
+            WHERE s.status = 'Open' AND t.fuel_grade_id = ?
+         )
+      `).run(Number(newPrice), req.params.id);
+      syncedShiftReadings = info.changes;
+    }
+    return { grade: db.prepare('SELECT * FROM fuel_grades WHERE id = ?').get(req.params.id), synced_open_shift_readings: syncedShiftReadings };
+  });
+  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
 router.delete('/:id', auth, (req, res) => {
