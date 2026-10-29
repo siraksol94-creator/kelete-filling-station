@@ -1360,6 +1360,10 @@ function initTenantDb(db) {
   // Legacy orders carry NULL — user has to claim them via the "Claim orphan orders" action.
   addCol('orders',             'customer_id',          'INTEGER');
   addCol('orders',             'customer_sync_id',     'TEXT');
+  // Kelete fuel-side: ties a POS order to the attendant_shift it was
+  // rung on, so Fuel Cash Report can roll per-shift POS sales (lubricants,
+  // kiosk items) into Gross + Deductions per payment method.
+  addCol('orders',             'shift_id',             'INTEGER');
   // Split payment methods on the order itself. amount_received remains the sum;
   // these break it down so the Cash Report can show Cash / MoMo / Bank separately.
   addCol('orders',             'cash_received',        'REAL NOT NULL DEFAULT 0');

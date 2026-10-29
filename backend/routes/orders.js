@@ -481,6 +481,22 @@ router.get('/cashier-inbox', auth, requirePagePerm('Cashier'), readOnlyGuard, (r
 // Create order (POS checkout)
 router.post('/', auth, async (req, res) => {
   try {
+    // Kelete fuel-side gate: every POS sale must sit under an open
+    // attendant_shift so Fuel Cash Report can reconcile it. Admin
+    // webhook sync and the fuel credit-sale route stamp the shift
+    // themselves and bypass this via x-skip-shift-gate.
+    if (req.headers['x-skip-shift-gate'] !== '1') {
+      const openShift = db.prepare(
+        "SELECT id FROM attendant_shifts WHERE attendant_user_id = ? AND status = 'Open' ORDER BY id DESC LIMIT 1"
+      ).get(req.user.id);
+      if (!openShift) {
+        return res.status(400).json({
+          error: 'No open attendant shift. Open your shift on Attendant Shifts before ringing up a sale.',
+          code: 'NO_OPEN_SHIFT',
+        });
+      }
+      req._keleteShiftId = openShift.id;
+    }
     // v1.13.101 — T11A offline-block pre-flight. If the tenant has
     // enabled `zra_block_offline_sales` AND ZRA is on, ping VSDC before
     // accepting the sale. VSDC unreachable → 503 with a clear message
@@ -819,6 +835,12 @@ router.post('/', auth, async (req, res) => {
       const info = db.prepare(ordSql).run(...ordArgs);
 
       const orderId = info.lastInsertRowid;
+
+      // Kelete: tag the order with the attendant's open shift (set
+      // further up by the pre-flight gate).
+      if (req._keleteShiftId) {
+        try { db.prepare('UPDATE orders SET shift_id = ? WHERE id = ?').run(req._keleteShiftId, orderId); } catch (_) {}
+      }
 
       // v1.13.157 — persist a walk-in-typed TPIN/name/address so the
       // NEXT sale to this same buyer can auto-fill from OUR own record

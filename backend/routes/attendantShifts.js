@@ -95,6 +95,27 @@ router.get('/daily-rollup', auth, (req, res) => {
       s.gross_from_nozzles = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(s.id).t;
       s.credit_total  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(s.id).t;
       s.onecard_total = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(s.id).t;
+
+      // POS sales rolled up per shift. Excludes orders already counted
+      // in shift_credit_sales (fuel credit tickets) to avoid double-count.
+      const posSums = db.prepare(`
+        SELECT
+          COALESCE(SUM(total_amount), 0) AS gross,
+          COALESCE(SUM(CASE WHEN payment_method = 'Credit' THEN total_amount ELSE 0 END), 0) AS credit,
+          COALESCE(SUM(CASE WHEN payment_method IN ('MoMo', 'Mobile Money', 'Airtel', 'MTN') THEN total_amount ELSE 0 END), 0) AS momo,
+          COALESCE(SUM(CASE WHEN payment_method IN ('Bank', 'Card', 'Swipe', 'POS Card') THEN total_amount ELSE 0 END), 0) AS bank,
+          COALESCE(SUM(CASE WHEN payment_method = 'Cash' THEN total_amount ELSE 0 END), 0) AS cash
+        FROM orders
+        WHERE shift_id = ?
+          AND COALESCE(deleted_at, '') = ''
+          AND id NOT IN (SELECT linked_order_id FROM shift_credit_sales WHERE shift_id = ? AND linked_order_id IS NOT NULL)
+      `).get(s.id, s.id);
+      s.pos_gross       = Number(posSums.gross || 0);
+      s.pos_credit      = Number(posSums.credit || 0);
+      s.pos_momo        = Number(posSums.momo || 0);
+      s.pos_bank        = Number(posSums.bank || 0);
+      s.pos_cash        = Number(posSums.cash || 0);
+
       s.shift_type = s.shift_type || 'DAY';
       s.approval = db.prepare(`
         SELECT a.*, u.first_name || ' ' || u.last_name AS approved_by_name
@@ -428,13 +449,15 @@ router.post('/:id/credit-sales', auth, (req, res) => {
                             amount_received, cash_received,
                             payment_method, created_by, created_by_sync_id,
                             status, sync_id, tenant_id, branch_id, device_id, synced,
+                            shift_id,
                             created_at, updated_at)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
+        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0,?,datetime('now'),datetime('now'))
       `).run(orderNumber, customer.name, customer.id, customer.sync_id,
              amt, 0, amt, 0,
              0, 0,
              'Credit', req.user.id, userSyncId,
-             null, orderSyncId, tenantId, syncCfg.branchId, syncCfg.deviceId);
+             null, orderSyncId, tenantId, syncCfg.branchId, syncCfg.deviceId,
+             Number(req.params.id));
       linkedOrderId = info.lastInsertRowid;
       if (product) {
         db.prepare(`
