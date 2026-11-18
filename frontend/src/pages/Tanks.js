@@ -1,0 +1,334 @@
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle, FiActivity, FiBook } from 'react-icons/fi';
+import { getTanks, createTank, updateTank, deleteTank, getFuelGrades } from '../services/fuelApi';
+import { S } from './fuelStyles';
+import TankDips from './TankDips';
+import TankLedger from './TankLedger';
+
+// Vertical tank drawn as SVG, supporting 1-6 vessels sharing one fluid level.
+// Vessels sit side by side and are joined at the bottom by a connecting pipe
+// (U/W-shape for 2/3 vessels, etc.) so the operator reads "physically
+// plumbed together" at a glance. The % label floats in the centre.
+function TankSvg({ pct, color, low, vesselCount = 1 }) {
+  const n = Math.max(1, Math.min(6, Number(vesselCount) || 1));
+  const vesselW = 54;
+  const gap = n > 1 ? 14 : 0;
+  const padTop = 12, padBottom = 10;
+  const h = 150;
+  const innerH = h - padTop - padBottom;
+  const w = n * vesselW + (n - 1) * gap + 8;
+  const fillH = Math.max(0, (pct / 100) * innerH);
+  const fillY = h - padBottom - fillH;
+  const gradId = `g-${color.replace('#', '')}-${n}-${vesselW}`;
+  const vessels = Array.from({ length: n }, (_, i) => ({ x: 4 + i * (vesselW + gap) }));
+
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ flexShrink: 0 }}>
+      <defs>
+        <linearGradient id={gradId} x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.95" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.65" />
+        </linearGradient>
+        {/* Clip-paths so the gradient fill never spills outside each cylinder */}
+        {vessels.map((v, i) => (
+          <clipPath key={i} id={`${gradId}-c${i}`}>
+            <rect x={v.x} y={padTop} width={vesselW} height={innerH} rx="8" />
+          </clipPath>
+        ))}
+      </defs>
+
+      {/* Connecting pipe between vessels (only when 2+) */}
+      {n > 1 && (
+        <rect
+          x={vessels[0].x + vesselW / 2}
+          y={h - padBottom - 6}
+          width={vessels[n - 1].x + vesselW / 2 - (vessels[0].x + vesselW / 2)}
+          height="8"
+          fill="#9ca3af"
+          rx="2"
+        />
+      )}
+
+      {/* Each vessel: outline, fluid fill, lid cap, gauge ticks */}
+      {vessels.map((v, i) => (
+        <g key={i}>
+          {/* Lid cap on top */}
+          <rect x={v.x + vesselW * 0.25} y={padTop - 6} width={vesselW * 0.5} height="6" rx="2" fill="#9ca3af" />
+          {/* Body outline */}
+          <rect x={v.x} y={padTop} width={vesselW} height={innerH} rx="8" fill="#f9fafb" stroke="#d1d5db" strokeWidth="1.5" />
+          {/* Fluid fill, clipped to this vessel */}
+          {fillH > 1 && (
+            <rect x={v.x} y={fillY} width={vesselW} height={fillH} fill={`url(#${gradId})`} clipPath={`url(#${gradId}-c${i})`} />
+          )}
+          {/* Gauge ticks on the right edge */}
+          {[25, 50, 75].map(p => {
+            const ty = h - padBottom - (p / 100) * innerH;
+            return <line key={p} x1={v.x + vesselW - 6} x2={v.x + vesselW - 1} y1={ty} y2={ty} stroke="#9ca3af" strokeWidth="1" />;
+          })}
+        </g>
+      ))}
+
+      {/* Big centred percentage overlay — on a dark pill so it's readable
+          whether it sits over a vessel, the gap between vessels, or a nearly
+          empty one. Width scales to the label length so single-digit % stays
+          snug and 100% doesn't clip. */}
+      {(() => {
+        const label = `${pct.toFixed(0)}%`;
+        const fs = n > 1 ? 16 : 13;
+        const pillW = label.length * fs * 0.65 + 14;
+        const pillH = fs + 10;
+        const pillX = w / 2 - pillW / 2;
+        const pillY = h / 2 - pillH / 2;
+        return (
+          <g>
+            <rect x={pillX} y={pillY} width={pillW} height={pillH} rx={pillH / 2} fill="rgba(17,24,39,0.85)" />
+            <text x={w / 2} y={h / 2 + fs / 3} textAnchor="middle" fontSize={fs} fontWeight="700" fill="#fff">
+              {label}
+            </text>
+          </g>
+        );
+      })()}
+
+      {low && (
+        <circle cx={w - 8} cy={padTop + 2} r="4" fill="#dc2626" stroke="#fff" strokeWidth="1.5" />
+      )}
+    </svg>
+  );
+}
+
+const emptyForm = { code: '', name: '', fuel_grade_id: '', capacity_litres: '', current_volume: 0, low_stock_litres: 1000, vessel_count: 1, group_code: '', status: 'Active' };
+
+// Collapse tanks sharing a group_code into a single visual card. Tanks
+// with no group_code render alone; tanks with the same group_code show
+// as one plumbed-together card (sum capacity + sum volume + member list).
+function groupTanks(rows) {
+  const standalone = [];
+  const byGroup = {};
+  for (const t of rows) {
+    const g = (t.group_code || '').trim();
+    if (!g) standalone.push({ key: `t${t.id}`, members: [t] });
+    else {
+      if (!byGroup[g]) byGroup[g] = { key: `g${g}`, members: [] };
+      byGroup[g].members.push(t);
+    }
+  }
+  // Groups first (alphabetical by code), then standalone (by tank code)
+  const groups = Object.values(byGroup).sort((a, b) => (a.members[0].group_code || '').localeCompare(b.members[0].group_code || ''));
+  for (const g of groups) g.members.sort((a, b) => (a.code || '').localeCompare(b.code || ''));
+  standalone.sort((a, b) => (a.members[0].code || '').localeCompare(b.members[0].code || ''));
+  return [...groups, ...standalone];
+}
+
+export default function Tanks() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  // /fuel/tank-dips → Dips tab, /fuel/tank-ledger → Ledger tab, else Tanks.
+  const tabFromPath = p => p.includes('tank-dips') ? 'dips' : (p.includes('tank-ledger') ? 'ledger' : 'tanks');
+  const [tab, setTab] = useState(tabFromPath(location.pathname));
+  useEffect(() => {
+    const want = tabFromPath(location.pathname);
+    if (want !== tab) setTab(want);
+  }, [location.pathname, tab]);
+
+  const switchTab = (t) => {
+    setTab(t);
+    const path = t === 'dips' ? '/fuel/tank-dips' : (t === 'ledger' ? '/fuel/tank-ledger' : '/fuel/tanks');
+    navigate(path, { replace: true });
+  };
+
+  const [rows, setRows] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [err, setErr] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [showInactive, setShowInactive] = useState(false);
+  const load = async () => {
+    try {
+      const [t, g] = await Promise.all([getTanks({ include_inactive: showInactive ? 1 : 0 }), getFuelGrades()]);
+      setRows(t.data || []); setGrades(g.data || []);
+    } catch (e) {}
+  };
+  useEffect(() => { load(); }, [showInactive]); // load reads showInactive from closure
+
+  const openNew = () => { setEditingId(null); setForm(emptyForm); setErr(''); setShowForm(true); };
+  const openEdit = (r) => { setEditingId(r.id); setForm({ ...r }); setErr(''); setShowForm(true); };
+
+  const save = async (e) => {
+    e.preventDefault(); setErr(''); setSaving(true);
+    try {
+      if (editingId) await updateTank(editingId, form);
+      else await createTank(form);
+      setShowForm(false); await load();
+    } catch (ex) { setErr(ex.response?.data?.error || 'Save failed'); }
+    finally { setSaving(false); }
+  };
+
+  const remove = async (r) => {
+    if (!window.confirm(`Delete tank "${r.name}"?`)) return;
+    try { await deleteTank(r.id); await load(); }
+    catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+  };
+
+
+  const tabBtn = (id, label, icon) => (
+    <button type="button" onClick={() => switchTab(id)} style={{
+      padding: '10px 18px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+      background: tab === id ? '#fff' : 'transparent',
+      color: tab === id ? '#2563eb' : '#6b7280',
+      border: 'none', borderBottom: `3px solid ${tab === id ? '#2563eb' : 'transparent'}`,
+      display: 'inline-flex', alignItems: 'center', gap: 6,
+    }}>{icon} {label}</button>
+  );
+
+  return (
+    <div style={S.page}>
+      <div style={S.header}>
+        <h2 style={S.h2}><FiDatabase /> Tanks</h2>
+        {tab === 'tanks' && (
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
+              <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
+              Show inactive
+            </label>
+            <button onClick={openNew} style={S.btnPrimary}><FiPlus /> New Tank</button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 16, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        {tabBtn('tanks',  'Tanks',       <FiDatabase size={15} />)}
+        {tabBtn('dips',   'Tank Dips',   <FiActivity size={15} />)}
+        {tabBtn('ledger', 'Tank Ledger', <FiBook size={15} />)}
+      </div>
+
+      {tab === 'dips' ? <TankDips embedded /> : tab === 'ledger' ? <TankLedger embedded /> : (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20, marginBottom: 20 }}>
+        {groupTanks(rows).map(group => {
+          const members = group.members;
+          const first = members[0];
+          const cap = members.reduce((s, t) => s + (Number(t.capacity_litres) || 0), 0);
+          const vol = members.reduce((s, t) => s + (Number(t.current_volume) || 0), 0);
+          const pct = cap > 0 ? Math.min(100, Math.max(0, (vol / cap) * 100)) : 0;
+          const lowThreshold = members.reduce((s, t) => s + (Number(t.low_stock_litres) || 0), 0);
+          const low = vol <= lowThreshold;
+          const color = low ? '#dc2626' : (first.grade_color || '#2563eb');
+          const isGroup = members.length > 1;
+          const anyInactive = members.some(m => m.status !== 'Active');
+          return (
+            <div key={group.key} style={{ background: '#fff', border: anyInactive ? '1px dashed #d1d5db' : '1px solid #e5e7eb', borderRadius: 14, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', opacity: anyInactive ? 0.65 : 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 8 }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: '#111' }}>
+                    {isGroup ? members.map(m => m.code).join(' + ') : first.code}
+                    {isGroup && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: '#eef2ff', color: '#4338ca', borderRadius: 10, fontWeight: 700 }}>GROUP {first.group_code}</span>}
+                    {anyInactive && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: '#f3f4f6', color: '#6b7280', borderRadius: 10, fontWeight: 700 }}>INACTIVE</span>}
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    {isGroup ? `${members.length} tanks plumbed together` : first.name}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 2 }}>
+                  {members.map(m => (
+                    <button key={m.id} onClick={() => openEdit(m)} style={S.iconBtn} title={`Edit ${m.code}`}><FiEdit2 /></button>
+                  ))}
+                  {!isGroup && <button onClick={() => remove(first)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>}
+                </div>
+              </div>
+              <div style={{ marginBottom: 10 }}><span style={S.pill(first.grade_color || '#6b7280')}>{first.grade_name || '-'}</span></div>
+
+              <div style={{ display: 'flex', gap: 14, alignItems: 'stretch', marginTop: 4 }}>
+                <TankSvg pct={pct} color={color} low={low} vesselCount={members.length} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, letterSpacing: 0.4 }}>Current</div>
+                  <div style={{ fontSize: 26, fontWeight: 800, color: color, lineHeight: 1.1, marginTop: 2 }}>
+                    {vol.toLocaleString(undefined, { maximumFractionDigits: 0 })} <span style={{ fontSize: 13, color: '#9ca3af', fontWeight: 500 }}>L</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6 }}>
+                    of <strong style={{ color: '#374151' }}>{cap.toLocaleString(undefined, { maximumFractionDigits: 0 })} L</strong>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    <strong style={{ color: color }}>{pct.toFixed(0)}%</strong> full
+                  </div>
+                </div>
+              </div>
+
+              {isGroup && (
+                <div style={{ marginTop: 12, fontSize: 11, color: '#6b7280' }}>
+                  Per tank:&nbsp;{members.map((m, i) => (
+                    <span key={m.id}>{i > 0 ? ' · ' : ''}<strong style={{ color: '#374151' }}>{m.code}</strong>&nbsp;{Number(m.current_volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}L</span>
+                  ))}
+                </div>
+              )}
+
+              {low && (
+                <div style={{ marginTop: 12, padding: '8px 10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#991b1b', fontSize: 12, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FiAlertTriangle /> LOW STOCK — below {lowThreshold} L
+                </div>
+              )}
+            </div>
+          );
+        })}
+        {rows.length === 0 && (
+          <div style={{ ...S.statCard, textAlign: 'center', color: '#6b7280', gridColumn: '1 / -1', padding: 40 }}>
+            No tanks yet. Create fuel grades first, then add tanks.
+          </div>
+        )}
+      </div>
+      )}
+
+      {tab === 'tanks' && showForm && (
+        <div style={S.backdrop} onClick={() => setShowForm(false)}>
+          <div style={S.modal} onClick={e => e.stopPropagation()}>
+            <div style={S.modalHeader}>
+              <h3 style={{ margin: 0 }}>{editingId ? 'Edit' : 'New'} Tank</h3>
+              <button onClick={() => setShowForm(false)} style={S.iconBtn}><FiX /></button>
+            </div>
+            <form onSubmit={save}>
+              {err && <div style={S.errBox}>{err}</div>}
+              <div style={S.formGrid}>
+                <label style={S.lbl}>Code *<input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required style={S.input} placeholder="T1" /></label>
+                <label style={S.lbl}>Name *<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required style={S.input} /></label>
+                <label style={S.lbl}>Fuel Grade *
+                  <select value={form.fuel_grade_id} onChange={e => setForm({ ...form, fuel_grade_id: e.target.value })} required style={S.input}>
+                    <option value="">-- select --</option>
+                    {grades.map(g => <option key={g.id} value={g.id}>{g.code} - {g.name}</option>)}
+                  </select>
+                </label>
+                <label style={S.lbl}>Capacity (L) *<input type="number" value={form.capacity_litres} onChange={e => setForm({ ...form, capacity_litres: e.target.value })} required style={S.input} /></label>
+                <label style={S.lbl}>Opening Balance (L)
+                  <input type="number" step="0.01"
+                    value={editingId ? (form.opening_litres ?? '') : (form.current_volume ?? '')}
+                    onChange={e => setForm(editingId ? { ...form, opening_litres: e.target.value } : { ...form, current_volume: e.target.value })}
+                    style={S.input} />
+                  <small style={{ color: '#9ca3af', fontSize: 11 }}>
+                    {editingId
+                      ? 'Edits the tank\'s opening ledger row and re-syncs current volume. Deliveries/sales/dips on top stay intact.'
+                      : 'Posted as the first \'opening\' ledger row.'}
+                  </small>
+                </label>
+                <label style={S.lbl}>Low Stock Alert (L)<input type="number" value={form.low_stock_litres} onChange={e => setForm({ ...form, low_stock_litres: e.target.value })} style={S.input} /></label>
+                <label style={S.lbl}>Group Code
+                  <input value={form.group_code || ''} onChange={e => setForm({ ...form, group_code: e.target.value.toUpperCase() })} style={S.input} placeholder="e.g. A — leave blank if standalone" />
+                  <small style={{ color: '#9ca3af', fontSize: 11 }}>Tanks sharing the same code are shown as one plumbed card. T1+T4=A, T2+T3=B, etc.</small>
+                </label>
+                <label style={S.lbl}>Status
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={S.input}>
+                    <option>Active</option><option>Inactive</option>
+                  </select>
+                </label>
+              </div>
+              <div style={S.modalFooter}>
+                <button type="button" onClick={() => setShowForm(false)} style={S.btnSecondary}>Cancel</button>
+                <button type="submit" disabled={saving} style={S.btnPrimary}>{saving ? 'Saving...' : 'Save'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
