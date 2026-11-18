@@ -134,7 +134,11 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.TENANT_PORT || 5300;
-app.listen(PORT, () => {
+// A2 (D5 testability) — see server.js. KELETE_NO_AUTOSTART=1 (tests only)
+// skips listening and the boot jobs inside the listen callback (HQ mirror
+// sweep, ZRA retry queue). Unset in production: behaviour unchanged.
+const AUTOSTART = process.env.KELETE_NO_AUTOSTART !== '1';
+if (AUTOSTART) app.listen(PORT, () => {
   console.log(`Kelete tenant server running on port ${PORT}`);
 
   // ─── v1.9.0 — Layer 1: boot-time HQ→Branch mirror sweep ───────────────
@@ -193,3 +197,6 @@ app.listen(PORT, () => {
     console.error('[zra-retry] failed to arm queue:', e.message);
   }
 });
+
+// A2 — exported for the automated tests.
+module.exports = { app };
