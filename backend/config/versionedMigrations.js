@@ -64,4 +64,18 @@ module.exports = [
       `);
     },
   },
+  {
+    version: 4,
+    name: 'credit_ticket_order_sync_link',
+    // F2 — shift_credit_sales linked its receivable order only by numeric id,
+    // which is meaningless on any other device after sync (Phase 2a C4). Add
+    // the order's sync_id alongside it. Additive; existing rows stay NULL
+    // until the per-device backfill (after the Phase 2b checks).
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(shift_credit_sales)').all().map(c => c.name);
+      if (cols.length && !cols.includes('linked_order_sync_id')) {
+        db.exec('ALTER TABLE shift_credit_sales ADD COLUMN linked_order_sync_id TEXT');
+      }
+    },
+  },
 ];
