@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly, isActiveAdmin } = require('../middleware/auth');
 const { recordTankMovement } = require('../config/fuelSchema');
 
 router.get('/', auth, (req, res) => {
@@ -13,15 +13,31 @@ router.get('/', auth, (req, res) => {
     const rows = db.prepare(`
       SELECT t.*, fg.code AS grade_code, fg.name AS grade_name, fg.color AS grade_color,
              fg.selling_price AS grade_selling_price,
-             (SELECT m.litres FROM tank_movements m
-               WHERE m.tank_id = t.id AND m.type = 'opening'
-               ORDER BY m.movement_date, m.id LIMIT 1) AS opening_litres
+             -- F4: the EFFECTIVE opening = opening row(s) + any posted corrections,
+             -- so the edit form shows (and sends back) the corrected figure.
+             (SELECT CASE WHEN COUNT(*) = 0 THEN NULL ELSE SUM(m.litres) END FROM tank_movements m
+               WHERE m.tank_id = t.id
+                 AND (m.type = 'opening' OR (m.type = 'adjustment' AND m.ref_table = 'tank_opening_correction'))) AS opening_litres
         FROM tanks t
         LEFT JOIN fuel_grades fg ON fg.id = t.fuel_grade_id
         ${whereStatus}
        ORDER BY t.code
     `).all();
     res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// F4 — GET /api/tanks/ledger-check (Administrator). Every tank's cached
+// volume against the sum of its ledger rows. An empty `problems` list means
+// the books balance. Declared before '/:id' so it is not read as an id.
+router.get('/ledger-check', auth, adminOnly, (req, res) => {
+  try {
+    const rows = db.prepare(`
+      SELECT t.id, t.code, t.name, t.current_volume AS cached,
+             COALESCE((SELECT SUM(m.litres) FROM tank_movements m WHERE m.tank_id = t.id), 0) AS ledger
+        FROM tanks t ORDER BY t.code
+    `).all().map(r => ({ ...r, difference: Number((r.cached - r.ledger).toFixed(4)) }));
+    res.json({ ok: rows.every(r => Math.abs(r.difference) < 0.0001), problems: rows.filter(r => Math.abs(r.difference) >= 0.0001), tanks: rows.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -142,7 +158,9 @@ router.post('/', auth, (req, res) => {
 });
 
 // Update: metadata is safe to edit directly (code, name, grade, capacity,
-// low-stock threshold, group, status). opening_litres, if provided, edits
+// low-stock threshold, group, status). F4: opening_litres, if it differs from
+// the current effective opening, posts a correction row (Administrator only).
+// (Original comment follows.) opening_litres, if provided, edits
 // the tank's existing 'opening' ledger row (or inserts one when missing)
 // and re-syncs current_volume = SUM(tank_movements.litres). No adjustment
 // row is written — operators treat this as "fix the day-one baseline".
@@ -151,6 +169,24 @@ router.put('/:id', auth, (req, res) => {
     const existing = db.prepare('SELECT * FROM tanks WHERE id = ?').get(req.params.id);
     if (!existing) throw new Error('Not found');
     const b = req.body;
+    const historyRows = db.prepare('SELECT COUNT(*) AS n FROM tank_movements WHERE tank_id = ?').get(req.params.id).n;
+    // F4 — relabelling a tank that already holds fuel as a different grade
+    // would silently turn, say, 9,000 L of diesel into petrol on the books.
+    if (b.fuel_grade_id != null && Number(b.fuel_grade_id) !== Number(existing.fuel_grade_id) && historyRows > 0) {
+      throw Object.assign(new Error('This tank has ledger history, so its fuel grade cannot be changed. Create a new tank instead.'), { status: 409 });
+    }
+    // F4 — the edit form sends opening_litres on EVERY save, so only a value
+    // that actually differs counts as a correction (Administrator only).
+    const currentOpening = db.prepare(`
+      SELECT COALESCE(SUM(litres), 0) AS t FROM tank_movements
+       WHERE tank_id = ? AND (type = 'opening' OR (type = 'adjustment' AND ref_table = 'tank_opening_correction'))
+    `).get(req.params.id).t;
+    const openingDelta = (b.opening_litres != null && b.opening_litres !== '')
+      ? Number((Number(b.opening_litres) - currentOpening).toFixed(4)) : 0;
+    if (!isFinite(openingDelta)) throw new Error('opening_litres must be a number');
+    if (openingDelta !== 0 && !isActiveAdmin(req)) {
+      throw Object.assign(new Error('Only an Administrator can correct a tank opening balance.'), { status: 403 });
+    }
     db.prepare(`
       UPDATE tanks SET
         code = ?, name = ?, fuel_grade_id = ?, capacity_litres = ?,
@@ -170,31 +206,32 @@ router.put('/:id', auth, (req, res) => {
       req.params.id
     );
 
-    if (b.opening_litres != null) {
-      const newOpening = Number(b.opening_litres) || 0;
-      const openRow = db.prepare("SELECT id, litres FROM tank_movements WHERE tank_id = ? AND type = 'opening' ORDER BY movement_date, id LIMIT 1").get(req.params.id);
-      if (openRow) {
-        db.prepare("UPDATE tank_movements SET litres = ?, notes = COALESCE(notes, 'Opening balance') WHERE id = ?").run(newOpening, openRow.id);
-      } else if (newOpening !== 0) {
-        db.prepare(`
-          INSERT INTO tank_movements (tank_id, movement_date, type, litres, notes, created_by)
-          VALUES (?, date('now'), 'opening', ?, 'Opening balance', ?)
-        `).run(req.params.id, newOpening, req.user?.id || null);
-      }
-      // Re-sync cached current_volume from the ledger
-      const sum = db.prepare('SELECT COALESCE(SUM(litres), 0) AS t FROM tank_movements WHERE tank_id = ?').get(req.params.id).t;
-      db.prepare("UPDATE tanks SET current_volume = ?, updated_at = datetime('now') WHERE id = ?").run(Number(sum), req.params.id);
+    if (openingDelta !== 0) {
+      // F4 — the correction is POSTED as a row for the difference. It used to
+      // overwrite the original opening row, rewriting history with no trace
+      // of the old figure. The original opening row stays as entered.
+      const newOpening = Number(b.opening_litres);
+      recordTankMovement(db, {
+        tank_id: Number(req.params.id), litres: openingDelta, type: historyRows ? 'adjustment' : 'opening',
+        ref_table: historyRows ? 'tank_opening_correction' : null,
+        notes: historyRows ? `Opening balance corrected from ${currentOpening} L to ${newOpening} L` : 'Opening balance',
+        created_by: req.user?.id || null,
+      });
     }
 
     return db.prepare('SELECT * FROM tanks WHERE id = ?').get(req.params.id);
   });
-  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+  try { res.json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 router.delete('/:id', auth, (req, res) => {
   try {
     const nozUse = db.prepare('SELECT COUNT(*) AS c FROM nozzles WHERE tank_id = ?').get(req.params.id).c;
     if (nozUse > 0) return res.status(400).json({ error: `In use by ${nozUse} nozzle(s)` });
+    // F4 — deleting used to cascade away the tank's whole ledger. A tank with
+    // history is kept (mark it Inactive); the database also enforces this.
+    const hist = db.prepare('SELECT COUNT(*) AS c FROM tank_movements WHERE tank_id = ?').get(req.params.id).c;
+    if (hist > 0) return res.status(409).json({ error: 'This tank has ledger history and cannot be deleted. Mark it Inactive instead.' });
     db.prepare('DELETE FROM tanks WHERE id = ?').run(req.params.id);
     res.json({ message: 'Deleted' });
   } catch (e) { res.status(500).json({ error: e.message }); }

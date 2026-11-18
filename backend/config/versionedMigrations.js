@@ -30,4 +30,38 @@ module.exports = [
     // ensureAuditTriggers() from the columns actually present (auditSchema.js).
     up(db) { createAuditTable(db); },
   },
+  {
+    version: 3,
+    name: 'fuel_ledger_guards',
+    // F4 — the tank ledger becomes append-only at the database level, so no
+    // code path (current or future) can erase or rewrite fuel history.
+    //   • tank_movements rows cannot be deleted, and their litres / tank /
+    //     type / date cannot be changed. Corrections are new rows
+    //     (adjustment or reversal).
+    //   • A tank that has ledger history cannot be deleted (the old ON DELETE
+    //     CASCADE would have erased that history with it).
+    //   • A dip that has been posted to the ledger cannot be deleted.
+    // Only blocks future deletes/edits; existing rows are untouched.
+    up(db) {
+      db.exec(`
+        CREATE TRIGGER IF NOT EXISTS trg_f4_tank_movements_no_delete
+        BEFORE DELETE ON tank_movements
+        BEGIN SELECT RAISE(ABORT, 'Tank ledger rows cannot be deleted. Post a reversal or adjustment instead.'); END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_f4_tank_movements_no_rewrite
+        BEFORE UPDATE OF litres, tank_id, type, movement_date ON tank_movements
+        BEGIN SELECT RAISE(ABORT, 'Tank ledger rows cannot be changed. Post an adjustment instead.'); END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_f4_tanks_keep_history
+        BEFORE DELETE ON tanks
+        WHEN EXISTS (SELECT 1 FROM tank_movements WHERE tank_id = OLD.id)
+        BEGIN SELECT RAISE(ABORT, 'This tank has ledger history and cannot be deleted. Mark it Inactive instead.'); END;
+
+        CREATE TRIGGER IF NOT EXISTS trg_f4_posted_dips_keep
+        BEFORE DELETE ON tank_dips
+        WHEN OLD.posted_adjustment_id IS NOT NULL
+        BEGIN SELECT RAISE(ABORT, 'This dip has been posted to the tank ledger and cannot be deleted.'); END;
+      `);
+    },
+  },
 ];

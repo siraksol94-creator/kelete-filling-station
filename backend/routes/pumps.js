@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, isActiveAdmin } = require('../middleware/auth');
+const { nozzlesInOpenShifts } = require('../services/fuelControls');
 
 // --- Pumps ---
 router.get('/', auth, (req, res) => {
@@ -97,6 +98,21 @@ router.put('/nozzles/:id', auth, (req, res) => {
     const ex = db.prepare('SELECT * FROM nozzles WHERE id = ?').get(req.params.id);
     if (!ex) return res.status(404).json({ error: 'Not found' });
     const b = req.body;
+    // F4 — the edit form sends every field on every save, so act only on
+    // values that actually CHANGE.
+    const meterChanges = b.current_meter_reading != null && b.current_meter_reading !== ''
+      && Number(b.current_meter_reading) !== Number(ex.current_meter_reading);
+    const tankChanges = b.tank_id != null && Number(b.tank_id) !== Number(ex.tank_id);
+    if ((meterChanges || tankChanges) && nozzlesInOpenShifts([ex.id]).length) {
+      // An open shift started from this meter and draws from this tank;
+      // changing either mid-shift corrupts that shift's litres.
+      return res.status(409).json({ error: 'This nozzle is in an open shift. Close the shift before changing its meter reading or tank.' });
+    }
+    if (meterChanges && !isActiveAdmin(req)) {
+      // A manual meter change decides how many litres the next shift is
+      // charged for; it is an Administrator action (and is audited by D2).
+      return res.status(403).json({ error: 'Only an Administrator can change a nozzle meter reading.' });
+    }
     db.prepare(`
       UPDATE nozzles SET pump_id = ?, tank_id = ?, code = ?, current_meter_reading = ?, status = ?, updated_at = datetime('now')
       WHERE id = ?
@@ -114,6 +130,10 @@ router.put('/nozzles/:id', auth, (req, res) => {
 
 router.delete('/nozzles/:id', auth, (req, res) => {
   try {
+    // F4 — a nozzle with shift readings is part of the fuel history; the
+    // database already refuses (foreign key), this just says so clearly.
+    const used = db.prepare('SELECT COUNT(*) AS n FROM shift_nozzle_readings WHERE nozzle_id = ?').get(req.params.id).n;
+    if (used) return res.status(409).json({ error: 'This nozzle has shift readings and cannot be deleted. Mark it Inactive instead.' });
     db.prepare('DELETE FROM nozzles WHERE id = ?').run(req.params.id);
     res.json({ message: 'Deleted' });
   } catch (e) { res.status(500).json({ error: e.message }); }

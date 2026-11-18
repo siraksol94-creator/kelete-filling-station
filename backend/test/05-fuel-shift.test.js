@@ -50,12 +50,17 @@ test('the same attendant cannot open a second shift', async () => {
   assert.equal(r.status, 400);
 });
 
-knownDefect('F4', 'a nozzle already in an open shift can be given to a second attendant', async () => {
+test('F4: a nozzle already in an open shift cannot be given to a second attendant', async () => {
   const r = await app.request('POST', '/api/attendant-shifts/open', { token: T(),
     body: { attendant_user_id: staff.users.att2.id, nozzle_ids: [fuel.n1.id], shift_type: 'DAY' } });
-  assert.equal(r.status, 201, 'TODAY: accepted — both attendants would be credited the same litres');
-  const del = await app.request('POST', `/api/attendant-shifts/${r.body.id}/delete`, { token: T(), body: { password: PASSWORD } });
-  assert.equal(del.status, 200);
+  assert.equal(r.status, 409);
+  assert.match(r.body.error, /already in an open shift/);
+});
+
+test('F4: the same nozzle cannot be listed twice when opening a shift', async () => {
+  const r = await app.request('POST', '/api/attendant-shifts/open', { token: T(),
+    body: { attendant_user_id: staff.users.att2.id, nozzle_ids: [fuel.n2.id, fuel.n2.id], shift_type: 'DAY' } });
+  assert.equal(r.status, 400);
 });
 
 let creditOrderId;
@@ -134,50 +139,68 @@ test('a shift dip for the day is recorded against the book volume', async () => 
   assert.equal(dip.variance, 9000 - (10000 - 995));
 });
 
-test('only an Administrator may attempt a shift approval', async () => {
+test('only an Administrator may approve a shift', async () => {
   const no = await app.request('POST', `/api/fuel-shift-approvals/${approvalDate}/DAY/approve`, { token: staff.tokens.supervisor });
   assert.equal(no.status, 403);
 });
 
-knownDefect('F4 (Phase 2a E3)', 'shift approval always fails: fuel_shift_approvals.shift_id is NOT NULL but approval never sets it', async () => {
+test('F4: approval now saves, and posts the day\'s dip variance to the ledger', async () => {
   const r = await app.request('POST', `/api/fuel-shift-approvals/${approvalDate}/DAY/approve`, { token: T() });
-  assert.equal(r.status, 400, 'TODAY: approval cannot be saved on a database built from this schema');
-  assert.match(r.body.error, /NOT NULL constraint failed: fuel_shift_approvals\.shift_id/);
-  assert.equal(vol(fuel.t1.id), 10000 - 995, 'so the dip variance is never posted');
-});
-
-test('an Administrator can post a dip adjustment directly; the ledger stays consistent', async () => {
-  const dip = db.prepare('SELECT id FROM tank_dips WHERE tank_id = ? AND dip_date = ?').get(fuel.t1.id, approvalDate);
-  assert.equal((await app.request('POST', `/api/tank-dips/${dip.id}/post-adjustment`, { token: staff.tokens.supervisor })).status, 403);
-  const r = await app.request('POST', `/api/tank-dips/${dip.id}/post-adjustment`, { token: T() });
   assert.equal(r.status, 200, r.text);
+  assert.equal(r.body.dips_posted, 1);
   assert.equal(vol(fuel.t1.id), 9000, 'book moved to the measured dip');
+  assert.equal(db.prepare('SELECT shift_id FROM fuel_shift_approvals WHERE approval_date = ?').get(approvalDate).shift_id, shift.id);
   assertLedger();
 });
 
-// The checks below need an approval to exist. Approval cannot be saved through
-// the API (defect above), so the row is inserted directly — as it would be on a
-// database where approval works — to characterise what the lock does and misses.
-test('with an approval in place, cash figures cannot be re-finalized', async () => {
-  db.prepare('INSERT INTO fuel_shift_approvals (shift_id, approval_date, shift_type, approved_by) VALUES (?, ?, ?, ?)')
-    .run(shift.id, approvalDate, 'DAY', staff.users.owner.id);
+test('F4: approving an empty window is refused', async () => {
+  const r = await app.request('POST', '/api/fuel-shift-approvals/2001-01-01/NIGHT/approve', { token: T() });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /no NIGHT shifts/);
+});
+
+test('after approval, cash figures cannot be re-finalized', async () => {
   const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/finalize`, { token: T(), body: { payment_cash: 1 } });
   assert.equal(r.status, 400);
 });
 
-knownDefect('F4', 'an APPROVED shift can still be reopened and closed again with different readings', async () => {
+test('F4: an approved shift cannot be reopened, its tickets cannot be changed, and it cannot be deleted', async () => {
   const re = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: staff.tokens.cashier });
-  assert.equal(re.status, 200, 'TODAY: reopen is allowed after approval, by any logged-in user');
-  const detail = (await app.request('GET', `/api/attendant-shifts/${shift.id}`, { token: T() })).body;
-  const r1 = detail.readings.find(x => x.nozzle_id === fuel.n1.id);
-  const r2 = detail.readings.find(x => x.nozzle_id === fuel.n2.id);
-  const c = await app.request('POST', `/api/attendant-shifts/${shift.id}/close`, { token: T(),
-    body: { readings: [{ id: r1.id, closing_reading: 100500 }, { id: r2.id, closing_reading: 50500 }], payment_cash: 1 } });
-  assert.equal(c.status, 200, 'TODAY: the approved figures were changed');
-  assertLedger();
+  assert.equal(re.status, 409);
+  const ticket = db.prepare('SELECT id FROM shift_credit_sales WHERE shift_id = ? LIMIT 1').get(shift.id);
+  assert.equal((await app.request('DELETE', `/api/attendant-shifts/credit-sales/${ticket.id}`, { token: T() })).status, 409);
+  assert.equal((await app.request('POST', `/api/attendant-shifts/${shift.id}/delete`, { token: T(), body: { password: PASSWORD } })).status, 409);
+  assert.equal(db.prepare("SELECT status FROM attendant_shifts WHERE id = ?").get(shift.id).status, 'Closed');
+});
+
+test('F4: a dip posted to the ledger cannot be deleted', async () => {
+  const dip = db.prepare('SELECT id FROM tank_dips WHERE tank_id = ? AND dip_date = ?').get(fuel.t1.id, approvalDate);
+  const r = await app.request('DELETE', `/api/tank-dips/${dip.id}`, { token: T() });
+  assert.equal(r.status, 400);
+  assert.throws(() => db.prepare('DELETE FROM tank_dips WHERE id = ?').run(dip.id), /posted to the tank ledger/);
+});
+
+let shift2;
+test('after un-approval, reopening is refused while a newer shift holds the nozzle', async () => {
+  const un = await app.request('POST', `/api/fuel-shift-approvals/${approvalDate}/DAY/un-approve`, { token: T() });
+  assert.equal(un.status, 200);
+  shift2 = (await app.request('POST', '/api/attendant-shifts/open', { token: T(),
+    body: { attendant_user_id: staff.users.att2.id, nozzle_ids: [fuel.n1.id], shift_type: 'DAY' } })).body;
+  assert.ok(shift2.id);
+  const re = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: T() });
+  assert.equal(re.status, 409);
+  assert.match(re.body.error, /open shift/);
+});
+
+test('F4: a shift cannot be deleted while a later shift used the same nozzle', async () => {
+  const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/delete`, { token: T(), body: { password: PASSWORD } });
+  assert.equal(r.status, 409);
+  assert.match(r.body.error, /Later shift/);
 });
 
 test('deleting a shift: refused for non-admins and wrong passwords; reverses tank, meters and receivable', async () => {
+  // remove the newer shift first (newest first), as the error message instructs
+  assert.equal((await app.request('POST', `/api/attendant-shifts/${shift2.id}/delete`, { token: T(), body: { password: PASSWORD } })).status, 200);
   assert.equal((await app.request('POST', `/api/attendant-shifts/${shift.id}/delete`, { token: staff.tokens.cashier, body: { password: PASSWORD } })).status, 403);
   assert.equal((await app.request('POST', `/api/attendant-shifts/${shift.id}/delete`, { token: T(), body: { password: 'wrong' } })).status, 401);
   const volBefore = vol(fuel.t1.id);

@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const db = require('../config/database');
 const { recordTankMovement } = require('../config/fuelSchema');
+// F4 — shared shift controls (approval lock, one nozzle per open shift).
+const { assertNotApproved, nozzlesInOpenShifts } = require('../services/fuelControls');
 const { auth } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
@@ -335,10 +337,18 @@ router.post('/open', auth, (req, res) => {
     const { attendant_user_id, nozzle_ids = [], branch_id = null, notes = '', shift_type = null } = req.body;
     if (!attendant_user_id) throw new Error('attendant_user_id is required');
     if (!Array.isArray(nozzle_ids) || nozzle_ids.length === 0) throw new Error('nozzle_ids (array) is required');
-
     // Block if attendant has an open shift
     const open = db.prepare("SELECT id FROM attendant_shifts WHERE attendant_user_id = ? AND status = 'Open'").get(attendant_user_id);
     if (open) throw new Error('Attendant already has an open shift');
+    // F4 — a nozzle can be in only ONE open shift. Two shifts on one nozzle
+    // start from the same meter reading, so the same litres would be counted
+    // (and charged to attendants) twice.
+    if (new Set(nozzle_ids.map(Number)).size !== nozzle_ids.length) throw new Error('The same nozzle is listed twice.');
+    const busy = nozzlesInOpenShifts(nozzle_ids.map(Number));
+    if (busy.length) {
+      throw Object.assign(new Error(`Nozzle ${busy.map(b => `${b.nozzle_code} (shift #${b.shift_id}, ${b.attendant})`).join(', ')} is already in an open shift. Close that shift first.`), { status: 409 });
+    }
+
 
     // Default DAY/NIGHT by current hour if the UI didn't supply one.
     const inferType = () => {
@@ -372,7 +382,7 @@ router.post('/open', auth, (req, res) => {
     }
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(shiftId);
   });
-  try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+  try { res.status(201).json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 // Add a credit sale (receivable ticket) to an open shift during the shift.
@@ -415,6 +425,7 @@ router.post('/:id/credit-sales', auth, (req, res) => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
     if (shift.status !== 'Open') throw new Error('Shift already closed');
+    assertNotApproved(shift, 'changed');   // F4
     const { payment_method = 'Credit',
             customer_id = null, customer_name, card_number = '',
             vehicle_registration = '', fuel_grade_id = null,
@@ -481,7 +492,7 @@ router.post('/:id/credit-sales', auth, (req, res) => {
 
     return db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(info.lastInsertRowid);
   });
-  try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+  try { res.status(201).json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 // Finalize a shift's cash reconciliation (called by Fuel Cash Report).
@@ -551,6 +562,18 @@ router.post('/:id/delete', auth, async (req, res) => {
     const tx = db.transaction(() => {
       const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
       if (!shift) throw new Error('Shift not found');
+      assertNotApproved(shift, 'deleted');   // F4
+      // F4 — deleting resets each nozzle meter to THIS shift's opening reading.
+      // If a later shift has used the same nozzle, that would rewind the meter
+      // under it and corrupt its litres. Delete later shifts first.
+      const later = db.prepare(`
+        SELECT DISTINCT r2.shift_id FROM shift_nozzle_readings r1
+          JOIN shift_nozzle_readings r2 ON r2.nozzle_id = r1.nozzle_id AND r2.shift_id > r1.shift_id
+         WHERE r1.shift_id = ?
+      `).all(shift.id).map(r => r.shift_id);
+      if (later.length) {
+        throw Object.assign(new Error(`Later shift(s) #${later.join(', #')} used the same nozzle(s). Delete those first, newest first.`), { status: 409 });
+      }
 
       // Reverse nozzle meter + tank volume side-effects of the close
       const readings = db.prepare('SELECT * FROM shift_nozzle_readings WHERE shift_id = ?').all(req.params.id);
@@ -584,7 +607,7 @@ router.post('/:id/delete', auth, async (req, res) => {
     });
     tx();
     res.json({ message: 'Shift deleted' });
-  } catch (e) { res.status(400).json({ error: e.message }); }
+  } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 // Reopen a closed shift (e.g. a credit sale was missed and the attendant
@@ -596,6 +619,15 @@ router.post('/:id/reopen', auth, (req, res) => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) return res.status(404).json({ error: 'Shift not found' });
     if (shift.status === 'Open') return res.json({ message: 'Already open', shift });
+    // F4 — an approved shift is locked: reopening it would let its readings,
+    // tickets and cash be changed after sign-off.
+    assertNotApproved(shift, 'reopened');
+    // F4 — its nozzles may have been given to a newer shift since it closed.
+    const mine = db.prepare('SELECT nozzle_id FROM shift_nozzle_readings WHERE shift_id = ?').all(shift.id).map(r => r.nozzle_id);
+    const busy = nozzlesInOpenShifts(mine, shift.id);
+    if (busy.length) {
+      return res.status(409).json({ error: `Cannot reopen: nozzle ${busy.map(b => `${b.nozzle_code} is in open shift #${b.shift_id}`).join(', ')}.` });
+    }
     db.prepare(`
       UPDATE attendant_shifts
          SET status = 'Open', closed_at = NULL, closed_by = NULL,
@@ -603,13 +635,15 @@ router.post('/:id/reopen', auth, (req, res) => {
        WHERE id = ?
     `).run(req.params.id);
     res.json({ message: 'Reopened', shift: db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id) });
-  } catch (e) { res.status(400).json({ error: e.message }); }
+  } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 router.delete('/credit-sales/:cid', auth, (req, res) => {
   const tx = db.transaction(() => {
     const cs = db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(req.params.cid);
     if (!cs) throw new Error('Not found');
+    const parent = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(cs.shift_id);
+    if (parent) assertNotApproved(parent, 'changed');   // F4
     // Soft-delete the linked order so AR stops counting it (no hard delete —
     // sync peers would re-create it on next pull)
     if (cs.linked_order_id) {
@@ -619,7 +653,7 @@ router.delete('/credit-sales/:cid', auth, (req, res) => {
     db.prepare('DELETE FROM shift_credit_sales WHERE id = ?').run(req.params.cid);
     return { message: 'Deleted' };
   });
-  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+  try { res.json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 // Close a shift with the full reconciliation: nozzle closings, payment
@@ -631,6 +665,7 @@ router.post('/:id/close', auth, (req, res) => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) throw new Error('Shift not found');
     if (shift.status !== 'Open') throw new Error('Shift already closed');
+    assertNotApproved(shift, 'closed again');   // F4 (defence in depth; reopen is also blocked)
 
     const {
       readings = [],
@@ -745,7 +780,7 @@ router.post('/:id/close', auth, (req, res) => {
 
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });
-  try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+  try { res.json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 module.exports = router;
