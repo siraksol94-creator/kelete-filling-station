@@ -61,6 +61,9 @@ if (IS_TILL && process.env.KELETE_ALLOW_REMOTE_UI !== '1') {
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(uploadsDir));
+// D2 — request-level audit (who did a delete / void / approval / price, user
+// or meter change). Writes to audit_log when each response finishes.
+app.use(require('./services/audit').auditRequests(db));
 
 // ─── Create all tables on first run ────────────────────────────────────────
 db.exec(`
@@ -609,50 +612,11 @@ db.exec(`
   addCol('daily_profit_summary', 'stock_adj', 'REAL NOT NULL DEFAULT 0');
   addCol('daily_profit_summary', 'damages',   'REAL NOT NULL DEFAULT 0');
 
-  // Migrate cash_reports: replace UNIQUE(date) with UNIQUE(date, cashier_id)
-  const crIdxList = db.prepare("PRAGMA index_list('cash_reports')").all();
-  const hasDateOnlyUnique = crIdxList.some(idx => {
-    if (!idx.unique) return false;
-    const cols = db.prepare(`PRAGMA index_info('${idx.name}')`).all();
-    return cols.length === 1 && cols[0].name === 'date';
-  });
-  if (hasDateOnlyUnique) {
-    db.exec(`
-      CREATE TABLE cash_reports_migrated (
-        id             INTEGER PRIMARY KEY AUTOINCREMENT,
-        date           TEXT NOT NULL,
-        initial_change REAL DEFAULT 0,
-        mobile_money   REAL DEFAULT 0,
-        cash           REAL DEFAULT 0,
-        expenses       REAL DEFAULT 0,
-        pending        REAL DEFAULT 0,
-        total          REAL DEFAULT 0,
-        after_change   REAL DEFAULT 0,
-        expected       REAL DEFAULT 0,
-        difference     REAL DEFAULT 0,
-        status         TEXT,
-        comment        TEXT,
-        created_by     INTEGER REFERENCES users(id),
-        created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-        updated_at     TEXT NOT NULL DEFAULT (datetime('now')),
-        sync_id        TEXT,
-        tenant_id      TEXT,
-        branch_id      TEXT,
-        device_id      TEXT,
-        deleted_at     TEXT,
-        synced         INTEGER NOT NULL DEFAULT 0,
-        cashier_id     INTEGER DEFAULT 0
-      );
-      INSERT INTO cash_reports_migrated
-        SELECT id, date, initial_change, mobile_money, cash, expenses, pending, total,
-               after_change, expected, difference, status, comment, created_by,
-               created_at, updated_at, sync_id, tenant_id, branch_id, device_id,
-               deleted_at, COALESCE(synced, 0), COALESCE(cashier_id, 0)
-        FROM cash_reports;
-      DROP TABLE cash_reports;
-      ALTER TABLE cash_reports_migrated RENAME TO cash_reports;
-    `);
-  }
+  // D1 — the cash_reports UNIQUE(date) → UNIQUE(date, cashier_id) rebuild that
+  // lived here is retired. config/migrations.js runs first (config/database.js)
+  // and owns that rebuild, now transactional and keeping every column. This
+  // copy used a fixed column list that left out `bank` (and the multi-currency
+  // columns), so had it ever run it would have destroyed that data.
   db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cash_reports_date_cashier ON cash_reports(date, cashier_id)`).run();
 
   // Stock Count tables
@@ -1001,6 +965,10 @@ try {
 }
 
 // ─── Backfill daily_profit_summary for all tenant DBs ────────────────────────
+// D1 — deliberately NOT gated to run once. Sync does not recalculate
+// daily_profit_summary when sales arrive from another device, so this
+// startup pass is currently what brings those figures up to date. Gate it
+// only after sync recalculates the dates it touches (Priority 2 follow-up).
 const { recalculateDailyProfit } = require('./config/profitHelper');
 const { getTenantDb, TENANTS_DIR } = require('./config/tenantDb');
 function backfillDailyProfit() {
@@ -1037,16 +1005,10 @@ function backfillDailyProfit() {
 }
 backfillDailyProfit();
 
-// ─── Nightly cleanup: remove already-deleted reconciliation movements ────────
-function cleanStaleReconciliations() {
-  try {
-    const result = db.prepare(
-      `DELETE FROM stock_movements WHERE movement_type = 'reconciliation' AND deleted_at IS NOT NULL`
-    ).run();
-    if (result.changes > 0) console.log(`[cleanup] Removed ${result.changes} stale reconciliation(s)`);
-  } catch (e) {
-    console.error('[cleanup] Failed:', e.message);
-  }
-}
-cleanStaleReconciliations(); // run once on startup
-setInterval(cleanStaleReconciliations, 24 * 60 * 60 * 1000); // then every 24 hours
+// ─── D1: nightly hard-delete of soft-deleted reconciliation movements — RETIRED ─
+// It permanently deleted stock_movements rows that had been soft-deleted, at
+// startup and every 24h. Not needed: every reader already filters
+// `deleted_at IS NULL` (routes/inventory.js, config/profitHelper.js). And it was
+// harmful: if it ran before the deletion had synced (synced = 0), the other
+// side never learned the movement was deleted and kept counting it, and the
+// record of the deletion itself was lost. Soft-deleted rows are now kept.

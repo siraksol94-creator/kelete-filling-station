@@ -31,6 +31,8 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // ─── Tenant middleware — MUST come before all routes ─────────────────────────
 app.use(require('./middleware/tenant'));
+// D2 — request-level audit; after tenant middleware so req.tenantDb is known.
+app.use(require('./services/audit').auditRequests(require('./config/database')));
 
 // ─── Static file serving for uploaded images ─────────────────────────────────
 // Each tenant's uploads live at TENANTS_DIR/<slug>/uploads/

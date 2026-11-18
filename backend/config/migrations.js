@@ -5,8 +5,62 @@
  */
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+// D1 — migration versioning + one-time data tasks (see migrationRunner.js).
+const { ensureTables: ensureMigrationTables, runOnce, runVersioned } = require('./migrationRunner');
+const VERSIONED_MIGRATIONS = require('./versionedMigrations');
+// D2 — audit trail triggers (see auditSchema.js).
+const { ensureAuditTriggers } = require('./auditSchema');
+
+// D1 — rebuild `table` from its live definition minus a single-column
+// UNIQUE(date) constraint (SQLite cannot drop a constraint in place).
+// Preserves every column, type, NOT NULL, DEFAULT, PRIMARY KEY/AUTOINCREMENT,
+// foreign key, row, secondary index and trigger. One transaction.
+function rebuildWithoutDateOnlyUnique(db, table, idxList) {
+  const qi = (n) => `"${String(n).replace(/"/g, '""')}"`;
+  const cols = db.prepare(`PRAGMA table_info(${qi(table)})`).all();
+  const fks  = db.prepare(`PRAGMA foreign_key_list(${qi(table)})`).all();
+  const autoinc = /AUTOINCREMENT/i.test(
+    db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name=?").get(table)?.sql || '');
+  const defs = cols.map(c => {
+    let d = `${qi(c.name)} ${c.type || ''}`.trim();
+    if (c.pk) d += ' PRIMARY KEY' + (autoinc && /^INTEGER$/i.test(c.type) ? ' AUTOINCREMENT' : '');
+    if (c.notnull && !c.pk) d += ' NOT NULL';
+    // PRAGMA table_info returns expression defaults without their brackets
+    // (datetime('now') for DEFAULT (datetime('now'))); brackets are always
+    // valid in CREATE TABLE and read back identically.
+    if (c.dflt_value !== null && c.dflt_value !== undefined) d += ` DEFAULT (${c.dflt_value})`;
+    const fk = fks.find(f => f.from === c.name);
+    if (fk) d += ` REFERENCES ${qi(fk.table)}(${qi(fk.to)})`;
+    return d;
+  });
+  // Indexes/triggers to restore: every explicit one except the date-only unique.
+  const dateOnly = new Set(idxList.filter(i => i.unique && (() => {
+    const ic = db.prepare(`PRAGMA index_info(${qi(i.name)})`).all();
+    return ic.length === 1 && ic[0].name === 'date';
+  })()).map(i => i.name));
+  const restore = db.prepare(
+    "SELECT name, sql FROM sqlite_master WHERE tbl_name = ? AND type IN ('index','trigger') AND sql IS NOT NULL"
+  ).all(table).filter(r => !dateOnly.has(r.name));
+  const tmp = `${table}_migrated`;
+  const names = cols.map(c => qi(c.name)).join(', ');
+  db.transaction(() => {
+    db.exec(`DROP TABLE IF EXISTS ${qi(tmp)}`);
+    db.exec(`CREATE TABLE ${qi(tmp)} (\n  ${defs.join(',\n  ')}\n)`);
+    db.exec(`INSERT INTO ${qi(tmp)} (${names}) SELECT ${names} FROM ${qi(table)}`);
+    const before = db.prepare(`SELECT COUNT(*) AS n FROM ${qi(table)}`).get().n;
+    const after  = db.prepare(`SELECT COUNT(*) AS n FROM ${qi(tmp)}`).get().n;
+    if (before !== after) throw new Error(`${table} rebuild copied ${after} of ${before} rows — aborted`);
+    db.exec(`DROP TABLE ${qi(table)}`);
+    db.exec(`ALTER TABLE ${qi(tmp)} RENAME TO ${qi(table)}`);
+    for (const r of restore) db.exec(r.sql);
+  })();
+  console.log(`[migrations] ${table}: UNIQUE(date) removed; all ${cols.length} columns and every row kept`);
+}
 
 function initTenantDb(db) {
+  // D1 — bookkeeping tables for versioned migrations and one-time data tasks.
+  ensureMigrationTables(db);
+
   // ── Core tables ────────────────────────────────────────────────────────────
   db.exec(`
     CREATE TABLE IF NOT EXISTS users (
@@ -1315,7 +1369,13 @@ function initTenantDb(db) {
   // This is the one-time migration when switching to the "CR per AR payment" model.
   // Uses a self-contained, collision-proof receipt number scheme so we don't depend
   // on syncConfig (which may not be initialised yet during DB bootstrap).
-  try {
+  // D1 — On every boot this minted cash receipts for any AR payment without one —
+  // including payments synced in from a till whose own receipt had not arrived
+  // yet, which would create a duplicate receipt. Payments now create their
+  // receipt in routes/customerPayments.js, so only legacy rows need this.
+  // Now a one-time task: recorded in data_task_log and never repeated on this
+  // database once it succeeds (it used to run on every boot).
+  runOnce(db, 'legacy-2026-mint-cash-receipts-for-orphan-ar-payments', () => {
     const orphans = db.prepare(`
       SELECT cp.id, cp.amount, cp.payment_date, cp.payment_method, cp.reference, cp.notes,
              cp.created_by, cp.tenant_id, cp.branch_id, cp.device_id,
@@ -1355,7 +1415,7 @@ function initTenantDb(db) {
         }
       })();
     }
-  } catch (e) { console.error('[migrations] AR payment CR backfill failed:', e.message); }
+  });
   // Link orders to a specific customer record (prevents same-name customers sharing balances).
   // Legacy orders carry NULL — user has to claim them via the "Claim orphan orders" action.
   addCol('orders',             'customer_id',          'INTEGER');
@@ -1501,7 +1561,13 @@ function initTenantDb(db) {
   //
   // Guarded by the unique index above, so re-running is a no-op rather than a
   // doubling — this file runs on every boot.
-  try {
+  // D1 — Re-ran on every boot and re-created a legacy allocation even after one had
+  // been deliberately changed. routes/apPayments.js now writes allocations itself.
+  // PRE-CHECK before release: every till must run a build from 2026-08-30 or
+  // later, or its AP payments would arrive without allocations.
+  // Now a one-time task: recorded in data_task_log and never repeated on this
+  // database once it succeeds (it used to run on every boot).
+  runOnce(db, 'legacy-2026-08-ap-payment-allocations-backfill', () => {
     const hasRows = db.prepare('SELECT COUNT(*) AS n FROM ap_payment_allocations').get()?.n || 0;
     const legacy  = db.prepare(
       "SELECT sync_id, grn_sync_id, amount, tenant_id, branch_id, device_id " +
@@ -1528,9 +1594,7 @@ function initTenantDb(db) {
         console.log(`[migrations] ap_payment_allocations backfilled from ${legacy.length} payment(s)`);
       }
     }
-  } catch (e) {
-    console.warn('[migrations] ap allocation backfill skipped:', e.message);
-  }
+  });
 
   // One-time backfill. AP Approvals writes its description as
   //   "GRN GRN-2026-12585695 - Invoice 42342"
@@ -1541,7 +1605,10 @@ function initTenantDb(db) {
   //
   // The description is NOT used as the live link: it is editable from the
   // payments list, and a corrected typo would silently detach the payment.
-  try {
+  // D1 — Guesses links from free text; it was written as a one-time recovery.
+  // Now a one-time task: recorded in data_task_log and never repeated on this
+  // database once it succeeds (it used to run on every boot).
+  runOnce(db, 'legacy-link-ap-payments-to-grn-by-description', () => {
     const master = require('./masterDb').masterDb;
     if (master) {
       const orphans = db.prepare(
@@ -1559,7 +1626,7 @@ function initTenantDb(db) {
       }
       if (linked) console.log(`[migration] linked ${linked} existing AP payment(s) to their GRN`);
     }
-  } catch (_) { /* master.db absent (a till before first sync) — skip */ }
+  });
   addCol('daily_actual_balance','product_sync_id',  'TEXT');
   addCol('daily_profit_summary','stock_adj',        'REAL NOT NULL DEFAULT 0');
   // Sales Damages — items destroyed/expired, cost subtracted from gross profit.
@@ -1655,14 +1722,21 @@ function initTenantDb(db) {
 
   // ─── One-time cleanup: remove daily_profit_summary rows with malformed date (timestamp instead of YYYY-MM-DD)
   // Caused by an old bug in order reverse where `created_at.split('T')[0]` returned the full SQLite timestamp.
-  try {
+  // D1 — A DELETE that ran on every boot to clean up after a long-fixed bug.
+  // Now a one-time task: recorded in data_task_log and never repeated on this
+  // database once it succeeds (it used to run on every boot).
+  runOnce(db, 'legacy-delete-malformed-daily-profit-dates', () => {
     db.prepare(`DELETE FROM daily_profit_summary WHERE length(date) > 10`).run();
-  } catch (_) {}
+  });
 
   // ─── One-time cleanup: recompute cost_at_count on existing stock_reconciliation_items.
   // Earlier rows used an un-converted avg from grn_items (mixed pcs/box totals) — yielding cost per box
   // when it should have been per base unit. This makes variance_value correct on rows posted before the fix.
-  try {
+  // D1 — Meant as a one-time fix, but it ran on EVERY boot and overwrote cost_at_count
+  // on ALL reconciliation rows — including ones counted after the fix — with
+  // today's average cost, so past stock-variance values changed on each restart.
+  // Now a one-time task (data_task_log); it used to run on every boot.
+  runOnce(db, 'legacy-recompute-reconciliation-cost-at-count', () => {
     const { baseQtyExpr: _bq } = require('./unitsHelper');
     const fixedAvgCostSubquery = `
       SELECT CASE WHEN COALESCE(SUM(${_bq('gp', 'gi')}), 0) > 0
@@ -1679,7 +1753,7 @@ function initTenantDb(db) {
       const newCost = parseFloat(row?.avg_cost || 0);
       if (newCost > 0) fixStmt.run(newCost, it.id);
     }
-  } catch (_) {}
+  });
 
   // v1.13.20 — REMOVED (see also the deleted block earlier in this file).
   // Second, near-duplicate copy of the orders → customer_id auto-link
@@ -1703,46 +1777,21 @@ function initTenantDb(db) {
       return cols.length === 1 && cols[0].name === 'date';
     });
     if (hasDateOnlyUnique) {
-      db.exec(`
-        CREATE TABLE cash_reports_migrated (
-          id             INTEGER PRIMARY KEY AUTOINCREMENT,
-          date           TEXT NOT NULL,
-          initial_change REAL DEFAULT 0,
-          mobile_money   REAL DEFAULT 0,
-          cash           REAL DEFAULT 0,
-          bank           REAL DEFAULT 0,
-          expenses       REAL DEFAULT 0,
-          pending        REAL DEFAULT 0,
-          total          REAL DEFAULT 0,
-          after_change   REAL DEFAULT 0,
-          expected       REAL DEFAULT 0,
-          difference     REAL DEFAULT 0,
-          status         TEXT,
-          comment        TEXT,
-          created_by     INTEGER REFERENCES users(id),
-          created_at     TEXT NOT NULL DEFAULT (datetime('now')),
-          updated_at     TEXT NOT NULL DEFAULT (datetime('now')),
-          sync_id        TEXT,
-          tenant_id      TEXT,
-          branch_id      TEXT,
-          device_id      TEXT,
-          deleted_at     TEXT,
-          synced         INTEGER NOT NULL DEFAULT 0,
-          cashier_id     INTEGER DEFAULT 0
-        );
-        INSERT INTO cash_reports_migrated
-          SELECT id, date, initial_change, mobile_money, cash,
-                 COALESCE(bank, 0), expenses, pending, total,
-                 after_change, expected, difference, status, comment, created_by,
-                 created_at, updated_at, sync_id, tenant_id, branch_id, device_id,
-                 deleted_at, COALESCE(synced, 0), COALESCE(cashier_id, 0)
-          FROM cash_reports;
-        DROP TABLE cash_reports;
-        ALTER TABLE cash_reports_migrated RENAME TO cash_reports;
-      `);
+      // D1 — rebuilt to keep EVERY column. The previous version copied a fixed
+      // list of 24 columns, but by the time it ran this file had already added
+      // nine more (usd/fra/k _received, _expected, _expenses), so on any book
+      // where it ran it silently destroyed that data. It also ran as loose
+      // statements, so a failure between DROP and RENAME could leave the books
+      // without a cash_reports table.
+      //
+      // Now: the new table is generated from the table's ACTUAL definition
+      // (every column, type, NOT NULL, default and foreign key), every row is
+      // copied, other indexes and triggers are re-created, and only the
+      // UNIQUE(date) rule is dropped. All inside one transaction.
+      rebuildWithoutDateOnlyUnique(db, 'cash_reports', idxList);
     }
     db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cash_reports_date_cashier ON cash_reports(date, cashier_id)`).run();
-  } catch (_) { /* migration is idempotent and best-effort */ }
+  } catch (e) { console.warn('[migrations] cash_reports rebuild:', e.message); }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Phase 1 — Multi-currency schema, but Kelete is K-only
@@ -1887,13 +1936,17 @@ function initTenantDb(db) {
   addCol('orders', 'cashier_user_sync_id', 'TEXT');
   addCol('orders', 'sales_user_sync_id',   'TEXT');
   addCol('orders', 'dispatch_user_sync_id','TEXT');
-  // Backfill from local users table — runs once per row (skips already-filled).
-  try {
+  // D1 — Backfill from local users table. On this device's own rows it is correct;
+  // but on rows that arrive by sync from an older till without these columns,
+  // the numeric user ids belong to THAT till, so a per-boot backfill here
+  // attributes them to the wrong person (the comment above says as much).
+  // Now one-time (data_task_log): fixes this device's legacy rows only.
+  runOnce(db, 'legacy-orders-user-sync-id-backfill', () => {
     db.prepare(`UPDATE orders SET created_by_sync_id    = (SELECT sync_id FROM users WHERE id = orders.created_by)     WHERE created_by_sync_id    IS NULL AND created_by     IS NOT NULL`).run();
     db.prepare(`UPDATE orders SET cashier_user_sync_id  = (SELECT sync_id FROM users WHERE id = orders.cashier_user_id) WHERE cashier_user_sync_id  IS NULL AND cashier_user_id  IS NOT NULL`).run();
     db.prepare(`UPDATE orders SET sales_user_sync_id    = (SELECT sync_id FROM users WHERE id = orders.sales_user_id)   WHERE sales_user_sync_id    IS NULL AND sales_user_id    IS NOT NULL`).run();
     db.prepare(`UPDATE orders SET dispatch_user_sync_id = (SELECT sync_id FROM users WHERE id = orders.dispatch_user_id) WHERE dispatch_user_sync_id IS NULL AND dispatch_user_id IS NOT NULL`).run();
-  } catch (e) { /* tolerate empty users table on a fresh DB */ }
+  });
 
   // ─────────────────────────────────────────────────────────────────────────
   // v1.3.1 — Sales Damages state machine
@@ -2823,7 +2876,9 @@ function initTenantDb(db) {
   // immediately. Loses the original sub-minute precision but unblocks the
   // Cashier right away. New rates from v1.8.82+ frontend send UTC directly,
   // so this heal only ever runs on legacy rows.
-  try {
+  // D1 — Legacy heal for rates stored in local time by builds before v1.8.82.
+  // Now a one-time task (data_task_log); it used to run on every boot.
+  runOnce(db, 'legacy-fx-rates-future-effective-snap', () => {
     const result = db.prepare(`
       UPDATE fx_rates
          SET effective_at = datetime('now'),
@@ -2836,7 +2891,7 @@ function initTenantDb(db) {
     if (result.changes > 0) {
       console.log(`[self-heal fx_rates effective_at] snapped ${result.changes} future row(s) to NOW (legacy local-time storage)`);
     }
-  } catch (e) { /* fresh DB or fx_rates table not yet present */ }
+  });
   addCol('orders',   'k_received',         'REAL DEFAULT 0');
   addCol('orders',   'k_change_given',     'REAL DEFAULT 0');
   addCol('orders',   'selling_rate_k_used','REAL');
@@ -2969,7 +3024,10 @@ function initTenantDb(db) {
   // Re-attributes overpaid_kept_ccy/amt using source-currency priority
   // (USD pays first → FRA → K, surplus lives in the LAST currency used),
   // and zeroes usd_change_given since no USD was actually returned.
-  try {
+  // D1 — Legacy multi-currency heal (orders before v1.8.74). It rewrote orders and
+  // marked them for re-sync on every boot. Kelete is Kwacha-only.
+  // Now a one-time task (data_task_log); it used to run on every boot.
+  runOnce(db, 'legacy-orders-overpaid-kept-ccy-heal', () => {
     const sus = db.prepare(`
       SELECT id, total_amount, cash_received, fra_received, k_received,
              selling_rate_used, selling_rate_k_used, usd_change_given,
@@ -3028,7 +3086,7 @@ function initTenantDb(db) {
       }
       if (healed > 0) console.log(`[self-heal overpaid_kept] re-attributed ${healed} order(s) from USD default → source currency`);
     }
-  } catch (e) { /* table may not yet have all columns on a fresh DB */ }
+  });
 
   // v1.8.80 — SELF-HEALING zero-out for usd_change_given when the surplus is
   // actually in a FRA or K drawer. The v1.8.68 backfill blindly seeded
@@ -3038,7 +3096,9 @@ function initTenantDb(db) {
   // Symptom: Sales Report By Payment USD column shows '$199.89' instead of
   // '$200.00' for orders where the customer paid USD + FRA and the FRA
   // surplus was kept by the cashier (e.g. ORD-0016).
-  try {
+  // D1 — Legacy multi-currency heal (v1.8.68 backfill bug).
+  // Now a one-time task (data_task_log); it used to run on every boot.
+  runOnce(db, 'legacy-orders-usd-change-given-zero', () => {
     const result = db.prepare(`
       UPDATE orders
          SET usd_change_given = 0,
@@ -3051,7 +3111,7 @@ function initTenantDb(db) {
     if (result.changes > 0) {
       console.log(`[self-heal usd_change_given] zeroed ${result.changes} order(s) where surplus is in FRA/K drawer`);
     }
-  } catch (e) { /* fresh DB or columns not yet present */ }
+  });
 
   // v1.13.20 — REMOVED two Kelete-inherited self-healers that are dead
   // code on Kelete's K-only Liquor setup:
@@ -3082,19 +3142,29 @@ function initTenantDb(db) {
   // Inventory, Branch Dashboard low-stock widget, Stock Count baseline,
   // etc.) display correct numbers. Idempotent — running again gives
   // identical results. ~50ms for 1000 products.
+  //
+  // D1 — still runs every boot (other code relies on it), but now touches ONLY
+  // products whose cached stock actually differs from the movements. Before,
+  // it stamped EVERY product with updated_at = now and synced = 0 on every
+  // start. Sync resolves conflicts by newest updated_at for the whole row, so
+  // a till restarting with stale prices could win over a price changed on the
+  // server while the till was off. Rows that are already correct are now left
+  // alone, so their prices and timestamps are not disturbed.
   try {
-    const result = db.prepare(`
-      UPDATE products
-         SET current_stock = COALESCE((
+    const stockSum = `COALESCE((
                SELECT SUM(sm.quantity)
                  FROM stock_movements sm
                 WHERE sm.product_sync_id = products.sync_id
                   AND sm.deleted_at IS NULL
-             ), 0),
+             ), 0)`;
+    const result = db.prepare(`
+      UPDATE products
+         SET current_stock = ${stockSum},
              synced = 0,
              updated_at = datetime('now')
        WHERE deleted_at IS NULL
          AND sync_id IS NOT NULL
+         AND ABS(COALESCE(current_stock, 0) - ${stockSum}) > 0.000001
     `).run();
     if (result.changes > 0) {
       console.log(`[self-heal current_stock] rebuilt cache for ${result.changes} product(s) from stock_movements`);
@@ -3157,6 +3227,23 @@ function initTenantDb(db) {
   } catch (e) {
     console.warn('[fuelSchema] skipped:', e.message);
   }
+
+  // ── D1: versioned migrations ───────────────────────────────────────────────
+  // Run AFTER the legacy baseline above, so they can rely on its tables. Each
+  // runs once, in a transaction, and is recorded in schema_migrations. A
+  // failure stops later ones on this database and is reported, not hidden.
+  const migrationResult = runVersioned(db, VERSIONED_MIGRATIONS);
+
+  // ── D2: audit triggers ─────────────────────────────────────────────────────
+  // Built from the columns that exist right now; rebuilt only when they change.
+  // Skipped if the audit_log migration has not been applied on this database.
+  try {
+    const hasAudit = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'audit_log'").get();
+    if (hasAudit) ensureAuditTriggers(db);
+  } catch (e) {
+    console.error('[audit] could not build audit triggers:', e.message);
+  }
+  return migrationResult;
 }
 
 module.exports = { initTenantDb };
