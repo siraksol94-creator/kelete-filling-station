@@ -41,7 +41,8 @@ const FUEL_TABLES = [
   { table: 'tanks', fks: [['fuel_grade_id', 'fuel_grades']] },
   { table: 'pumps', fks: [] },
   { table: 'nozzles', fks: [['pump_id', 'pumps'], ['tank_id', 'tanks']] },
-  { table: 'fleet_customers', fks: [] },
+  // customer_id: F3 (migration 11) links each fleet account to its Customer.
+  { table: 'fleet_customers', fks: [['customer_id', 'customers']] },
   { table: 'fleet_vehicles', fks: [['fleet_customer_id', 'fleet_customers']] },
   { table: 'attendant_shifts', fks: [['attendant_user_id', 'users'], ['opened_by', 'users'], ['closed_by', 'users']] },
   { table: 'shift_nozzle_readings', fks: [['shift_id', 'attendant_shifts'], ['nozzle_id', 'nozzles']] },
@@ -161,9 +162,11 @@ function addCol(db, table, col, type) {
   if (cols.length && !cols.includes(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${type}`);
 }
 
-// Links whose parent table has a sync_id here (older schemas may lack one).
+// Links whose column exists on this table and whose parent table has a
+// sync_id here (older schemas may lack one; F3's customer_id arrives later).
 function linkable(db, spec) {
-  return spec.fks.filter(([, parent]) => columnsInfo(db, parent).some(c => c.name === 'sync_id'));
+  const own = columnsInfo(db, spec.table).map(c => c.name);
+  return spec.fks.filter(([fk, parent]) => own.includes(fk) && columnsInfo(db, parent).some(c => c.name === 'sync_id'));
 }
 
 function bookkeepingSet(spec, prefix, fks = spec.fks) {
@@ -182,6 +185,36 @@ function bookkeepingSet(spec, prefix, fks = spec.fks) {
     sets.push(`ref_sync_id = CASE ${REF_TABLES.map(rt => `WHEN ${prefix}.ref_table = '${rt}' THEN (SELECT p.sync_id FROM ${rt} p WHERE p.id = ${prefix}.ref_id)`).join(' ')} ELSE ${prefix}.ref_sync_id END`);
   }
   return sets.join(',\n            ');
+}
+
+// (Re)create one fuel table's sync triggers from its current columns.
+function installTriggers(db, spec) {
+  const t = spec.table;
+  if (!columnsInfo(db, t).length) return;
+  for (const [fk] of spec.fks) addCol(db, t, syncCol(fk), 'TEXT');
+  const fks = linkable(db, spec);
+  db.exec(`DROP TRIGGER IF EXISTS trg_f1_${t}_ins; DROP TRIGGER IF EXISTS trg_f1_${t}_upd; DROP TRIGGER IF EXISTS trg_f1_${t}_del;`);
+    db.exec(`
+      CREATE TRIGGER trg_f1_${t}_ins AFTER INSERT ON ${t}
+      WHEN ${NOT_APPLYING}
+      BEGIN
+        UPDATE ${t} SET
+            ${bookkeepingSet(spec, 'NEW', fks)}
+        WHERE rowid = NEW.rowid;
+      END;
+      CREATE TRIGGER trg_f1_${t}_upd AFTER UPDATE ON ${t}
+      WHEN ${NOT_APPLYING} AND NEW.synced IS OLD.synced
+      BEGIN
+        UPDATE ${t} SET
+            ${bookkeepingSet(spec, 'NEW', fks)}
+        WHERE rowid = NEW.rowid;
+      END;
+      CREATE TRIGGER trg_f1_${t}_del AFTER DELETE ON ${t}
+      WHEN ${NOT_APPLYING} AND OLD.sync_id IS NOT NULL
+      BEGIN
+        INSERT INTO ${DELETIONS} (sync_id, tenant_id, device_id, table_name, row_sync_id, updated_at, synced)
+        VALUES (${UUID_SQL}, COALESCE(OLD.tenant_id, ${CFG_TENANT}), ${CFG_DEVICE}, '${t}', OLD.sync_id, ${NOW_MS}, 0);
+      END;`);
 }
 
 function installSchema(db) {
@@ -214,29 +247,8 @@ function installSchema(db) {
     const backfill = bookkeepingSet(spec, t, fks).replace(`updated_at = ${NOW_MS}`, `updated_at = COALESCE(${t}.updated_at, ${columnsInfo(db, t).some(c => c.name === 'created_at') ? `${t}.created_at, ` : ''}${NOW_MS})`);
     db.prepare(`UPDATE ${t} SET ${backfill}`).run();
 
-    db.exec(`DROP TRIGGER IF EXISTS trg_f1_${t}_ins; DROP TRIGGER IF EXISTS trg_f1_${t}_upd; DROP TRIGGER IF EXISTS trg_f1_${t}_del;`);
-    db.exec(`
-      CREATE TRIGGER trg_f1_${t}_ins AFTER INSERT ON ${t}
-      WHEN ${NOT_APPLYING}
-      BEGIN
-        UPDATE ${t} SET
-            ${bookkeepingSet(spec, 'NEW', fks)}
-        WHERE rowid = NEW.rowid;
-      END;
-      CREATE TRIGGER trg_f1_${t}_upd AFTER UPDATE ON ${t}
-      WHEN ${NOT_APPLYING} AND NEW.synced IS OLD.synced
-      BEGIN
-        UPDATE ${t} SET
-            ${bookkeepingSet(spec, 'NEW', fks)}
-        WHERE rowid = NEW.rowid;
-      END;
-      CREATE TRIGGER trg_f1_${t}_del AFTER DELETE ON ${t}
-      WHEN ${NOT_APPLYING} AND OLD.sync_id IS NOT NULL
-      BEGIN
-        INSERT INTO ${DELETIONS} (sync_id, tenant_id, device_id, table_name, row_sync_id, updated_at, synced)
-        VALUES (${UUID_SQL}, COALESCE(OLD.tenant_id, ${CFG_TENANT}), ${CFG_DEVICE}, '${t}', OLD.sync_id, ${NOW_MS}, 0);
-      END;`);
+    installTriggers(db, spec);
   }
 }
 
-module.exports = { FUEL_TABLES, DELETIONS, TABLE_NAMES, syncCol, enabled, isFuel, syncTables, withApplying, prepare, isImmutable, afterBatch, installSchema };
+module.exports = { FUEL_TABLES, DELETIONS, TABLE_NAMES, SPEC, syncCol, enabled, isFuel, syncTables, withApplying, prepare, isImmutable, afterBatch, installSchema, installTriggers };

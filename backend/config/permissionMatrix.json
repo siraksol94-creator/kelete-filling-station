@@ -38,7 +38,7 @@
   "EmptyVouchers": "GRN",
   "StockReconciliation": "Stock"
  },
- "endpoint_count": 440,
+ "endpoint_count": 444,
  "endpoints": [
   {
    "method": "GET",
@@ -445,6 +445,7 @@
     "accounting/shareholders",
     "approvals/discounts",
     "fuel/cash-report",
+    "fuel/fleet",
     "fuel/pumps",
     "fuel/tank-dips",
     "fuel/tank-ledger",
@@ -2083,6 +2084,38 @@
    ]
   },
   {
+   "method": "POST",
+   "path": "/fleet-customers/merge/apply",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fleet-customers/merge/log",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fleet-customers/merge/plan",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fleet-customers/merge/undo",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
    "method": "DELETE",
    "path": "/fleet-customers/vehicles/:p",
    "any": true,
@@ -3691,6 +3724,7 @@
     "accounting/shareholders",
     "approvals/discounts",
     "fuel/cash-report",
+    "fuel/fleet",
     "fuel/pumps",
     "fuel/tank-dips",
     "fuel/tank-ledger",
@@ -3749,6 +3783,7 @@
     "accounting/shareholders",
     "approvals/discounts",
     "fuel/cash-report",
+    "fuel/fleet",
     "fuel/pumps",
     "fuel/tank-dips",
     "fuel/tank-ledger",

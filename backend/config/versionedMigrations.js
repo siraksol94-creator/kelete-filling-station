@@ -209,4 +209,32 @@ module.exports = [
       }
     },
   },
+  {
+    version: 11,
+    name: 'fleet_customer_merge',
+    // F3 — fleet accounts are merged into Customers (services/fleetMerge.js).
+    // Each fleet account gets a link to its Customer; a log records every
+    // merge step so it can be undone. Additive; nothing is merged here — the
+    // merge is run (dry-run first) by an Administrator.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(fleet_customers)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('customer_id')) db.exec('ALTER TABLE fleet_customers ADD COLUMN customer_id INTEGER');
+      if (!cols.includes('customer_sync_id')) db.exec('ALTER TABLE fleet_customers ADD COLUMN customer_sync_id TEXT');
+      if (!cols.includes('merged_at')) db.exec('ALTER TABLE fleet_customers ADD COLUMN merged_at TEXT');
+      db.exec(`CREATE TABLE IF NOT EXISTS fleet_merge_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fleet_customer_id INTEGER, fleet_sync_id TEXT, fleet_name TEXT,
+        customer_id INTEGER, customer_sync_id TEXT, customer_name TEXT,
+        matched_by TEXT NOT NULL,                 -- phone | name | chosen | created
+        created_customer INTEGER NOT NULL DEFAULT 0,
+        balance_carried REAL NOT NULL DEFAULT 0,
+        ticket_ids TEXT,                          -- JSON: credit tickets re-pointed
+        merged_at TEXT NOT NULL DEFAULT (datetime('now')), merged_by TEXT,
+        undone_at TEXT, undone_by TEXT)`);
+      // the fleet → customer link travels with fuel sync (F1)
+      const fuelSync = require('./fuelSync');
+      fuelSync.installTriggers(db, fuelSync.SPEC.fleet_customers);
+    },
+  },
 ];
