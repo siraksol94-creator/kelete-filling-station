@@ -98,8 +98,13 @@ router.post('/', auth, supervisorsOnly, (req, res) => {
     if (grade) {
       const oldVol = Math.max(tank.current_volume || 0, 0);
       const wac = (oldVol * grade.cost_price + litres * cpl) / Math.max(oldVol + litres, 1);
+      const after = Number(wac.toFixed(4));
       db.prepare('UPDATE fuel_grades SET cost_price = ?, updated_at = datetime(\'now\') WHERE id = ?')
-        .run(Number(wac.toFixed(4)), grade.id);
+        .run(after, grade.id);
+      // Average-cost fix: remember the cost either side of this delivery so
+      // deleting it can put the grade's cost back.
+      db.prepare('UPDATE fuel_deliveries SET cost_before = ?, cost_after = ? WHERE id = ?')
+        .run(Number(grade.cost_price), after, info.lastInsertRowid);
     }
 
     return db.prepare('SELECT * FROM fuel_deliveries WHERE id = ?').get(info.lastInsertRowid);
@@ -109,10 +114,43 @@ router.post('/', auth, supervisorsOnly, (req, res) => {
   catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// Average-cost fix — deleting a delivery used to reverse its litres but leave
+// its price blended into the grade's average cost for good.
+//  • If it is still the latest cost change for the grade (the cost is exactly
+//    what it set, and no later delivery of the grade exists), restore the cost
+//    it replaced.
+//  • Otherwise (a later delivery came after it, or it predates this fix and has
+//    no recorded "before" cost), take its litres at its price back out of the
+//    average held in the tank: (cost × volume − litres × price) ÷ (volume − litres).
+//    If that cannot be worked out (the tank would be empty or the result is not
+//    positive) the cost is left as it is and the response says so.
+// Runs BEFORE the reversal movement, while the tank still holds the litres.
+function reverseAverageCost(row) {
+  const grade = db.prepare('SELECT id, cost_price FROM fuel_grades WHERE id = ?').get(row.fuel_grade_id);
+  if (!grade) return 'grade not found — cost unchanged';
+  const cur = Number(grade.cost_price);
+  const later = db.prepare('SELECT 1 FROM fuel_deliveries WHERE fuel_grade_id = ? AND id > ? LIMIT 1').get(row.fuel_grade_id, row.id);
+  let next = null, how;
+  if (row.cost_before != null && !later && Math.abs(cur - Number(row.cost_after)) < 0.00005) {
+    next = Number(row.cost_before); how = 'restored to the cost before this delivery';
+  } else {
+    const tank = db.prepare('SELECT current_volume FROM tanks WHERE id = ?').get(row.tank_id);
+    const vol = Number(tank ? tank.current_volume : 0);
+    const litres = Number(row.litres_delivered || 0);
+    const remaining = vol - litres;
+    const v = remaining > 0 ? (cur * vol - litres * Number(row.cost_per_litre || 0)) / remaining : NaN;
+    if (Number.isFinite(v) && v > 0) { next = Number(v.toFixed(4)); how = 'this delivery taken out of the average'; }
+    else return 'cost unchanged: the tank would be empty without this delivery — set the grade cost by hand if needed';
+  }
+  db.prepare("UPDATE fuel_grades SET cost_price = ?, updated_at = datetime('now') WHERE id = ?").run(next, grade.id);
+  return `${how}: ${cur} → ${next}`;
+}
+
 router.delete('/:id', auth, supervisorsOnly, (req, res) => {
   const tx = db.transaction(() => {
     const row = db.prepare('SELECT * FROM fuel_deliveries WHERE id = ?').get(req.params.id);
     if (!row) throw new Error('Not found');
+    const costNote = reverseAverageCost(row);
     // Reversal row (keeps the delivery row traceable as cancelled)
     recordTankMovement(db, {
       tank_id: row.tank_id, litres: -Number(row.litres_delivered || 0),
@@ -121,7 +159,7 @@ router.delete('/:id', auth, supervisorsOnly, (req, res) => {
       created_by: req.user?.id || null,
     });
     db.prepare('DELETE FROM fuel_deliveries WHERE id = ?').run(req.params.id);
-    return { message: 'Deleted and tank volume reversed' };
+    return { message: 'Deleted; tank volume and average cost reversed', cost: costNote };
   });
   try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });

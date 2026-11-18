@@ -38,14 +38,31 @@ knownDefect('F5', 'a fuel delivery creates no supplier payable and no cash-book 
   assert.equal(after, before);
 });
 
-knownDefect('F4', 'deleting a delivery reverses the litres but not the average cost', async () => {
+test('average cost: deleting the latest delivery puts the grade cost back exactly', async () => {
+  const before = cost(fuel.petrol.id);
   const r0 = await deliver(5000, 40);
-  const costWith = cost(fuel.petrol.id);
   const volWith = vol(fuel.t1.id);
+  assert.notEqual(cost(fuel.petrol.id), before, 'the K40/L delivery raised the average');
   const d = await app.request('DELETE', `/api/fuel-deliveries/${r0.body.id}`, { token: T() });
-  assert.equal(d.status, 200);
+  assert.equal(d.status, 200, d.text);
   assert.equal(vol(fuel.t1.id), volWith - 5000);
-  assert.equal(cost(fuel.petrol.id), costWith, 'TODAY: the K40/L delivery still inflates the cost after it was deleted');
+  assert.equal(cost(fuel.petrol.id), before, 'cost restored');
+  assert.match(d.body.cost, /restored/);
+  assert.deepEqual(tankLedger(db), []);
+});
+
+test('average cost: deleting an OLDER delivery takes its litres and price back out of the average', async () => {
+  const a = await deliver(2000, 30);
+  const b = await deliver(1000, 18);
+  const c = cost(fuel.petrol.id);
+  const v = vol(fuel.t1.id);
+  const d = await app.request('DELETE', `/api/fuel-deliveries/${a.body.id}`, { token: T() });
+  assert.equal(d.status, 200, d.text);
+  const expected = Number(((c * v - 2000 * 30) / (v - 2000)).toFixed(4));
+  assert.equal(cost(fuel.petrol.id), expected);
+  assert.ok(cost(fuel.petrol.id) < c, 'the dearer delivery no longer lifts the average');
+  assert.match(d.body.cost, /taken out of the average/);
+  await app.request('DELETE', `/api/fuel-deliveries/${b.body.id}`, { token: T() });
   assert.deepEqual(tankLedger(db), []);
 });
 
