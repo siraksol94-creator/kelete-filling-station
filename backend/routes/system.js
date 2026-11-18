@@ -20,7 +20,10 @@ const { auth, adminOnly } = require('../middleware/auth');
 // `adminOnly` (App.js), so legitimate use is unchanged.
 const db = require('../config/database');
 
-const BACKUP_ROOT = process.env.KELETE_BACKUP_DIR || '/var/backups/kelete';
+const backupKit = require('../services/backupKit');
+// On a till (no KELETE_BACKUP_DIR) this is %APPDATA%/Kelete/Backups, the same
+// folder the till's daily backup uses — not C:\var\backups\kelete (S6).
+const BACKUP_ROOT = backupKit.defaultBackupRoot();
 
 function humanSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -50,19 +53,25 @@ router.get('/backups', auth, adminOnly, (req, res) => {
       return res.json({ ok: true, backups: [], root: BACKUP_ROOT, note: 'backup directory not present' });
     }
     const entries = fs.readdirSync(BACKUP_ROOT, { withFileTypes: true })
-      .filter(e => e.isDirectory())
+      .filter(e => e.isDirectory() && e.name !== 'pre-restore')
       .map(e => {
         const p = path.join(BACKUP_ROOT, e.name);
         const st = fs.statSync(p);
         let dbCount = 0;
         try { dbCount = fs.readdirSync(p).filter(f => f.endsWith('.db')).length; } catch (_) {}
         const size = dirSize(p);
+        // S6: verification recorded when the backup was taken (null = older
+        // backup with no manifest).
+        const m = backupKit.readManifest(p);
+        const failed = m ? Object.entries(m.files || {}).filter(([, f]) => !f.ok).map(([k]) => k) : [];
         return {
           name: e.name,
           created_at: st.mtime.toISOString(),
-          db_count: dbCount,
+          db_count: m ? Object.keys(m.files || {}).length : dbCount,
           size_bytes: size,
           size_human: humanSize(size),
+          verified: m ? !!m.ok : null,
+          failed_files: failed,
         };
       })
       .sort((a, b) => b.name.localeCompare(a.name));
@@ -73,10 +82,17 @@ router.get('/backups', auth, adminOnly, (req, res) => {
 });
 
 // POST /api/system/backup — trigger an immediate backup by shelling out
-// to the same script cron uses. Falls back to a JS-level SQLite copy if
-// the script isn't present, so this endpoint works even on a fresh
-// install where the cron hasn't been wired yet.
-router.post('/backup', auth, adminOnly, (req, res) => {
+// to the same script cron uses (vps/backup.sh — it verifies its copies and
+// exits non-zero if any fail). Without the script (fresh install, a till)
+// the backup is taken here.
+//
+// S6 — the in-app fallback used to copyFileSync() backend/kelete.db and a
+// "tenants" folder next to the code: no master.db, the wrong folders on a till,
+// and a plain file copy that can miss sales still in the -wal file. It now
+// uses SQLite's online backup API on every live database (backupKit), checks
+// each copy, and records the result in manifest.json. Any failed copy makes
+// the request fail (500) so the operator knows.
+router.post('/backup', auth, adminOnly, async (req, res) => {
   const scriptPath = process.env.KELETE_BACKUP_SCRIPT || '/usr/local/bin/kelete-backup.sh';
   const useScript = fs.existsSync(scriptPath);
 
@@ -92,32 +108,19 @@ router.post('/backup', auth, adminOnly, (req, res) => {
     return;
   }
 
-  // Fallback — inline copy of every .db file we can find under the
-  // Kelete install root. Slower but reliable.
   try {
-    const stamp = new Date().toISOString().slice(0, 10);
-    const dest = path.join(BACKUP_ROOT, `${stamp}-manual`);
-    fs.mkdirSync(dest, { recursive: true });
-    const roots = [
-      path.join(__dirname, '..', 'kelete.db'),
-      path.join(__dirname, '..', '..', 'tenants'),
-    ];
-    let copied = 0;
-    for (const r of roots) {
-      if (!fs.existsSync(r)) continue;
-      const st = fs.statSync(r);
-      if (st.isFile()) {
-        fs.copyFileSync(r, path.join(dest, path.basename(r)));
-        copied++;
-      } else if (st.isDirectory()) {
-        for (const f of fs.readdirSync(r)) {
-          if (!f.endsWith('.db')) continue;
-          fs.copyFileSync(path.join(r, f), path.join(dest, f));
-          copied++;
-        }
-      }
-    }
-    res.json({ ok: true, method: 'inline', dest, files_copied: copied });
+    const dbs = backupKit.liveDatabases();
+    if (!dbs.length) return res.status(500).json({ error: 'no databases found to back up' });
+    // A new folder every time (two clicks in the same second never share one).
+    let dest = path.join(BACKUP_ROOT, `${backupKit.stamp()}-manual`);
+    for (let i = 2; fs.existsSync(dest); i++) dest = path.join(BACKUP_ROOT, `${backupKit.stamp()}-manual-${i}`);
+    const r = await backupKit.backupSet(dbs, dest, { method: 'inline', reason: 'manual', requested_by: req.user && req.user.id });
+    const files = Object.entries(r.results).map(([rel, x]) => ({
+      file: rel, ok: x.ok, error: x.error || null, total_rows: x.total_rows ?? null, bytes: x.bytes ?? null,
+    }));
+    const body = { ok: r.ok, method: 'inline', dest, files_copied: files.filter(f => f.ok).length, files };
+    if (!r.ok) return res.status(500).json({ ...body, error: `backup check failed for: ${files.filter(f => !f.ok).map(f => f.file).join(', ')}` });
+    res.json(body);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
