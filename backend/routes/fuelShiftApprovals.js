@@ -43,6 +43,19 @@ router.post('/:date/:shiftType/approve', auth, (req, res) => {
     `).get(date, t).c;
     if (openCount > 0) throw new Error(`${openCount} ${t} shift(s) still Open — close + finalize before approving.`);
 
+    // F4 — approval used to fail on every database built from this schema:
+    // fuel_shift_approvals.shift_id is declared NOT NULL UNIQUE (from the old
+    // per-attendant model) but this route never set it, so every approval hit
+    // "NOT NULL constraint failed" and the shift lock never took effect.
+    // Fill it with the window's first shift: always present (an approval needs
+    // at least one shift), and unique per window, so the UNIQUE rule holds.
+    // Works whether the live column is NOT NULL or not; no table rebuild.
+    const anchor = db.prepare(`
+      SELECT MIN(id) AS id FROM attendant_shifts
+       WHERE DATE(opened_at) = DATE(?) AND COALESCE(shift_type, 'DAY') = ?
+    `).get(date, t).id;
+    if (!anchor) throw new Error(`There are no ${t} shifts on ${date} to approve.`);
+
     // Auto-post every un-posted dip taken for this (date, shift_type)
     const pending = db.prepare(`
       SELECT * FROM tank_dips WHERE dip_date = DATE(?) AND shift_type = ? AND posted_adjustment_id IS NULL
@@ -62,9 +75,9 @@ router.post('/:date/:shiftType/approve', auth, (req, res) => {
     }
 
     const info = db.prepare(`
-      INSERT INTO fuel_shift_approvals (approval_date, shift_type, approved_by, notes)
-      VALUES (DATE(?), ?, ?, ?)
-    `).run(date, t, req.user?.id || null, notes || null);
+      INSERT INTO fuel_shift_approvals (shift_id, approval_date, shift_type, approved_by, notes)
+      VALUES (?, DATE(?), ?, ?, ?)
+    `).run(anchor, date, t, req.user?.id || null, notes || null);
 
     return {
       approval: db.prepare(`

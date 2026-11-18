@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth } = require('../middleware/auth');
+// F4 — every litre leaving a tank goes through the ledger.
+const { recordTankMovement } = require('../config/fuelSchema');
+const { nozzlesInOpenShifts } = require('../services/fuelControls');
 
 function nextSaleNumber() {
   const row = db.prepare("SELECT COUNT(*) AS c FROM fuel_sales WHERE sale_number LIKE 'FS-%'").get();
@@ -74,6 +77,12 @@ router.post('/', auth, (req, res) => {
        WHERE n.id = ?
     `).get(nozzle_id);
     if (!noz) throw new Error('Nozzle not found');
+    // F4 — this legacy per-sale path moves the nozzle meter and the tank. If the
+    // nozzle is in an open attendant shift, that shift's closing reading would
+    // count the same litres again, so refuse.
+    if (nozzlesInOpenShifts([Number(nozzle_id)]).length) {
+      throw Object.assign(new Error('This nozzle is in an open attendant shift; record the sale on the shift instead.'), { status: 409 });
+    }
 
     const ppl = Number(price_per_litre != null ? price_per_litre : noz.grade_price) || 0;
     const total = Number((l * ppl).toFixed(2));
@@ -102,15 +111,19 @@ router.post('/', auth, (req, res) => {
       req.user?.id || null, branch_id, notes
     );
 
-    // bump nozzle meter + decrement tank
+    // bump nozzle meter + decrement tank — F4: the tank through its ledger
+    // (it used to change tanks.current_volume directly, with no ledger row).
     db.prepare('UPDATE nozzles SET current_meter_reading = current_meter_reading + ?, updated_at = datetime(\'now\') WHERE id = ?')
       .run(l, nozzle_id);
-    db.prepare('UPDATE tanks SET current_volume = current_volume - ?, updated_at = datetime(\'now\') WHERE id = ?')
-      .run(l, noz.tank_id);
+    recordTankMovement(db, {
+      tank_id: noz.tank_id, litres: -l, type: 'sale',
+      ref_table: 'fuel_sales', ref_id: info.lastInsertRowid,
+      notes: `Fuel sale ${number}`, created_by: req.user?.id || null,
+    });
 
     return db.prepare('SELECT * FROM fuel_sales WHERE id = ?').get(info.lastInsertRowid);
   });
-  try { res.status(201).json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
+  try { res.status(201).json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
 router.delete('/:id', auth, (req, res) => {
@@ -121,8 +134,12 @@ router.delete('/:id', auth, (req, res) => {
     // reverse: tank + nozzle + fleet balance
     db.prepare('UPDATE nozzles SET current_meter_reading = current_meter_reading - ? WHERE id = ?')
       .run(sale.litres, sale.nozzle_id);
-    if (noz) db.prepare('UPDATE tanks SET current_volume = current_volume + ? WHERE id = ?')
-      .run(sale.litres, noz.tank_id);
+    // F4 — reverse through the ledger (was a direct change to current_volume).
+    if (noz) recordTankMovement(db, {
+      tank_id: noz.tank_id, litres: Number(sale.litres), type: 'reversal',
+      ref_table: 'fuel_sales', ref_id: sale.id,
+      notes: `Reversed fuel sale ${sale.sale_number}`, created_by: req.user?.id || null,
+    });
     if (sale.payment_method === 'Fleet' && sale.fleet_customer_id) {
       db.prepare('UPDATE fleet_customers SET current_balance = current_balance - ? WHERE id = ?')
         .run(sale.total, sale.fleet_customer_id);

@@ -39,19 +39,22 @@ const auth = (req, res, next) => {
 //
 // adminOnly is used by routes/users.js and the D1/D2 read-only endpoints in
 // routes/system.js; nothing else depends on it.
+// Is the caller an ACTIVE Administrator right now (not just per their token)?
+// Shared by adminOnly and by routes that need the check for only part of a
+// request (e.g. F4: changing a tank's opening balance or a nozzle meter).
+function isActiveAdmin(req) {
+  if (!req.user || req.user.role !== 'Administrator') return false;
+  const sql = "SELECT role, status FROM users WHERE id = ? AND email = ? AND deleted_at IS NULL";
+  let me = db.prepare(sql).get(req.user.id, req.user.email);
+  if (!me && req.hqBranchSlug && db.defaultDb) {
+    me = db.defaultDb.prepare(sql).get(req.user.id, req.user.email);
+  }
+  return !!me && me.role === 'Administrator' && (!me.status || me.status === 'Active');
+}
+
 const adminOnly = (req, res, next) => {
   try {
-    if (!req.user || req.user.role !== 'Administrator') {
-      return res.status(403).json({ error: 'Admin access required.' });
-    }
-    const sql = "SELECT role, status FROM users WHERE id = ? AND email = ? AND deleted_at IS NULL";
-    let me = db.prepare(sql).get(req.user.id, req.user.email);
-    if (!me && req.hqBranchSlug && db.defaultDb) {
-      me = db.defaultDb.prepare(sql).get(req.user.id, req.user.email);
-    }
-    if (!me || me.role !== 'Administrator' || (me.status && me.status !== 'Active')) {
-      return res.status(403).json({ error: 'Admin access required.' });
-    }
+    if (!isActiveAdmin(req)) return res.status(403).json({ error: 'Admin access required.' });
     next();
   } catch (e) {
     return res.status(500).json({ error: e.message });
@@ -115,4 +118,4 @@ function withTenantDb(req, res, next) {
   next();
 }
 
-module.exports = { auth, adminOnly, readOnlyGuard, requirePagePerm, withTenantDb };
+module.exports = { auth, adminOnly, isActiveAdmin, readOnlyGuard, requirePagePerm, withTenantDb };
