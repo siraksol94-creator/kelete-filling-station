@@ -34,6 +34,7 @@ import {
   FiPlus, FiTag, FiCalendar, FiUsers, FiDollarSign,
   FiX, FiTrash2, FiEye, FiEdit2, FiPrinter, FiChevronRight, FiChevronDown, FiChevronUp,
 } from 'react-icons/fi';
+import { businessToday } from '../utils/businessDate';
 
 // Crates and bottles share one reason — both are returnable containers.
 // Goods Return is for the actual purchased product going back (damaged, wrong,
@@ -53,7 +54,7 @@ const reasonStyle = (r) => {
   }
 };
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 const emptyItem = (dep = '') => ({ product_id: '', product_text: '', quantity: '', unit_value: dep ? String(dep) : '', unit: '', unit_conv: 1 });
 const isRowComplete = (r) => r.product_id !== '' && parseFloat(r.quantity) > 0 && parseFloat(r.unit_value) >= 0;
 

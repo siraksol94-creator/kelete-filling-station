@@ -29,8 +29,8 @@ function fireZraCustomerSync(tenantId, customerId, actor) {
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
     const { type, search, from, to } = req.query;
-    // Order rows are filtered by DATE(created_at); payments by payment_date.
-    const orderDateClause = (from ? ' AND DATE(created_at) >= ?' : '') + (to ? ' AND DATE(created_at) <= ?' : '');
+    // Order rows are filtered by their business day (UTC dates fix); payments by payment_date.
+    const orderDateClause = (from ? ' AND COALESCE(business_date, DATE(created_at)) >= ?' : '') + (to ? ' AND COALESCE(business_date, DATE(created_at)) <= ?' : '');
     const payDateClause   = (from ? ' AND payment_date >= ?' : '') + (to ? ' AND payment_date <= ?' : '');
     const dateArgsOrders  = [...(from ? [from] : []), ...(to ? [to] : [])];
     const dateArgsPay     = [...(from ? [from] : []), ...(to ? [to] : [])];
@@ -94,7 +94,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
         GROUP BY customer_sync_id
       ) payments_agg ON payments_agg.customer_sync_id = c.sync_id
       LEFT JOIN (
-        SELECT customer_sync_id, MIN(DATE(created_at)) AS oldest_order_date
+        SELECT customer_sync_id, MIN(COALESCE(business_date, DATE(created_at))) AS oldest_order_date
         FROM orders
         WHERE deleted_at IS NULL AND (status IS NULL OR status != 'Reversed')
           AND customer_sync_id IS NOT NULL${orderDateClause}
@@ -151,7 +151,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
 // each depot's AR still owed from the same calculation as the depot's AR page.
 function computeArStats({ tenantId, from, to }) {
   {
-    const orderDateClause = (from ? ' AND DATE(created_at) >= ?' : '') + (to ? ' AND DATE(created_at) <= ?' : '');
+    const orderDateClause = (from ? ' AND COALESCE(business_date, DATE(created_at)) >= ?' : '') + (to ? ' AND COALESCE(business_date, DATE(created_at)) <= ?' : '');
     const payDateClause   = (from ? ' AND payment_date >= ?' : '') + (to ? ' AND payment_date <= ?' : '');
     const dateArgsOrders  = [...(from ? [from] : []), ...(to ? [to] : [])];
     const dateArgsPay     = [...(from ? [from] : []), ...(to ? [to] : [])];
@@ -277,7 +277,7 @@ router.get('/aging', auth, readOnlyGuard, (req, res) => {
     // that's what the customer actually owes per sale.
     const result = customers.map(c => {
       const orders = db.prepare(`
-        SELECT id, total_amount, COALESCE(amount_received, 0) AS cash_at_sale, DATE(created_at) AS order_date
+        SELECT id, total_amount, COALESCE(amount_received, 0) AS cash_at_sale, COALESCE(business_date, DATE(created_at)) AS order_date
         FROM orders
         WHERE deleted_at IS NULL AND (status IS NULL OR status != 'Reversed')
           AND customer_sync_id = ?
@@ -327,8 +327,8 @@ router.get('/:id/insights', auth, readOnlyGuard, (req, res) => {
         COUNT(*) AS order_count,
         COALESCE(SUM(total_amount), 0) AS total_revenue,
         COALESCE(AVG(total_amount), 0) AS avg_basket,
-        MIN(DATE(created_at)) AS first_order_date,
-        MAX(DATE(created_at)) AS last_order_date
+        MIN(COALESCE(business_date, DATE(created_at))) AS first_order_date,
+        MAX(COALESCE(business_date, DATE(created_at))) AS last_order_date
       FROM orders
       WHERE deleted_at IS NULL AND (status IS NULL OR status != 'Reversed')
         AND customer_sync_id = ? AND tenant_id = ?
@@ -336,7 +336,7 @@ router.get('/:id/insights', auth, readOnlyGuard, (req, res) => {
 
     // Frequency = mean days between visits, computed from distinct order dates
     const orderDates = db.prepare(`
-      SELECT DISTINCT DATE(created_at) AS d
+      SELECT DISTINCT COALESCE(business_date, DATE(created_at)) AS d
       FROM orders
       WHERE deleted_at IS NULL AND (status IS NULL OR status != 'Reversed')
         AND customer_sync_id = ? AND tenant_id = ?
@@ -365,7 +365,7 @@ router.get('/:id/insights', auth, readOnlyGuard, (req, res) => {
       FROM orders
       WHERE deleted_at IS NULL AND (status IS NULL OR status != 'Reversed')
         AND customer_sync_id = ? AND tenant_id = ?
-        AND DATE(created_at) >= DATE('now', ?)
+        AND COALESCE(business_date, DATE(created_at)) >= DATE('now', '+120 minutes', ?)
     `).get(customer.sync_id, req.user.tenantId, `-${days} days`);
 
     const last30 = window(30);

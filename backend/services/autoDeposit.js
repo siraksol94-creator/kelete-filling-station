@@ -74,7 +74,7 @@ function blockIfConfirmed(reportSyncId) {
 // DEP-YYYYMMDD-NNNN, as cashDeposits.js mints them, stepping past any number
 // already taken (the old hard DELETE left gaps that a plain COUNT can land on).
 function nextDepositNumber(m) {
-  const ymd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const ymd = require('../config/businessTime').businessDate().replace(/-/g, '');
   let seq = (m.prepare('SELECT COUNT(*) AS n FROM cash_deposits').get()?.n || 0) + 1;
   const taken = m.prepare('SELECT 1 FROM cash_deposits WHERE deposit_number = ?');
   let num;
@@ -90,7 +90,7 @@ function syncFromReport({ report, slug, branchName, cashierName, user, enabled }
   const linked = linkedDeposits(report.sync_id);
   if (!enabled && linked.length === 0) return null;
 
-  const date = String(report.date || '').slice(0, 10) || new Date().toISOString().slice(0, 10);
+  const date = String(report.date || '').slice(0, 10) || require('../config/businessTime').businessDate();
   const who = nameOf(user);
   // 2026-09-15 — new deposits go where System Settings → Deposit to says (HQ
   // by default). Deposits already made keep the destination they were sent to.

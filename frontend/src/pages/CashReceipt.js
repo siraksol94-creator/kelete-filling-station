@@ -8,13 +8,14 @@ import Toast from '../components/Toast';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
+import { businessToday } from '../utils/businessDate';
 
 const getPaymentColor = (method) => {
   const map = { 'Cash': 'badge-green', 'Card': 'badge-blue', 'Check': 'badge-purple', 'Transfer': 'badge-orange' };
   return map[method] || 'badge-gray';
 };
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 
 const CashReceipt = () => {
   const { hasPermission } = useAuth();

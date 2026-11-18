@@ -11,6 +11,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCw, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import { getHqConsolidatedProfit } from '../services/api';
+import { businessToday } from '../utils/businessDate';
 
 const fmtK       = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 const fmtSign    = (n) => (parseFloat(n || 0) < 0 ? '−' : '');
@@ -18,7 +19,7 @@ const firstOfMonthISO = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
 };
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => businessToday();
 
 export default function HqConsolidatedProfit() {
   const [from, setFrom] = useState(firstOfMonthISO());

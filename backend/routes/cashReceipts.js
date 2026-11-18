@@ -37,8 +37,8 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
       `SELECT ${usdExpr} AS usd, ${fraExpr} AS fra, ${kExpr} AS k
        FROM cash_receipts WHERE deleted_at IS NULL AND tenant_id = ?${whereExtra}`
     ).get(...params);
-    const today = totalsRow(" AND date = DATE('now')", [tenantId]);
-    const month = totalsRow(" AND date >= date('now', 'start of month')", [tenantId]);
+    const today = totalsRow(" AND date = DATE('now', '+120 minutes')", [tenantId]);
+    const month = totalsRow(" AND date >= date('now', '+120 minutes', 'start of month')", [tenantId]);
     const all   = totalsRow('', [tenantId]);
     const count = db.prepare('SELECT COUNT(*) AS cnt FROM cash_receipts WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
     res.json({
@@ -84,7 +84,7 @@ router.post('/', auth, (req, res) => {
     const { received_from, description, payment_method, amount, date,
             cash_amount, bank_amount, momo_amount,
             usd_amount, fra_amount, k_amount } = req.body;
-    const crDate = date || new Date().toISOString().split('T')[0];
+    const crDate = date || require('../config/businessTime').businessDate();
     const receiptNum = syncConfig.generateNumber('CR', 'cash_receipts');
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();

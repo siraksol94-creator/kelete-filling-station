@@ -152,7 +152,7 @@ router.delete('/:id', auth, (req, res) => {
     })();
     // Profit Report — interest expense rows for any deleted transactions need recalculating per affected date.
     // Cheaper to just recalc today and let next-tick fix the rest if needed.
-    recalculateDailyProfit(db, new Date().toISOString().split('T')[0], req.user.tenantId);
+    recalculateDailyProfit(db, require('../config/businessTime').businessDate(), req.user.tenantId);
     res.json({ message: 'Loan and its transactions deleted.' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -175,7 +175,7 @@ router.post('/:id/transactions', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     const txNumber = syncConfig.generateNumber('LOANTXN', 'loan_transactions');
-    const txDate   = date || new Date().toISOString().split('T')[0];
+    const txDate   = date || require('../config/businessTime').businessDate();
 
     const info = db.prepare(`
       INSERT INTO loan_transactions (transaction_number, loan_id, loan_sync_id, date, type, amount,

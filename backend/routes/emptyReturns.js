@@ -49,7 +49,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const total      = db.prepare("SELECT COUNT(*) AS cnt FROM empty_returns WHERE deleted_at IS NULL AND tenant_id = ?").get(tenantId);
-    const thisMonth  = db.prepare("SELECT COUNT(*) AS cnt FROM empty_returns WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m','now')").get(tenantId);
+    const thisMonth  = db.prepare("SELECT COUNT(*) AS cnt FROM empty_returns WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m', 'now', '+120 minutes')").get(tenantId);
     const totalValue = db.prepare("SELECT COALESCE(SUM(total_amount),0) AS sum FROM empty_returns WHERE deleted_at IS NULL AND tenant_id = ?").get(tenantId);
     const suppliers  = db.prepare("SELECT COUNT(DISTINCT supplier_id) AS cnt FROM empty_returns WHERE deleted_at IS NULL AND tenant_id = ? AND supplier_id IS NOT NULL").get(tenantId);
     res.json({
@@ -98,8 +98,8 @@ router.post('/', auth, async (req, res) => {
       const cnNumber   = syncConfig.generateNumber('CN',  'supplier_credit_notes');
       const erSyncId   = randomUUID();
       const cnSyncId   = randomUUID();
-      const retDate    = date || new Date().toISOString().split('T')[0];
-      const movementCreatedAt = retDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const retDate    = date || require('../config/businessTime').businessDate();
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(retDate);
 
       // Prefer client-sent supplier_sync_id (stable across PCs).
       const supplier = db.prepare('SELECT sync_id, name FROM suppliers WHERE id = ?').get(supplier_id);
@@ -224,7 +224,7 @@ router.put('/:id', auth, (req, res) => {
       const supplierSyncId = req.body.supplier_sync_id || supplier?.sync_id || null;
       const supplierName   = supplier?.name || null;
       const editDate = date || er.date;
-      const movementCreatedAt = editDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(editDate);
 
       // v1.10.24 — roll old empty_return movements off current_stock before soft-deleting.
       const oldMoves = db.prepare(

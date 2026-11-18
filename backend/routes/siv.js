@@ -19,7 +19,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const total = db.prepare('SELECT COUNT(*) AS cnt FROM siv WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
-    const thisMonth = db.prepare("SELECT COUNT(*) AS cnt FROM siv WHERE deleted_at IS NULL AND tenant_id = ? AND date >= date('now', 'start of month')").get(tenantId);
+    const thisMonth = db.prepare("SELECT COUNT(*) AS cnt FROM siv WHERE deleted_at IS NULL AND tenant_id = ? AND date >= date('now', '+120 minutes', 'start of month')").get(tenantId);
     const totalValue = db.prepare('SELECT COALESCE(SUM(total_value), 0) AS total FROM siv WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
     const pending = db.prepare("SELECT COUNT(*) AS cnt FROM siv WHERE deleted_at IS NULL AND tenant_id = ? AND status = 'Pending'").get(tenantId);
     res.json({
@@ -38,7 +38,7 @@ router.post('/', auth, (req, res) => {
     const { department, items, notes, date, production_id, production_sync_id } = req.body;
     const siv = db.transaction(() => {
       const sivNum = syncConfig.generateNumber('SIV', 'siv');
-      const sivDate = date || new Date().toISOString().split('T')[0];
+      const sivDate = date || require('../config/businessTime').businessDate();
       const totalValue = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
       const tenantId = syncConfig.getTenantId(req);
       const { branchId, deviceId } = syncConfig.getConfig();
@@ -193,12 +193,12 @@ router.put('/:id', auth, (req, res) => {
     const effectiveItems = isAutoSiv
       ? db.prepare('SELECT product_id, product_sync_id, quantity, unit, unit_price FROM siv_items WHERE siv_sync_id = ? AND deleted_at IS NULL').all(existingSiv.sync_id)
       : items;
-    const sivDate = date || new Date().toISOString().split('T')[0];
+    const sivDate = date || require('../config/businessTime').businessDate();
     const totalValue = effectiveItems.reduce((sum, item) => sum + item.quantity * (item.unit_price || 0), 0);
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     // Tag re-inserted stock_movements with the SIV's business date.
-    const movementCreatedAt = sivDate + ' ' + new Date().toTimeString().slice(0, 8);
+    const movementCreatedAt = require('../config/businessTime').businessStampUtc(sivDate);
 
     db.transaction(() => {
       db.prepare("UPDATE siv SET date=?, department=?, total_items=?, total_value=?, notes=?, updated_at=datetime('now'), synced=0 WHERE id=?").run(

@@ -3,8 +3,9 @@ import { FiActivity, FiRefreshCw, FiCheckCircle, FiClock } from 'react-icons/fi'
 import { getTankDips, saveTankDip } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
+import { businessToday } from '../utils/businessDate';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => businessToday();
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
 
 export default function TankDips({ embedded = false } = {}) {

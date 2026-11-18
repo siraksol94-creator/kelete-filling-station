@@ -10,8 +10,9 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 
 const lbl = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 };
 const inp = { width: '100%', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 7, fontSize: 13, outline: 'none', boxSizing: 'border-box' };
@@ -50,7 +51,7 @@ const SalesReturn = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const [date, setDate]   = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate]   = useState(businessToday());
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState([{ ...emptyItem }]);
 
@@ -89,7 +90,7 @@ const SalesReturn = () => {
   }, []);
 
   const openCreate = () => {
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(businessToday());
     setNotes('');
     setItems([{ ...emptyItem }]);
     setSearch([]);

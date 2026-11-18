@@ -11,6 +11,7 @@ import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { unitsForProduct as unitsForProductFE } from '../utils/productUnits';
 import { FiPlus, FiFileText, FiCalendar, FiUsers, FiClock, FiX, FiTrash2, FiPrinter, FiSearch, FiChevronDown, FiChevronUp, FiPackage, FiEdit2, FiEye, FiCheckCircle } from 'react-icons/fi';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
 const defaultStats = { totalGRNs: 0, thisMonth: 0, suppliers: 0, pending: 0 };
 const emptyItem = () => ({
@@ -18,7 +19,7 @@ const emptyItem = () => ({
   // Returnable container fields (filled when the linked product has a container).
   containers_received: '', containers_returned: '', container_deposit: '', container_product_sync_id: '',
 });
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 
 // ── Row is "complete" when product, quantity > 0, and unit price are all filled ──
 const isRowComplete = (row) =>

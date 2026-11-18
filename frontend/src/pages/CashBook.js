@@ -11,6 +11,7 @@ import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import HQDeposits from './HQDeposits';
 import useDepositTarget from '../utils/useDepositTarget';
+import { businessToday } from '../utils/businessDate';
 const CashBook = () => {
   const { hasPermission, user: authUser } = useAuth();
   // v1.8.6 — tab toggle between the ledger view and the Exchanges ledger.
@@ -54,7 +55,7 @@ const CashBook = () => {
   // currency and the Balance column switches to that currency's running total.
   const [activeCcy, setActiveCcy] = useState('all');
   const [savingOB, setSavingOB] = useState(false);
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = businessToday();
   const [from, setFrom] = useState(todayStr);
   const [to, setTo] = useState(todayStr);
   const [rangeSummary, setRangeSummary] = useState({ net_profit: 0, gross_profit: 0, total_revenue: 0 });

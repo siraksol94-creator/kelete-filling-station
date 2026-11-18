@@ -4,9 +4,10 @@ import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiAlertTriangle, FiPrinter 
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { businessToday } from '../utils/businessDate';
 
 const fmt = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const today = () => new Date().toISOString().split('T')[0];
+const today = () => businessToday();
 
 const StatCard = ({ label, value, color, bg, border, icon, symbol }) => (
   <div style={{

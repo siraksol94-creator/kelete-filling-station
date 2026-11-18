@@ -34,7 +34,7 @@ router.post('/sessions', auth, (req, res) => {
     const info = db.prepare(
       `INSERT INTO stock_count_sessions (name, status, created_by, tenant_id, created_at, updated_at)
        VALUES (?, 'Active', ?, ?, datetime('now'), datetime('now'))`
-    ).run(name || `Stock Count ${new Date().toISOString().split('T')[0]}`, req.user.id, tenantId);
+    ).run(name || `Stock Count ${require('../config/businessTime').businessDate()}`, req.user.id, tenantId);
     const row = db.prepare('SELECT * FROM stock_count_sessions WHERE id = ?').get(info.lastInsertRowid);
     res.status(201).json(row);
   } catch (error) {

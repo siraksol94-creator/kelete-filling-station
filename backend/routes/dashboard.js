@@ -2,15 +2,20 @@ const router = require('express').Router();
 const db = require('../config/database');
 const { auth, readOnlyGuard } = require('../middleware/auth');
 
+// UTC dates fix: an order's day is its business day in Zambia (UTC+2) —
+// business_date (migration 10), or the day older orders always showed.
+const ORDER_DAY = "COALESCE(business_date, DATE(created_at))";
+const TODAY = "DATE('now', '+120 minutes')";
+
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const todaySales = db.prepare(
-      "SELECT COALESCE(SUM(total_amount),0) AS total FROM orders WHERE DATE(created_at) = DATE('now') AND (status IS NULL OR status != 'Reversed') AND tenant_id = ?"
+      `SELECT COALESCE(SUM(total_amount),0) AS total FROM orders WHERE ${ORDER_DAY} = ${TODAY} AND (status IS NULL OR status != 'Reversed') AND tenant_id = ?`
     ).get(tenantId);
     const totalOrders = db.prepare("SELECT COUNT(*) AS cnt FROM orders WHERE (status IS NULL OR status != 'Reversed') AND tenant_id = ?").get(tenantId);
     const weeklyRevenue = db.prepare(
-      "SELECT COALESCE(SUM(total_amount),0) AS total FROM orders WHERE created_at >= date('now', '-7 days') AND (status IS NULL OR status != 'Reversed') AND tenant_id = ?"
+      `SELECT COALESCE(SUM(total_amount),0) AS total FROM orders WHERE ${ORDER_DAY} >= DATE('now', '+120 minutes', '-7 days') AND (status IS NULL OR status != 'Reversed') AND tenant_id = ?`
     ).get(tenantId);
     const totalCustomers = db.prepare('SELECT COUNT(*) AS cnt FROM customers WHERE tenant_id = ?').get(tenantId);
 
@@ -59,9 +64,9 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
        GROUP BY c.name ORDER BY total DESC`
     ).all(tenantId);
     const salesTrend = db.prepare(
-      `SELECT DATE(created_at) AS date, COALESCE(SUM(total_amount),0) AS total
-       FROM orders WHERE created_at >= date('now', '-7 days') AND (status IS NULL OR status != 'Reversed') AND tenant_id = ?
-       GROUP BY DATE(created_at) ORDER BY date`
+      `SELECT ${ORDER_DAY} AS date, COALESCE(SUM(total_amount),0) AS total
+       FROM orders WHERE ${ORDER_DAY} >= DATE('now', '+120 minutes', '-7 days') AND (status IS NULL OR status != 'Reversed') AND tenant_id = ?
+       GROUP BY ${ORDER_DAY} ORDER BY date`
     ).all(tenantId);
 
     res.json({

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { getVatReport, getSettings } from '../services/api';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
+import { businessToday } from '../utils/businessDate';
 
 // v1.13.115 — ZRA Ref 9 VAT Transaction Report page.
 // v1.13.128k — Restructured line-by-line (not per-invoice) so mixed-Cat
@@ -12,7 +13,7 @@ import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 // number through fmtInvoiceNo so pre-VSDC display shows INV- (matches
 // the receipt) while the DB continues to store the raw ORD- string.
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
 const fmtMoney = (n) => Number(n || 0).toFixed(2);

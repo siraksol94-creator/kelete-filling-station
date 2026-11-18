@@ -72,9 +72,10 @@ router.get('/sales-cashiers', auth, readOnlyGuard, (req, res) => {
       query += ' AND o.created_at >= ? AND o.created_at <= ?';
       params.push(from_utc, to_utc);
     } else {
-      if (date) { query += ' AND DATE(o.created_at) = ?';  params.push(date); }
-      if (from) { query += ' AND DATE(o.created_at) >= ?'; params.push(from); }
-      if (to)   { query += ' AND DATE(o.created_at) <= ?'; params.push(to); }
+      // UTC dates fix: by the order's business day (Zambia)
+      if (date) { query += ' AND COALESCE(o.business_date, DATE(o.created_at)) = ?';  params.push(date); }
+      if (from) { query += ' AND COALESCE(o.business_date, DATE(o.created_at)) >= ?'; params.push(from); }
+      if (to)   { query += ' AND COALESCE(o.business_date, DATE(o.created_at)) <= ?'; params.push(to); }
     }
     query += ' ORDER BY u.first_name';
     const rows = db.prepare(query).all(...params);
@@ -91,7 +92,7 @@ router.get('/sales-cashiers', auth, readOnlyGuard, (req, res) => {
 // cashier's local day, not the UTC day. Falls back to DATE() match if absent.
 router.get('/daily', auth, readOnlyGuard, (req, res) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const date = req.query.date || require('../config/businessTime').businessDate();
     const cashierId = req.query.cashier_id ? parseInt(req.query.cashier_id) : 0;
     const tenantId = req.user.tenantId;
     const fromUtc = req.query.from_utc;
@@ -101,7 +102,7 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
     const useRange = !!(fromUtc && toUtc);
     const orderDateClause = useRange
       ? 'created_at >= ? AND created_at <= ?'
-      : 'DATE(created_at) = ?';
+      : 'COALESCE(business_date, DATE(created_at)) = ?'; // UTC dates fix: the order's business day
     const orderDateParams = useRange ? [fromUtc, toUtc] : [date];
 
     const userFilter = cashierId > 0 ? ' AND created_by = ?' : '';
@@ -361,14 +362,14 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
 // Each row tagged with `direction`: 'OVER' (kept by cashier) or 'UNDER' (absorbed by shop).
 router.get('/overpaid', auth, readOnlyGuard, (req, res) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const date = req.query.date || require('../config/businessTime').businessDate();
     const cashierId = req.query.cashier_id ? parseInt(req.query.cashier_id) : 0;
     const fromUtc = req.query.from_utc;
     const toUtc   = req.query.to_utc;
     const useRange = !!(fromUtc && toUtc);
     const dateClause = useRange
       ? 'o.created_at >= ? AND o.created_at <= ?'
-      : 'DATE(o.created_at) = ?';
+      : 'COALESCE(o.business_date, DATE(o.created_at)) = ?'; // UTC dates fix
     const dateParams = useRange ? [fromUtc, toUtc] : [date];
     const userFilter = cashierId > 0 ? ' AND o.created_by = ?' : '';
     const params = cashierId > 0

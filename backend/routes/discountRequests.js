@@ -89,7 +89,7 @@ router.post('/', auth, (req, res) => {
 // ── List ─────────────────────────────────────────────────────────────────────
 // Query params:
 //   status  default 'pending' — one of pending|approved|rejected|all
-//   from    YYYY-MM-DD (inclusive) — filters by DATE(created_at)
+//   from    YYYY-MM-DD (inclusive) — filters by DATE(created_at, '+120 minutes')
 //   to      YYYY-MM-DD (inclusive)
 //   limit   default 200, hard cap 500
 router.get('/', auth, readOnlyGuard, (req, res) => {
@@ -103,8 +103,8 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     let sql = `SELECT * FROM discount_requests WHERE tenant_id = ? AND deleted_at IS NULL`;
     const params = [req.user.tenantId];
     if (status !== 'all') { sql += ' AND status = ?'; params.push(status); }
-    if (from) { sql += ' AND DATE(created_at) >= ?'; params.push(from); }
-    if (to)   { sql += ' AND DATE(created_at) <= ?'; params.push(to);   }
+    if (from) { sql += ' AND DATE(created_at, \'+120 minutes\') >= ?'; params.push(from); }
+    if (to)   { sql += ' AND DATE(created_at, \'+120 minutes\') <= ?'; params.push(to);   }
     sql += ` ORDER BY datetime(created_at) DESC LIMIT ${limit}`;
     res.json(db.prepare(sql).all(...params));
   } catch (e) { res.status(500).json({ error: e.message }); }

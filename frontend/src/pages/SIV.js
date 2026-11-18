@@ -11,12 +11,13 @@ import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { FiPlus, FiFileText, FiCalendar, FiTrendingDown, FiClock, FiTrash2, FiX, FiPrinter, FiEye, FiEdit2, FiUpload, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
 const defaultStats = { totalSIVs: 0, thisMonth: 0, totalValue: 0, pending: 0 };
 const emptyItem = () => ({ product_id: '', product_text: '', quantity: '', unit_price: '', total_price: 0, unit: '' });
 
 const DEFAULT_DEPARTMENTS = ['SALES DEPARTMENT', 'PRODUCTION', 'KITCHEN', 'MANAGEMENT', 'DELIVERY'];
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
 const SIV = () => {

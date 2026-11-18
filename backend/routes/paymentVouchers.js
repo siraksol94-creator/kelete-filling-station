@@ -140,8 +140,8 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
       `SELECT ${usdExpr} AS usd, ${fraExpr} AS fra, ${kExpr} AS k
        FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?${whereExtra}`
     ).get(...params);
-    const today = totalsRow(" AND date = DATE('now')", [tenantId]);
-    const month = totalsRow(" AND date >= date('now', 'start of month')", [tenantId]);
+    const today = totalsRow(" AND date = DATE('now', '+120 minutes')", [tenantId]);
+    const month = totalsRow(" AND date >= date('now', '+120 minutes', 'start of month')", [tenantId]);
     const all   = totalsRow('', [tenantId]);
     const count = db.prepare('SELECT COUNT(*) AS cnt FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
     res.json({
@@ -179,7 +179,7 @@ router.post('/', auth, (req, res) => {
     // For the legacy total `amount` column we use whatever the caller sent
     // (the USD-equivalent header), falling back to USD-only if missing.
     const totalAmount = parseFloat(amount) > 0 ? parseFloat(amount) : (sumSplits > 0 ? usdAmt : 0);
-    const pvDate = date || new Date().toISOString().split('T')[0];
+    const pvDate = date || require('../config/businessTime').businessDate();
     // 2026-09-18 — the day's expense limit (and HQ's approval, if any).
     const gate = checkDailyLimit(req, { date: pvDate, newTotal: totalAmount, isEdit: false });
     if (gate.error) {
@@ -223,7 +223,7 @@ router.put('/:id', auth, (req, res) => {
     const { paid_to, description, category, amount, date, paid_from, invoice_attachment,
             cash_amount, bank_amount, momo_amount,
             usd_amount, fra_amount, k_amount } = req.body;
-    const pvDate = date || new Date().toISOString().split('T')[0];
+    const pvDate = date || require('../config/businessTime').businessDate();
     const resolvedPaidFrom = paid_from || 'Main cashier';
     // v1.8.5 — triple-currency. Same merge as POST.
     const usdAmt = parseFloat(usd_amount ?? cash_amount ?? 0) || 0;
@@ -308,7 +308,7 @@ router.post('/expense-requests', auth, (req, res) => {
     const kAmt   = parseFloat(k_amount   || 0) || 0;
     const total  = parseFloat(amount) > 0 ? parseFloat(amount) : (usdAmt + fraAmt + kAmt);
     if (!(total > 0)) return res.status(400).json({ error: 'Amount must be more than 0.' });
-    const pvDate = date || new Date().toISOString().split('T')[0];
+    const pvDate = date || require('../config/businessTime').businessDate();
     if (openRequest('pending')) {
       return res.status(409).json({ error: 'There is already a payment voucher waiting for HQ approval.' });
     }

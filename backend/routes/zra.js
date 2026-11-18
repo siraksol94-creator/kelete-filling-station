@@ -1692,7 +1692,7 @@ router.post('/purchases/:id/approve', auth, async (req, res) => {
     const createdByName  = req.user?.firstName || req.user?.email || 'HQ';
     const grnDate = raw.salesDt
       ? String(raw.salesDt).replace(/^(\d{4})(\d{2})(\d{2}).*/, '$1-$2-$3')
-      : new Date().toISOString().slice(0, 10);
+      : require('../config/businessTime').businessDate();
     // 2026-08-30 — link the supplier NOW, not "later".
     //
     // This used to write supplier_id: null with the comment "HQ supplier link
@@ -2386,7 +2386,7 @@ router.post('/imports/:id/approve', auth, async (req, res) => {
       // ZRA supplied one (yyyyMMdd), else today.
       const purchaseDate = row.dcl_de
         ? String(row.dcl_de).replace(/^(\d{4})(\d{2})(\d{2}).*/, '$1-$2-$3')
-        : new Date().toISOString().slice(0, 10);
+        : require('../config/businessTime').businessDate();
       const lineTotal = +(approvedQty * unitCost).toFixed(4);
       const notesText = `Auto-created from ZRA import declaration ${row.dcl_no || '—'} `
         + `(task ${row.task_cd || '—'}, item ${row.item_seq}) — ${matchSummary}`
@@ -2653,8 +2653,8 @@ router.get('/audit-log', auth, readOnlyGuard, (req, res) => {
       where.push('result_cd = ?');
       params.push(String(req.query.result_cd));
     }
-    if (req.query.from) { where.push('date(created_at) >= ?'); params.push(String(req.query.from)); }
-    if (req.query.to)   { where.push('date(created_at) <= ?'); params.push(String(req.query.to)); }
+    if (req.query.from) { where.push('date(created_at, \'+120 minutes\') >= ?'); params.push(String(req.query.from)); }
+    if (req.query.to)   { where.push('date(created_at, \'+120 minutes\') <= ?'); params.push(String(req.query.to)); }
     const limit  = Math.min(parseInt(req.query.limit, 10)  || 50, 500);
     const offset = Math.max(parseInt(req.query.offset, 10) || 0, 0);
     const rows = db.prepare(`

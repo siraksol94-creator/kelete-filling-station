@@ -11,8 +11,9 @@ import { FiX } from 'react-icons/fi';
 import InvoiceAttachment from './InvoiceAttachment';
 import { createApPayment, isHqHost } from '../services/api';
 import { useCurrency } from '../context/CurrencyContext';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const todayStr = () => businessToday();
 
 // v1.10.78 — form state carries BOTH shapes. HQ uses usd/fra/k (like PV);
 // Liquor branches use cash/bank/momo. Only the active set gets values

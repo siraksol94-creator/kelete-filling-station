@@ -9,8 +9,9 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => businessToday();
 
 const StockReconciliation = () => {
   const { user, hasPermission } = useAuth();

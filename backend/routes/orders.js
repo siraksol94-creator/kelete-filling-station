@@ -417,7 +417,7 @@ router.put('/:id/confirm-dispatch', auth, requirePagePerm('Dispatch'), (req, res
 
     // Sale is now fully realised: revenue (collected at Cashier) + COGS
     // (just minted above). Recalc the daily profit row.
-    const orderDate = (result.created_at || '').split(' ')[0] || new Date().toISOString().split('T')[0];
+    const orderDate = result.business_date || (result.created_at || '').split(' ')[0] || require('../config/businessTime').businessDate();
     recalculateDailyProfit(db, orderDate, req.user.tenantId);
     res.json(result);
   } catch (error) {
@@ -690,7 +690,9 @@ router.post('/', auth, async (req, res) => {
     const overrideDate = (isAdmin && looksLikeDate) ? sale_date : null;
     // Stamp the override at the same wall-clock time the server would have used,
     // so existing reports and sorts behave naturally.
-    const overrideTs = overrideDate ? `${overrideDate} ${new Date().toTimeString().slice(0, 8)}` : null;
+    // UTC dates fix: a real UTC instant on the chosen day (was the chosen date +
+    // the SERVER's clock); business_date (migration 10) then reads it as that day.
+    const overrideTs = overrideDate ? require('../config/businessTime').businessStampUtc(overrideDate) : null;
     const tsExpr = overrideTs ? '?' : "datetime('now')";
     const tsArgs = overrideTs ? [overrideTs] : [];
     // v1.8.53 — for multi-currency sales (Kelete), `cash_received` MUST be
@@ -1090,7 +1092,7 @@ router.post('/', auth, async (req, res) => {
     // Both PENDING_PAYMENT (Cashier not collected) and pos_dispatch (goods
     // not released) defer the profit recalc.
     if (!deferStockAndProfit) {
-      const orderDate = overrideDate || new Date().toISOString().split('T')[0];
+      const orderDate = overrideDate || require('../config/businessTime').businessDate();
       recalculateDailyProfit(db, orderDate, req.user.tenantId);
     }
 
@@ -1901,7 +1903,7 @@ router.put('/:id/collect-payment', auth, requirePagePerm('Cashier'), async (req,
     // 2-station closes the loop here, so trigger the same daily profit
     // recalc that confirm-dispatch normally would.
     if (result.status === 'DISPATCHED') {
-      const orderDate = (result.created_at || '').split(' ')[0] || new Date().toISOString().split('T')[0];
+      const orderDate = result.business_date || (result.created_at || '').split(' ')[0] || require('../config/businessTime').businessDate();
       try { recalculateDailyProfit(db, orderDate, req.user.tenantId); } catch (_) {}
     }
     // ZRA saveSales at Cashier payment collection — this is when a
@@ -2036,7 +2038,7 @@ router.put('/:id/reverse', auth, async (req, res) => {
 
     // SQLite's datetime('now') returns "YYYY-MM-DD HH:MM:SS" (no 'T'), so .split('T')[0] would return the whole string.
     // .slice(0, 10) safely extracts YYYY-MM-DD for both SQLite and ISO formats.
-    const orderDate = result.created_at ? result.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const orderDate = result.business_date || (result.created_at ? result.created_at.slice(0, 10) : require('../config/businessTime').businessDate());
     recalculateDailyProfit(db, orderDate, req.user.tenantId);
 
     // Credit note to ZRA — mandatory once the original invoice was
@@ -2364,7 +2366,7 @@ router.put('/:id/items/:itemId/reverse', auth, async (req, res) => {
 
     // SQLite's datetime('now') returns "YYYY-MM-DD HH:MM:SS" (no 'T'), so .split('T')[0] would return the whole string.
     // .slice(0, 10) safely extracts YYYY-MM-DD for both SQLite and ISO formats.
-    const orderDate = result.created_at ? result.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const orderDate = result.business_date || (result.created_at ? result.created_at.slice(0, 10) : require('../config/businessTime').businessDate());
     recalculateDailyProfit(db, orderDate, req.user.tenantId);
 
     // v1.13.79 — ZRA credit note for the reversed portion (blocker #5).
@@ -2544,15 +2546,15 @@ router.post('/:id/debit-note', auth, async (req, res) => {
     // Allocate DN number using the local sequence for the tenant. Same
     // shape as GRN/SIV numbering ("DN-YYYY-<counter>"). If the counter
     // isn't seeded yet, start at 1.
-    const now = new Date();
-    const year = now.getFullYear();
+    // UTC dates fix: the station's day (and its year), not the server's.
+    const dateStr = require('../config/businessTime').businessDate();
+    const year = Number(dateStr.slice(0, 4));
     const seqRow = db.prepare(
       `SELECT COUNT(*) AS n FROM debit_notes WHERE strftime('%Y', date) = ?`
     ).get(String(year));
     const nextSeq = (seqRow?.n || 0) + 1;
     const dnNumber = `DN-${year}-${String(nextSeq).padStart(5, '0')}`;
     const dnSyncId = randomUUID();
-    const dateStr = now.toISOString().slice(0, 10);
     const actorName = [req.user?.firstName, req.user?.lastName].filter(Boolean).join(' ')
                     || req.user?.email || 'staff';
 

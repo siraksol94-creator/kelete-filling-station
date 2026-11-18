@@ -3,6 +3,7 @@ import { FiDownload, FiFileText } from 'react-icons/fi';
 import { getHqVatReport, getSettings } from '../services/api';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 import { exportRowsToXlsx, exportRowsToCsv, exportRowsToPdf } from '../utils/exportReport';
+import { businessToday } from '../utils/businessDate';
 
 // 2026-09-12 — HQ consolidated VAT Transaction Report: the depot report
 // (pages/VatReport.js) across every depot. Same columns, same one-row-per-line
@@ -16,7 +17,7 @@ import { exportRowsToXlsx, exportRowsToCsv, exportRowsToPdf } from '../utils/exp
 // time ("Show next 500"). Excel / CSV / PDF fetch every line of the filter
 // straight into the file without drawing them, led by a "Showing:" row.
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
 const fmtMoney = (n) => Number(n || 0).toFixed(2);

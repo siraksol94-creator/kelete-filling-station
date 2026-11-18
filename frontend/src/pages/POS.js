@@ -12,6 +12,7 @@ import printHtml from '../utils/printHtml';
 import { isTerminal58, buildReceipt58 } from '../utils/receipt58';
 import TerminalPayWindow, { TerminalQtyWindow } from '../components/TerminalPay';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
 // 2026-08-30 — thousand separators on printed receipt figures. 306,000.00
 // reads at a glance; 306000.00 has to be counted. Fixed en-US grouping so a
@@ -277,7 +278,7 @@ const POS = () => {
   // Administrator-only back-dated sale support. Defaults to today (laptop date,
   // shown for visual feedback) but the backend re-validates the role.
   const isAdmin = user?.role === 'Administrator';
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  const todayStr = () => businessToday();
   const [saleDate, setSaleDate] = useState(todayStr());
   const barcodeBuffer = useRef('');
   const customerChannel = useRef(null);

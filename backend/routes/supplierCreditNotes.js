@@ -467,7 +467,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const total      = db.prepare("SELECT COUNT(*) AS cnt FROM supplier_credit_notes WHERE deleted_at IS NULL AND tenant_id = ?").get(tenantId);
-    const thisMonth  = db.prepare("SELECT COUNT(*) AS cnt FROM supplier_credit_notes WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m','now')").get(tenantId);
+    const thisMonth  = db.prepare("SELECT COUNT(*) AS cnt FROM supplier_credit_notes WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m', 'now', '+120 minutes')").get(tenantId);
     const totalValue = db.prepare("SELECT COALESCE(SUM(amount),0) AS sum FROM supplier_credit_notes WHERE deleted_at IS NULL AND tenant_id = ?").get(tenantId);
     const byReason   = db.prepare(`
       SELECT reason, COUNT(*) AS cnt, COALESCE(SUM(amount),0) AS sum
@@ -492,7 +492,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
         if (slug && hqDb && hqDb !== db) {
           const w = "deleted_at IS NULL AND raised_by_branch = ?";
           out.totalCreditNotes += hqDb.prepare(`SELECT COUNT(*) AS cnt FROM supplier_credit_notes WHERE ${w}`).get(slug).cnt;
-          out.thisMonth        += hqDb.prepare(`SELECT COUNT(*) AS cnt FROM supplier_credit_notes WHERE ${w} AND strftime('%Y-%m', date) = strftime('%Y-%m','now')`).get(slug).cnt;
+          out.thisMonth        += hqDb.prepare(`SELECT COUNT(*) AS cnt FROM supplier_credit_notes WHERE ${w} AND strftime('%Y-%m', date) = strftime('%Y-%m', 'now', '+120 minutes')`).get(slug).cnt;
           out.totalValue       += hqDb.prepare(`SELECT COALESCE(SUM(amount),0) AS sum FROM supplier_credit_notes WHERE ${w}`).get(slug).sum;
           const mine = hqDb.prepare(
             `SELECT reason, COUNT(*) AS cnt, COALESCE(SUM(amount),0) AS sum
@@ -610,8 +610,8 @@ router.post('/', auth, (req, res) => {
       const { branchId, deviceId } = syncConfig.getConfig();
       const cnNumber = syncConfig.generateNumber('CN', 'supplier_credit_notes');
       const cnSyncId = randomUUID();
-      const cnDate   = date || new Date().toISOString().split('T')[0];
-      const movementCreatedAt = cnDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const cnDate   = date || require('../config/businessTime').businessDate();
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(cnDate);
 
       const supplier = supplier_id
         ? db.prepare('SELECT sync_id, name FROM suppliers WHERE id = ?').get(supplier_id)
@@ -827,7 +827,7 @@ router.put('/:id', auth, (req, res) => {
       const supplier = db.prepare('SELECT sync_id FROM suppliers WHERE id = ?').get(supplier_id);
       const supplierSyncId = req.body.supplier_sync_id || supplier?.sync_id || null;
       const editDate = date || cn.date;
-      const movementCreatedAt = editDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(editDate);
 
       // v1.10.24 — roll old credit_note movements off current_stock before soft-deleting.
       const oldCnMoves = db.prepare(

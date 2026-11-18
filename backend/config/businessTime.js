@@ -10,7 +10,10 @@
  * reported under the wrong date.
  *
  * Everything that needs "which trading day is this?" now asks here.
- * KELETE_UTC_OFFSET_MINUTES overrides the offset (default 120).
+ * KELETE_UTC_OFFSET_MINUTES overrides the offset (default 120) for this module
+ * only. Static SQL in the routes and the migration-10 triggers use a fixed
+ * '+120 minutes' (Zambia has no daylight saving): do not change the setting on
+ * a live server.
  */
 function offsetMinutes() {
   const raw = process.env.KELETE_UTC_OFFSET_MINUTES;
@@ -46,4 +49,39 @@ function shiftDateSql(alias = '') {
   return `COALESCE(${p}shift_date, DATE(${p}opened_at))`;
 }
 
-module.exports = { offsetMinutes, now, businessDate, sqlBusinessDate, shiftDateSql };
+// SQLite: 'now' in business time, for comparing with business-date columns
+// (date = TODAY, date >= first of this month…). Pass extra modifiers after it.
+function sqlBusinessNow(...modifiers) {
+  const m = offsetMinutes();
+  return `'now', '${m >= 0 ? '+' : ''}${m} minutes'${modifiers.map(x => `, '${x}'`).join('')}`;
+}
+
+// The UTC timestamp ('YYYY-MM-DD HH:MM:SS') for business day `dateStr` at the
+// station's current time of day. Replaces "<date> + ' ' + toTimeString()",
+// which mixed a chosen date with the SERVER's clock (UTC on the VPS, local on
+// a till) and so stored timestamps no report could read consistently.
+function businessStampUtc(dateStr, at = now()) {
+  const m = offsetMinutes();
+  const local = new Date(at.getTime() + m * 60000);
+  const secs = local.getUTCHours() * 3600 + local.getUTCMinutes() * 60 + local.getUTCSeconds();
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(String(dateStr || '')) ? dateStr : businessDate(at);
+  const utc = new Date(Date.parse(`${day}T00:00:00Z`) + secs * 1000 - m * 60000);
+  return utc.toISOString().replace('T', ' ').slice(0, 19);
+}
+
+// The business day of a row that has business_date (orders, stock_movements):
+// rows from before this column existed keep the day they always showed.
+function businessDaySql(alias = '') {
+  const p = alias ? `${alias}.` : '';
+  return `COALESCE(${p}business_date, DATE(${p}created_at))`;
+}
+
+// The business day of a UTC timestamp string (JS).
+function businessDateOf(ts) {
+  if (!ts) return null;
+  const s = String(ts);
+  const d = new Date(s.includes('T') ? s : s.replace(' ', 'T') + 'Z');
+  return isNaN(d) ? s.slice(0, 10) : businessDate(d);
+}
+
+module.exports = { offsetMinutes, now, businessDate, sqlBusinessDate, shiftDateSql, sqlBusinessNow, businessStampUtc, businessDaySql, businessDateOf };
