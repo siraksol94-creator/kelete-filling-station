@@ -45,6 +45,9 @@ app.use('/uploads', (req, res, next) => {
 });
 
 // ─── API Routes (identical to main server) ───────────────────────────────────
+// S7 (full matrix): a non-administrator may only make the API calls of the
+// screens they can open (config/permissionMatrix.json). See middleware/permissions.js.
+app.use('/api', require('./middleware/permissions').permissionGate);
 app.use('/api/auth',             require('./routes/auth'));
 app.use('/api/products',         require('./routes/products'));
 app.use('/api/categories',       require('./routes/categories'));

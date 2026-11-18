@@ -1,0 +1,6150 @@
+{
+ "generated_by": "ops/permissions/build-matrix.js",
+ "note": "Do not edit by hand: re-run the script after changing frontend screens or services/api.js.",
+ "legacy_map": {
+  "POS": "POS",
+  "SalesReport": "Sales",
+  "SalesInventory": "Sales",
+  "CashReport": "Sales",
+  "SalesBinCard": "Sales",
+  "Sales": "Sales",
+  "Reports": "Reports",
+  "Items": "Stock",
+  "GRN": "GRN",
+  "SIV": "SIV",
+  "Production": "SIV",
+  "SalesReturns": "SIV",
+  "Inventory": "Stock",
+  "BinCard": "Stock",
+  "StockAdjustment": "Stock",
+  "Categories": "Stock",
+  "ExpiryReport": "GRN",
+  "StockCount": "Stock",
+  "CashReceipt": "Accounting",
+  "PaymentVoucher": "Accounting",
+  "PvTypes": "Accounting",
+  "CashBook": "Accounting",
+  "AccountPayables": "Accounting",
+  "AccountReceivables": "Accounting",
+  "ProfitReport": "Accounting",
+  "Suppliers": "Suppliers",
+  "Customers": "Customers",
+  "QuickPrice": "Stock",
+  "OpeningBalance": "Stock",
+  "SalesStockCard": "Stock",
+  "IncomingStock": "Stock",
+  "BranchTransfers": "Stock",
+  "VATReport": "Sales",
+  "EmptyVouchers": "GRN",
+  "StockReconciliation": "Stock"
+ },
+ "endpoint_count": 440,
+ "endpoints": [
+  {
+   "method": "GET",
+   "path": "/account-payables/breakdown/:p",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/account-payables/stats",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/account-payables",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/ap-payments/:p",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/ap-payments/:p",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/ap-payments/batch",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/ap-payments",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/ap-payments",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View",
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-payables",
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/attachments",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View",
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View",
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "IncomingStock:View",
+    "Inventory:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "SIV",
+    "Sales",
+    "Stock"
+   ],
+   "screens": [
+    "accounting/account-payables",
+    "accounting/ap-approvals",
+    "accounting/capital-account",
+    "accounting/dividend-account",
+    "accounting/payment-vouchers",
+    "pos/cash-report",
+    "stock/grn",
+    "stock/incoming"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attachments",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View",
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View",
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "IncomingStock:View",
+    "Inventory:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "SIV",
+    "Sales",
+    "Stock"
+   ],
+   "screens": [
+    "accounting/account-payables",
+    "accounting/ap-approvals",
+    "accounting/capital-account",
+    "accounting/cash-book",
+    "accounting/dividend-account",
+    "accounting/hq-deposits",
+    "accounting/payment-vouchers",
+    "pos/cash-report",
+    "stock/grn",
+    "stock/incoming"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attendant-shifts/:p/close",
+   "any": true,
+   "screens": [
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attendant-shifts/:p/credit-sales",
+   "any": true,
+   "screens": [
+    "fuel/credit-sales",
+    "fuel/onecard-sales",
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attendant-shifts/:p/delete",
+   "any": true,
+   "screens": [
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attendant-shifts/:p/finalize",
+   "any": true,
+   "screens": [
+    "fuel/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attendant-shifts/:p/reopen",
+   "any": true,
+   "screens": [
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/attendant-shifts/:p",
+   "any": true,
+   "screens": [
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/attendant-shifts/all-tickets",
+   "any": true,
+   "screens": [
+    "fuel/credit-sales",
+    "fuel/onecard-sales"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/attendant-shifts/credit-sales/:p",
+   "any": true,
+   "screens": [
+    "fuel/credit-sales",
+    "fuel/onecard-sales"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/attendant-shifts/daily-rollup",
+   "any": true,
+   "screens": [
+    "fuel/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/attendant-shifts/day-summary",
+   "any": true,
+   "screens": [
+    "fuel/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/attendant-shifts/open",
+   "any": true,
+   "screens": [
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/attendant-shifts",
+   "any": true,
+   "screens": [
+    "fuel/credit-sales",
+    "fuel/onecard-sales",
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/auth/account-status",
+   "any": true,
+   "screens": [
+    "(Setup)",
+    "(app shell)",
+    "/setup"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/auth/change-password",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/auth/login",
+   "any": true,
+   "screens": [
+    "(Login)",
+    "(Setup)",
+    "(app shell)",
+    "(menu bar / layout)",
+    "/",
+    "/login",
+    "/setup",
+    "accounting/account-payables",
+    "accounting/account-receivables",
+    "accounting/ap-approvals",
+    "accounting/capital-account",
+    "accounting/cash-book",
+    "accounting/cash-receipts",
+    "accounting/credit-notes",
+    "accounting/dividend-account",
+    "accounting/loans",
+    "accounting/payment-vouchers",
+    "accounting/profit-report",
+    "accounting/shareholders",
+    "approvals/discounts",
+    "fuel/cash-report",
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks",
+    "hq/grn-archive",
+    "pos",
+    "pos/cash-report",
+    "pos/cashier",
+    "pos/sales-bin-card",
+    "pos/sales-inventory",
+    "pos/sales-report",
+    "pos/sales-stock-card",
+    "settings/profile",
+    "settings/system",
+    "stock/adjustments",
+    "stock/branch-prices",
+    "stock/categories",
+    "stock/empty-returns",
+    "stock/grn",
+    "stock/inventory",
+    "stock/items",
+    "stock/opening-balance",
+    "stock/quick-price",
+    "stock/reconciliation",
+    "stock/sales-damages",
+    "stock/siv",
+    "stock/stock-count",
+    "store/empty-vouchers",
+    "suppliers-customers/customers",
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/auth/register-first",
+   "any": true,
+   "screens": [
+    "(Setup)",
+    "/setup"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/auth/verify-admin",
+   "perms": [
+    "AccountPayables:Add",
+    "AccountPayables:Delete",
+    "AccountPayables:Edit",
+    "AccountPayables:View",
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "CashReceipt:Add",
+    "CashReceipt:Delete",
+    "CashReceipt:Edit",
+    "CashReceipt:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View",
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View",
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Shareholders:Add",
+    "Shareholders:Delete",
+    "Shareholders:Edit",
+    "Shareholders:View",
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View",
+    "StockReconciliation:Add",
+    "StockReconciliation:Delete",
+    "StockReconciliation:Edit",
+    "StockReconciliation:View",
+    "Suppliers",
+    "Suppliers:Add",
+    "Suppliers:Delete",
+    "Suppliers:Edit",
+    "Suppliers:View"
+   ],
+   "allAccess": true,
+   "screens": [
+    "accounting/account-payables",
+    "accounting/account-receivables",
+    "accounting/capital-account",
+    "accounting/cash-book",
+    "accounting/cash-receipts",
+    "accounting/credit-notes",
+    "accounting/dividend-account",
+    "accounting/hq-deposits",
+    "accounting/loans",
+    "accounting/payment-vouchers",
+    "accounting/shareholders",
+    "pos/cash-report",
+    "pos/sales-report",
+    "settings/system",
+    "settings/users",
+    "stock/adjustments",
+    "stock/categories",
+    "stock/empty-returns",
+    "stock/grn",
+    "stock/items",
+    "stock/reconciliation",
+    "stock/sales-damages",
+    "stock/siv",
+    "suppliers-customers/customers",
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/branch/po-receipts/:p/confirm",
+   "perms": [
+    "GRN",
+    "IncomingStock:View",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/incoming"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/capital-account/:p",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View"
+   ],
+   "screens": [
+    "accounting/capital-account"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/capital-account/:p",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View"
+   ],
+   "screens": [
+    "accounting/capital-account"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/capital-account/:p",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View"
+   ],
+   "screens": [
+    "accounting/capital-account"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/capital-account/stats",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View"
+   ],
+   "screens": [
+    "accounting/capital-account"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/capital-account",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View"
+   ],
+   "screens": [
+    "accounting/capital-account"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/capital-account",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View"
+   ],
+   "screens": [
+    "accounting/capital-account"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/cash-book/opening-balance",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-book/stats",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/cash-book/transfers",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-book",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/cash-deposits/:p/confirm",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/cash-deposits/:p/date",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/cash-deposits/:p/reject",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/cash-deposits/:p",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-deposits/target",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-deposits",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/cash-deposits",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/hq-deposits"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/cash-receipts/:p",
+   "perms": [
+    "Accounting",
+    "CashReceipt:Add",
+    "CashReceipt:Delete",
+    "CashReceipt:Edit",
+    "CashReceipt:View"
+   ],
+   "screens": [
+    "accounting/cash-receipts"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/cash-receipts/:p",
+   "perms": [
+    "Accounting",
+    "CashReceipt:Add",
+    "CashReceipt:Delete",
+    "CashReceipt:Edit",
+    "CashReceipt:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/cash-receipts",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-receipts/check-sales",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-receipts/stats",
+   "perms": [
+    "Accounting",
+    "CashReceipt:Add",
+    "CashReceipt:Delete",
+    "CashReceipt:Edit",
+    "CashReceipt:View"
+   ],
+   "screens": [
+    "accounting/cash-receipts"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-receipts",
+   "perms": [
+    "Accounting",
+    "CashReceipt:Add",
+    "CashReceipt:Delete",
+    "CashReceipt:Edit",
+    "CashReceipt:View"
+   ],
+   "screens": [
+    "accounting/cash-receipts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/cash-receipts",
+   "perms": [
+    "Accounting",
+    "CashReceipt:Add",
+    "CashReceipt:Delete",
+    "CashReceipt:Edit",
+    "CashReceipt:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/cash-receipts",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/cash-reports/:p",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-reports/daily",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-reports/overpaid",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-reports/sales-cashiers",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/cash-report",
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-reports/users",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/cash-reports",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/cash-reports",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/categories/:p",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/categories/:p",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/categories/all",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/categories/import",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/categories",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "GRN",
+    "Inventory:View",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "Reports",
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View",
+    "SalesStockCard:View",
+    "Stock"
+   ],
+   "screens": [
+    "pos/sales-inventory",
+    "pos/sales-report",
+    "pos/sales-stock-card",
+    "stock/categories",
+    "stock/inventory",
+    "stock/items",
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/categories",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/chat/conversations/:p/members",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/chat/conversations/:p/messages",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/chat/conversations/:p/messages",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/chat/conversations/:p/read",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/chat/conversations/direct",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/chat/conversations/group",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/chat/conversations",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/chat/files/:p",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/chat/me",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/chat/messages/:p",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/chat/people",
+   "any": true,
+   "screens": [
+    "messages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/chat/unread",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/credit-notes/:p/confirm",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View",
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals",
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/credit-notes/:p",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/credit-notes/:p",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/credit-notes/:p",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/credit-notes/grn-lines",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/credit-notes/last-invoice-prices",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/credit-notes/linkable-grns",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/credit-notes/stats",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/credit-notes",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/credit-notes",
+   "perms": [
+    "Accounting",
+    "CreditNotes:Add",
+    "CreditNotes:Delete",
+    "CreditNotes:Edit",
+    "CreditNotes:View"
+   ],
+   "screens": [
+    "accounting/credit-notes"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/currency-exchanges/net",
+   "perms": [
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/currency-exchanges",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/currency-exchanges",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/customer-payments/:p",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-receivables"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customer-payments",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-receivables"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/customer-payments",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting",
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "accounting/account-receivables",
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/customers/:p/claim-orphan-orders",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers/:p/insights",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers/:p/orphan-orders",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers/:p/statement",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting",
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "accounting/account-receivables",
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/customers/:p",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/customers/:p",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers/aging",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers/ar-stats",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting"
+   ],
+   "screens": [
+    "accounting/account-receivables"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers/stats",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/customers",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/",
+    "accounting/account-receivables",
+    "fuel/credit-sales",
+    "fuel/onecard-sales",
+    "fuel/shifts",
+    "pos",
+    "suppliers-customers/customers",
+    "suppliers-customers/empty-balances"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/customers",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View",
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos",
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/dashboard",
+   "allAccess": true,
+   "screens": [
+    "dashboard"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/discount-requests/:p/approve",
+   "admin": true,
+   "screens": [
+    "approvals/discounts"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/discount-requests/:p/reject",
+   "admin": true,
+   "screens": [
+    "approvals/discounts"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/discount-requests/:p",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/discount-requests/:p",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/discount-requests/pending-count",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/discount-requests",
+   "admin": true,
+   "screens": [
+    "approvals/discounts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/discount-requests",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/dividend-account/:p",
+   "perms": [
+    "Accounting",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View"
+   ],
+   "screens": [
+    "accounting/dividend-account"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/dividend-account/:p",
+   "perms": [
+    "Accounting",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View"
+   ],
+   "screens": [
+    "accounting/dividend-account"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/dividend-account/:p",
+   "perms": [
+    "Accounting",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View"
+   ],
+   "screens": [
+    "accounting/dividend-account"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/dividend-account/stats",
+   "perms": [
+    "Accounting",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View"
+   ],
+   "screens": [
+    "accounting/dividend-account"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/dividend-account",
+   "perms": [
+    "Accounting",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View"
+   ],
+   "screens": [
+    "accounting/dividend-account"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/dividend-account",
+   "perms": [
+    "Accounting",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View"
+   ],
+   "screens": [
+    "accounting/dividend-account"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/empty-returns/:p",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/empty-returns"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/empty-returns/:p",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/empty-returns"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/empty-returns/:p",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/empty-returns"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/empty-returns/stats",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/empty-returns"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/empty-returns",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/empty-returns"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/empty-returns",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/empty-returns"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/empty-vouchers/:p/void",
+   "perms": [
+    "EmptyVouchers:View",
+    "GRN:Add",
+    "GRN:View",
+    "SIV:Add",
+    "SIV:View",
+    "Store"
+   ],
+   "screens": [
+    "store/empty-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/empty-vouchers/:p",
+   "perms": [
+    "EmptyVouchers:View",
+    "GRN:Add",
+    "GRN:View",
+    "SIV:Add",
+    "SIV:View",
+    "Store"
+   ],
+   "screens": [
+    "store/empty-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/empty-vouchers",
+   "perms": [
+    "EmptyVouchers:View",
+    "GRN:Add",
+    "GRN:View",
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "SIV:Add",
+    "SIV:View",
+    "Sales",
+    "Store"
+   ],
+   "screens": [
+    "pos",
+    "store/empty-vouchers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/empty-vouchers",
+   "perms": [
+    "EmptyVouchers:View",
+    "GRN:Add",
+    "GRN:View",
+    "SIV:Add",
+    "SIV:View",
+    "Store"
+   ],
+   "screens": [
+    "store/empty-vouchers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fleet-customers/:p/vehicles",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/fleet-customers/:p",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fleet-customers/:p",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/fleet-customers/:p",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/fleet-customers/vehicles/:p",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/fleet-customers/vehicles/:p",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fleet-customers",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fleet-customers",
+   "any": true,
+   "screens": [
+    "fuel/fleet"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/fuel-deliveries/:p",
+   "any": true,
+   "screens": [
+    "fuel/deliveries"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fuel-deliveries",
+   "any": true,
+   "screens": [
+    "fuel/deliveries"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fuel-deliveries",
+   "any": true,
+   "screens": [
+    "fuel/deliveries"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/fuel-grades/:p",
+   "any": true,
+   "screens": [
+    "fuel/grades"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/fuel-grades/:p",
+   "any": true,
+   "screens": [
+    "fuel/grades"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fuel-grades",
+   "any": true,
+   "screens": [
+    "fuel/grades",
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fuel-grades",
+   "any": true,
+   "screens": [
+    "fuel/grades"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fuel-shift-approvals/:p/:p/approve",
+   "any": true,
+   "screens": [
+    "fuel/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fuel-shift-approvals/:p/:p/un-approve",
+   "any": true,
+   "screens": [
+    "fuel/cash-report"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/fx-rates/:p",
+   "perms": [
+    "Accounting",
+    "FxRates",
+    "FxRates:Add",
+    "FxRates:Delete",
+    "FxRates:Edit",
+    "FxRates:View"
+   ],
+   "screens": [
+    "accounting/fx-rates"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fx-rates/current",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "Cashier",
+    "Cashier:Add",
+    "Cashier:Delete",
+    "Cashier:Edit",
+    "Cashier:View",
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/account-receivables",
+    "accounting/cash-book",
+    "pos",
+    "pos/cash-report",
+    "pos/cashier"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fx-rates/live-history",
+   "perms": [
+    "Accounting",
+    "FxRates",
+    "FxRates:Add",
+    "FxRates:Delete",
+    "FxRates:Edit",
+    "FxRates:View"
+   ],
+   "screens": [
+    "accounting/fx-rates"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fx-rates/live",
+   "perms": [
+    "Accounting",
+    "FxRates",
+    "FxRates:Add",
+    "FxRates:Delete",
+    "FxRates:Edit",
+    "FxRates:View"
+   ],
+   "screens": [
+    "accounting/fx-rates"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fx-rates",
+   "perms": [
+    "Accounting",
+    "FxRates",
+    "FxRates:Add",
+    "FxRates:Delete",
+    "FxRates:Edit",
+    "FxRates:View"
+   ],
+   "screens": [
+    "accounting/fx-rates"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/fx-rates",
+   "perms": [
+    "Accounting",
+    "FxRates",
+    "FxRates:Add",
+    "FxRates:Delete",
+    "FxRates:Edit",
+    "FxRates:View"
+   ],
+   "screens": [
+    "accounting/fx-rates"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/grn/:p",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/:p",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/grn/:p",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/expiry-report",
+   "perms": [
+    "ExpiryReport:View",
+    "GRN",
+    "Stock"
+   ],
+   "screens": [
+    "stock/expiry-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/notes",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/product-breakdown",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/product-report",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/recent-products",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn/stats",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/grn",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/grn",
+   "perms": [
+    "GRN",
+    "GRN:Add",
+    "GRN:Delete",
+    "GRN:Edit",
+    "GRN:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/branches",
+   "any": true,
+   "screens": [
+    "hq/grn-archive",
+    "hq/inventory-report",
+    "hq/purchases",
+    "hq/route-sales",
+    "hq/sales-report",
+    "hq/zra-imports",
+    "hq/zra-purchases",
+    "settings/system",
+    "settings/zra",
+    "stock/branch-prices",
+    "stock/items",
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/cash-position",
+   "any": true,
+   "screens": [
+    "hq/cash-position"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/consolidated-profit",
+   "perms": [
+    "HQConsolidatedProfit",
+    "HQConsolidatedProfit:View"
+   ],
+   "screens": [
+    "hq/consolidated-profit"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/damages/:p/:p/confirm",
+   "any": true,
+   "screens": [
+    "hq/confirm-damages"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/damages/:p/:p/reject",
+   "any": true,
+   "screens": [
+    "hq/confirm-damages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/damages/awaiting",
+   "any": true,
+   "screens": [
+    "hq/confirm-damages"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/expense-limits/:p",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/expense-limits",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/expense-requests/:p/:p/approve",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/expense-requests/:p/:p/reject",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/expense-requests/pending-count",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/expense-requests",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/:p/:p",
+   "any": true,
+   "screens": [
+    "hq/grn-archive"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/:p/check",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/:p/confirm-delivery",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/:p/confirm-review",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/ap/:p/pending-credits",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/:p/send-back",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/:p/unconfirm-review",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/approve-batch",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/credit/:p/check",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/credit/:p/confirm-review",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/credit/:p/unconfirm-review",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/ap/credit/approve-batch",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/ap/queue",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/ap/reject-reasons",
+   "perms": [
+    "APApprove:Add",
+    "APApprove:Edit",
+    "APApprove:View",
+    "APCheck:Add",
+    "APCheck:Edit",
+    "APCheck:View",
+    "APConfirm:Add",
+    "APConfirm:Edit",
+    "APConfirm:View",
+    "APPay:Add",
+    "APPay:Edit",
+    "APPay:View"
+   ],
+   "screens": [
+    "accounting/ap-approvals"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/archive",
+   "any": true,
+   "screens": [
+    "hq/grn-archive"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/awaiting-generation",
+   "any": true,
+   "screens": [
+    "hq/confirm-grn"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/generate",
+   "any": true,
+   "screens": [
+    "hq/confirm-grn"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/grns/hq/:p/void",
+   "any": true,
+   "screens": [
+    "hq/grn-archive"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/hq/:p",
+   "any": true,
+   "screens": [
+    "accounting/ap-approvals",
+    "hq/grn-archive"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/product-breakdown",
+   "any": true,
+   "screens": [
+    "hq/grn-archive"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/product-report",
+   "any": true,
+   "screens": [
+    "hq/grn-archive"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/grns/receipt/:p",
+   "any": true,
+   "screens": [
+    "hq/confirm-grn"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/inventory-report",
+   "any": true,
+   "screens": [
+    "hq/inventory-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/mirror-all",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/overview",
+   "perms": [
+    "HQOverview",
+    "HQOverview:Add",
+    "HQOverview:Delete",
+    "HQOverview:Edit",
+    "HQOverview:View"
+   ],
+   "screens": [
+    "hq/overview"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/hq/payment-vouchers/:p/:p",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/payment-vouchers",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/products/:p/push",
+   "any": true,
+   "screens": [
+    "hq/products"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/hq/products/:p",
+   "any": true,
+   "screens": [
+    "hq/products"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/products/:p",
+   "any": true,
+   "screens": [
+    "hq/products"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/products/:p",
+   "any": true,
+   "screens": [
+    "hq/products"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/products",
+   "any": true,
+   "screens": [
+    "hq/products"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/products",
+   "any": true,
+   "screens": [
+    "hq/products"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/purchases/:p/branch-reject-all",
+   "perms": [
+    "GRN",
+    "IncomingStock:View",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/incoming"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/purchases/:p/cancel",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/hq/purchases/:p",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/purchases/:p",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/purchases/:p",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/purchases/incoming",
+   "perms": [
+    "GRN",
+    "IncomingStock:View",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/incoming"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/purchases/items/:p/cancel",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/purchases/last-price",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/purchases/trace",
+   "any": true,
+   "screens": [
+    "hq/grn-archive",
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/purchases",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/purchases",
+   "any": true,
+   "screens": [
+    "hq/purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/route-sales",
+   "any": true,
+   "screens": [
+    "hq/route-sales"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/sales-report",
+   "any": true,
+   "screens": [
+    "hq/sales-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/suppliers/:p/payments",
+   "any": true,
+   "screens": [
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/hq/suppliers/:p",
+   "any": true,
+   "screens": [
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/suppliers/:p",
+   "any": true,
+   "screens": [
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/suppliers/:p",
+   "any": true,
+   "screens": [
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/hq/suppliers/payments/:p",
+   "any": true,
+   "screens": [
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/suppliers",
+   "any": true,
+   "screens": [
+    "accounting/credit-notes",
+    "hq/grn-archive",
+    "hq/purchases",
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/hq/suppliers",
+   "any": true,
+   "screens": [
+    "hq/purchases",
+    "hq/suppliers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/hq/variances/transfer/:p/resolve",
+   "any": true,
+   "screens": [
+    "hq/variances"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/variances",
+   "any": true,
+   "screens": [
+    "hq/variances"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/hq/vat-report",
+   "perms": [
+    "HQVatReport",
+    "HQVatReport:View"
+   ],
+   "screens": [
+    "hq/vat-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/bin-card",
+   "perms": [
+    "BinCard:View",
+    "GRN",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/bin-card"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/hq-grn/:p",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesBinCard:Add",
+    "SalesBinCard:Delete",
+    "SalesBinCard:Edit",
+    "SalesBinCard:View"
+   ],
+   "screens": [
+    "pos/sales-bin-card"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/sales-bin-card",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesBinCard:Add",
+    "SalesBinCard:Delete",
+    "SalesBinCard:Edit",
+    "SalesBinCard:View"
+   ],
+   "screens": [
+    "pos/sales-bin-card"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/inventory/sales/actual",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View"
+   ],
+   "screens": [
+    "pos/sales-inventory"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/sales/daily-summary",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View"
+   ],
+   "screens": [
+    "pos/sales-inventory"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/sales/monthly-summary",
+   "perms": [
+    "Accounting",
+    "ProfitReport:View",
+    "Reports",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View"
+   ],
+   "screens": [
+    "accounting/profit-report",
+    "pos/sales-inventory"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/sales/range-summary",
+   "perms": [
+    "Accounting",
+    "CashBook:Add",
+    "CashBook:Delete",
+    "CashBook:Edit",
+    "CashBook:View",
+    "ProfitReport:View"
+   ],
+   "screens": [
+    "accounting/cash-book",
+    "accounting/profit-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/sales/siv-breakdown",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View"
+   ],
+   "screens": [
+    "pos/sales-inventory"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/sales",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View"
+   ],
+   "screens": [
+    "pos/sales-inventory"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory/store",
+   "perms": [
+    "GRN",
+    "Inventory:View",
+    "Reports",
+    "SIV",
+    "Sales",
+    "SalesInventory:View",
+    "SalesStockCard:View",
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View"
+   ],
+   "screens": [
+    "pos/sales-stock-card",
+    "stock/adjustments",
+    "stock/inventory"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/inventory",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "SIV",
+    "Sales",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "pos",
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/loans/:p/transactions/:p",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/loans/:p/transactions",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/loans/:p",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/loans/:p",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/loans/:p",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/loans/stats",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/loans",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/loans",
+   "perms": [
+    "Accounting",
+    "LoanAccount:Add",
+    "LoanAccount:Delete",
+    "LoanAccount:Edit",
+    "LoanAccount:View"
+   ],
+   "screens": [
+    "accounting/loans"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/main-categories/:p",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/main-categories/:p",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/main-categories",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "GRN",
+    "Inventory:View",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "Reports",
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Sales",
+    "SalesInventory:Add",
+    "SalesInventory:Delete",
+    "SalesInventory:Edit",
+    "SalesInventory:View",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View",
+    "SalesStockCard:View",
+    "Stock"
+   ],
+   "screens": [
+    "pos/sales-inventory",
+    "pos/sales-report",
+    "pos/sales-stock-card",
+    "stock/categories",
+    "stock/inventory",
+    "stock/items",
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/main-categories",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/notifications/badges",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/notifications/incoming",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/notifications/push-token",
+   "any": true,
+   "screens": [
+    "(Login)",
+    "(Setup)",
+    "(app shell)",
+    "(menu bar / layout)",
+    "/",
+    "/login",
+    "/setup",
+    "accounting/account-payables",
+    "accounting/account-receivables",
+    "accounting/ap-approvals",
+    "accounting/capital-account",
+    "accounting/cash-book",
+    "accounting/cash-receipts",
+    "accounting/credit-notes",
+    "accounting/dividend-account",
+    "accounting/loans",
+    "accounting/payment-vouchers",
+    "accounting/profit-report",
+    "accounting/shareholders",
+    "approvals/discounts",
+    "fuel/cash-report",
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks",
+    "hq/grn-archive",
+    "pos",
+    "pos/cash-report",
+    "pos/cashier",
+    "pos/sales-bin-card",
+    "pos/sales-inventory",
+    "pos/sales-report",
+    "pos/sales-stock-card",
+    "settings/profile",
+    "settings/system",
+    "stock/adjustments",
+    "stock/branch-prices",
+    "stock/categories",
+    "stock/empty-returns",
+    "stock/grn",
+    "stock/inventory",
+    "stock/items",
+    "stock/opening-balance",
+    "stock/quick-price",
+    "stock/reconciliation",
+    "stock/sales-damages",
+    "stock/siv",
+    "stock/stock-count",
+    "store/empty-vouchers",
+    "suppliers-customers/customers",
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/notifications/push-token",
+   "any": true,
+   "screens": [
+    "(Login)",
+    "(Setup)",
+    "(app shell)",
+    "(menu bar / layout)",
+    "/",
+    "/login",
+    "/setup",
+    "accounting/account-payables",
+    "accounting/account-receivables",
+    "accounting/ap-approvals",
+    "accounting/capital-account",
+    "accounting/cash-book",
+    "accounting/cash-receipts",
+    "accounting/credit-notes",
+    "accounting/dividend-account",
+    "accounting/loans",
+    "accounting/payment-vouchers",
+    "accounting/profit-report",
+    "accounting/shareholders",
+    "approvals/discounts",
+    "fuel/cash-report",
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks",
+    "hq/grn-archive",
+    "pos",
+    "pos/cash-report",
+    "pos/cashier",
+    "pos/sales-bin-card",
+    "pos/sales-inventory",
+    "pos/sales-report",
+    "pos/sales-stock-card",
+    "settings/profile",
+    "settings/system",
+    "stock/adjustments",
+    "stock/branch-prices",
+    "stock/categories",
+    "stock/empty-returns",
+    "stock/grn",
+    "stock/inventory",
+    "stock/items",
+    "stock/opening-balance",
+    "stock/quick-price",
+    "stock/reconciliation",
+    "stock/sales-damages",
+    "stock/siv",
+    "stock/stock-count",
+    "store/empty-vouchers",
+    "suppliers-customers/customers",
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/orders/:p/collect-payment",
+   "perms": [
+    "Cashier",
+    "Cashier:Add",
+    "Cashier:Delete",
+    "Cashier:Edit",
+    "Cashier:View"
+   ],
+   "screens": [
+    "pos/cashier"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/orders/:p/confirm-dispatch",
+   "perms": [
+    "Dispatch",
+    "Dispatch:Add",
+    "Dispatch:Delete",
+    "Dispatch:Edit",
+    "Dispatch:View"
+   ],
+   "screens": [
+    "pos/dispatch"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/orders/:p/debit-note",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/:p/debit-notes",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/orders/:p/edit-payment",
+   "perms": [
+    "Cashier",
+    "Cashier:Add",
+    "Cashier:Delete",
+    "Cashier:Edit",
+    "Cashier:View"
+   ],
+   "screens": [
+    "pos/cashier"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/orders/:p/items/:p/reverse",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/orders/:p/mark-cn-printed",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/orders/:p/retry-zra",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/orders/:p/reverse",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/:p",
+   "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting",
+    "Cashier",
+    "Cashier:Add",
+    "Cashier:Delete",
+    "Cashier:Edit",
+    "Cashier:View",
+    "Dispatch",
+    "Dispatch:Add",
+    "Dispatch:Delete",
+    "Dispatch:Edit",
+    "Dispatch:View",
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "accounting/account-receivables",
+    "pos/cashier",
+    "pos/dispatch",
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/cashier-inbox",
+   "perms": [
+    "Cashier",
+    "Cashier:Add",
+    "Cashier:Delete",
+    "Cashier:Edit",
+    "Cashier:View"
+   ],
+   "screens": [
+    "pos/cashier"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/customer-empties/:p",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/empty-balances"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/orders/customer-empties/pure-return",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/empty-balances"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/customer-empties",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Edit",
+    "Customers:View"
+   ],
+   "screens": [
+    "suppliers-customers/empty-balances"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/dispatch-inbox",
+   "perms": [
+    "Dispatch",
+    "Dispatch:Add",
+    "Dispatch:Delete",
+    "Dispatch:Edit",
+    "Dispatch:View"
+   ],
+   "screens": [
+    "pos/dispatch"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/payment-history",
+   "perms": [
+    "Cashier",
+    "Cashier:Add",
+    "Cashier:Delete",
+    "Cashier:Edit",
+    "Cashier:View"
+   ],
+   "screens": [
+    "pos/cashier"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/orders/possible-duplicates/dismiss",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/possible-duplicates",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/product-breakdown",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/product-summary",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders/vat-report",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:View",
+    "VATReport:View"
+   ],
+   "screens": [
+    "pos/vat-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/orders",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/orders",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/payment-vouchers/:p",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/payment-vouchers/:p",
+   "perms": [
+    "Accounting",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/payment-vouchers",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/payment-vouchers/expense-requests/:p",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/payment-vouchers/expense-requests",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/",
+    "accounting/payment-vouchers",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/payment-vouchers/expense-requests",
+   "perms": [
+    "Accounting",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/payment-vouchers",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/payment-vouchers/stats",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/payment-vouchers",
+   "perms": [
+    "Accounting",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/payment-vouchers",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/payment-vouchers",
+   "perms": [
+    "Accounting",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/payment-vouchers",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "PATCH",
+   "path": "/products/:p/barcode",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/products/:p/image",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/:p/image",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/products/:p",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/products/:p",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/products/all",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/branch-prices-multi-push",
+   "perms": [
+    "BranchPrices:View",
+    "Items:Edit",
+    "Stock"
+   ],
+   "screens": [
+    "stock/branch-prices"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/products/branch-prices/:p",
+   "perms": [
+    "BranchPrices:View",
+    "Items:Edit",
+    "Stock"
+   ],
+   "screens": [
+    "stock/branch-prices"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/branch-prices/:p",
+   "perms": [
+    "BranchPrices:View",
+    "Items:Edit",
+    "Stock"
+   ],
+   "screens": [
+    "stock/branch-prices"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/bulk-push-prices",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/bulk-update-prices",
+   "perms": [
+    "Items:Edit",
+    "QuickPrice:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/quick-price"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/cost-prices-push",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/products/cost-prices",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/cost-prices",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/import",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/products/opening-balances",
+   "perms": [
+    "Items:Edit",
+    "OpeningBalance:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/opening-balance"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/opening-balances",
+   "perms": [
+    "Items:Edit",
+    "OpeningBalance:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/opening-balance"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/products/quick-items/:p",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/products/quick-items",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products/quick-items",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/products",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/",
+    "accounting/credit-notes",
+    "hq/purchases",
+    "hq/zra-purchases",
+    "pos/sales-bin-card",
+    "stock/bin-card",
+    "stock/empty-returns",
+    "stock/grn",
+    "stock/incoming",
+    "stock/items",
+    "stock/opening-balance",
+    "stock/quick-price",
+    "stock/siv",
+    "stock/stock-count",
+    "stock/transfers",
+    "store/empty-vouchers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/products",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/pumps/:p",
+   "any": true,
+   "screens": [
+    "fuel/pumps"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/pumps/:p",
+   "any": true,
+   "screens": [
+    "fuel/pumps"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/pumps/nozzles/:p",
+   "any": true,
+   "screens": [
+    "fuel/pumps"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/pumps/nozzles/:p",
+   "any": true,
+   "screens": [
+    "fuel/pumps"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/pumps/nozzles/list",
+   "any": true,
+   "screens": [
+    "fuel/credit-sales",
+    "fuel/onecard-sales",
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/pumps/nozzles",
+   "any": true,
+   "screens": [
+    "fuel/pumps"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/pumps",
+   "any": true,
+   "screens": [
+    "fuel/pumps",
+    "fuel/shifts"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/pumps",
+   "any": true,
+   "screens": [
+    "fuel/pumps"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/pv-types/:p",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/pv-types/:p",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/pv-types",
+   "perms": [
+    "Accounting",
+    "CashReport:Add",
+    "CashReport:Delete",
+    "CashReport:Edit",
+    "CashReport:View",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View",
+    "Reports",
+    "Sales"
+   ],
+   "screens": [
+    "accounting/payment-vouchers",
+    "pos/cash-report"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/pv-types",
+   "perms": [
+    "Accounting",
+    "PaymentVoucher:Add",
+    "PaymentVoucher:Delete",
+    "PaymentVoucher:Edit",
+    "PaymentVoucher:View"
+   ],
+   "screens": [
+    "accounting/payment-vouchers"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/sales-returns/:p",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sales-returns/:p",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/sales-returns/:p",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sales-returns/notes",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sales-returns/stats",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sales-returns",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/sales-returns",
+   "perms": [
+    "SIV",
+    "SalesReturns:Add",
+    "SalesReturns:Delete",
+    "SalesReturns:Edit",
+    "SalesReturns:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/sales-damages"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/search/notes",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/settings/app-passcode",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/settings/app-passcode",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/settings/business/public",
+   "any": true,
+   "screens": [
+    "(Login)",
+    "/login"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/settings/business",
+   "allAccess": true,
+   "screens": [
+    "settings/profile",
+    "settings/system"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/settings/drawer-port",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/settings/drawer-port",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/settings/open-drawer",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/settings/print-receipt",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/settings/print-report",
+   "perms": [
+    "Reports",
+    "Sales",
+    "SalesReport:Add",
+    "SalesReport:Delete",
+    "SalesReport:Edit",
+    "SalesReport:View"
+   ],
+   "screens": [
+    "pos/sales-report"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/settings/profile",
+   "allAccess": true,
+   "screens": [
+    "settings/profile"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/settings",
+   "any": true,
+   "screens": [
+    "(app shell)",
+    "(menu bar / layout)",
+    "/",
+    "accounting/account-payables",
+    "accounting/account-receivables",
+    "accounting/ap-approvals",
+    "accounting/capital-account",
+    "accounting/cash-book",
+    "accounting/cash-receipts",
+    "accounting/credit-notes",
+    "accounting/dividend-account",
+    "accounting/fx-rates",
+    "accounting/hq-deposits",
+    "accounting/loans",
+    "accounting/payment-vouchers",
+    "accounting/profit-report",
+    "accounting/shareholders",
+    "approvals/discounts",
+    "dashboard",
+    "fuel/credit-sales",
+    "fuel/onecard-sales",
+    "hq/vat-report",
+    "pos",
+    "pos/cash-report",
+    "pos/cashier",
+    "pos/dispatch",
+    "pos/sales-bin-card",
+    "pos/sales-inventory",
+    "pos/sales-report",
+    "pos/sales-stock-card",
+    "pos/vat-report",
+    "settings/profile",
+    "settings/system",
+    "stock/bin-card",
+    "stock/branch-prices",
+    "stock/empty-returns",
+    "stock/grn",
+    "stock/inventory",
+    "stock/items",
+    "stock/opening-balance",
+    "stock/quick-price",
+    "stock/reconciliation",
+    "stock/sales-damages",
+    "stock/siv",
+    "stock/stock-count",
+    "suppliers-customers/customers",
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/shareholders/:p",
+   "perms": [
+    "Accounting",
+    "Shareholders:Add",
+    "Shareholders:Delete",
+    "Shareholders:Edit",
+    "Shareholders:View"
+   ],
+   "screens": [
+    "accounting/shareholders"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/shareholders/:p",
+   "perms": [
+    "Accounting",
+    "Shareholders:Add",
+    "Shareholders:Delete",
+    "Shareholders:Edit",
+    "Shareholders:View"
+   ],
+   "screens": [
+    "accounting/shareholders"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/shareholders/stats",
+   "perms": [
+    "Accounting",
+    "Shareholders:Add",
+    "Shareholders:Delete",
+    "Shareholders:Edit",
+    "Shareholders:View"
+   ],
+   "screens": [
+    "accounting/shareholders"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/shareholders",
+   "perms": [
+    "Accounting",
+    "CapitalAccount:Add",
+    "CapitalAccount:Delete",
+    "CapitalAccount:Edit",
+    "CapitalAccount:View",
+    "DividendAccount:Add",
+    "DividendAccount:Delete",
+    "DividendAccount:Edit",
+    "DividendAccount:View",
+    "Shareholders:Add",
+    "Shareholders:Delete",
+    "Shareholders:Edit",
+    "Shareholders:View"
+   ],
+   "screens": [
+    "accounting/capital-account",
+    "accounting/dividend-account",
+    "accounting/shareholders"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/shareholders",
+   "perms": [
+    "Accounting",
+    "Shareholders:Add",
+    "Shareholders:Delete",
+    "Shareholders:Edit",
+    "Shareholders:View"
+   ],
+   "screens": [
+    "accounting/shareholders"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/siv/:p",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv/:p",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/siv/:p",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv/item-breakdown",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv/items-summary",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv/notes",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv/recent-products",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv/stats",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/siv",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/siv",
+   "perms": [
+    "SIV",
+    "SIV:Add",
+    "SIV:Delete",
+    "SIV:Edit",
+    "SIV:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/siv"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/stock-adjustments/:p",
+   "perms": [
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View"
+   ],
+   "screens": [
+    "stock/adjustments"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/stock-adjustments/:p",
+   "perms": [
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View"
+   ],
+   "screens": [
+    "stock/adjustments"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-adjustments/stats",
+   "perms": [
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View"
+   ],
+   "screens": [
+    "stock/adjustments"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-adjustments",
+   "perms": [
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View"
+   ],
+   "screens": [
+    "stock/adjustments"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/stock-adjustments",
+   "perms": [
+    "Stock",
+    "StockAdjustment:Add",
+    "StockAdjustment:Delete",
+    "StockAdjustment:Edit",
+    "StockAdjustment:View"
+   ],
+   "screens": [
+    "stock/adjustments"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/stock-count/sessions/:p/apply",
+   "perms": [
+    "Stock",
+    "StockCount:Add",
+    "StockCount:View"
+   ],
+   "screens": [
+    "stock/stock-count"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-count/sessions/:p/items",
+   "perms": [
+    "Stock",
+    "StockCount:Add",
+    "StockCount:View"
+   ],
+   "screens": [
+    "stock/stock-count"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/stock-count/sessions/:p/items",
+   "perms": [
+    "Stock",
+    "StockCount:Add",
+    "StockCount:View"
+   ],
+   "screens": [
+    "stock/stock-count"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-count/sessions",
+   "perms": [
+    "Stock",
+    "StockCount:Add",
+    "StockCount:View"
+   ],
+   "screens": [
+    "stock/stock-count"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/stock-count/sessions",
+   "perms": [
+    "Stock",
+    "StockCount:Add",
+    "StockCount:View"
+   ],
+   "screens": [
+    "stock/stock-count"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/stock-reconciliation/:p",
+   "perms": [
+    "Stock",
+    "StockReconciliation:Add",
+    "StockReconciliation:Delete",
+    "StockReconciliation:Edit",
+    "StockReconciliation:View"
+   ],
+   "screens": [
+    "stock/reconciliation"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-reconciliation/:p",
+   "perms": [
+    "Stock",
+    "StockReconciliation:Add",
+    "StockReconciliation:Delete",
+    "StockReconciliation:Edit",
+    "StockReconciliation:View"
+   ],
+   "screens": [
+    "stock/reconciliation"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-reconciliation/products",
+   "perms": [
+    "Stock",
+    "StockReconciliation:Add",
+    "StockReconciliation:Delete",
+    "StockReconciliation:Edit",
+    "StockReconciliation:View"
+   ],
+   "screens": [
+    "stock/reconciliation"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/stock-reconciliation",
+   "perms": [
+    "Stock",
+    "StockReconciliation:Add",
+    "StockReconciliation:Delete",
+    "StockReconciliation:Edit",
+    "StockReconciliation:View"
+   ],
+   "screens": [
+    "stock/reconciliation"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/stock-reconciliation",
+   "perms": [
+    "Stock",
+    "StockReconciliation:Add",
+    "StockReconciliation:Delete",
+    "StockReconciliation:Edit",
+    "StockReconciliation:View"
+   ],
+   "screens": [
+    "stock/reconciliation"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/suppliers/:p",
+   "perms": [
+    "Suppliers",
+    "Suppliers:Add",
+    "Suppliers:Delete",
+    "Suppliers:Edit",
+    "Suppliers:View"
+   ],
+   "screens": [
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/suppliers/:p",
+   "perms": [
+    "Suppliers",
+    "Suppliers:Add",
+    "Suppliers:Delete",
+    "Suppliers:Edit",
+    "Suppliers:View"
+   ],
+   "screens": [
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/suppliers/stats",
+   "perms": [
+    "Suppliers",
+    "Suppliers:Add",
+    "Suppliers:Delete",
+    "Suppliers:Edit",
+    "Suppliers:View"
+   ],
+   "screens": [
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/suppliers",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/",
+    "accounting/credit-notes",
+    "fuel/deliveries",
+    "stock/empty-returns",
+    "stock/grn",
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/suppliers",
+   "perms": [
+    "Suppliers",
+    "Suppliers:Add",
+    "Suppliers:Delete",
+    "Suppliers:Edit",
+    "Suppliers:View"
+   ],
+   "screens": [
+    "suppliers-customers/suppliers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/sync/configure",
+   "any": true,
+   "screens": [
+    "(Setup)",
+    "/setup"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sync/current-status",
+   "any": true,
+   "screens": [
+    "(menu bar / layout)",
+    "/"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/sync/factory-reset",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/sync/force-resync",
+   "any": true,
+   "screens": [
+    "(Setup)",
+    "(menu bar / layout)",
+    "/",
+    "/setup"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sync/lan-config",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/sync/lan-config",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sync/lan-status",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/sync/reset",
+   "allAccess": true,
+   "screens": [
+    "settings/system"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/sync/run-now",
+   "perms": [
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/sync/status",
+   "any": true,
+   "screens": [
+    "(Setup)",
+    "(app shell)",
+    "/setup",
+    "settings/system"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/system/backup",
+   "admin": true,
+   "screens": [
+    "settings/backups"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/system/backups/:p/download",
+   "admin": true,
+   "screens": [
+    "settings/backups"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/system/backups",
+   "admin": true,
+   "screens": [
+    "settings/backups"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/tank-dips",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/tank-dips",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/tanks/:p/bin-card",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/tanks/:p",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/tanks/:p",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/tanks/group/:p/bin-card",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/tanks",
+   "any": true,
+   "screens": [
+    "fuel/deliveries",
+    "fuel/pumps",
+    "fuel/shifts",
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/tanks",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/transfers/:p/cancel",
+   "perms": [
+    "BranchTransfers:View",
+    "GRN",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/transfers/:p/receive",
+   "perms": [
+    "BranchTransfers:View",
+    "GRN",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/transfers/incoming",
+   "perms": [
+    "BranchTransfers:View",
+    "GRN",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/transfers/outgoing",
+   "perms": [
+    "BranchTransfers:View",
+    "GRN",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/transfers/source-products",
+   "perms": [
+    "BranchTransfers:View",
+    "GRN",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/transfers",
+   "perms": [
+    "BranchTransfers:View",
+    "GRN",
+    "Inventory:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/transfers"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/units/:p",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/units/:p",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/units",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories",
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/units",
+   "perms": [
+    "Categories:Add",
+    "Categories:Delete",
+    "Categories:Edit",
+    "Categories:View",
+    "Stock"
+   ],
+   "screens": [
+    "stock/categories"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/users/:p",
+   "admin": true,
+   "screens": [
+    "settings/users"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/users/:p",
+   "admin": true,
+   "screens": [
+    "settings/users"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/users/stats",
+   "admin": true,
+   "screens": [
+    "settings/users"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/users",
+   "any": true,
+   "screens": [
+    "fuel/shifts",
+    "pos/cash-report",
+    "settings/users"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/users",
+   "admin": true,
+   "screens": [
+    "settings/users"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/audit-log",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/branches",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/codes",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/customer-lookup/:p",
+   "perms": [
+    "Customers",
+    "Customers:Add",
+    "Customers:Delete",
+    "Customers:Edit",
+    "Customers:View",
+    "POS",
+    "POS:Add",
+    "POS:Delete",
+    "POS:Edit",
+    "POS:View",
+    "Sales"
+   ],
+   "screens": [
+    "pos",
+    "suppliers-customers/customers"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/imports/:p/approve",
+   "admin": true,
+   "screens": [
+    "hq/zra-imports"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/imports/:p/reject",
+   "admin": true,
+   "screens": [
+    "hq/zra-imports"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/imports/:p",
+   "admin": true,
+   "screens": [
+    "hq/zra-imports"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/imports/pull",
+   "admin": true,
+   "screens": [
+    "hq/zra-imports",
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/imports",
+   "admin": true,
+   "screens": [
+    "hq/zra-imports"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/initialize",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/item-classes",
+   "perms": [
+    "GRN",
+    "Items:Add",
+    "Items:Delete",
+    "Items:Edit",
+    "Items:View",
+    "SIV",
+    "Stock"
+   ],
+   "screens": [
+    "stock/items"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/items/reconcile",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/pending-fiscalisation",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/purchases/:p/approve",
+   "admin": true,
+   "screens": [
+    "hq/zra-purchases"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/purchases/:p/reject",
+   "admin": true,
+   "screens": [
+    "hq/zra-purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/purchases/:p",
+   "admin": true,
+   "screens": [
+    "hq/zra-purchases"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/purchases/pull",
+   "admin": true,
+   "screens": [
+    "hq/zra-purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/purchases",
+   "admin": true,
+   "screens": [
+    "hq/zra-purchases"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/push-pending",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/push-pending",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/rrp/sync",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/settings",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/zra/settings",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/stock/reconcile",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/zra/sync-state",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/sync/all",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/sync/codes",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/sync/item-classes",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/zra/sync/notices",
+   "admin": true,
+   "screens": [
+    "settings/zra"
+   ]
+  }
+ ]
+}

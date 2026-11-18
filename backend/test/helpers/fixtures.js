@@ -28,7 +28,9 @@ async function seedStaff(app) {
   const users = {
     owner:      await createUser(db, { email: 'owner',      role: 'Administrator', permissions: ['All'] }),
     supervisor: await createUser(db, { email: 'supervisor', role: 'Manager' }),
-    cashier:    await createUser(db, { email: 'cashier',    role: 'Cashier' }),
+    // S7 (full matrix): the server now applies the screens' permissions, so the
+    // cashier holds what a real cashier is given — the POS screen.
+    cashier:    await createUser(db, { email: 'cashier',    role: 'Cashier', permissions: ['POS'] }),
     att1:       await createUser(db, { email: 'att1',       role: 'Cashier', first: 'Attendant', last: 'One' }),
     att2:       await createUser(db, { email: 'att2',       role: 'Cashier', first: 'Attendant', last: 'Two' }),
   };
