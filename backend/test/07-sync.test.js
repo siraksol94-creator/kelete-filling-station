@@ -40,17 +40,24 @@ test('a deletion on the till reaches the VPS', async () => {
   assert.ok((await findBy(vps, 'customers', c.sync_id)).deleted_at, 'soft-deleted on the VPS too');
 });
 
-knownDefect('Sync (new)', 'a change made within the same second as the last sync is rejected by the VPS AND marked synced on the till — lost for good', async () => {
+test('Sync fix: a change made in the same second as the last sync is no longer lost', async () => {
   const c = (await customer(till, 'Quick Change')).body;
   await pair.syncNow();
-  await till.api('DELETE', `/api/customers/${c.id}`);      // same second as the synced version
-  await pair.syncNow(); await pair.syncNow();
-  const t = (await till.sql('SELECT deleted_at, synced FROM customers WHERE id = ?', [c.id]))[0];
+  await till.api('DELETE', `/api/customers/${c.id}`);      // typically the same second as the synced copy
+  await pair.syncNow();                                     // VPS reports 'same_second' → till re-dates and keeps it pending
+  await pair.syncNow();                                     // re-sent as the newer version
   const v = await findBy(vps, 'customers', c.sync_id);
-  if (v.deleted_at) return; // the clock crossed a second boundary in between — not reproducible this run
-  assert.ok(t.deleted_at, 'deleted on the till');
-  assert.equal(t.synced, 1, 'TODAY: the till believes the deletion was delivered');
-  assert.equal(v.deleted_at, null, 'TODAY: the VPS still has the customer as active, and nothing will retry');
+  const t = (await till.sql('SELECT deleted_at, synced FROM customers WHERE id = ?', [c.id]))[0];
+  assert.ok(v.deleted_at, 'the deletion reached the VPS');
+  assert.equal(t.synced, 1, 'and the till marked it delivered only once it was');
+});
+
+test('Sync fix: a same-second edit (not just a delete) also arrives', async () => {
+  const c = (await customer(till, 'Phone Change')).body;
+  await pair.syncNow();
+  await till.sql("UPDATE customers SET phone = '0977000111', synced = 0 WHERE id = ?", [c.id]); // keeps the same updated_at
+  await pair.syncNow(); await pair.syncNow();
+  assert.equal((await findBy(vps, 'customers', c.sync_id)).phone, '0977000111');
 });
 
 test('document numbers created on both sides never collide, and both copies end up on both sides', async () => {

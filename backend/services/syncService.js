@@ -173,17 +173,60 @@ async function push() {
   slog('push: response ' + result.status + ' ' + JSON.stringify(result.body).substring(0, 200));
 
   if (result.status === 200) {
+    // Sync fix (2026-11-18). Two ways a local change used to be lost here:
+    //   1. Every row sent was marked synced = 1 — including a change the
+    //      server had NOT applied because it fell in the same second as the
+    //      server's copy (one-second timestamps). Nothing ever re-sent it.
+    //   2. A row edited WHILE this push was in flight was also marked synced,
+    //      so its newest content was never sent.
+    // Now: a 'same_second' report keeps the row pending and moves its
+    // updated_at one second past the server's, so the next cycle sends it as
+    // the newer version. Any other row is marked synced only if it is still
+    // exactly what was sent. ('stale' = the server already holds a newer
+    // version, which the next pull brings down; that is last-writer-wins,
+    // unchanged.) Against an older server that reports nothing, this behaves
+    // as before.
+    const conflicts = new Map();
+    for (const c of (result.body && Array.isArray(result.body.conflicts) ? result.body.conflicts : [])) {
+      if (c && c.table && c.sync_id) conflicts.set(`${c.table}\u0000${c.sync_id}`, c);
+    }
     _db.transaction(() => {
       for (const [table, rows] of Object.entries(records)) {
         for (const row of rows) {
           if (!row.sync_id) continue;
           try {
+            const c = conflicts.get(`${table}\u0000${row.sync_id}`);
+            if (c && c.reason === 'same_second') {
+              const next = oneSecondAfter(c.server_updated_at, row.updated_at);
+              if (next) _db.prepare(`UPDATE ${table} SET updated_at = ? WHERE sync_id = ? AND synced = 0`).run(next, row.sync_id);
+              continue; // stays synced = 0 → re-sent next cycle
+            }
+            const now = _db.prepare(`SELECT * FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
+            if (now && !unchangedSince(row, now)) continue; // edited during the push → send again
             _db.prepare(`UPDATE ${table} SET synced = 1 WHERE sync_id = ?`).run(row.sync_id);
           } catch { /* ignore */ }
         }
       }
     })();
   }
+}
+
+// Sync fix helpers ────────────────────────────────────────────────────────────
+// SQLite 'YYYY-MM-DD HH:MM:SS' (UTC) one second after the later of the two.
+function oneSecondAfter(serverTs, localTs) {
+  const parse = (v) => new Date(typeof v === 'string' && !v.includes('T') ? v.replace(' ', 'T') + 'Z' : v).getTime();
+  const base = Math.max(parse(serverTs) || 0, parse(localTs) || 0);
+  if (!base) return null;
+  return new Date(base + 1000).toISOString().replace('T', ' ').slice(0, 19);
+}
+// Is the local row still exactly what was pushed (ignoring the synced flag)?
+function unchangedSince(sent, now) {
+  for (const k of Object.keys(now)) {
+    if (k === 'synced') continue;
+    const a = sent[k], b = now[k];
+    if ((a ?? null) !== (b ?? null) && String(a) !== String(b)) return false;
+  }
+  return true;
 }
 
 // ─── Pull VPS records → local DB (merge by sync_id) ──────────────────────────
