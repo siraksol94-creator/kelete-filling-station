@@ -143,10 +143,11 @@ test('close: litres sold, tank ledger, meters, expected cash and variance', asyn
     dips: [{ tank_id: fuel.t1.id, dip_litres: 9000 }],
   } });
   assert.equal(r.status, 200, r.text);
-  // gross 37,125 − (mobile 2,000 + swipes 1,000 + credit 1,000 + 1Card 480) = 32,645 expected cash
-  // (F2: the K250 "credit" with no customer is now refused, so it no longer reduces expected cash)
-  assert.equal(r.body.expected_cash, 32645);
-  assert.equal(r.body.variance, 30000 - 32645);
+  // gross 37,125 − (mobile 2,000 + swipes 1,000 + Other 77 + credit 1,000 + 1Card 480) = 32,568 expected cash
+  // (F2: the K250 "credit" with no customer is now refused, so it no longer reduces expected cash;
+  //  decision 2026-11-18: the "Other" tender reduces expected cash)
+  assert.equal(r.body.expected_cash, 32568);
+  assert.equal(r.body.variance, 30000 - 32568);
   assert.equal(vol(fuel.t1.id), 10000 - 995, 'testing litres go back to the tank');
   assert.equal(vol(fuel.t2.id), 10000 - 500);
   assert.equal(meter(fuel.n1.id), 101000);
@@ -186,7 +187,7 @@ test('reopen → close again with the same figures does not drain the tank twice
     readings: [{ id: r1.id, closing_reading: 101000, testing_litres: 5 }, { id: r2.id, closing_reading: 50500 }],
     payment_cash: 30000, payment_mobile: 2000, payment_swipes: 1000 } });
   assert.equal(r.status, 200, r.text);
-  assert.equal(r.body.expected_cash, 32645);
+  assert.equal(r.body.expected_cash, 32645, 'no "Other" sent this time');
   assert.equal(vol(fuel.t1.id), before);
   assertLedger();
 });
@@ -284,4 +285,28 @@ test('upgrade (migration 9): shifts closed by the old code get their credit tota
   assert.deepEqual([a.payment_other, a.payment_credit], [0, 400]);
   const b = db.prepare('SELECT payment_other, payment_credit FROM attendant_shifts WHERE id = ?').get(real);
   assert.deepEqual([b.payment_other, b.payment_credit], [55, 400]);
+});
+
+test('decision 2026-11-18: "Other" entered when finalising on the Fuel Cash Report reduces expected cash, and the day summary deducts it', async () => {
+  const sh = (await app.request('POST', '/api/attendant-shifts/open', { token: T(),
+    body: { attendant_user_id: staff.users.att2.id, nozzle_ids: [fuel.n2.id], shift_type: 'NIGHT' } })).body;
+  const reading = (await app.request('GET', `/api/attendant-shifts/${sh.id}`, { token: T() })).body.readings[0];
+  const closed = await app.request('POST', `/api/attendant-shifts/${sh.id}/close`, { token: T(),
+    body: { readings: [{ id: reading.id, closing_reading: Number(reading.opening_reading) + 100 }], payment_cash: 0 } });
+  assert.equal(closed.status, 200, closed.text);
+  const gross = Number(closed.body.expected_cash);            // 100 L, nothing deducted yet
+  const fin = await app.request('POST', `/api/attendant-shifts/${sh.id}/finalize`, { token: T(),
+    body: { payment_cash: gross - 300, payment_mobile: 0, payment_swipes: 0, payment_other: 300 } });
+  assert.equal(fin.status, 200, fin.text);
+  assert.equal(fin.body.expected_cash, gross - 300);
+  assert.equal(fin.body.variance, 0);
+  assert.equal(fin.body.payment_other, 300);
+  // finalising again without "Other" keeps the stored amount
+  const again = await app.request('POST', `/api/attendant-shifts/${sh.id}/finalize`, { token: T(),
+    body: { payment_cash: gross - 300, payment_mobile: 0, payment_swipes: 0 } });
+  assert.equal(again.body.expected_cash, gross - 300);
+  const day = db.prepare('SELECT shift_date FROM attendant_shifts WHERE id = ?').get(sh.id).shift_date;
+  const sum = (await app.request('GET', `/api/attendant-shifts/day-summary?date=${day}`, { token: T() })).body;
+  assert.ok(sum.deductions.other >= 300, 'the day summary lists Other');
+  assert.equal(sum.deductions.total, sum.deductions.mobile_money + sum.deductions.swipes + sum.deductions.other + sum.deductions.credit_total + sum.deductions.onecard_total);
 });

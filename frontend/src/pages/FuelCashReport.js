@@ -31,6 +31,7 @@ export default function FuelCashReport() {
         init[s.id] = {
           payment_mobile: s.payment_mobile || '',
           payment_swipes: s.payment_swipes || '',
+          payment_other:  s.payment_other  || '',
           payment_cash:   s.payment_cash   || '',
           notes:          '',
         };
@@ -79,6 +80,7 @@ export default function FuelCashReport() {
         payment_cash:   Number(ip.payment_cash   || 0),
         payment_mobile: Number(ip.payment_mobile || 0),
         payment_swipes: Number(ip.payment_swipes || 0),
+        payment_other:  Number(ip.payment_other  || 0),
         notes:          ip.notes || '',
       });
       await load();
@@ -137,7 +139,8 @@ export default function FuelCashReport() {
                   const posBank  = Number(s.pos_bank || 0);
                   const mobileTotal = Number(ip.payment_mobile || 0) + posMomo;
                   const swipesTotal = Number(ip.payment_swipes || 0) + posBank;
-                  const nonCash = mobileTotal + swipesTotal + credit + onecard;
+                  const otherAmt = Number(ip.payment_other || 0);   // "Other" tender (decision 2026-11-18)
+                  const nonCash = mobileTotal + swipesTotal + otherAmt + credit + onecard;
                   const expected = Math.max(0, gross - nonCash);
                   const variance = Number(ip.payment_cash || 0) - expected;
                   const closed = s.status === 'Closed';
@@ -167,6 +170,8 @@ export default function FuelCashReport() {
                           onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_mobile: v } })} />
                         <StatCell label={posBank > 0 ? `Swipes (+${posBank.toFixed(2)} POS)` : 'Swipes'} input locked={!!s.approval} value={ip.payment_swipes}
                           onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_swipes: v } })} />
+                        <StatCell label="Other (vouchers etc.)" input locked={!!s.approval} value={ip.payment_other}
+                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_other: v } })} />
                         <StatCell label="Expected Cash" value={`K ${expected.toFixed(2)}`} highlight />
                         <StatCell label="Actual Cash *" input locked={!!s.approval} value={ip.payment_cash}
                           onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_cash: v } })} />
@@ -195,17 +200,18 @@ export default function FuelCashReport() {
 // values and recompute deductions + variance).
 function liveTotals(rows, inputs) {
   const num = v => Number(v || 0);
-  let mobile = 0, swipes = 0, cash = 0, posGross = 0, posCredit = 0;
+  let mobile = 0, swipes = 0, other = 0, cash = 0, posGross = 0, posCredit = 0;
   for (const r of rows) {
     const ip = inputs[r.id] || {};
     // Typed fuel-side amount + POS non-cash of the same type → the real total
     mobile += num(ip.payment_mobile !== '' ? ip.payment_mobile : r.payment_mobile) + num(r.pos_momo);
     swipes += num(ip.payment_swipes !== '' ? ip.payment_swipes : r.payment_swipes) + num(r.pos_bank);
+    other  += num(ip.payment_other !== undefined && ip.payment_other !== '' ? ip.payment_other : r.payment_other);
     cash   += num(ip.payment_cash   !== '' ? ip.payment_cash   : r.payment_cash);
     posGross  += num(r.pos_gross);
     posCredit += num(r.pos_credit);
   }
-  return { mobile, swipes, cash, posGross, posCredit };
+  return { mobile, swipes, other, cash, posGross, posCredit };
 }
 
 function fmtK(n)   { return 'K ' + Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -218,12 +224,13 @@ function DaySummaryPanel({ summary, liveOverride }) {
   // panel updates as the operator types mobile/swipes/actual-cash per shift.
   const mobileMoney = liveOverride ? liveOverride.mobile : Number(deductions.mobile_money || 0);
   const swipesAmt   = liveOverride ? liveOverride.swipes : Number(deductions.swipes || 0);
+  const otherAmt    = liveOverride ? Number(liveOverride.other || 0) : Number(deductions.other || 0);
   const cashInHand  = liveOverride ? liveOverride.cash   : Number(totals.cash_in_hand || 0);
   const posGross    = liveOverride ? Number(liveOverride.posGross || 0)  : 0;
   const posCredit   = liveOverride ? Number(liveOverride.posCredit || 0) : 0;
   const creditTotal = Number(deductions.credit_total || 0) + posCredit;
   const onecardTotal = Number(deductions.onecard_total || 0);
-  const totalDeductions = mobileMoney + swipesAmt + creditTotal + onecardTotal;
+  const totalDeductions = mobileMoney + swipesAmt + otherAmt + creditTotal + onecardTotal;
   const gross = Number(totals.gross || 0) + posGross;
   const expectedCash = Math.max(0, gross - totalDeductions);
   const variance = Number((cashInHand - expectedCash).toFixed(2));
@@ -370,6 +377,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
           <div style={colTitle}>Deductions &amp; Cash</div>
           <div style={line}><span>Swipes</span><span>{fmtK(swipesAmt)}</span></div>
           <div style={line}><span>Mobile Money</span><span>{fmtK(mobileMoney)}</span></div>
+          <div style={line}><span>Other</span><span>{fmtK(otherAmt)}</span></div>
 
           <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Engen 1Card</span><span>{fmtK(onecardTotal)}</span></div>
           {onecards.map((c, i) => (

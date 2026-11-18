@@ -130,7 +130,7 @@ export default function AttendantShifts() {
   const existingTickets = closingShift?.credit_sales || [];
   const creditTotal  = useMemo(() => existingTickets.filter(c => (c.payment_method || 'Credit') === 'Credit').reduce((s, c) => s + Number(c.amount), 0), [existingTickets]);
   const onecardTotal = useMemo(() => existingTickets.filter(c => c.payment_method === '1Card').reduce((s, c) => s + Number(c.amount), 0), [existingTickets]);
-  const nonCash      = Number(cd.payment_swipes || 0) + Number(cd.payment_mobile || 0) + creditTotal + onecardTotal;
+  const nonCash      = Number(cd.payment_swipes || 0) + Number(cd.payment_mobile || 0) + Number(cd.payment_other || 0) + creditTotal + onecardTotal;
   const expectedCash = Math.max(0, grossSales - nonCash);
   const variance     = Number(cd.payment_cash || 0) - expectedCash;
 
@@ -249,7 +249,7 @@ export default function AttendantShifts() {
                 </td>
                 <td style={S.td}>{s.opened_at}</td>
                 <td style={S.td}>{s.closed_at || '-'}</td>
-                <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_credit ?? s.payment_other ?? 0)).toFixed(2)}</td>
+                <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_credit ?? s.payment_other ?? 0) + (s.payment_credit != null ? Number(s.payment_other || 0) : 0)).toFixed(2)}</td>
                 <td style={S.tdR}>K {Number(s.expected_cash || 0).toFixed(2)}</td>
                 <td style={S.tdR}>K {Number(s.actual_cash || 0).toFixed(2)}</td>
                 <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>
