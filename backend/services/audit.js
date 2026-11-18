@@ -91,12 +91,17 @@ function entityFromPath(path) {
 // Express middleware. Mount once, before the API routes.
 function auditRequests(fallbackDb) {
   return function auditRequestsMiddleware(req, res, next) {
-    const action = classify(req);
-    if (!action) return next();
+    const classified = classify(req);
+    // S7 (full matrix): a request refused by the permission gate is recorded
+    // as 'permission.denied' even when it is a read.
+    const isApi = (req.originalUrl || req.url || '').toLowerCase().startsWith('/api/');
+    if (!classified && !isApi) return next();
     const started = Date.now();
 
     res.on('finish', () => {
       try {
+        const action = classified || (req.permissionDenied ? 'permission.denied' : null);
+        if (!action) return;
         const status = res.statusCode;
         // Logins: record failures only (successes are routine and frequent).
         if (action === 'auth.login' && !(status === 401 || status === 403 || status === 429)) return;

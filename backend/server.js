@@ -795,6 +795,9 @@ if (AUTOSTART) syncService.start(db, syncConfig);
 console.log('Database schema ready');
 
 // ─── Routes ────────────────────────────────────────────────────────────────
+// S7 (full matrix): a non-administrator may only make the API calls of the
+// screens they can open (config/permissionMatrix.json). See middleware/permissions.js.
+app.use('/api', require('./middleware/permissions').permissionGate);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/zra',  require('./routes/zra'));
 app.use('/api/products', require('./routes/products'));
