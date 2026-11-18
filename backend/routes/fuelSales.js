@@ -93,6 +93,8 @@ router.post('/', auth, (req, res) => {
       if (!fleet_customer_id) throw new Error('Fleet payment requires fleet_customer_id');
       const fc = db.prepare('SELECT * FROM fleet_customers WHERE id = ?').get(fleet_customer_id);
       if (!fc) throw new Error('Fleet customer not found');
+      // F3: merged fleet accounts keep no separate balance (AR is in Customers).
+      if (fc.merged_at) throw new Error('This fleet account is now a Customer account — record the credit on the Credit Tickets page.');
       const newBal = (fc.current_balance || 0) + total;
       if (fc.credit_limit > 0 && newBal > fc.credit_limit) {
         throw new Error(`Fleet credit limit exceeded (limit ${fc.credit_limit}, would become ${newBal.toFixed(2)})`);

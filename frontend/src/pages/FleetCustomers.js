@@ -5,11 +5,14 @@ import {
   addFleetVehicle, updateFleetVehicle, deleteFleetVehicle,
 } from '../services/fuelApi';
 import { S } from './fuelStyles';
+import { useAuth } from '../context/AuthContext';
+import FleetMergePanel from '../components/FleetMergePanel';
 
 const emptyCust = { name: '', company: '', phone: '', email: '', address: '', credit_limit: 0, status: 'Active' };
 const emptyVeh = { registration: '', make: '', model: '', driver_name: '', driver_phone: '', status: 'Active' };
 
 export default function FleetCustomers() {
+  const { user } = useAuth();   // F3: the merge review is for Administrators
   const [rows, setRows] = useState([]);
   const [selected, setSelected] = useState(null);  // full row with vehicles
   const [custForm, setCustForm] = useState(null);
@@ -56,6 +59,8 @@ export default function FleetCustomers() {
         <h2 style={S.h2}><FiTruck /> Fleet / Credit Customers</h2>
         <button onClick={() => setCustForm({ ...emptyCust })} style={S.btnPrimary}><FiPlus /> New Customer</button>
       </div>
+
+      {user?.role === 'Administrator' && <FleetMergePanel onDone={load} />}
 
       <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 1fr' : '1fr', gap: 16 }}>
         <div style={S.card}>

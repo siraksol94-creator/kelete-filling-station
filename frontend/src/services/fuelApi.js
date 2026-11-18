@@ -48,6 +48,11 @@ export const deleteFleetCustomer = (id)     => api.delete(`/fleet-customers/${id
 export const addFleetVehicle    = (fcId, d) => api.post(`/fleet-customers/${fcId}/vehicles`, d);
 export const updateFleetVehicle = (vid, d)  => api.put(`/fleet-customers/vehicles/${vid}`, d);
 export const deleteFleetVehicle = (vid)     => api.delete(`/fleet-customers/vehicles/${vid}`);
+// F3 — merge fleet accounts into Customers (Administrators)
+export const getFleetMergePlan  = ()        => api.get('/fleet-customers/merge/plan');
+export const applyFleetMerge    = (resolve) => api.post('/fleet-customers/merge/apply', { confirm: true, resolve });
+export const undoFleetMerge     = (logId)   => api.post('/fleet-customers/merge/undo', { confirm: true, log_id: logId || null });
+export const getFleetMergeLog   = ()        => api.get('/fleet-customers/merge/log');
 
 // Fuel deliveries (GRN)
 export const getFuelDeliveries  = ()        => api.get('/fuel-deliveries');

@@ -790,6 +790,12 @@ router.post('/:id/close', auth, (req, res) => {
       if (!cs.fleet_customer_id) {
         throw Object.assign(new Error(`Credit for "${cs.customer_name}" has no customer account. Record it on the Credit Tickets page instead.`), { status: 400 });
       }
+      // F3: a fleet account merged into Customers keeps no balance of its own —
+      // its credit belongs on the Credit Tickets page (a receivable order).
+      const fleetRow = db.prepare('SELECT merged_at FROM fleet_customers WHERE id = ?').get(cs.fleet_customer_id);
+      if (fleetRow && fleetRow.merged_at) {
+        throw Object.assign(new Error(`"${cs.customer_name}" is now a Customer account. Record this credit on the Credit Tickets page instead.`), { status: 400 });
+      }
       const ppl = Number(cs.price_per_litre) || 0;
       const amt = cs.amount != null ? Number(cs.amount) : Number((Number(cs.litres) * ppl).toFixed(2));
       insCredit.run(req.params.id, cs.fleet_customer_id || null, cs.customer_name.trim(),

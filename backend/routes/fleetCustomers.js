@@ -1,6 +1,35 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
+const fleetMerge = require('../services/fleetMerge');
+const syncConfig = require('../config/syncConfig');
+
+// --- F3: merge fleet accounts into Customers (Administrators) ---
+// Business decision 2026-11-18. Dry-run first (plan), then apply; every step
+// is logged and can be undone. See services/fleetMerge.js.
+const mergeCtx = (req) => {
+  const cfg = syncConfig.getConfig() || {};
+  return { userId: req.user && req.user.id, userLabel: req.user && req.user.email,
+           tenantId: (req.user && req.user.tenantId) || cfg.tenantId, branchId: cfg.branchId || null, deviceId: cfg.deviceId || null };
+};
+router.get('/merge/plan', auth, adminOnly, (req, res) => {
+  try { res.json(fleetMerge.plan(db)); } catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.post('/merge/apply', auth, adminOnly, (req, res) => {
+  try {
+    if (!req.body || req.body.confirm !== true) return res.status(400).json({ error: 'Review the plan first, then send { confirm: true }.' });
+    res.json(fleetMerge.apply(db, { ...mergeCtx(req), resolve: req.body.resolve || {} }));
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+router.post('/merge/undo', auth, adminOnly, (req, res) => {
+  try {
+    if (!req.body || req.body.confirm !== true) return res.status(400).json({ error: 'Send { confirm: true } (and optionally log_id) to undo.' });
+    res.json(fleetMerge.undo(db, { logId: req.body.log_id || null, userLabel: req.user && req.user.email }));
+  } catch (e) { res.status(400).json({ error: e.message }); }
+});
+router.get('/merge/log', auth, adminOnly, (req, res) => {
+  try { res.json(db.prepare('SELECT * FROM fleet_merge_log ORDER BY id DESC').all()); } catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 // --- Fleet customers ---
 router.get('/', auth, (req, res) => {
@@ -30,6 +59,9 @@ router.post('/', auth, (req, res) => {
       INSERT INTO fleet_customers (name, company, phone, email, address, credit_limit)
       VALUES (?,?,?,?,?,?)
     `).run(name.trim(), company, phone, email, address, Number(credit_limit) || 0);
+    // F3: a new fleet account is a Customer from the start (linked to the one
+    // matching Customer, or a new one; a doubtful match waits for the review).
+    try { fleetMerge.linkNewFleet(db, info.lastInsertRowid, mergeCtx(req)); } catch (e) { console.warn('[fleet] link to customer failed:', e.message); }
     res.status(201).json(db.prepare('SELECT * FROM fleet_customers WHERE id = ?').get(info.lastInsertRowid));
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
