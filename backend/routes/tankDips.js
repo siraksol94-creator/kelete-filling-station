@@ -14,7 +14,7 @@ const { recordTankMovement } = require('../config/fuelSchema');
 // old per-date rows where shift_type IS NULL.
 router.get('/', auth, (req, res) => {
   try {
-    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    const date = req.query.date || require('../config/businessTime').businessDate();
     const t = req.query.shift_type ? String(req.query.shift_type).toUpperCase() : null;
     const perTank = t
       ? db.prepare(`
@@ -125,7 +125,7 @@ router.post('/', auth, (req, res) => {
     }
     const t = shift_type ? String(shift_type).toUpperCase() : null;
     if (t && !['DAY', 'NIGHT'].includes(t)) throw new Error('shift_type must be DAY or NIGHT');
-    const date = dip_date || new Date().toISOString().slice(0, 10);
+    const date = dip_date || require('../config/businessTime').businessDate();
 
     if (t) {
       const approved = db.prepare('SELECT 1 FROM fuel_shift_approvals WHERE approval_date = DATE(?) AND shift_type = ?').get(date, t);

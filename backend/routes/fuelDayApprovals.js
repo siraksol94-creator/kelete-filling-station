@@ -2,6 +2,8 @@
 // the day, which (a) auto-posts every un-posted tank_dip for that date
 // as a dip_adjustment ledger row and (b) locks the day's cash fields.
 
+// UTC dates fix — a shift belongs to its trading day (config/businessTime.js).
+const SHIFT_DATE = require('../config/businessTime').shiftDateSql();
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth } = require('../middleware/auth');
@@ -34,7 +36,7 @@ router.post('/:date/approve', auth, (req, res) => {
 
     const openCount = db.prepare(`
       SELECT COUNT(*) AS c FROM attendant_shifts
-       WHERE DATE(opened_at) = DATE(?) AND status = 'Open'
+       WHERE ${SHIFT_DATE} = DATE(?) AND status = 'Open'
     `).get(date).c;
     if (openCount > 0) throw new Error(`${openCount} shift(s) still Open — close + finalize all shifts before approving.`);
 

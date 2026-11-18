@@ -15,8 +15,9 @@ router.get('/', auth, (req, res) => {
     const { from, to, shift_id, payment_method } = req.query;
     const where = [];
     const params = [];
-    if (from)           { where.push("date(fs.sale_date) >= date(?)"); params.push(from); }
-    if (to)             { where.push("date(fs.sale_date) <= date(?)"); params.push(to); }
+    // UTC dates fix: sale_date is a UTC timestamp — filter by the station's day.
+    if (from)           { where.push(`${require('../config/businessTime').sqlBusinessDate('fs.sale_date')} >= date(?)`); params.push(from); }
+    if (to)             { where.push(`${require('../config/businessTime').sqlBusinessDate('fs.sale_date')} <= date(?)`); params.push(to); }
     if (shift_id)       { where.push("fs.shift_id = ?"); params.push(shift_id); }
     if (payment_method) { where.push("fs.payment_method = ?"); params.push(payment_method); }
     const sql = `

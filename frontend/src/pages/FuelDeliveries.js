@@ -3,9 +3,10 @@ import { FiPlus, FiTrash2, FiX, FiDownloadCloud } from 'react-icons/fi';
 import { getFuelDeliveries, createFuelDelivery, deleteFuelDelivery, getTanks } from '../services/fuelApi';
 import { getSuppliers } from '../services/api';
 import { S } from './fuelStyles';
+import { businessToday } from '../utils/businessDate';
 
 const emptyForm = {
-  supplier_id: '', tank_id: '', delivery_date: new Date().toISOString().slice(0, 10),
+  supplier_id: '', tank_id: '', delivery_date: businessToday(),
   litres_ordered: '', litres_delivered: '', dip_before: '', dip_after: '',
   cost_per_litre: '', invoice_number: '', notes: ''
 };

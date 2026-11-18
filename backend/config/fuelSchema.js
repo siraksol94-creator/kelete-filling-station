@@ -362,8 +362,9 @@ function recordTankMovement(db, { tank_id, litres, type, ref_table = null, ref_i
   if (!isFinite(l)) throw new Error('litres must be a number');
   const info = db.prepare(`
     INSERT INTO tank_movements (tank_id, movement_date, type, litres, ref_table, ref_id, notes, created_by)
-    VALUES (?, COALESCE(?, date('now')), ?, ?, ?, ?, ?, ?)
-  `).run(tank_id, movement_date, type, l, ref_table, ref_id, notes || null, created_by);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(tank_id, movement_date || require('./businessTime').businessDate(), type, l, ref_table, ref_id, notes || null, created_by);
+  // (UTC dates fix: the default date is the station's day, not date('now') in UTC.)
   db.prepare("UPDATE tanks SET current_volume = current_volume + ?, updated_at = datetime('now') WHERE id = ?").run(l, tank_id);
   return info.lastInsertRowid;
 }

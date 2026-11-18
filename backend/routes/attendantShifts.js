@@ -3,6 +3,10 @@ const db = require('../config/database');
 const { recordTankMovement } = require('../config/fuelSchema');
 // F4 — shared shift controls (approval lock, one nozzle per open shift).
 const { assertNotApproved, nozzlesInOpenShifts } = require('../services/fuelControls');
+// UTC dates fix — trading day and DAY/NIGHT in Zambian time.
+const businessTime = require('../config/businessTime');
+const SHIFT_DATE = businessTime.shiftDateSql();       // for unaliased queries
+const SHIFT_DATE_S = businessTime.shiftDateSql('s');  // FROM attendant_shifts s
 const { auth, hasActiveRole, SUPERVISOR_ROLES } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
@@ -13,8 +17,8 @@ router.get('/', auth, (req, res) => {
     const where = [];
     const params = [];
     if (status) { where.push('s.status = ?'); params.push(status); }
-    if (from)   { where.push("date(s.opened_at) >= date(?)"); params.push(from); }
-    if (to)     { where.push("date(s.opened_at) <= date(?)"); params.push(to); }
+    if (from)   { where.push(`${SHIFT_DATE_S} >= date(?)`); params.push(from); }
+    if (to)     { where.push(`${SHIFT_DATE_S} <= date(?)`); params.push(to); }
     const sql = `
       SELECT s.*, u.first_name || ' ' || u.last_name AS attendant_name
         FROM attendant_shifts s
@@ -61,8 +65,8 @@ router.get('/all-tickets', auth, (req, res) => {
     const where = [];
     const params = [];
     if (method)             { where.push("cs.payment_method = ?"); params.push(method); }
-    if (from)               { where.push("COALESCE(cs.date, DATE(cs.created_at)) >= ?"); params.push(from); }
-    if (to)                 { where.push("COALESCE(cs.date, DATE(cs.created_at)) <= ?"); params.push(to); }
+    if (from)               { where.push(`COALESCE(cs.date, ${businessTime.sqlBusinessDate('cs.created_at')}) >= ?`); params.push(from); }
+    if (to)                 { where.push(`COALESCE(cs.date, ${businessTime.sqlBusinessDate('cs.created_at')}) <= ?`); params.push(to); }
     if (customer_id)        { where.push("cs.customer_id = ?"); params.push(customer_id); }
     if (attendant_user_id)  { where.push("s.attendant_user_id = ?"); params.push(attendant_user_id); }
     if (shift_id)           { where.push("cs.shift_id = ?"); params.push(shift_id); }
@@ -90,7 +94,7 @@ router.get('/daily-rollup', auth, (req, res) => {
       SELECT s.*, u.first_name || ' ' || u.last_name AS attendant_name
         FROM attendant_shifts s
         LEFT JOIN users u ON u.id = s.attendant_user_id
-       WHERE DATE(s.opened_at) = DATE(?)
+       WHERE ${SHIFT_DATE_S} = DATE(?)
        ORDER BY s.opened_at
     `).all(date);
     for (const s of shifts) {
@@ -143,7 +147,7 @@ router.get('/day-summary', auth, (req, res) => {
     const shifts = db.prepare(`
       SELECT id, status, payment_cash, payment_mobile, payment_swipes, expected_cash
         FROM attendant_shifts
-       WHERE DATE(opened_at) = DATE(?)
+       WHERE ${SHIFT_DATE} = DATE(?)
     `).all(date);
     const shiftIds = shifts.map(s => s.id);
     const placeholders = shiftIds.map(() => '?').join(',') || "''";
@@ -352,7 +356,8 @@ router.post('/open', auth, (req, res) => {
 
     // Default DAY/NIGHT by current hour if the UI didn't supply one.
     const inferType = () => {
-      const h = new Date().getHours();
+      // The station's hour, not the server's (a VPS runs on UTC).
+      const h = new Date(businessTime.now().getTime() + businessTime.offsetMinutes() * 60000).getUTCHours();
       return (h >= 6 && h < 18) ? 'DAY' : 'NIGHT';
     };
     const t = (shift_type && ['DAY', 'NIGHT'].includes(String(shift_type).toUpperCase()))
@@ -360,9 +365,9 @@ router.post('/open', auth, (req, res) => {
       : inferType();
 
     const info = db.prepare(`
-      INSERT INTO attendant_shifts (attendant_user_id, branch_id, opened_by, notes, shift_type)
-      VALUES (?,?,?,?,?)
-    `).run(attendant_user_id, branch_id, req.user?.id || null, notes, t);
+      INSERT INTO attendant_shifts (attendant_user_id, branch_id, opened_by, notes, shift_type, shift_date)
+      VALUES (?,?,?,?,?,?)
+    `).run(attendant_user_id, branch_id, req.user?.id || null, notes, t, businessTime.businessDate());
     const shiftId = info.lastInsertRowid;
 
     const insReading = db.prepare(`
@@ -509,7 +514,7 @@ router.post('/:id/credit-sales', auth, (req, res) => {
     `).run(req.params.id, method, customer?.id || null, customer?.sync_id || null, customer_name.trim(),
            card_number, vehicle_registration, fuel_grade_id,
            qty, ppl, amt, receipt_number, notes,
-           linkedOrderId, linkedOrderSyncId, date || new Date().toISOString().slice(0, 10));
+           linkedOrderId, linkedOrderSyncId, date || businessTime.businessDate());
 
     return db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(info.lastInsertRowid);
   });
@@ -693,6 +698,7 @@ router.post('/:id/close', auth, (req, res) => {
     if (!shift) throw new Error('Shift not found');
     if (shift.status !== 'Open') throw new Error('Shift already closed');
     assertNotApproved(shift, 'closed again');   // F4 (defence in depth; reopen is also blocked)
+    const shiftDay = shift.shift_date || String(shift.opened_at || '').slice(0, 10) || businessTime.businessDate();
 
     const {
       readings = [],
@@ -737,6 +743,8 @@ router.post('/:id/close', auth, (req, res) => {
       if (deltaLitres !== 0) {
         recordTankMovement(db, {
           tank_id: noz.tank_id, litres: -deltaLitres,
+          // the shift's trading day, not the day (or UTC day) it was closed
+          movement_date: shiftDay,
           type: 'sale', ref_table: 'attendant_shifts', ref_id: Number(req.params.id),
           notes: `Shift #${req.params.id} close · nozzle ${base.nozzle_id}`,
           created_by: req.user?.id || null,

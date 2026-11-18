@@ -3,6 +3,8 @@
 // locks every attendant_shifts row in that DAY and auto-posts every
 // un-posted tank_dip for (date, 'DAY').
 
+// UTC dates fix — a shift belongs to its trading day (config/businessTime.js).
+const SHIFT_DATE = require('../config/businessTime').shiftDateSql();
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth } = require('../middleware/auth');
@@ -38,7 +40,7 @@ router.post('/:date/:shiftType/approve', auth, (req, res) => {
     // Refuse if any attendant_shift in this (date, shift_type) is still Open
     const openCount = db.prepare(`
       SELECT COUNT(*) AS c FROM attendant_shifts
-       WHERE DATE(opened_at) = DATE(?) AND COALESCE(shift_type, 'DAY') = ?
+       WHERE ${SHIFT_DATE} = DATE(?) AND COALESCE(shift_type, 'DAY') = ?
          AND status = 'Open'
     `).get(date, t).c;
     if (openCount > 0) throw new Error(`${openCount} ${t} shift(s) still Open — close + finalize before approving.`);
@@ -52,7 +54,7 @@ router.post('/:date/:shiftType/approve', auth, (req, res) => {
     // Works whether the live column is NOT NULL or not; no table rebuild.
     const anchor = db.prepare(`
       SELECT MIN(id) AS id FROM attendant_shifts
-       WHERE DATE(opened_at) = DATE(?) AND COALESCE(shift_type, 'DAY') = ?
+       WHERE ${SHIFT_DATE} = DATE(?) AND COALESCE(shift_type, 'DAY') = ?
     `).get(date, t).id;
     if (!anchor) throw new Error(`There are no ${t} shifts on ${date} to approve.`);
 

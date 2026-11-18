@@ -5,8 +5,9 @@ import { getCustomers, getSettings } from '../services/api';
 import { S } from './fuelStyles';
 import { printTicket, printTicketList } from './ticketPrint';
 import keleteLogo from '../assets/kelete-logo.png';
+import { businessToday } from '../utils/businessDate';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => businessToday(); // station's day, not the UTC date
 
 export default function CreditSales() {
   return <TicketsPage method="Credit" />;

@@ -65,7 +65,7 @@ router.post('/', auth, (req, res) => {
       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(
       number, supplier_id, tank_id, tank.fuel_grade_id,
-      delivery_date || new Date().toISOString().slice(0, 10),
+      delivery_date || require('../config/businessTime').businessDate(),
       litres_ordered != null ? Number(litres_ordered) : null,
       litres,
       dip_before != null ? Number(dip_before) : null,

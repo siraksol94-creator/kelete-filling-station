@@ -112,4 +112,27 @@ module.exports = [
     // queued to be sent once. No row is deleted or rewritten.
     up(db) { require('./fuelSync').installSchema(db); },
   },
+  {
+    version: 7,
+    name: 'shift_business_date',
+    // UTC dates fix — each attendant shift records its trading day (Zambian
+    // date when opened). Existing shifts keep the date the old rule gave them
+    // (DATE(opened_at), UTC), so no approval already given covers different
+    // shifts afterwards. Additive.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(attendant_shifts)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('shift_date')) db.exec('ALTER TABLE attendant_shifts ADD COLUMN shift_date TEXT');
+      // Every device computes the same value for its existing rows, so this is
+      // not a change to sync: run it with F1's "applying" flag set.
+      const flag = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='sync_apply_state'").get();
+      if (flag) db.prepare("UPDATE sync_apply_state SET v = 1 WHERE k = 'applying'").run();
+      try {
+        db.prepare('UPDATE attendant_shifts SET shift_date = DATE(opened_at) WHERE shift_date IS NULL').run();
+      } finally {
+        if (flag) db.prepare("UPDATE sync_apply_state SET v = 0 WHERE k = 'applying'").run();
+      }
+      db.exec('CREATE INDEX IF NOT EXISTS idx_attendant_shifts_shift_date ON attendant_shifts (shift_date, shift_type)');
+    },
+  },
 ];
