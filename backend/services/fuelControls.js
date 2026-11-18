@@ -3,10 +3,11 @@
 const db = require('../config/database');
 
 // A "shift window" is one business DATE plus DAY or NIGHT. Approving it locks
-// every attendant shift opened in that window. (The date is DATE(opened_at),
-// which is UTC — see Phase 1 §5B-6; unchanged here.)
+// every attendant shift opened in that window. The date is the shift's trading
+// day in Zambian time (shift_date, set when it is opened — config/businessTime.js);
+// shifts from before that fix keep the UTC date they always had.
 function windowOf(shift) {
-  return { date: String(shift.opened_at || '').slice(0, 10), type: shift.shift_type || 'DAY' };
+  return { date: String(shift.shift_date || shift.opened_at || '').slice(0, 10), type: shift.shift_type || 'DAY' };
 }
 
 function isWindowApproved(shift) {

@@ -3,8 +3,9 @@ import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock } from 're
 import { getDailyRollup, finalizeShift, getDaySummary, approveShift, unApproveShift } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
+import { businessToday } from '../utils/businessDate';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => businessToday(); // station's day, not the UTC date
 
 export default function FuelCashReport() {
   const { user } = useAuth();
