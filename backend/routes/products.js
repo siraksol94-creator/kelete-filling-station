@@ -92,7 +92,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
                          WHERE sm2.product_sync_id = p.sync_id AND sm2.location = 'sales'
                            AND sm2.movement_type != 'reconciliation'
                            AND sm2.deleted_at IS NULL
-                           AND sm2.created_at > actual_agg.date || ' 23:59:59'
+                           AND COALESCE(sm2.business_date, DATE(sm2.created_at)) > actual_agg.date
                        ), 0)
                      ELSE COALESCE(sales_agg.sales_balance, 0)
                    END as sales_balance,
@@ -1152,8 +1152,8 @@ router.post('/bulk-siv-store-to-sales', auth, (req, res) => {
     const cfg = syncConfig.getConfig() || {};
     const sivNumber = syncConfig.generateNumber('SIV', 'siv');
     const sivSyncId = randomUUID();
-    const today = new Date().toISOString().slice(0, 10);
-    const stamp = today + ' ' + new Date().toTimeString().slice(0, 8);
+    const today = require('../config/businessTime').businessDate();
+    const stamp = require('../config/businessTime').businessStampUtc(today);
 
     // Compute per-line qty in the product's default unit + per-default-unit price.
     const lines = items.map(p => {

@@ -11,13 +11,14 @@ import InvoiceAttachment from '../components/InvoiceAttachment';
 import PaymentVoucherFormModal from '../components/PaymentVoucherFormModal';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import ExportButtons from '../components/ExportButtons';
+import { businessToday } from '../utils/businessDate';
 
 const getCategoryColor = (cat) => {
   const map = { 'Supplier': 'badge-blue', 'Utilities': 'badge-orange', 'Salaries': 'badge-purple', 'Rent': 'badge-green', 'Other': 'badge-gray' };
   return map[cat] || 'badge-gray';
 };
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 
 const PaymentVoucher = () => {
   const { hasPermission, hasPageAccess, user } = useAuth();

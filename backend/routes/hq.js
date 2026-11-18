@@ -16,6 +16,12 @@
  * fetching the branches list. HQ endpoints have their own auth model.
  */
 const express = require('express');
+// UTC dates fix: the business day (Zambia) a sale counts on — the day it was
+// paid (paid_at is UTC), else the order's business day (migration 10). Orders
+// from before that migration keep exactly the day they always showed.
+const HQ_SALE_DAY   = "(CASE WHEN business_date IS NULL THEN substr(COALESCE(paid_at, created_at), 1, 10) ELSE COALESCE(DATE(paid_at, '+120 minutes'), business_date) END)";
+const HQ_SALE_DAY_O = "(CASE WHEN o.business_date IS NULL THEN substr(COALESCE(o.paid_at, o.created_at), 1, 10) ELSE COALESCE(DATE(o.paid_at, '+120 minutes'), o.business_date) END)";
+
 const router  = express.Router();
 const jwt = require('jsonwebtoken');
 const { getJwtSecret } = require('../config/secrets');
@@ -99,7 +105,7 @@ router.get('/branches', (req, res) => {
 // revoking access takes effect without waiting for the 24h token to expire.
 router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
   try {
-    const todayPrefix = new Date().toISOString().slice(0, 10);
+    const todayPrefix = require('../config/businessTime').businessDate();
     const tenants = listTenants();
     const branches = [];
 
@@ -117,7 +123,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
             FROM orders
            WHERE deleted_at IS NULL
              AND (status IS NULL OR status IN ('PAID','DISPATCHED'))
-             AND substr(COALESCE(paid_at, created_at), 1, 10) = ?
+             AND ${HQ_SALE_DAY} = ?
         `, [todayPrefix]) || { revenue: 0, orders: 0 };
 
         // Sales month-to-date for trend context.
@@ -127,7 +133,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
             FROM orders
            WHERE deleted_at IS NULL
              AND (status IS NULL OR status IN ('PAID','DISPATCHED'))
-             AND substr(COALESCE(paid_at, created_at), 1, 7) = ?
+             AND substr(${HQ_SALE_DAY}, 1, 7) = ?
         `, [todayPrefix.slice(0, 7)]) || { revenue: 0, orders: 0 };
 
         // 3-station queue depths (NULL on single_pos branches).
@@ -220,7 +226,7 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
 // till capped at the sale total, credit = the rest.
 router.get('/route-sales', hqAuth, (req, res) => {
   try {
-    const from   = (req.query.from   || new Date().toISOString().slice(0, 10)).toString();
+    const from   = (req.query.from   || require('../config/businessTime').businessDate()).toString();
     const to     = (req.query.to     || from).toString();
     const branch = (req.query.branch || 'all').toString().toLowerCase();
     const tenants = listTenants().filter(t =>
@@ -229,8 +235,8 @@ router.get('/route-sales', hqAuth, (req, res) => {
       && (branch === 'all' || t.slug === branch));
 
     const IN_RANGE = `o.deleted_at IS NULL
-      AND substr(COALESCE(o.paid_at, o.created_at), 1, 10) >= ?
-      AND substr(COALESCE(o.paid_at, o.created_at), 1, 10) <= ?
+      AND ${HQ_SALE_DAY_O} >= ?
+      AND ${HQ_SALE_DAY_O} <= ?
       AND (o.status IS NULL OR o.status != 'Reversed')`;
     const CASH = `CASE WHEN COALESCE(o.amount_received, 0) > o.total_amount
                        THEN o.total_amount ELSE COALESCE(o.amount_received, 0) END`;
@@ -297,7 +303,7 @@ router.get('/route-sales', hqAuth, (req, res) => {
 
 router.get('/sales-report', hqAuth, (req, res) => {
   try {
-    const from   = (req.query.from   || new Date().toISOString().slice(0, 10)).toString();
+    const from   = (req.query.from   || require('../config/businessTime').businessDate()).toString();
     const to     = (req.query.to     || from).toString();
     const branch = (req.query.branch || 'all').toString().toLowerCase();
     const LIMIT  = Math.min(parseInt(req.query.limit, 10) || 1000, 5000);
@@ -338,8 +344,8 @@ router.get('/sales-report', hqAuth, (req, res) => {
                                    ELSE COALESCE(o.amount_received, 0) END), 0) AS cash_sales
             FROM orders o
            WHERE o.deleted_at IS NULL
-             AND substr(COALESCE(o.paid_at, o.created_at), 1, 10) >= ?
-             AND substr(COALESCE(o.paid_at, o.created_at), 1, 10) <= ?
+             AND ${HQ_SALE_DAY_O} >= ?
+             AND ${HQ_SALE_DAY_O} <= ?
              AND (o.status IS NULL OR o.status != 'Reversed')
         `).get(from, to) || {};
         const b = {
@@ -369,8 +375,8 @@ router.get('/sales-report', hqAuth, (req, res) => {
             LEFT JOIN users u ON u.sync_id = o.created_by_sync_id
                               OR (o.created_by_sync_id IS NULL AND u.id = o.created_by)
            WHERE o.deleted_at IS NULL
-             AND substr(COALESCE(o.paid_at, o.created_at), 1, 10) >= ?
-             AND substr(COALESCE(o.paid_at, o.created_at), 1, 10) <= ?
+             AND ${HQ_SALE_DAY_O} >= ?
+             AND ${HQ_SALE_DAY_O} <= ?
              AND (o.status IS NULL OR o.status != 'Reversed')
            ORDER BY COALESCE(o.paid_at, o.created_at) DESC
            LIMIT ?
@@ -658,7 +664,7 @@ router.get('/expense-limits', hqAuth, (req, res) => {
       try {
         spentToday = parseFloat(b.db.prepare(
           `SELECT COALESCE(SUM(amount), 0) AS t FROM payment_vouchers
-            WHERE deleted_at IS NULL AND date = date('now')`
+            WHERE deleted_at IS NULL AND date = date('now', '+120 minutes')`
         ).get()?.t) || 0;
       } catch (_) { spentToday = 0; }
       rows.push({
@@ -1222,7 +1228,7 @@ router.put('/variances/transfer/:syncId/resolve', hqAuth, (req, res) => {
       // current_stock stays truthful. profitHelper's damages query is
       // widened below to pick up movement_type='transit_writeoff' regardless
       // of location, so this row still hits daily_profit_summary.damages.
-      const today = new Date().toISOString().split('T')[0];
+      const today = require('../config/businessTime').businessDate();
       const varianceBaseQty = parseFloat(row.variance_qty) || 0;
       const movementNotes = `Transit variance write-off · ${row.transfer_number} · ${row.reason}${row.notes ? ' · ' + row.notes : ''}${notes ? ' · HQ: ' + notes : ''}`;
       branchDb.prepare(`
@@ -1303,7 +1309,7 @@ router.post('/mirror-all', hqAuth, (req, res) => {
 // 2026-09-15 — HQConsolidatedProfit permission enforced here, not just in the menu.
 router.get('/consolidated-profit', hqAuth, requirePagePerm('HQConsolidatedProfit'), (req, res) => {
   try {
-    const from = (req.query.from || new Date().toISOString().slice(0, 10)).toString();
+    const from = (req.query.from || require('../config/businessTime').businessDate()).toString();
     const to   = (req.query.to   || from).toString();
 
     const tenants = listTenants();

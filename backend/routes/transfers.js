@@ -204,8 +204,8 @@ router.get('/outgoing', hqAuth, (req, res) => {
     let sql = `SELECT * FROM stock_transfers WHERE from_slug = ?`;
     const params = [slug];
     if (status) { sql += ' AND status = ?'; params.push(status); }
-    if (from)   { sql += ' AND DATE(created_at) >= ?'; params.push(from); }
-    if (to)     { sql += ' AND DATE(created_at) <= ?'; params.push(to); }
+    if (from)   { sql += ' AND DATE(created_at, \'+120 minutes\') >= ?'; params.push(from); }
+    if (to)     { sql += ' AND DATE(created_at, \'+120 minutes\') <= ?'; params.push(to); }
     sql += ' ORDER BY created_at DESC LIMIT 500';
     const rows = masterDb.prepare(sql).all(...params).map(parseItems);
     res.json({ transfers: rows });
@@ -231,8 +231,8 @@ router.get('/incoming', hqAuth, (req, res) => {
     let sql = `SELECT * FROM stock_transfers WHERE to_slug = ?`;
     const params = [slug];
     if (status) { sql += ' AND status = ?'; params.push(status); }
-    if (from)   { sql += ' AND DATE(created_at) >= ?'; params.push(from); }
-    if (to)     { sql += ' AND DATE(created_at) <= ?'; params.push(to); }
+    if (from)   { sql += ' AND DATE(created_at, \'+120 minutes\') >= ?'; params.push(from); }
+    if (to)     { sql += ' AND DATE(created_at, \'+120 minutes\') <= ?'; params.push(to); }
     sql += ' ORDER BY created_at DESC LIMIT 500';
     const rows = masterDb.prepare(sql).all(...params).map(parseItems);
     res.json({ transfers: rows });

@@ -44,7 +44,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
     const totalInjection = db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM capital_account WHERE deleted_at IS NULL AND tenant_id = ? AND type = 'Injection'").get(tenantId).s;
     const totalDrawing   = db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM capital_account WHERE deleted_at IS NULL AND tenant_id = ? AND type = 'Drawing'").get(tenantId).s;
     const count          = db.prepare('SELECT COUNT(*) AS cnt FROM capital_account WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId).cnt;
-    const thisMonth      = db.prepare("SELECT COUNT(*) AS cnt FROM capital_account WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m','now')").get(tenantId).cnt;
+    const thisMonth      = db.prepare("SELECT COUNT(*) AS cnt FROM capital_account WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m', 'now', '+120 minutes')").get(tenantId).cnt;
     res.json({
       totalInjection: parseFloat(totalInjection),
       totalDrawing:   parseFloat(totalDrawing),
@@ -92,7 +92,7 @@ router.post('/', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     const entryNumber = syncConfig.generateNumber('CAP', 'capital_account');
-    const entryDate   = date || new Date().toISOString().split('T')[0];
+    const entryDate   = date || require('../config/businessTime').businessDate();
     const shareholderSyncId = lookupShareholderSyncId(req, shareholder_id);
 
     const info = db.prepare(`

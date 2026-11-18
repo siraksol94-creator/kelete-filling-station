@@ -31,7 +31,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
     const increases = db.prepare("SELECT COUNT(*) AS cnt FROM stock_adjustments WHERE deleted_at IS NULL AND tenant_id = ? AND adjustment_type = 'increase'").get(tenantId);
     const decreases = db.prepare("SELECT COUNT(*) AS cnt FROM stock_adjustments WHERE deleted_at IS NULL AND tenant_id = ? AND adjustment_type = 'decrease'").get(tenantId);
     const thisMonth = db.prepare(
-      "SELECT COUNT(*) AS cnt FROM stock_adjustments WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', created_at) = strftime('%Y-%m', 'now')"
+      "SELECT COUNT(*) AS cnt FROM stock_adjustments WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', created_at, '+120 minutes') = strftime('%Y-%m', 'now', '+120 minutes')"
     ).get(tenantId);
     res.json({
       total: total.cnt,
@@ -55,8 +55,8 @@ router.post('/', auth, async (req, res) => {
 
     const result = db.transaction(() => {
       const adjNum = syncConfig.generateNumber('ADJ', 'stock_adjustments');
-      const adjDate = date || new Date().toISOString().split('T')[0];
-      const movementCreatedAt = adjDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const adjDate = date || require('../config/businessTime').businessDate();
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(adjDate);
       const qty = parseFloat(quantity);
       const tenantId = syncConfig.getTenantId(req);
       const { branchId, deviceId } = syncConfig.getConfig();

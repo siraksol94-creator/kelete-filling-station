@@ -121,11 +121,13 @@ router.post('/', auth, (req, res) => {
     const toAmt   = parseFloat(to_amount);
     if (!isFinite(fromAmt) || fromAmt <= 0) return res.status(400).json({ error: 'from_amount must be > 0' });
     if (!isFinite(toAmt)   || toAmt   <= 0) return res.status(400).json({ error: 'to_amount must be > 0' });
-    const day = (date || new Date().toISOString().slice(0, 10)).slice(0, 10);
+    const bt = require('../config/businessTime');
+    const day = (date || bt.businessDate()).slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return res.status(400).json({ error: 'date must be YYYY-MM-DD' });
     const tm = (time && /^\d{2}:\d{2}/.test(time))
       ? String(time).slice(0, 5) + ':00'
-      : new Date().toTimeString().slice(0, 8);
+      // the station's clock, not the server's (UTC on the VPS)
+      : new Date(bt.now().getTime() + bt.offsetMinutes() * 60000).toISOString().slice(11, 19);
 
     const rate = toAmt / fromAmt;
     const cfg = syncConfig.getConfig() || {};

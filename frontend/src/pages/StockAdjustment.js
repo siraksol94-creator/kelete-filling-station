@@ -7,6 +7,7 @@ import { FiPlus, FiTrendingUp, FiTrendingDown, FiCalendar, FiPackage, FiX, FiTra
 import Toast from '../components/Toast';
 import { formatStock, formatStockForProduct } from '../utils/unitFormat';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
+import { businessToday } from '../utils/businessDate';
 
 const StockAdjustment = () => {
   const { t } = useLanguage();
@@ -31,7 +32,7 @@ const StockAdjustment = () => {
   const [quantity, setQuantity] = useState('');
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(businessToday());
 
   const fetchData = async () => {
     try {
@@ -60,7 +61,7 @@ const StockAdjustment = () => {
     setQuantity('');
     setReason('');
     setNotes('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(businessToday());
     setError('');
     setShowForm(true);
   };

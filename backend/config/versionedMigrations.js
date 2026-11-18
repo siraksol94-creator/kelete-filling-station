@@ -178,4 +178,35 @@ module.exports = [
       }
     },
   },
+  {
+    version: 10,
+    name: 'business_date_orders_stock',
+    // UTC dates fix (shop/accounting) — orders and stock movements record the
+    // station's day (UTC+2) when written. A trigger fills it, so no insert
+    // needs changing; a row arriving by sync brings its own. Existing rows stay
+    // NULL and reports fall back to the day they always showed (no historical
+    // row moves to another day). The offset is fixed at +120 min here, as in
+    // config/businessTime.js (Zambia has no daylight saving).
+    up(db) {
+      for (const t of ['orders', 'stock_movements']) {
+        const cols = db.prepare(`PRAGMA table_info(${t})`).all().map(c => c.name);
+        if (!cols.length) continue;
+        if (!cols.includes('business_date')) db.exec(`ALTER TABLE ${t} ADD COLUMN business_date TEXT`);
+        db.exec(`
+          DROP TRIGGER IF EXISTS trg_${t}_business_date_ins;
+          CREATE TRIGGER trg_${t}_business_date_ins AFTER INSERT ON ${t}
+          WHEN NEW.business_date IS NULL AND NEW.created_at IS NOT NULL
+          BEGIN
+            UPDATE ${t} SET business_date = DATE(NEW.created_at, '+120 minutes') WHERE rowid = NEW.rowid;
+          END;
+          DROP TRIGGER IF EXISTS trg_${t}_business_date_upd;
+          CREATE TRIGGER trg_${t}_business_date_upd AFTER UPDATE OF created_at ON ${t}
+          WHEN NEW.created_at IS NOT OLD.created_at AND NEW.business_date IS OLD.business_date AND OLD.business_date IS NOT NULL
+          BEGIN
+            UPDATE ${t} SET business_date = DATE(NEW.created_at, '+120 minutes') WHERE rowid = NEW.rowid;
+          END;
+          CREATE INDEX IF NOT EXISTS idx_${t}_business_date ON ${t} (business_date);`);
+      }
+    },
+  },
 ];

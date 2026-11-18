@@ -6,8 +6,9 @@ import { pickDisplayUnit } from '../utils/productUnits';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
 const formatDate = (d) => {

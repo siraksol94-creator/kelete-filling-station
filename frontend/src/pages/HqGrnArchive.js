@@ -14,9 +14,10 @@ import { getHqGrnArchive, getHqGrn, getHqGrnDetail, getHqBranches, getHqSupplier
 import { useAuth } from '../context/AuthContext';
 import { useSort, SortTh } from '../components/SortableTable';
 import { usePurchaseTrace, TraceSearchBox, TracePanel, TrackButton } from '../components/PurchaseTrace';
+import { businessToday } from '../utils/businessDate';
 
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => businessToday();
 const monthAgoISO = () => {
   const d = new Date();
   d.setDate(d.getDate() - 30);

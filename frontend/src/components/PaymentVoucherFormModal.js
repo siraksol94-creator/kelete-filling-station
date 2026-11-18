@@ -7,8 +7,9 @@ import { getPvTypes, createPaymentVoucher, updatePaymentVoucher, createExpenseRe
 import { useCurrency } from '../context/CurrencyContext';
 import Portal from '../utils/Portal';
 import InvoiceAttachment from './InvoiceAttachment';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const todayStr = () => businessToday();
 
 const PaymentVoucherFormModal = ({
   open,

@@ -44,7 +44,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const total      = db.prepare('SELECT COALESCE(SUM(amount),0) AS s FROM dividend_account WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId).s;
-    const thisMonth  = db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM dividend_account WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m','now')").get(tenantId).s;
+    const thisMonth  = db.prepare("SELECT COALESCE(SUM(amount),0) AS s FROM dividend_account WHERE deleted_at IS NULL AND tenant_id = ? AND strftime('%Y-%m', date) = strftime('%Y-%m', 'now', '+120 minutes')").get(tenantId).s;
     const count      = db.prepare('SELECT COUNT(*) AS cnt FROM dividend_account WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId).cnt;
     res.json({
       totalPaid:      parseFloat(total),
@@ -82,7 +82,7 @@ router.post('/', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     const entryNumber = syncConfig.generateNumber('DIV', 'dividend_account');
-    const entryDate   = date || new Date().toISOString().split('T')[0];
+    const entryDate   = date || require('../config/businessTime').businessDate();
     const shareholderSyncId = lookupShareholderSyncId(req, shareholder_id);
 
     const info = db.prepare(`

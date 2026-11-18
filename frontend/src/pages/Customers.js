@@ -14,11 +14,12 @@ import Portal from '../utils/Portal';
 import { matchTokens } from '../utils/tokenSearch';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
+import { businessToday } from '../utils/businessDate';
 
 const TYPES = ['Regular', 'Wholesale', 'Retail'];
 const typeColors = { Regular: '#16a34a', Wholesale: '#2563eb', Retail: '#9333ea' };
 const avatarColors = ['#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#9333ea', '#ec4899'];
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => businessToday();
 
 const emptyForm = {
   name: '', type: 'Regular', phone: '', email: '', address: '', tpin: '',

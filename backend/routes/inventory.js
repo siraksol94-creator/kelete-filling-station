@@ -120,8 +120,12 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 router.get('/store', auth, readOnlyGuard, (req, res) => {
   try {
     const { from, to } = req.query;
+    // These go into the SQL text below: accept real dates only (was open to injection).
+    const isDay = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v));
+    if ((from && !isDay(from)) || (to && !isDay(to))) return res.status(400).json({ error: 'from / to must be YYYY-MM-DD' });
     const tenantId = req.user.tenantId;
     const loc = req.query.location === 'sales' ? 'sales' : 'store';
+    // UTC dates fix: a movement's day is its business day (Zambia) — migration 10.
 
     // 2026-09-26 — what counts as a declared opening balance. TWO conventions
     // exist and this route knew only the older one:
@@ -145,14 +149,14 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
     // Opening balance = all movements BEFORE `from` (if from set), else the
     // declared opening balance.
     const openingWhere = from
-      ? `location = '${loc}' AND deleted_at IS NULL AND product_sync_id IS NOT NULL AND DATE(created_at) < '${from}'`
+      ? `location = '${loc}' AND deleted_at IS NULL AND product_sync_id IS NOT NULL AND COALESCE(business_date, DATE(created_at)) < '${from}'`
       : `location = '${loc}' AND ${OPENING_ROW} AND deleted_at IS NULL AND product_sync_id IS NOT NULL`;
 
     // In/out movements within the date range
     const rangeWhere = [
       `location = '${loc}'`, `deleted_at IS NULL`, `product_sync_id IS NOT NULL`,
-      ...(from ? [`DATE(created_at) >= '${from}'`] : []),
-      ...(to   ? [`DATE(created_at) <= '${to}'`]   : []),
+      ...(from ? [`COALESCE(business_date, DATE(created_at)) >= '${from}'`] : []),
+      ...(to   ? [`COALESCE(business_date, DATE(created_at)) <= '${to}'`]   : []),
     ].join(' AND ');
 
     // A row belongs in Total In unless the opening column already counted it,
@@ -166,7 +170,7 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
     // Closing balance = all movements up to `to` (closing), or all-time if no `to`
     const balanceWhere = [
       `location = '${loc}'`, `deleted_at IS NULL`, `product_sync_id IS NOT NULL`,
-      ...(to ? [`DATE(created_at) <= '${to}'`] : []),
+      ...(to ? [`COALESCE(business_date, DATE(created_at)) <= '${to}'`] : []),
     ].join(' AND ');
 
     const rows = db.prepare(`
@@ -279,7 +283,7 @@ router.get('/store', auth, readOnlyGuard, (req, res) => {
 router.get('/sales', auth, readOnlyGuard, (req, res) => {
   try {
     const { date } = req.query;
-    const selectedDate = date || new Date().toISOString().split('T')[0];
+    const selectedDate = date || require('../config/businessTime').businessDate();
 
     const rows = db.prepare(`
       SELECT
@@ -333,7 +337,7 @@ router.get('/sales', auth, readOnlyGuard, (req, res) => {
         FROM stock_movements
         WHERE location = 'sales'
           AND movement_type IN ('siv', 'grn', 'transfer_in')
-          AND date(created_at) = @date
+          AND COALESCE(business_date, DATE(created_at)) = @date
           AND deleted_at IS NULL
           AND product_sync_id IS NOT NULL
         GROUP BY product_sync_id
@@ -347,7 +351,7 @@ router.get('/sales', auth, readOnlyGuard, (req, res) => {
         -- reverses (sale=-qty, sale_reverse=+qty).
         SELECT product_sync_id, ABS(SUM(quantity)) AS total_sales
         FROM stock_movements WHERE location = 'sales' AND movement_type IN ('sale', 'reverse', 'sale_reverse')
-          AND created_at >= @date AND created_at < date(@date, '+1 day') AND product_sync_id IS NOT NULL
+          AND COALESCE(business_date, DATE(created_at)) = @date AND product_sync_id IS NOT NULL
         GROUP BY product_sync_id
       ) sales_day_agg ON sales_day_agg.product_sync_id = p.sync_id
 
@@ -409,14 +413,14 @@ router.get('/sales', auth, readOnlyGuard, (req, res) => {
 router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
   try {
     const { date } = req.query;
-    const selectedDate = date || new Date().toISOString().split('T')[0];
+    const selectedDate = date || require('../config/businessTime').businessDate();
     const tenantId = req.user.tenantId;
 
     // Revenue: actual cash from POS orders
     const revRow = db.prepare(`
       SELECT COALESCE(SUM(total_amount), 0) AS revenue
       FROM orders
-      WHERE DATE(created_at) = ? AND deleted_at IS NULL AND tenant_id = ?
+      WHERE COALESCE(business_date, DATE(created_at)) = ? AND deleted_at IS NULL AND tenant_id = ?
         AND (status IS NULL OR status != 'Reversed')
     `).get(selectedDate, tenantId);
 
@@ -435,7 +439,7 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
       LEFT JOIN (SELECT product_sync_id, SUM(quantity) AS total_qty, SUM(total_price) AS total_cost FROM grn_items WHERE deleted_at IS NULL AND product_sync_id IS NOT NULL GROUP BY product_sync_id) grn_agg ON grn_agg.product_sync_id = sm.product_sync_id
       LEFT JOIN (SELECT product_sync_id, SUM(quantity) AS total_qty, SUM(total_allocated_cost) AS total_cost FROM production_outputs WHERE deleted_at IS NULL AND product_sync_id IS NOT NULL GROUP BY product_sync_id) prod_agg ON prod_agg.product_sync_id = sm.product_sync_id
       WHERE sm.location = 'sales' AND sm.movement_type IN ('sale', 'reverse', 'sale_reverse')
-        AND DATE(sm.created_at) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
+        AND COALESCE(sm.business_date, DATE(sm.created_at)) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
         AND p.tenant_id = ?
     `).get(selectedDate, selectedDate, tenantId);
 
@@ -454,7 +458,7 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
       LEFT JOIN (SELECT product_sync_id, SUM(quantity) AS total_qty, SUM(total_price) AS total_cost FROM grn_items WHERE deleted_at IS NULL AND product_sync_id IS NOT NULL GROUP BY product_sync_id) grn_agg ON grn_agg.product_sync_id = sm.product_sync_id
       LEFT JOIN (SELECT product_sync_id, SUM(quantity) AS total_qty, SUM(total_allocated_cost) AS total_cost FROM production_outputs WHERE deleted_at IS NULL AND product_sync_id IS NOT NULL GROUP BY product_sync_id) prod_agg ON prod_agg.product_sync_id = sm.product_sync_id
       WHERE sm.location = 'sales' AND sm.movement_type = 'reconciliation'
-        AND DATE(sm.created_at) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
+        AND COALESCE(sm.business_date, DATE(sm.created_at)) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
         AND p.tenant_id = ?
     `).get(selectedDate, selectedDate, tenantId);
 
@@ -505,7 +509,7 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
 // GET /api/inventory/sales/daily-summary?date=YYYY-MM-DD
 router.get('/sales/daily-summary', auth, readOnlyGuard, (req, res) => {
   try {
-    const date = req.query.date || new Date().toISOString().split('T')[0];
+    const date = req.query.date || require('../config/businessTime').businessDate();
     const tenantId = req.user.tenantId;
     const row = db.prepare(`
       SELECT date, revenue, cogs, damages, supplier_rebates, diff_value, cash_difference, pv_total, stock_adj, gross_profit, net_profit
@@ -745,7 +749,7 @@ router.get('/bin-card', auth, readOnlyGuard, (req, res) => {
     if (from) {
       obSql = `SELECT COALESCE(SUM(quantity), 0) AS opening_balance FROM stock_movements
         WHERE product_sync_id = ? AND location = 'store' AND deleted_at IS NULL
-        AND (movement_type = 'opening' OR created_at < ?)`;
+        AND (movement_type = 'opening' OR COALESCE(business_date, DATE(created_at)) < ?)`;
       obParams = [pidSync, from];
     } else {
       obSql = `SELECT COALESCE(SUM(quantity), 0) AS opening_balance FROM stock_movements
@@ -760,7 +764,7 @@ router.get('/bin-card', auth, readOnlyGuard, (req, res) => {
     let sql = `
       SELECT
         sm.id,
-        date(sm.created_at)   AS date,
+        COALESCE(sm.business_date, DATE(sm.created_at)) AS date,
         sm.movement_type,
         sm.reference_type,
         COALESCE(g.grn_number, sv.siv_number, pr.production_number, sm.movement_type) AS reference,
@@ -776,8 +780,8 @@ router.get('/bin-card', auth, readOnlyGuard, (req, res) => {
       WHERE sm.product_sync_id = @product_sync_id AND sm.location = 'store'
         AND sm.deleted_at IS NULL AND sm.movement_type != 'opening'
     `;
-    if (from) { sql += ' AND sm.created_at >= @from'; namedParams.from = from; }
-    if (to)   { sql += " AND sm.created_at < date(@to, '+1 day')"; namedParams.to = to; }
+    if (from) { sql += ' AND COALESCE(sm.business_date, DATE(sm.created_at)) >= @from'; namedParams.from = from; }
+    if (to)   { sql += ' AND COALESCE(sm.business_date, DATE(sm.created_at)) <= @to'; namedParams.to = to; }
     sql += ' ORDER BY sm.created_at ASC, sm.id ASC';
 
     // Add opening balance offset to each row's balance in JS (not SQL) to avoid window function param binding issues
@@ -800,7 +804,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
     const pidSync = pidSyncRow?.sync_id;
 
     // For sales_return movements, use the user-selected date (sr.date) not created_at
-    const effectiveDate = `CASE WHEN sm.movement_type = 'sales_return' AND sr.date IS NOT NULL THEN sr.date ELSE date(sm.created_at) END`;
+    const effectiveDate = `CASE WHEN sm.movement_type = 'sales_return' AND sr.date IS NOT NULL THEN sr.date ELSE COALESCE(sm.business_date, DATE(sm.created_at)) END`;
 
     // Opening balance: sum of all sales movements before 'from'
     let obSql, obParams;
@@ -809,7 +813,7 @@ router.get('/sales-bin-card', auth, readOnlyGuard, (req, res) => {
         FROM stock_movements sm
         LEFT JOIN sales_returns sr ON sr.sync_id = sm.reference_sync_id AND sm.reference_type = 'sales_return'
         WHERE sm.product_sync_id = ? AND sm.location = 'sales' AND sm.deleted_at IS NULL
-          AND (CASE WHEN sm.movement_type = 'sales_return' AND sr.date IS NOT NULL THEN sr.date ELSE date(sm.created_at) END) < ?`;
+          AND (CASE WHEN sm.movement_type = 'sales_return' AND sr.date IS NOT NULL THEN sr.date ELSE COALESCE(sm.business_date, DATE(sm.created_at)) END) < ?`;
       obParams = [pidSync, from];
     } else {
       obSql = `SELECT COALESCE(SUM(sm.quantity), 0) AS opening_balance

@@ -7,6 +7,7 @@ import { pickDisplayUnit } from '../utils/productUnits';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
+import { businessToday } from '../utils/businessDate';
 
 // Map a document reference number to the page that hosts its detail view.
 // Returns { path, ref } for clickable references, or null for plain text
@@ -19,7 +20,7 @@ function refTarget(refNumber) {
   return null;
 }
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
 const formatDate = (d) => {

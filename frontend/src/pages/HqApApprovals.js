@@ -17,6 +17,7 @@ import InvoiceAttachment from '../components/InvoiceAttachment';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiCheck, FiCheckCircle, FiDollarSign, FiRefreshCw, FiClock, FiUser, FiFileText, FiEye, FiX, FiPaperclip, FiXCircle, FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import { businessToday } from '../utils/businessDate';
 
 const STATUS_META = {
   // 2026-09-06 — the delivery confirmation, in front of everything else.
@@ -219,7 +220,7 @@ const HqApApprovals = () => {
         supplier_name: row.supplier_name,
         amount: amt,
         ...paymentAmt,
-        date: new Date().toISOString().slice(0, 10),
+        date: businessToday(),
         paid_from: paidFrom,
         description: `GRN ${row.grn_number} — Invoice ${row.invoice_number || '—'}`,
         grn_sync_id: row.grn_sync_id,
@@ -442,7 +443,7 @@ const HqApApprovals = () => {
         credit_sync_ids:  batchCredits.map(r => r.grn_sync_id),
         amount: amt,
         ...paymentAmt,
-        date: new Date().toISOString().slice(0, 10),
+        date: businessToday(),
         paid_from: paidFrom,
       });
       const paidCount = (data?.allocations || []).filter(a => a.status === 'PAID').length;

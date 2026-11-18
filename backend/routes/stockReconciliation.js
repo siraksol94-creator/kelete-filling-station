@@ -14,8 +14,9 @@ const vsdc = require('../services/vsdcClient');
 //    When `asOf` is a YYYY-MM-DD date, the balance is computed as of that date
 //    (inclusive) so back-dated reconciliations compare apples-to-apples.
 function balanceSQL(location, tenantId, asOf = null) {
-  const asOfClause = asOf ? ` AND created_at <= ?` : '';
-  const balParams = asOf ? [location, `${asOf} 23:59:59`] : [location];
+  // UTC dates fix: by the movement's business day (Zambia), not its UTC time.
+  const asOfClause = asOf ? ` AND COALESCE(business_date, DATE(created_at)) <= ?` : '';
+  const balParams = asOf ? [location, asOf] : [location];
   return {
     text: `
       SELECT
@@ -160,7 +161,7 @@ router.post('/', auth, async (req, res) => {
     // v1.13.84 — collected inside the tx, fired to VSDC after commit.
     const zraVarianceLines = [];
     const loc = location === 'store' ? 'store' : 'sales';
-    const countDate = count_date || new Date().toISOString().slice(0, 10);
+    const countDate = count_date || require('../config/businessTime').businessDate();
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
 
@@ -203,8 +204,8 @@ router.post('/', auth, async (req, res) => {
         const balRow = db.prepare(`
           SELECT COALESCE(SUM(quantity), 0) AS bal FROM stock_movements
           WHERE product_sync_id = ? AND location = ? AND deleted_at IS NULL
-            AND created_at <= ?
-        `).get(prod.sync_id, loc, `${countDate} 23:59:59`);
+            AND COALESCE(business_date, DATE(created_at)) <= ?
+        `).get(prod.sync_id, loc, countDate);
         const systemBase = parseFloat(balRow.bal || 0);
         const varianceBase = physicalBase - systemBase;
 

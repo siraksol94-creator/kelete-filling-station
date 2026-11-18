@@ -12,10 +12,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCw } from 'react-icons/fi';
 import { getHqSalesReport, getHqBranches, setHqBranch } from '../services/api';
 import ExportButtons from '../components/ExportButtons';
+import { businessToday } from '../utils/businessDate';
 
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtInt   = (n) => parseFloat(n || 0).toLocaleString();
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => businessToday();
 
 const NAVY = '#13306b';
 const NAVY_DEEP = '#0b1f4a';

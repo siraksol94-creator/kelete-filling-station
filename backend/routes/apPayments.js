@@ -102,7 +102,7 @@ router.post('/', auth, (req, res) => {
     `).run(paymentNum, supplier_id || null, supplierSyncId, supplier_name || null,
            total, cash, bank, momo,
            usd, fra, kAmt,
-           description || null, date || new Date().toISOString().split('T')[0],
+           description || null, date || require('../config/businessTime').businessDate(),
            derivedPaidFrom, invoice_attachment || null, req.user.id,
            // 2026-08-30 — the GRN this settles. Was received and thrown away.
            grnSyncId || null,
@@ -350,7 +350,7 @@ router.post('/batch', auth, (req, res) => {
       insert.run(paymentNum, resolvedSupplierId, resolvedSupplierSyncId, resolvedSupplierName,
                  total, cash, bank, momo,
                  usd, fra, kAmt,
-                 desc, date || new Date().toISOString().split('T')[0],
+                 desc, date || require('../config/businessTime').businessDate(),
                  derivedPaidFrom, invoice_attachment || null, req.user.id,
                  // grn_sync_id stays set when exactly one GRN is settled, so a
                  // single-invoice payment still looks the way it always did to

@@ -12,6 +12,7 @@ import {
   getHqSuppliers, getHqSupplier, createHqSupplier, updateHqSupplier,
   deleteHqSupplier, recordHqSupplierPayment, deleteHqSupplierPayment,
 } from '../services/api';
+import { businessToday } from '../utils/businessDate';
 
 const fmtMoney = (n) => {
   const v = parseFloat(n || 0);
@@ -19,7 +20,7 @@ const fmtMoney = (n) => {
   return v < 0 ? `-${s}` : s;
 };
 const fmtInt = (n) => parseFloat(n || 0).toLocaleString();
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => businessToday();
 
 export default function HqSuppliers() {
   const [rows, setRows]       = useState([]);

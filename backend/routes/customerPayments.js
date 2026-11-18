@@ -96,7 +96,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     // Negative id keeps these distinct from manual rows (which use the AUTOINCREMENT positive ids).
     let posSql = `
       SELECT (-o.id) AS id,
-             DATE(o.created_at) AS payment_date,
+             COALESCE(o.business_date, DATE(o.created_at)) AS payment_date,
              o.customer_id, c.name AS customer_name,
              CASE
                WHEN (CASE WHEN COALESCE(o.cash_received,0) > 0 THEN 1 ELSE 0 END
@@ -126,8 +126,8 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
         AND o.tenant_id = ?`;
     const posParams = [req.user.tenantId];
     if (customer_id) { posSql += ' AND o.customer_sync_id = (SELECT sync_id FROM customers WHERE id = ?)'; posParams.push(parseInt(customer_id)); }
-    if (from)        { posSql += ' AND DATE(o.created_at) >= ?'; posParams.push(from); }
-    if (to)          { posSql += ' AND DATE(o.created_at) <= ?'; posParams.push(to); }
+    if (from)        { posSql += ' AND COALESCE(o.business_date, DATE(o.created_at)) >= ?'; posParams.push(from); }
+    if (to)          { posSql += ' AND COALESCE(o.business_date, DATE(o.created_at)) <= ?'; posParams.push(to); }
     const posRows = db.prepare(posSql).all(...posParams);
 
     // Merge + sort newest first.
@@ -176,7 +176,7 @@ router.post('/', auth, (req, res) => {
     if (!customer) return res.status(404).json({ error: 'Customer not found' });
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
-    const finalDate = payment_date || new Date().toISOString().slice(0, 10);
+    const finalDate = payment_date || require('../config/businessTime').businessDate();
     // cash_amount stays as the dollar VALUE of the receipt — Cash Book
     // and other legacy aggregations still SUM(cash_amount). For triple-
     // currency, that's usd + fra-as-usd + k-as-usd.

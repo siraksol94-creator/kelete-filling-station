@@ -81,7 +81,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const total = db.prepare('SELECT COUNT(*) AS cnt FROM grn WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
-    const thisMonth = db.prepare("SELECT COUNT(*) AS cnt FROM grn WHERE deleted_at IS NULL AND tenant_id = ? AND date >= date('now', 'start of month')").get(tenantId);
+    const thisMonth = db.prepare("SELECT COUNT(*) AS cnt FROM grn WHERE deleted_at IS NULL AND tenant_id = ? AND date >= date('now', '+120 minutes', 'start of month')").get(tenantId);
     const suppliers = db.prepare('SELECT COUNT(DISTINCT supplier_sync_id) AS cnt FROM grn WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
     const unpaid = db.prepare(`
       WITH supplier_paid AS (
@@ -165,12 +165,12 @@ router.post('/', auth, async (req, res) => {
         return sum + (recv - ret) * dep;
       }, 0);
       const totalAmount = beverageTotal + containerTotal;
-      const grnDate = date || new Date().toISOString().split('T')[0];
+      const grnDate = date || require('../config/businessTime').businessDate();
       const tenantId = syncConfig.getTenantId(req);
       const { branchId, deviceId } = syncConfig.getConfig();
 
       // Tag stock_movements with GRN's business date for Bin Card correctness.
-      const movementCreatedAt = grnDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(grnDate);
       const grnSyncId = randomUUID();
       // Prefer client-sent supplier_sync_id over local-id lookup to avoid
       // silent supplier swap on cross-device edits.
@@ -271,7 +271,7 @@ router.post('/', auth, async (req, res) => {
       // so the floor count drops. Mirrors supplierCreditNotes POST exactly.
       if (Array.isArray(credit_notes) && credit_notes.length > 0) {
         const supplierSyncIdForCn = supplierSyncId; // resolved above when inserting grn
-        const movementCreatedAt = grnDate + ' ' + new Date().toTimeString().slice(0, 8);
+        const movementCreatedAt = require('../config/businessTime').businessStampUtc(grnDate);
         for (const cn of credit_notes) {
           const reason = (cn?.reason || 'Other').toString();
           const reasonHasStock = reason === 'Crate Return' || reason === 'Bottle Return' || reason === 'Goods Return';
@@ -565,7 +565,7 @@ router.put('/:id', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     // Stock movements keep the GRN's business date even on edit.
-    const movementCreatedAt = date + ' ' + new Date().toTimeString().slice(0, 8);
+    const movementCreatedAt = require('../config/businessTime').businessStampUtc(date);
 
     db.transaction(() => {
       // Prefer client-sent supplier_sync_id (stable across PCs).

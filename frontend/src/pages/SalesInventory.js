@@ -14,6 +14,7 @@ import { matchTokens } from '../utils/tokenSearch';
 // v1.8.30 — display quantities in the largest configured packaging
 // (e.g. "10 box + 4 pcs") instead of raw base-unit count.
 import { formatStockForProduct } from '../utils/unitFormat';
+import { businessToday } from '../utils/businessDate';
 const SalesInventory = () => {
   const { user, hasPermission } = useAuth();
   const { symbol: curSym } = useCurrency();
@@ -23,7 +24,7 @@ const SalesInventory = () => {
   const [search, setSearch] = useState('');
   const [actualBalances, setActualBalances] = useState({});
   const [reasons, setReasons] = useState({});
-  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState(businessToday());
   const maxDate = new Date(Date.now() + 86400000).toISOString().split('T')[0]; // today + 1 day
   const [toast, setToast] = useState(null);
   const [savedRows, setSavedRows] = useState({});   // rows confirmed saved on server
@@ -495,7 +496,7 @@ const SalesInventory = () => {
               style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}
             />
             <button
-              onClick={() => setFilterDate(new Date().toISOString().split('T')[0])}
+              onClick={() => setFilterDate(businessToday())}
               style={{
                 padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
                 background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 500,

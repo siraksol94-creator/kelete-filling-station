@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
+import { businessToday } from '../utils/businessDate';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5300/api';
 const getToken = () => localStorage.getItem('token');
@@ -648,7 +649,7 @@ const StockCount = () => {
               type="text"
               value={newSessionName}
               onChange={e => setNewSessionName(e.target.value)}
-              placeholder={`Stock Count ${new Date().toISOString().split('T')[0]}`}
+              placeholder={`Stock Count ${businessToday()}`}
               style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, marginTop: 6, marginBottom: 20, boxSizing: 'border-box' }}
               onKeyDown={e => { if (e.key === 'Enter') createSession(); }}
               autoFocus

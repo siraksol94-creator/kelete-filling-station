@@ -27,6 +27,7 @@ import { sortBranches } from '../utils/sortBranches';
 // (e.g. Box) instead of the raw base unit (Bottle).
 import { formatStockForProduct } from '../utils/unitFormat';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
 function currentBranchSlug() {
   if (isHqHost()) return getHqBranch() || '';
@@ -49,7 +50,7 @@ const fmtQty   = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFr
 // v1.9.22 — default the history date range to the last 30 days. Outgoing
 // & Incoming "All Time" hits the LIMIT 500 ceiling on busy branches so
 // the page should default to a recent window the user can widen.
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => businessToday();
 const daysAgoISO = (n) => {
   const d = new Date();
   d.setDate(d.getDate() - n);

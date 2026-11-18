@@ -1453,7 +1453,7 @@ router.post('/:slug/:syncId/confirm', hqAuth, async (req, res) => {
       // Per-line stock movements at sales floor + current_stock bump.
       // Same pattern as legacy GRN POST but always location='sales',
       // and created_by=NULL because HQ users don't exist in branch users.
-      const movementCreatedAt = (grn.date || new Date().toISOString().slice(0,10)) + ' ' + new Date().toTimeString().slice(0,8);
+      const movementCreatedAt = require('../config/businessTime').businessStampUtc(grn.date);
       // Ownership for the movements below — see branchSyncIds().
       const __ids = branchSyncIds(db);
       for (const it of items) {
@@ -2169,7 +2169,7 @@ router.post('/generate', hqAuth, async (req, res) => {
 
     const grnSyncId = randomUUID();
     const grnNumber = `GRN-${new Date().getFullYear()}-${String(Date.now()).slice(-8)}`;
-    const grnDate = date || new Date().toISOString().slice(0, 10);
+    const grnDate = date || require('../config/businessTime').businessDate();
     const validItems = items.filter(i => parseFloat(i.quantity) > 0);
     const itemsSubtotal = validItems.reduce((s, i) =>
       s + (parseFloat(i.quantity) || 0) * (parseFloat(i.unit_price) || 0), 0);
@@ -2560,7 +2560,7 @@ router.post('/generate', hqAuth, async (req, res) => {
     };
     try {
       const branchDb = getTenantDb(branchSlug);
-      const branchMovementAt = grnDate + ' ' + new Date().toTimeString().slice(0, 8);
+      const branchMovementAt = require('../config/businessTime').businessStampUtc(grnDate);
       // v1.10.55 — atomic UPDATE that bumps current_stock AND blends
       // avg_cost_price in one statement. Uses the pre-update snapshot of
       // both fields (SQLite evaluates the row RHS before applying the SET).

@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FiRefreshCw, FiBook } from 'react-icons/fi';
 import { getTanks, getTankBinCard, getTankGroupBinCard } from '../services/fuelApi';
 import { S } from './fuelStyles';
+import { businessToday } from '../utils/businessDate';
 
 // Default range: today only. Backend returns an opening-before line + each
 // movement with its running balance, so the operator can see where a tank
 // stood at midnight and every row that moved it since.
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => businessToday();
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
 const fmtDate = s => (s || '').slice(0, 10);
 

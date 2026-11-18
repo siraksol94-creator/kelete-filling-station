@@ -11,6 +11,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiPlus, FiRepeat, FiX } from 'react-icons/fi';
 import { getCurrencyExchanges, createCurrencyExchange } from '../services/api';
+import { businessToday } from '../utils/businessDate';
 
 const CURRENCIES = ['USD', 'FRA', 'K'];
 const fmt = (n, dec) => parseFloat(n || 0).toLocaleString(undefined, {
@@ -79,7 +80,7 @@ export default function CurrencyExchangePanel({
         {showAdd && (
           <AddExchangeModal
             scope={scope}
-            defaultDate={date || from || new Date().toISOString().slice(0, 10)}
+            defaultDate={date || from || businessToday()}
             cashierId={cashierId}
             drawerBalance={drawerBalance}
             onClose={() => setShowAdd(false)}
@@ -176,7 +177,7 @@ export default function CurrencyExchangePanel({
       {showAdd && (
         <AddExchangeModal
           scope={scope}
-          defaultDate={date || new Date().toISOString().slice(0, 10)}
+          defaultDate={date || businessToday()}
           cashierId={cashierId}
           drawerBalance={drawerBalance}
           onClose={() => setShowAdd(false)}

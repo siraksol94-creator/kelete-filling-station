@@ -76,7 +76,7 @@ function getHqSlug() {
 
 function nextDepositNumber() {
   const seq = (masterDb.prepare('SELECT COUNT(*) AS n FROM cash_deposits').get()?.n || 0) + 1;
-  const yyyymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const yyyymmdd = require('../config/businessTime').businessDate().replace(/-/g, '');
   return `DEP-${yyyymmdd}-${String(seq).padStart(4, '0')}`;
 }
 
@@ -102,7 +102,7 @@ router.post('/', hqAuth, (req, res) => {
     // v1.8.60 — accept optional deposit_date (defaults to today) and
     // attachment path (uploaded separately via /api/attachments).
     const looksLikeDate = typeof deposit_date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(deposit_date);
-    const depDate = looksLikeDate ? deposit_date : new Date().toISOString().slice(0, 10);
+    const depDate = looksLikeDate ? deposit_date : require('../config/businessTime').businessDate();
     const syncId = randomUUID();
     const depositNumber = nextDepositNumber();
     const fromName = branchName(from_slug);

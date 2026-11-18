@@ -18,8 +18,9 @@ import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => businessToday();
 // fmt() is defined inside the component now so it can read the tenant's primary currency symbol.
 
 const statusBadge = (status) => {

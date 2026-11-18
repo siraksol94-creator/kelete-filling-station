@@ -15,6 +15,7 @@ import { FiRefreshCw, FiInbox, FiFileText, FiPaperclip } from 'react-icons/fi';
 import {
   getAwaitingGeneration, getHqReceipt, generateHqGrn,
 } from '../services/api';
+import { businessToday } from '../utils/businessDate';
 
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtQty   = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -263,7 +264,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
       // materialises them into hq_supplier_credit_notes at generate time.
       await generateHqGrn({
         purchase_sync_id: purchase.sync_id,
-        date: new Date().toISOString().slice(0, 10),
+        date: businessToday(),
         notes: notes || null,
         items: valid.map(r => ({
           product_sync_id: r.product_sync_id,

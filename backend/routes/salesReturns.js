@@ -169,7 +169,7 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
     const total = db.prepare('SELECT COUNT(*) AS cnt FROM sales_returns WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
-    const thisMonth = db.prepare("SELECT COUNT(*) AS cnt FROM sales_returns WHERE deleted_at IS NULL AND tenant_id = ? AND date >= date('now', 'start of month')").get(tenantId);
+    const thisMonth = db.prepare("SELECT COUNT(*) AS cnt FROM sales_returns WHERE deleted_at IS NULL AND tenant_id = ? AND date >= date('now', '+120 minutes', 'start of month')").get(tenantId);
     res.json({ total: total.cnt, thisMonth: thisMonth.cnt });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -188,7 +188,7 @@ router.post('/', auth, (req, res) => {
     if (!items?.length) return res.status(400).json({ error: 'At least one item is required.' });
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
-    const returnDate = date || new Date().toISOString().split('T')[0];
+    const returnDate = date || require('../config/businessTime').businessDate();
 
     const result = db.transaction(() => {
       const returnNum = syncConfig.generateNumber('SRT', 'sales_returns');
@@ -349,8 +349,8 @@ router.put('/:id', auth, (req, res) => {
     if (!items?.length) return res.status(400).json({ error: 'At least one item is required.' });
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
-    const returnDate = date || new Date().toISOString().split('T')[0];
-    const movementCreatedAt = returnDate + ' ' + new Date().toTimeString().slice(0, 8);
+    const returnDate = date || require('../config/businessTime').businessDate();
+    const movementCreatedAt = require('../config/businessTime').businessStampUtc(returnDate);
 
     db.transaction(() => {
       const ret = db.prepare('SELECT * FROM sales_returns WHERE id = ? AND deleted_at IS NULL').get(id);

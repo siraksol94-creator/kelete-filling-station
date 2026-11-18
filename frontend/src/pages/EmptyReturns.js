@@ -15,10 +15,11 @@ import {
   FiPlus, FiCornerUpLeft, FiCalendar, FiUsers, FiDollarSign,
   FiX, FiTrash2, FiEye, FiEdit2,
 } from 'react-icons/fi';
+import { businessToday } from '../utils/businessDate';
 
 const defaultStats = { totalReturns: 0, thisMonth: 0, totalValue: 0, suppliers: 0 };
 const emptyItem = () => ({ product_id: '', product_text: '', quantity: '', deposit: '' });
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 
 const isRowComplete = (row) =>
   row.product_id !== '' && parseFloat(row.quantity) > 0 && parseFloat(row.deposit) >= 0;

@@ -990,7 +990,7 @@ router.post('/opening-balance', auth, async (req, res) => {
       const ins = db.prepare(`
         INSERT INTO cash_book (date, description, reference, receipt_amount, payment_amount, balance,
                                type, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at)
-        VALUES (DATE('now'), ?, ?, ?, 0, ?, 'opening', ?, ?, ?, ?, 0, datetime('now'), datetime('now'))
+        VALUES (DATE('now', '+120 minutes'), ?, ?, ?, 0, ?, 'opening', ?, ?, ?, ?, 0, datetime('now'), datetime('now'))
       `);
       for (const b of buckets) {
         const label = b.ref === 'OB-BANK' ? 'Opening Bank Balance'
@@ -1048,7 +1048,7 @@ router.post('/transfers', auth, (req, res) => {
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     const transferNum = syncConfig.generateNumber('TRF', 'cash_transfers');
-    const transferDate = date || new Date().toISOString().split('T')[0];
+    const transferDate = date || require('../config/businessTime').businessDate();
 
     const info = db.prepare(`
       INSERT INTO cash_transfers (transfer_number, date, from_method, to_method, amount, description, created_by,

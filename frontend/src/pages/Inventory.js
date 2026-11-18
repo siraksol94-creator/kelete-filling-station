@@ -10,6 +10,7 @@ import CategoryFilter from '../components/CategoryFilter';
 import { displayInDefaultUnit } from '../utils/productUnits';
 import printHtml from '../utils/printHtml';
 import { matchTokens } from '../utils/tokenSearch';
+import { businessToday } from '../utils/businessDate';
 
 const getCategoryClass = (cat) => {
   const map = { 'Beef': 'category-beef', 'Chicken': 'category-chicken', 'Pork': 'category-pork', 'Lamb': 'category-lamb', 'Processed': 'category-processed' };
@@ -22,7 +23,7 @@ const getStockStatus = (balance, min) => {
   return { label: 'Good', class: 'stock-good' };
 };
 
-const todayStr = new Date().toISOString().split('T')[0];
+const todayStr = businessToday();
 
 const Inventory = ({ viewLocation = 'store' }) => {
   const { t } = useLanguage();

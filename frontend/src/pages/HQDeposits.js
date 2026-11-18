@@ -29,8 +29,9 @@ import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { labelFromSlug } from '../utils/useDepositTarget';
+import { businessToday } from '../utils/businessDate';
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => businessToday();
 
 // v1.8.61 — parse attachment column (string or JSON-array string) into
 // an array of paths. Tolerates legacy single-string entries.
@@ -214,7 +215,7 @@ const HQDeposits = () => {
     // v1.10.82 — HQ operator can override the deposit_date at confirm
     // time (e.g. cash arrived last week but they're only clicking
     // confirm now). Blank = keep the branch's original date.
-    const currentDate = d.deposit_date || new Date().toISOString().slice(0, 10);
+    const currentDate = d.deposit_date || businessToday();
     const input = window.prompt(
       `Confirm deposit ${d.deposit_number}?\n\n` +
       `Effective date (YYYY-MM-DD). Cash Book will show it under this date.\n` +
@@ -247,7 +248,7 @@ const HQDeposits = () => {
   // then require admin password before writing. Backend uses PUT /date
   // (not /confirm) because the row is already CONFIRMED.
   const handleEditDate = (d) => {
-    const currentDate = d.deposit_date || new Date().toISOString().slice(0, 10);
+    const currentDate = d.deposit_date || businessToday();
     const input = window.prompt(
       `Edit accounting date for ${d.deposit_number}?\n\n` +
       `Cash Book will move this deposit to the new date on BOTH sides\n` +

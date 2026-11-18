@@ -16,6 +16,7 @@ import printHtml from '../utils/printHtml';
 import Portal from '../utils/Portal';
 import { useSort, SortTh } from '../components/SortableTable';
 import { usePurchaseTrace, TraceSearchBox, TracePanel, TrackButton } from '../components/PurchaseTrace';
+import { businessToday } from '../utils/businessDate';
 
 // Read-only twins of the entry form's label and input, so the View modal
 // reads as the same screen rather than a different one.
@@ -24,7 +25,7 @@ const vBox = { padding: '9px 11px', border: '1px solid #e5e7eb', borderRadius: 8
 
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtInt   = (n) => parseFloat(n || 0).toLocaleString();
-const todayISO = () => new Date().toISOString().slice(0, 10);
+const todayISO = () => businessToday();
 
 export default function HqPurchases() {
   const [purchases, setPurchases] = useState([]);

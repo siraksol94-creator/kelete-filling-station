@@ -101,7 +101,7 @@ function recalculateDailyProfit(db, date, tenantId) {
     const revRow = db.prepare(`
       SELECT COALESCE(SUM(total_amount), 0) AS revenue
       FROM orders
-      WHERE DATE(created_at) = ? AND deleted_at IS NULL AND tenant_id = ?
+      WHERE COALESCE(business_date, DATE(created_at)) = ? AND deleted_at IS NULL AND tenant_id = ?
         AND (status IS NULL OR status != 'Reversed')
     `).get(date, tenantId);
 
@@ -140,7 +140,7 @@ function recalculateDailyProfit(db, date, tenantId) {
       ) grn_agg ON grn_agg.product_sync_id = sm.product_sync_id
       LEFT JOIN (SELECT product_sync_id, SUM(quantity) AS total_qty, SUM(total_allocated_cost) AS total_cost FROM production_outputs WHERE deleted_at IS NULL AND product_sync_id IS NOT NULL GROUP BY product_sync_id) prod_agg ON prod_agg.product_sync_id = sm.product_sync_id
       WHERE sm.location = 'sales' AND sm.movement_type IN ('sale', 'sale_reverse')
-        AND DATE(sm.created_at) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
+        AND COALESCE(sm.business_date, DATE(sm.created_at)) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
         AND p.tenant_id = ?
     `).get(date, date, tenantId);
 
@@ -233,7 +233,7 @@ function recalculateDailyProfit(db, date, tenantId) {
       -- filter for the writeoff type so it's picked up regardless.
       WHERE ((sm.location = 'sales' AND sm.movement_type = 'sales_return')
              OR sm.movement_type = 'transit_writeoff')
-        AND DATE(sm.created_at) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
+        AND COALESCE(sm.business_date, DATE(sm.created_at)) = ? AND sm.deleted_at IS NULL AND sm.product_sync_id IS NOT NULL
         AND p.tenant_id = ?
     `).get(date, date, tenantId);
 
