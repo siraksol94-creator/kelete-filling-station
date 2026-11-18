@@ -87,12 +87,12 @@ test('current behaviour: when both sides edit the same record, the later edit wi
   assert.notEqual(v.address, 'TILL-EDIT', 'the older till edit to a DIFFERENT field is lost (whole-row last-writer-wins)');
 });
 
-knownDefect('F1', 'fuel data entered on a till never reaches the VPS', async () => {
+test('F1: fuel data entered on a till reaches the VPS (full checks in test/14)', async () => {
   const g = await till.api('POST', '/api/fuel-grades', { body: { code: 'ULP', name: 'Petrol', selling_price: 25, cost_price: 20 } });
   assert.equal(g.status, 201, g.text);
   await pair.syncNow();
   const onVps = await vps.sql("SELECT COUNT(*) AS n FROM fuel_grades WHERE code = 'ULP'");
-  assert.equal(onVps[0].n, 0, 'TODAY: fuel tables are in no sync list');
+  assert.equal(onVps[0].n, 1);
 });
 
 knownDefect('S1 stage 3 (KELETE_SYNC_AUTH=require, a switch)', 'in the default stage-2 mode a pull without a device token is still served, users with their password hashes included', async () => {
