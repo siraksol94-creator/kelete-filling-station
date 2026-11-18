@@ -26,6 +26,29 @@ someone pushed to `main`.
    ```
 4. Install the script: `install -m 755 vps/kelete-release.sh /usr/local/bin/kelete-release`.
 
+## First release with the server-side permissions (decided 2026-11-18)
+
+The first live week runs the permission gate in **log-only** mode. It refuses
+nothing and records who *would* have been refused:
+
+1. Before the first release, add `KELETE_PERMISSIONS=log` to the app's
+   environment. That's the PM2 ecosystem file or the service's environment,
+   whichever P0-3 found the app uses. Then restart through the release script.
+2. Every day that week, review the lines from that week:
+   `pm2 logs <PM2_PROCESS> --lines 5000 | grep "WOULD DENY"`.
+   - A line for a real, legitimate task means that user's permissions, or a
+     screen, need fixing **before** enforcing.
+   - Lines from people reaching data outside their screens are exactly what
+     enforcement will stop.
+3. After the week, remove the setting (the default is `enforce`), restart, and
+   check that the `WOULD DENY` lines become `DENY` and that nobody's daily
+   work is blocked.
+
+These checks are separate and always enforced: Administrator-only actions,
+the fuel set-up rules, supervisor-only actions, and deliveries for Managers
+and Supervisors. The log-only setting covers only the page-level gate. Till
+sync tokens have their own switch; see `vps/SYNC-DEVICES.md`.
+
 ## Every release
 
 1. The change is reviewed and merged to `main`.

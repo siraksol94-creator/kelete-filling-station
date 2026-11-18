@@ -1,6 +1,13 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth, hasActiveRole, SUPERVISOR_ROLES } = require('../middleware/auth');
+const { auth, adminOnly, hasActiveRole, isActiveAdmin, SUPERVISOR_ROLES } = require('../middleware/auth');
+// Fuel Station access (business decision 2026-11-18): fuel prices (grades),
+// pumps and tanks are set up and changed by Administrators only; cashiers and
+// other roles can still READ them (the shift, credit-ticket and fuel cash
+// screens show prices, nozzles and tank levels).
+// Nozzle meter corrections stay open to supervisors (Manager) as decided
+// earlier (S7): on PUT /nozzles/:id a supervisor may change ONLY the meter
+// reading; any other nozzle change needs an Administrator.
 const { nozzlesInOpenShifts } = require('../services/fuelControls');
 
 // --- Pumps ---
@@ -28,7 +35,7 @@ router.get('/', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/', auth, (req, res) => {
+router.post('/', auth, adminOnly, (req, res) => {
   try {
     const { code, name, branch_id = null } = req.body;
     if (!code || !name) return res.status(400).json({ error: 'code and name are required' });
@@ -38,7 +45,7 @@ router.post('/', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/:id', auth, (req, res) => {
+router.put('/:id', auth, adminOnly, (req, res) => {
   try {
     const ex = db.prepare('SELECT * FROM pumps WHERE id = ?').get(req.params.id);
     if (!ex) return res.status(404).json({ error: 'Not found' });
@@ -50,7 +57,7 @@ router.put('/:id', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, adminOnly, (req, res) => {
   try {
     db.prepare('DELETE FROM pumps WHERE id = ?').run(req.params.id);
     res.json({ message: 'Deleted' });
@@ -81,7 +88,7 @@ router.get('/nozzles/list', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/nozzles', auth, (req, res) => {
+router.post('/nozzles', auth, adminOnly, (req, res) => {
   try {
     const { pump_id, tank_id, code, current_meter_reading = 0 } = req.body;
     if (!pump_id || !tank_id || !code) return res.status(400).json({ error: 'pump_id, tank_id, code are required' });
@@ -103,6 +110,18 @@ router.put('/nozzles/:id', auth, (req, res) => {
     const meterChanges = b.current_meter_reading != null && b.current_meter_reading !== ''
       && Number(b.current_meter_reading) !== Number(ex.current_meter_reading);
     const tankChanges = b.tank_id != null && Number(b.tank_id) !== Number(ex.tank_id);
+    // Fuel Station access: only Administrators and supervisors edit nozzles at
+    // all, and a supervisor may change nothing but the meter reading.
+    if (!hasActiveRole(req, SUPERVISOR_ROLES)) {
+      return res.status(403).json({ error: 'Only an Administrator (or a supervisor, for meter readings) can change a nozzle.' });
+    }
+    const otherChanges = tankChanges
+      || (b.pump_id != null && Number(b.pump_id) !== Number(ex.pump_id))
+      || (b.code != null && String(b.code).trim() !== String(ex.code))
+      || (b.status != null && String(b.status) !== String(ex.status));
+    if (otherChanges && !isActiveAdmin(req)) {
+      return res.status(403).json({ error: 'Only an Administrator can change a nozzle\'s pump, tank, code or status. Supervisors can correct the meter reading only.' });
+    }
     if ((meterChanges || tankChanges) && nozzlesInOpenShifts([ex.id]).length) {
       // An open shift started from this meter and draws from this tank;
       // changing either mid-shift corrupts that shift's litres.
@@ -129,7 +148,7 @@ router.put('/nozzles/:id', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.delete('/nozzles/:id', auth, (req, res) => {
+router.delete('/nozzles/:id', auth, adminOnly, (req, res) => {
   try {
     // F4 — a nozzle with shift readings is part of the fuel history; the
     // database already refuses (foreign key), this just says so clearly.

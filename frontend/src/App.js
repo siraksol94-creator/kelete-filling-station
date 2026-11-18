@@ -113,6 +113,16 @@ const PrivateRoute = ({ children }) => {
 // perms: array of permission strings — user needs at least one
 // adminOnly: true = only Administrators can access
 // allAccessOnly: true = only users with All/Full Access (not Custom) can access
+// Fuel Station access (business decision 2026-11-18): pages limited by ROLE.
+// The server applies the same rule (routes/fuelDeliveries.js).
+const SUPERVISOR_ROLES = ['Administrator', 'Manager', 'Supervisor'];
+const RoleRoute = ({ children, roles }) => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" />;
+  if (!roles.includes(user.role)) return <Navigate to="/no-access" replace />;
+  return children;
+};
+
 const PermRoute = ({ children, perms = [], adminOnly = false, allAccessOnly = false }) => {
   const { user, hasPermission, hasPageAccess, isAllAccess } = useAuth();
   if (!user) return <Navigate to="/login" />;
@@ -432,10 +442,14 @@ function AppRoutes() {
             the Tanks page (which detects the path and opens the right tab). */}
         <Route path="fuel/tank-dips"     element={<Tanks />} />
         <Route path="fuel/tank-ledger"   element={<Tanks />} />
-        <Route path="fuel/deliveries"    element={<FuelDeliveries />} />
+        {/* Fuel Station access (decision 2026-11-18): deliveries for Managers / Supervisors /
+            Administrators; prices (grades) for Administrators; Pumps & Nozzles opens for
+            Managers / Supervisors in meter-correction-only mode (set-up is Administrator-only).
+            Tanks: tank management for Administrators only (dips and ledger as before). */}
+        <Route path="fuel/deliveries"    element={<RoleRoute roles={SUPERVISOR_ROLES}><FuelDeliveries /></RoleRoute>} />
         <Route path="fuel/tanks"         element={<Tanks />} />
-        <Route path="fuel/pumps"         element={<PumpsNozzles />} />
-        <Route path="fuel/grades"        element={<FuelGrades />} />
+        <Route path="fuel/pumps"         element={<RoleRoute roles={SUPERVISOR_ROLES}><PumpsNozzles /></RoleRoute>} />
+        <Route path="fuel/grades"        element={<PermRoute adminOnly><FuelGrades /></PermRoute>} />
         <Route path="fuel/fleet"         element={<FleetCustomers />} />
         <Route path="no-access" element={
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#6b7280', textAlign: 'center' }}>

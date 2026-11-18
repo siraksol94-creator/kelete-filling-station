@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiZap } from 'react-icons/fi';
 import { getPumpsWithNozzles, createPump, updatePump, deletePump, createNozzle, updateNozzle, deleteNozzle, getTanks } from '../services/fuelApi';
 import { S } from './fuelStyles';
+import { useAuth } from '../context/AuthContext';
 
 // Tanks sharing a group_code are plumbed together. For the Tank picker
 // we show one entry per group (labelled "T1 + T4 — PETROL (Group A)")
@@ -45,6 +46,11 @@ function tankLabelForNozzle(n, tanks) {
 }
 
 export default function PumpsNozzles() {
+  // Fuel Station access (decisions 2026-11-18): pumps and nozzles are set up by
+  // Administrators; Managers / Supervisors may only correct a nozzle's meter
+  // reading. The server enforces the same (routes/pumps.js).
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Administrator';
   const [pumps, setPumps] = useState([]);
   const [tanks, setTanks] = useState([]);
   const [pumpForm, setPumpForm] = useState(null);
@@ -90,7 +96,9 @@ export default function PumpsNozzles() {
     <div style={S.page}>
       <div style={S.header}>
         <h2 style={S.h2}><FiZap /> Pumps & Nozzles</h2>
-        <button onClick={() => setPumpForm({ code: '', name: '' })} style={S.btnPrimary}><FiPlus /> New Pump</button>
+        {isAdmin
+          ? <button onClick={() => setPumpForm({ code: '', name: '' })} style={S.btnPrimary}><FiPlus /> New Pump</button>
+          : <span style={{ fontSize: 13, color: '#6b7280' }}>Meter corrections only — pumps and nozzles are set up by an Administrator.</span>}
       </div>
 
       {pumps.length === 0 && (
@@ -103,9 +111,9 @@ export default function PumpsNozzles() {
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: 16, borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
               <div><strong style={{ fontSize: 16 }}>{p.code}</strong> &nbsp; <span style={{ color: '#374151' }}>{p.name}</span></div>
               <div>
-                <button onClick={() => setNozForm({ pump_id: p.id, tank_id: '', code: '', current_meter_reading: 0 })} style={S.btnSecondary}><FiPlus /> Nozzle</button>
+                {isAdmin && <><button onClick={() => setNozForm({ pump_id: p.id, tank_id: '', code: '', current_meter_reading: 0 })} style={S.btnSecondary}><FiPlus /> Nozzle</button>
                 &nbsp;<button onClick={() => setPumpForm(p)} style={S.iconBtn}><FiEdit2 /></button>
-                <button onClick={() => removePump(p)} style={S.iconBtnDanger}><FiTrash2 /></button>
+                <button onClick={() => removePump(p)} style={S.iconBtnDanger}><FiTrash2 /></button></>}
               </div>
             </div>
             <table style={S.table}>
@@ -127,7 +135,7 @@ export default function PumpsNozzles() {
                     <td style={S.tdR}>K {Number(n.price_per_litre || 0).toFixed(2)}</td>
                     <td style={S.td}>
                       <button onClick={() => setNozForm(n)} style={S.iconBtn}><FiEdit2 /></button>
-                      <button onClick={() => removeNoz(n)} style={S.iconBtnDanger}><FiTrash2 /></button>
+                      {isAdmin && <button onClick={() => removeNoz(n)} style={S.iconBtnDanger}><FiTrash2 /></button>}
                     </td>
                   </tr>
                 ))}
@@ -166,9 +174,9 @@ export default function PumpsNozzles() {
             <form onSubmit={saveNoz}>
               {err && <div style={S.errBox}>{err}</div>}
               <div style={S.formGrid}>
-                <label style={S.lbl}>Nozzle Code *<input value={nozForm.code} onChange={e => setNozForm({ ...nozForm, code: e.target.value })} required style={S.input} placeholder="N1" /></label>
+                <label style={S.lbl}>Nozzle Code *<input value={nozForm.code} onChange={e => setNozForm({ ...nozForm, code: e.target.value })} required disabled={!isAdmin} style={S.input} placeholder="N1" /></label>
                 <label style={S.lbl}>Tank *
-                  <select value={nozForm.tank_id} onChange={e => setNozForm({ ...nozForm, tank_id: e.target.value })} required style={S.input}>
+                  <select value={nozForm.tank_id} onChange={e => setNozForm({ ...nozForm, tank_id: e.target.value })} required disabled={!isAdmin} style={S.input}>
                     <option value="">-- select --</option>
                     {tankPickerOptions(tanks).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>

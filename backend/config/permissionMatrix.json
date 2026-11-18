@@ -445,6 +445,7 @@
     "accounting/shareholders",
     "approvals/discounts",
     "fuel/cash-report",
+    "fuel/pumps",
     "fuel/tank-dips",
     "fuel/tank-ledger",
     "fuel/tanks",
@@ -2140,7 +2141,7 @@
   {
    "method": "DELETE",
    "path": "/fuel-grades/:p",
-   "any": true,
+   "admin": true,
    "screens": [
     "fuel/grades"
    ]
@@ -2148,7 +2149,7 @@
   {
    "method": "PUT",
    "path": "/fuel-grades/:p",
-   "any": true,
+   "admin": true,
    "screens": [
     "fuel/grades"
    ]
@@ -2167,7 +2168,7 @@
   {
    "method": "POST",
    "path": "/fuel-grades",
-   "any": true,
+   "admin": true,
    "screens": [
     "fuel/grades"
    ]
@@ -3690,6 +3691,7 @@
     "accounting/shareholders",
     "approvals/discounts",
     "fuel/cash-report",
+    "fuel/pumps",
     "fuel/tank-dips",
     "fuel/tank-ledger",
     "fuel/tanks",
@@ -3747,6 +3749,7 @@
     "accounting/shareholders",
     "approvals/discounts",
     "fuel/cash-report",
+    "fuel/pumps",
     "fuel/tank-dips",
     "fuel/tank-ledger",
     "fuel/tanks",

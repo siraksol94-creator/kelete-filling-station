@@ -661,7 +661,9 @@ const Layout = () => {
             {!collapsed && chatUnread > 0 && <SidebarBadge n={chatUnread} />}
           </div>
 
-          {/* Kelete Fuel Station - all users (permissions can be layered later) */}
+          {/* Kelete Fuel Station. Access (business decision 2026-11-18): deliveries for
+              Managers / Supervisors / Administrators; pumps and fuel grades (prices) for
+              Administrators; Tanks shows tank set-up to Administrators, dips/ledger to all. */}
           {collapsed ? (
             <div className={`nav-item ${isGroupActive(['/fuel']) ? 'active' : ''}`} onClick={() => navigate('/fuel/pos')}>
               <FiDownloadCloud className="nav-icon" />
@@ -689,18 +691,24 @@ const Layout = () => {
                   <div className={`nav-item ${isActive('/fuel/cash-report') ? 'active' : ''}`} onClick={() => navigate('/fuel/cash-report')}>
                     <FiDollarSign className="nav-icon" /> <span>Fuel Cash Report</span>
                   </div>
+                  {['Administrator', 'Manager', 'Supervisor'].includes(user?.role) && (
                   <div className={`nav-item ${isActive('/fuel/deliveries') ? 'active' : ''}`} onClick={() => navigate('/fuel/deliveries')}>
                     <FiDownload className="nav-icon" /> <span>Fuel Deliveries</span>
                   </div>
+                  )}
                   <div className={`nav-item ${isActive('/fuel/tanks') || isActive('/fuel/tank-dips') ? 'active' : ''}`} onClick={() => navigate('/fuel/tanks')}>
                     <FiHardDrive className="nav-icon" /> <span>Tanks</span>
                   </div>
+                  {['Administrator', 'Manager', 'Supervisor'].includes(user?.role) && (
                   <div className={`nav-item ${isActive('/fuel/pumps') ? 'active' : ''}`} onClick={() => navigate('/fuel/pumps')}>
                     <FiSliders className="nav-icon" /> <span>Pumps &amp; Nozzles</span>
                   </div>
+                  )}
+                  {user?.role === 'Administrator' && (<>
                   <div className={`nav-item ${isActive('/fuel/grades') ? 'active' : ''}`} onClick={() => navigate('/fuel/grades')}>
                     <FiTag className="nav-icon" /> <span>Fuel Grades</span>
                   </div>
+                  </>)}
                 </div>
               )}
             </>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FiPlus, FiEdit2, FiTrash2, FiX, FiDatabase, FiAlertTriangle, FiActivity, FiBook } from 'react-icons/fi';
 import { getTanks, createTank, updateTank, deleteTank, getFuelGrades } from '../services/fuelApi';
 import { S } from './fuelStyles';
+import { useAuth } from '../context/AuthContext';
 import TankDips from './TankDips';
 import TankLedger from './TankLedger';
 
@@ -124,7 +125,11 @@ export default function Tanks() {
   const location = useLocation();
   const navigate = useNavigate();
   // /fuel/tank-dips → Dips tab, /fuel/tank-ledger → Ledger tab, else Tanks.
-  const tabFromPath = p => p.includes('tank-dips') ? 'dips' : (p.includes('tank-ledger') ? 'ledger' : 'tanks');
+  // Fuel Station access (decision 2026-11-18): tank set-up is for
+  // Administrators only; everyone else gets Dips and the Ledger (as before).
+  const { user } = useAuth();
+  const canManage = user?.role === 'Administrator';
+  const tabFromPath = p => p.includes('tank-dips') ? 'dips' : (p.includes('tank-ledger') ? 'ledger' : (canManage ? 'tanks' : 'dips'));
   const [tab, setTab] = useState(tabFromPath(location.pathname));
   useEffect(() => {
     const want = tabFromPath(location.pathname);
@@ -187,7 +192,7 @@ export default function Tanks() {
     <div style={S.page}>
       <div style={S.header}>
         <h2 style={S.h2}><FiDatabase /> Tanks</h2>
-        {tab === 'tanks' && (
+        {tab === 'tanks' && canManage && (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#6b7280', cursor: 'pointer' }}>
               <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />
@@ -199,7 +204,7 @@ export default function Tanks() {
       </div>
 
       <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 16, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-        {tabBtn('tanks',  'Tanks',       <FiDatabase size={15} />)}
+        {canManage && tabBtn('tanks',  'Tanks',       <FiDatabase size={15} />)}
         {tabBtn('dips',   'Tank Dips',   <FiActivity size={15} />)}
         {tabBtn('ledger', 'Tank Ledger', <FiBook size={15} />)}
       </div>
