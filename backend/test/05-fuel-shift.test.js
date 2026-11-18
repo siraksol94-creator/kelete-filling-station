@@ -153,9 +153,10 @@ test('close: litres sold, tank ledger, meters, expected cash and variance', asyn
   assertLedger();
 });
 
-knownDefect('F4', 'the "other" payment typed at close is discarded and that column holds the credit total', () => {
-  const s = db.prepare('SELECT payment_other, payment_1card FROM attendant_shifts WHERE id = ?').get(shift.id);
-  assert.equal(s.payment_other, 1000, 'TODAY: credit total, not the 77 typed');
+test('the "other" payment sent at close is kept; the credit total has its own column', () => {
+  const s = db.prepare('SELECT payment_other, payment_credit, payment_1card FROM attendant_shifts WHERE id = ?').get(shift.id);
+  assert.equal(s.payment_other, 77, 'what was sent as Other');
+  assert.equal(s.payment_credit, 1000, 'credit tickets total');
   assert.equal(s.payment_1card, 480);
 });
 
@@ -264,4 +265,23 @@ test('deleting a shift: refused for non-admins and wrong passwords; reverses tan
   assert.ok(db.prepare('SELECT deleted_at FROM orders WHERE id = ?').get(creditOrderId).deleted_at);
   assertLedger();
   assert.ok(db.prepare("SELECT 1 FROM audit_log WHERE action = 'attendant_shifts.delete'").get(), 'deleted shift preserved in the audit log');
+});
+
+test('upgrade (migration 9): shifts closed by the old code get their credit total moved out of "Other"; any other value is left alone', () => {
+  const m9 = require('../config/versionedMigrations').find(m => m.version === 9);
+  const closedShift = (other) => {
+    const id = db.prepare(`INSERT INTO attendant_shifts (attendant_user_id, opened_by, shift_type, status, payment_other)
+                           VALUES (?, ?, 'DAY', 'Closed', ?)`).run(staff.users.att2.id, staff.users.owner.id, other).lastInsertRowid;
+    db.prepare('UPDATE attendant_shifts SET payment_credit = NULL WHERE id = ?').run(id);
+    db.prepare(`INSERT INTO shift_credit_sales (shift_id, payment_method, customer_name, litres, price_per_litre, amount)
+                VALUES (?, 'Credit', 'Old Fleet', 16, 25, 400)`).run(id);
+    return id;
+  };
+  const old = closedShift(400);   // as the old code left it: the credit total in "Other"
+  const real = closedShift(55);   // a different value: not the credit total
+  m9.up(db.defaultDb);
+  const a = db.prepare('SELECT payment_other, payment_credit FROM attendant_shifts WHERE id = ?').get(old);
+  assert.deepEqual([a.payment_other, a.payment_credit], [0, 400]);
+  const b = db.prepare('SELECT payment_other, payment_credit FROM attendant_shifts WHERE id = ?').get(real);
+  assert.deepEqual([b.payment_other, b.payment_credit], [55, 400]);
 });
