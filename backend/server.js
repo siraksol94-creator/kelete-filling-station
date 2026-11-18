@@ -11,6 +11,14 @@ const db = require('./config/database');
 const syncConfig = require('./config/syncConfig');
 const app = express();
 
+// ─── A2 (D5 testability) ────────────────────────────────────────────────────
+// KELETE_NO_AUTOSTART=1 loads the app WITHOUT listening on a port and without
+// the background jobs (sync to the VPS, ZRA retry, Electron backups, profit
+// backfill). Only the automated tests set it, so they can drive the API
+// against throwaway databases with nothing reaching the network. Unset — as
+// on every till, the VPS and local dev — behaviour is exactly as before.
+const AUTOSTART = process.env.KELETE_NO_AUTOSTART !== '1';
+
 const uploadsDir = process.env.UPLOADS_DIR
   || (process.env.ELECTRON_USER_DATA ? path.join(process.env.ELECTRON_USER_DATA, 'uploads') : path.join(__dirname, 'uploads'));
 
@@ -782,7 +790,7 @@ syncConfig.init(db);
 
 // ─── Sync: start background sync service ─────────────────────────────────────
 const syncService = require('./services/syncService');
-syncService.start(db, syncConfig);
+if (AUTOSTART) syncService.start(db, syncConfig);
 
 console.log('Database schema ready');
 
@@ -923,7 +931,7 @@ else if (IS_TILL && tillLanRole() === 'mother') bindHosts = [null];           //
 else if (IS_TILL)                          bindHosts = ['127.0.0.1', '::1'];
 else                                       bindHosts = [null];                // unchanged for VPS/dev
 
-for (const host of bindHosts) {
+for (const host of (AUTOSTART ? bindHosts : [])) {
   const srv = http.createServer(app);
   srv.on('error', (err) => {
     // ::1 is absent when IPv6 is disabled on the PC — 127.0.0.1 still serves.
@@ -948,7 +956,7 @@ for (const host of bindHosts) {
 //
 // graceMs 0: this is the owner, it acts on its own orders at once. The
 // VPS runs the same worker with a 30-minute grace as a safety net.
-try {
+if (AUTOSTART) try {
   require('./services/zraRetryQueue').start({ graceMs: 0 });
 } catch (e) {
   console.warn('[zra-retry] failed to arm queue:', e.message);
@@ -958,7 +966,7 @@ try {
 // Silent no-op on VPS (guarded by ELECTRON_USER_DATA env var). Snapshots
 // kelete.db + master.db + any tenants/*.db to %APPDATA%/Kelete/Backups/
 // once ~30s after boot, then every 24h. Keeps last 14 days.
-try {
+if (AUTOSTART) try {
   require('./services/electronBackup').start();
 } catch (e) {
   console.warn('[electronBackup] failed to start:', e.message);
@@ -1003,7 +1011,7 @@ function backfillDailyProfit() {
     console.error('[profit backfill] Failed:', e.message);
   }
 }
-backfillDailyProfit();
+if (AUTOSTART) backfillDailyProfit();
 
 // ─── D1: nightly hard-delete of soft-deleted reconciliation movements — RETIRED ─
 // It permanently deleted stock_movements rows that had been soft-deleted, at
@@ -1012,3 +1020,8 @@ backfillDailyProfit();
 // harmful: if it ran before the deletion had synced (synced = 0), the other
 // side never learned the movement was deleted and kept counting it, and the
 // record of the deletion itself was lost. Soft-deleted rows are now kept.
+
+// A2 — exported for the automated tests (loaded with KELETE_NO_AUTOSTART=1).
+// Electron and PM2 ignore the export; requiring this file still starts the
+// server exactly as before.
+module.exports = { app, backfillDailyProfit };

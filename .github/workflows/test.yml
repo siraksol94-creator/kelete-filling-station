@@ -1,0 +1,42 @@
+name: Tests
+
+# D5 — automated test suite. Runs on every pull request and every push to a
+# branch. It never deploys anything and never contacts a live system: the
+# tests use throwaway SQLite databases and refuse any non-local network
+# connection (backend/test/helpers/harness.js).
+#
+# Make this a REQUIRED status check on `main` (repo settings → branch
+# protection) so nothing merges with failing tests. vps/kelete-release.sh
+# should only ever be given a tag whose commit passed this workflow.
+
+on:
+  pull_request:
+  push:
+    branches: ['**']
+    tags-ignore: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20          # same major version as the VPS and the Electron build
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies (exact versions from the lock file)
+        run: npm ci
+
+      - name: Run the test suites
+        run: npm test
