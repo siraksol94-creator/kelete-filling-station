@@ -135,4 +135,17 @@ module.exports = [
       db.exec('CREATE INDEX IF NOT EXISTS idx_attendant_shifts_shift_date ON attendant_shifts (shift_date, shift_type)');
     },
   },
+  {
+    version: 8,
+    name: 'delivery_cost_trail',
+    // Average-cost fix — each delivery records the grade's cost just before
+    // and after it, so deleting it can put the cost back. Additive; older
+    // deliveries stay NULL (their deletion un-blends the average instead).
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(fuel_deliveries)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('cost_before')) db.exec('ALTER TABLE fuel_deliveries ADD COLUMN cost_before REAL');
+      if (!cols.includes('cost_after')) db.exec('ALTER TABLE fuel_deliveries ADD COLUMN cost_after REAL');
+    },
+  },
 ];
