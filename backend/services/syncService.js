@@ -65,6 +65,10 @@ const SYNC_TABLES = [
   // every receipt + cashier pay modal reads from. Both MUST sync.
   'currency_exchanges', 'fx_rates',
 ];
+// F1 — the fuel tables, parents first, deletion log last (config/fuelSync.js).
+// KEEP IN SYNC with routes/sync.js (both use fuelSync.syncTables()).
+const fuelSync = require('../config/fuelSync');
+SYNC_TABLES.push(...fuelSync.syncTables());
 
 const DEFAULT_VPS_URL = (process.env.VPS_URL || 'https://keletezm.com').replace(/\/$/, '');
 function getVpsUrl() {
@@ -207,6 +211,12 @@ async function push() {
           if (!row.sync_id) continue;
           try {
             const c = conflicts.get(`${table}\u0000${row.sync_id}`);
+            // F1 — held back by the server (parent not there yet) or refused as
+            // a duplicate code: keep it pending; never mark it sent.
+            if (c && (c.reason === 'parent-missing' || c.reason === 'duplicate')) {
+              slog(`push: KEPT PENDING [${table}] sync_id=${row.sync_id} — ${c.detail || c.reason}`);
+              continue;
+            }
             if (c && c.reason === 'same_second') {
               const next = oneSecondAfter(c.server_updated_at, row.updated_at);
               if (next) _db.prepare(`UPDATE ${table} SET updated_at = ? WHERE sync_id = ? AND synced = 0`).run(next, row.sync_id);
@@ -284,13 +294,22 @@ async function pull(opts = {}) {
 
   const processBatch = (table, cols, batch) => {
     const tableHasUpdatedAt = hasUpdatedAt(cols);
-    _db.transaction(() => {
+    // F1 — fuel rows: links re-pointed to this till's rows, ledger rows never
+    // rewritten, held back when a parent is missing (config/fuelSync.js).
+    const fuel = fuelSync.isFuel(table);
+    const scope = fuel ? (fn) => fuelSync.withApplying(_db, fn) : (fn) => fn();
+    _db.transaction(() => scope(() => {
       for (const row of batch) {
         if (!row.sync_id) continue;
         try {
+          if (fuel) {
+            const held = fuelSync.prepare(_db, table, row);
+            if (held) { slog(`pull: HOLD [${table}] sync_id=${row.sync_id} — ${held} (arrives with a later pull)`); continue; }
+          }
           // v1.9.1 — read updated_at too so we can timestamp-resolve conflicts.
           const selectCols = tableHasUpdatedAt ? 'id, synced, updated_at' : 'id, synced';
           const existing = _db.prepare(`SELECT ${selectCols} FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
+          if (existing && fuel && fuelSync.isImmutable(table)) continue; // tank ledger rows never change (F4)
 
           if (!existing) {
             // New record — insert it (mark synced=1 so we don't push it back)
@@ -342,7 +361,8 @@ async function pull(opts = {}) {
           }
         } catch (rowErr) { slog(`pull: row error [${table}] ${rowErr.message}`); }
       }
-    })();
+      if (fuel) fuelSync.afterBatch(_db, table, batch);
+    }))();
   };
 
   // Process each table in batches; yield event loop between batches so

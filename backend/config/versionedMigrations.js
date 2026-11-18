@@ -103,4 +103,13 @@ module.exports = [
       `);
     },
   },
+  {
+    version: 6,
+    name: 'fuel_sync',
+    // F1 — sync columns, link sync_ids, change-marking triggers and the
+    // deletion log on every fuel table (config/fuelSync.js). Additive: columns
+    // are added, existing rows get a sync_id and their links' sync_ids, and are
+    // queued to be sent once. No row is deleted or rewritten.
+    up(db) { require('./fuelSync').installSchema(db); },
+  },
 ];

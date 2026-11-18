@@ -185,6 +185,10 @@ const SYNC_TABLES = [
   // FX rate changes never propagate (cashier rings up at stale rate).
   'currency_exchanges', 'fx_rates',
 ];
+// F1 — the fuel tables, parents first, deletion log last (config/fuelSync.js).
+// KEEP IN SYNC with syncService.js (both use fuelSync.syncTables()).
+const fuelSync = require('../config/fuelSync');
+SYNC_TABLES.push(...fuelSync.syncTables());
 
 // ─── Push guardrails (ported from Liquor v1.5.7) ─────────────────────────────
 // A sync PUSH is never allowed to un-reverse an order, decrease a partial
@@ -579,10 +583,23 @@ router.post('/push', lanGate, deviceAuth.deviceGate('tenant'), async (req, res) 
       const hasSyncId = cols.includes('sync_id');
       const hasUpdatedAt = cols.includes('updated_at');
       if (!hasSyncId) return;
-      db.transaction(() => {
+      // F1 — fuel rows: links re-pointed to this database's rows, ledger rows
+      // never rewritten, held back when a parent is missing (config/fuelSync.js).
+      const fuel = fuelSync.isFuel(table);
+      const scope = fuel ? (fn) => fuelSync.withApplying(db, fn) : (fn) => fn();
+      db.transaction(() => scope(() => {
         for (const row of batch) {
           if (!row.sync_id) continue;
+          if (fuel) {
+            const held = fuelSync.prepare(db, table, row);
+            if (held) {
+              conflicts.push({ table, sync_id: row.sync_id, reason: 'parent-missing', detail: held });
+              slog(`push: HOLD [${table}] sync_id=${row.sync_id} — ${held}`);
+              continue;
+            }
+          }
           const existing = db.prepare(`SELECT * FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
+          if (existing && fuel && fuelSync.isImmutable(table)) continue; // tank ledger rows never change (F4)
           if (!existing) {
             // v1.13.105 — HQ owns product identity (products, categories,
             // main_categories, units). Branches only PULL these tables via
@@ -602,9 +619,16 @@ router.post('/push', lanGate, deviceAuth.deviceGate('tenant'), async (req, res) 
             const insertCols = cols.filter(c => c !== 'id' && row[c] !== undefined);
             const placeholders = insertCols.map(() => '?').join(', ');
             const values = insertCols.map(c => row[c]);
-            db.prepare(
+            const ins = db.prepare(
               `INSERT OR IGNORE INTO ${table} (${insertCols.join(', ')}) VALUES (${placeholders})`
             ).run(...values);
+            if (fuel && ins.changes === 0) {
+              // F1 — refused by a unique code/number another row here already
+              // uses (e.g. both sides created grade "ULP"). A person decides;
+              // never silently dropped.
+              conflicts.push({ table, sync_id: row.sync_id, reason: 'duplicate' });
+              slog(`push: DUPLICATE [${table}] sync_id=${row.sync_id} — a different row here already uses its code/number`);
+            }
             // v1.9.5 — DO NOT overwrite updated_at with datetime('now') after
             // INSERT. Previous code did so for incremental-pull bookkeeping,
             // but it broke the symmetric timestamp check used by push: after
@@ -682,7 +706,8 @@ router.post('/push', lanGate, deviceAuth.deviceGate('tenant'), async (req, res) 
             // apples to apples. See INSERT-branch comment for the incident.
           }
         }
-      })();
+        if (fuel) fuelSync.afterBatch(db, table, batch);
+      }))();
     };
 
     db.pragma('foreign_keys = OFF');
