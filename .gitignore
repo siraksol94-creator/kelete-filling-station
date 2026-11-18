@@ -38,3 +38,10 @@ frontend/capacitor-plugins/*/android/build/
 # it is client config that ships inside every APK and can send nothing.
 backend/firebase-service-account.json
 frontend/apk-release/
+
+# S5 — release-script state and side-by-side frontend builds
+.kelete-release/
+frontend/build.next/
+frontend/build.prev/
+frontend/build.failed/
+frontend/build.rolledback/

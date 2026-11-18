@@ -71,7 +71,17 @@
           "!*.db",
           "!*.db-shm",
           "!*.db-wal",
-          "!.env"
+          "!*.db-journal",
+          "!*.db.backup*",
+          "!.env",
+          "!.env.*",
+          "!scripts/**",
+          "!create-user.js",
+          "!reset-sync.js",
+          "!*.sql",
+          "!uploads/**",
+          "!chat-files/**",
+          "!firebase-service-account.json"
         ]
       },
       {

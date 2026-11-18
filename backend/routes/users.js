@@ -76,9 +76,32 @@ router.post('/', auth, adminOnly, async (req, res) => {
   }
 });
 
-router.put('/:id', auth, async (req, res) => {
+// S2 — would the system be left with no active Administrator if `targetId`
+// stopped being one? Counts OTHER active, non-deleted Administrators.
+function isLastActiveAdmin(targetId) {
+  const target = db.prepare("SELECT role, status FROM users WHERE id = ? AND deleted_at IS NULL").get(targetId);
+  if (!target || target.role !== 'Administrator' || (target.status && target.status !== 'Active')) return false;
+  const others = db.prepare(
+    "SELECT COUNT(*) AS c FROM users WHERE id != ? AND deleted_at IS NULL AND role = 'Administrator' AND COALESCE(status, 'Active') = 'Active'"
+  ).get(targetId).c;
+  return others === 0;
+}
+
+// S2 — was `auth` only: ANY logged-in user (a cashier, an attendant) could
+// change any user's role, permissions, status or password, including their
+// own. Now Administrator-only, matching the frontend, where the Users page is
+// already `adminOnly` (App.js). Users change their OWN password through
+// POST /auth/change-password, which is untouched.
+router.put('/:id', auth, adminOnly, async (req, res) => {
   try {
     const { firstName, lastName, email, phone, role, permissions, status, password, isRouteSeller } = req.body;
+    // S2 — refuse to demote or deactivate the last active Administrator,
+    // which would lock everyone out of user management.
+    const losingAdmin = (role !== undefined && role !== 'Administrator')
+                     || (status !== undefined && status !== 'Active');
+    if (losingAdmin && isLastActiveAdmin(req.params.id)) {
+      return res.status(409).json({ error: 'This is the last active Administrator. Make another user an active Administrator first.' });
+    }
     // 2026-09-12 — permissions are written ONLY when the request carries them.
     // The Edit User form sends details alone (name, username, phone, role,
     // status, password) while the Permissions button sends the list; this
@@ -115,6 +138,9 @@ router.put('/:id', auth, async (req, res) => {
 
 router.delete('/:id', auth, adminOnly, (req, res) => {
   try {
+    if (isLastActiveAdmin(req.params.id)) {
+      return res.status(409).json({ error: 'This is the last active Administrator and cannot be deleted.' });
+    }
     db.prepare("UPDATE users SET deleted_at=datetime('now'), updated_at=datetime('now'), synced=0 WHERE id=?").run(req.params.id);
     res.json({ message: 'User deleted' });
   } catch (error) {

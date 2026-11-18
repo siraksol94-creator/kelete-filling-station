@@ -1,4 +1,8 @@
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+// S3 — resolve the signing secret before anything else, so a server without
+// one stops here with a clear message instead of running with a public key.
+// On a till this creates the per-install secret on first start.
+require('./config/secrets').getJwtSecret();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -14,6 +18,46 @@ const fs = require('fs');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 app.use(cors());
+
+// ─── S3 — till network exposure ─────────────────────────────────────────────
+// On a till (Electron) this server used to listen on every network interface
+// with no restriction, so any device on the station network or Wi-Fi could use
+// the till's API (and, with the public signing key, as an Administrator), and
+// read the LAN sync key from GET /api/sync/lan-config.
+//
+// A till now accepts requests from OTHER machines only when it is the LAN
+// "Mother", and then only on the endpoints a child till's sync actually calls
+// (services/syncService.js: /api/health, /api/sync/push, /api/sync/pull,
+// /api/sync/master/{slug,registry,push,pull}). Those stay protected by the LAN
+// sync key (lanGate in routes/sync.js) exactly as before.
+//
+// Escape hatch, for a station setup we have not seen yet (e.g. a manager PC
+// opening the till in a browser): KELETE_ALLOW_REMOTE_UI=1 turns this filter
+// off. Not set by default.
+const IS_TILL = !!process.env.ELECTRON_USER_DATA;
+const REMOTE_ALLOWED_PATHS = new Set([
+  '/api/health',
+  '/api/sync/push',
+  '/api/sync/pull',
+  '/api/sync/master/slug',
+  '/api/sync/master/registry',
+  '/api/sync/master/push',
+  '/api/sync/master/pull',
+]);
+function isLoopback(addr) {
+  const a = String(addr || '').replace(/^::ffff:/, '');
+  return a === '127.0.0.1' || a === '::1' || a.startsWith('127.');
+}
+if (IS_TILL && process.env.KELETE_ALLOW_REMOTE_UI !== '1') {
+  app.use((req, res, next) => {
+    if (isLoopback(req.socket?.remoteAddress)) return next();
+    // Express matches routes case-insensitively; compare the same way.
+    const p = (req.path || '').toLowerCase().replace(/\/+$/, '');
+    if (REMOTE_ALLOWED_PATHS.has(p)) return next();
+    return res.status(403).json({ error: 'This till only accepts requests from this computer.' });
+  });
+}
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(uploadsDir));
@@ -894,9 +938,40 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5300;
-app.listen(PORT, () => {
-  console.log(`Kelete server running on port ${PORT}`);
-});
+
+// S3 — where to listen.
+//   KELETE_BIND_HOST set           → exactly that (explicit override).
+//   Till, LAN role 'mother'        → all interfaces (children must reach it;
+//                                    the filter above limits what they can call).
+//   Till, any other role           → this computer only. Both 127.0.0.1 and ::1,
+//                                    because Electron loads http://localhost:5301
+//                                    and Windows may resolve localhost to either.
+//   VPS / dev (not a till)         → unchanged: all interfaces, as before.
+// A change of LAN role (PUT /api/sync/lan-config) takes effect on the next start.
+function tillLanRole() {
+  try { return syncConfig.getLanConfig().role || 'child'; } catch (_) { return 'child'; }
+}
+const http = require('http');
+const bindOverride = (process.env.KELETE_BIND_HOST || '').trim();
+let bindHosts;
+if (bindOverride)                          bindHosts = [bindOverride];
+else if (IS_TILL && tillLanRole() === 'mother') bindHosts = [null];           // all interfaces
+else if (IS_TILL)                          bindHosts = ['127.0.0.1', '::1'];
+else                                       bindHosts = [null];                // unchanged for VPS/dev
+
+for (const host of bindHosts) {
+  const srv = http.createServer(app);
+  srv.on('error', (err) => {
+    // ::1 is absent when IPv6 is disabled on the PC — 127.0.0.1 still serves.
+    if (host === '::1' && (err.code === 'EADDRNOTAVAIL' || err.code === 'EAFNOSUPPORT')) {
+      console.warn('[listen] IPv6 loopback unavailable — serving on 127.0.0.1 only.');
+      return;
+    }
+    console.error(`[listen] failed on ${host || 'all interfaces'}:${PORT} — ${err.message}`);
+  });
+  const onListen = () => console.log(`Kelete server running on ${host || 'all interfaces'}:${PORT}`);
+  if (host) srv.listen(PORT, host, onListen); else srv.listen(PORT, onListen);
+}
 
 // 2026-08-28 — background ZRA retry, on the till itself.
 //

@@ -17,6 +17,7 @@
 const express = require('express');
 const router  = express.Router();
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/secrets');
 const { randomUUID } = require('crypto');
 const { listTenants, isRegistered, masterDb } = require('../config/masterDb');
 const { getTenantDb } = require('../config/tenantDb');
@@ -40,7 +41,7 @@ function hqAuth(req, res, next) {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).json({ error: 'Access denied' });
-    req.user = jwt.verify(token, process.env.JWT_SECRET || 'kelete-pro-secret-key-2026');
+    req.user = jwt.verify(token, getJwtSecret());
     next();
   } catch (_) {
     res.status(401).json({ error: 'Invalid token' });

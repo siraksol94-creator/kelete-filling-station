@@ -8,6 +8,8 @@
  * No sync service — desktop devices sync via the main server (port 5300).
  */
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+// S3 — refuse to start without a real signing secret (see config/secrets.js).
+require('./config/secrets').getJwtSecret();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');

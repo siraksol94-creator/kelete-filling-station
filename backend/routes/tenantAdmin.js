@@ -10,9 +10,15 @@ const { randomUUID } = require('crypto');
 const { registerTenant, listTenants, deactivateTenant, isRegistered, masterDb } = require('../config/masterDb');
 const { getTenantDb } = require('../config/tenantDb');
 
+const { safeEqual } = require('../config/secrets');
+
+// S3 — constant-time comparison, and an unset or blank ADMIN_PASSWORD can
+// never match (previously `undefined !== undefined` was already false, but a
+// blank value in .env would have matched a blank header).
 function adminAuth(req, res, next) {
-  const password = req.headers['x-admin-password'] || req.body.adminPassword;
-  if (!password || password !== process.env.ADMIN_PASSWORD) {
+  const password = req.headers['x-admin-password'] || req.body?.adminPassword;
+  const expected = (process.env.ADMIN_PASSWORD || '').trim();
+  if (!password || !expected || !safeEqual(password, expected)) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   next();

@@ -28,6 +28,7 @@
 const express = require('express');
 const router  = express.Router();
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/secrets');
 const { randomUUID } = require('crypto');
 const crypto = require('crypto');
 const { listTenants, isRegistered, masterDb } = require('../config/masterDb');
@@ -70,7 +71,7 @@ function hqAuth(req, res, next) {
   const token = req.header('Authorization')?.replace('Bearer ', '');
   if (token) {
     try {
-      req.user = jwt.verify(token, process.env.JWT_SECRET || 'kelete-pro-secret-key-2026');
+      req.user = jwt.verify(token, getJwtSecret());
       return next();
     } catch (_) { /* not a token we signed — try the branch secret below */ }
   }
