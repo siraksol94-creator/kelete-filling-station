@@ -188,6 +188,22 @@ const SYNC_TABLES = [
 // A sync PUSH is never allowed to un-reverse an order, decrease a partial
 // reverse quantity, blank a Reversed/Partial order status, or un-soft-delete
 // a row. Legitimate un-reverse / restore must go through explicit routes.
+// Sync fix — do two versions of a row carry the same data? Compares the
+// columns the client sent (except id / synced / updated_at), treating numbers
+// and numeric strings alike and null/undefined alike.
+function sameContent(cols, existing, row) {
+  for (const c of cols) {
+    if (c === 'id' || c === 'synced' || c === 'updated_at' || row[c] === undefined) continue;
+    const a = existing[c], b = row[c];
+    if (a == null && b == null) continue;
+    if (a == null || b == null) return false;
+    const na = Number(a), nb = Number(b);
+    if (a !== '' && b !== '' && isFinite(na) && isFinite(nb)) { if (na !== nb) return false; continue; }
+    if (String(a) !== String(b)) return false;
+  }
+  return true;
+}
+
 function pushWouldRegress(table, existing, row) {
   if (!existing || !row) return null;
   if (existing.deleted_at && !row.deleted_at && 'deleted_at' in row) {
@@ -609,8 +625,30 @@ router.post('/push', lanGate, async (req, res) => {
               // check didn't fire, server got overwritten with stale data. Equal
               // timestamps = same data, so rejecting is always safe (no real edit
               // to lose) and closes the hole completely.
-              if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs <= existingMs) {
-                slog(`push: REJECT [${table}] sync_id=${row.sync_id} — incoming ${row.updated_at} <= server ${existing.updated_at}`);
+              //
+              // Sync fix (2026-11-18) — "equal timestamps = same data" is not
+              // true: updated_at has one-second resolution, so a change made in
+              // the same second as the last synced version has an EQUAL
+              // timestamp and DIFFERENT data. It was silently dropped here, and
+              // the till then marked it synced — lost for good (D5 test 07).
+              // Now:
+              //   • equal timestamp, same content  → harmless no-op (as before);
+              //   • equal timestamp, other content → not applied, but REPORTED
+              //     as 'same_second' with the server's timestamp, so an updated
+              //     till keeps its change pending and re-sends it as newer;
+              //   • older timestamp                → rejected (as before) and
+              //     now REPORTED as 'stale'.
+              // Older tills ignore these reports, so they behave exactly as before.
+              if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs < existingMs) {
+                conflicts.push({ table, sync_id: row.sync_id, reason: 'stale', server_updated_at: existing.updated_at });
+                slog(`push: REJECT [${table}] sync_id=${row.sync_id} — incoming ${row.updated_at} < server ${existing.updated_at}`);
+                continue;
+              }
+              if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs === existingMs) {
+                if (!sameContent(cols, existing, row)) {
+                  conflicts.push({ table, sync_id: row.sync_id, reason: 'same_second', server_updated_at: existing.updated_at });
+                  slog(`push: HOLD [${table}] sync_id=${row.sync_id} — same-second change at ${row.updated_at}; client asked to re-send`);
+                }
                 continue;
               }
             }

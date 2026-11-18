@@ -203,4 +203,3 @@ describe('S7 — database backups are Administrator-only', () => {
     assert.equal((await app.request('GET', '/api/system/backups', { token: t })).status, 403);
   });
 });
-
