@@ -1380,18 +1380,39 @@ router.post('/master/push', lanGate, async (req, res) => {
 
           // Guard 2 — is yours newer than mine? An offline or clock-behind
           // device must not silently clobber a more recent edit made here.
-          // Equal timestamps are rejected too: same data, nothing to gain,
-          // and it closes the sibling-clobber hole. A NULL on the server
-          // means a legacy row never touched by the trigger — incoming wins.
+          // A NULL on the server means a legacy row never touched by the
+          // trigger — incoming wins.
+          //
+          // Sync fix (master) — this used `<=`: an EQUAL timestamp was
+          // rejected as "stale-timestamp" even when it carried a different
+          // change. Master timestamps are in milliseconds, so a tie is rare,
+          // but when it happens a real edit was thrown away. Now, as on the
+          // branch push (/push):
+          //   • older                         → rejected 'stale-timestamp' (as before)
+          //   • equal, same content           → nothing to do; not reported
+          //   • equal, different content      → not applied; reported as
+          //     'same_second' with server_updated_at so a client can re-send
+          //     it with a later timestamp instead of losing it.
+          // Every rejection now carries server_updated_at. NOTE: no client in
+          // this codebase calls /master/push today; the response shape stays
+          // backward compatible ({ success, rejected }).
           if (existing.updated_at && row.updated_at) {
             const parse = (s) => new Date(
               typeof s === 'string' && !s.includes('T') ? s.replace(' ', 'T') + 'Z' : s
             ).getTime();
             const incomingMs = parse(row.updated_at);
             const existingMs = parse(existing.updated_at);
-            if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs <= existingMs) {
-              rejected.push({ table, sync_id: row.sync_id, reason: 'stale-timestamp' });
-              slog(`master/push: REJECT [${table}] sync_id=${row.sync_id} — incoming ${row.updated_at} <= server ${existing.updated_at}`);
+            if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs < existingMs) {
+              rejected.push({ table, sync_id: row.sync_id, reason: 'stale-timestamp', server_updated_at: existing.updated_at });
+              slog(`master/push: REJECT [${table}] sync_id=${row.sync_id} — incoming ${row.updated_at} < server ${existing.updated_at}`);
+              continue;
+            }
+            if (isFinite(incomingMs) && isFinite(existingMs) && incomingMs === existingMs) {
+              const full = masterDb.prepare(`SELECT * FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
+              if (!sameContent(cols, full, row)) {
+                rejected.push({ table, sync_id: row.sync_id, reason: 'same_second', server_updated_at: existing.updated_at });
+                slog(`master/push: HOLD [${table}] sync_id=${row.sync_id} — same-timestamp change at ${row.updated_at}; client asked to re-send`);
+              }
               continue;
             }
           }
