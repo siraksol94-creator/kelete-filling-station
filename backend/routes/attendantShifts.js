@@ -145,7 +145,7 @@ router.get('/day-summary', auth, (req, res) => {
     if (!date) return res.status(400).json({ error: 'date (YYYY-MM-DD) is required' });
 
     const shifts = db.prepare(`
-      SELECT id, status, payment_cash, payment_mobile, payment_swipes, expected_cash
+      SELECT id, status, payment_cash, payment_mobile, payment_swipes, payment_other, expected_cash
         FROM attendant_shifts
        WHERE ${SHIFT_DATE} = DATE(?)
     `).all(date);
@@ -283,14 +283,15 @@ router.get('/day-summary', auth, (req, res) => {
     const swipes      = shifts.reduce((s, x) => s + Number(x.payment_swipes || 0), 0);
     const creditTotal = credits.reduce((s, r) => s + Number(r.total), 0);
     const onecardTotal = onecards.reduce((s, r) => s + Number(r.total), 0);
-    const totalDeductions = mobileMoney + swipes + creditTotal + onecardTotal;
+    const otherTotal  = shifts.reduce((s, x) => s + Number(x.payment_other || 0), 0); // "Other" tender
+    const totalDeductions = mobileMoney + swipes + otherTotal + creditTotal + onecardTotal;
     const expectedCash = Math.max(0, gross - totalDeductions);
     const cashInHand   = shifts.reduce((s, x) => s + Number(x.payment_cash || 0), 0);
     const variance     = Number((cashInHand - expectedCash).toFixed(2));
 
     res.json({
       pumpGrades, dips, tank_dips_detail: tankDipsDetail, credits, onecards,
-      deductions: { mobile_money: mobileMoney, swipes, onecard_total: onecardTotal, credit_total: creditTotal, total: totalDeductions },
+      deductions: { mobile_money: mobileMoney, swipes, other: otherTotal, onecard_total: onecardTotal, credit_total: creditTotal, total: totalDeductions },
       totals: { gross, expected_cash: expectedCash, cash_in_hand: cashInHand, variance },
     });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -541,7 +542,9 @@ router.post('/:id/finalize', auth, (req, res) => {
     const gross = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(req.params.id).t;
     const credit  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;
     const onecard = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(req.params.id).t;
-    const nonCash = Number(payment_mobile) + Number(payment_swipes) + credit + onecard;
+    // Decision 2026-11-18: "Other" tender reduces expected cash (the stored value when none is sent).
+    const other = payment_other == null ? Number(shift.payment_other || 0) : Number(payment_other || 0);
+    const nonCash = Number(payment_mobile) + Number(payment_swipes) + other + credit + onecard;
     const expectedCash = Number((gross - nonCash).toFixed(2));
     const variance = Number((Number(payment_cash) - expectedCash).toFixed(2));
     db.prepare(`
@@ -802,7 +805,9 @@ router.post('/:id/close', auth, (req, res) => {
 
     // 5. Expected cash = gross - all non-cash deductions. Only Mobile Money
     //    and Swipes come in as typed numbers; Credit + 1Card are computed.
+    // Decision 2026-11-18: an "Other" tender (e.g. vouchers) also reduces expected cash.
     const nonCashDeductions = Number(payment_swipes || 0) + Number(payment_mobile || 0)
+                            + Number(payment_other || 0)
                             + Number(creditTotal) + Number(onecardTotal);
     const expectedCash = Number((grossSales - nonCashDeductions).toFixed(2));
     const variance = Number((Number(payment_cash || 0) - expectedCash).toFixed(2));
