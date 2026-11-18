@@ -146,6 +146,25 @@ router.get('/backups/:name/download', auth, adminOnly, (req, res) => {
   });
 });
 
+// ─── S1 stage 2: tills allowed to sync with this database ──────────────────
+// GET  /api/system/sync-devices            — every till holding a sync token
+// POST /api/system/sync-devices/:id/revoke — cut one till off (others unaffected)
+// Before switching the VPS to KELETE_SYNC_AUTH=require, check here that every
+// real till is listed (recently seen) and revoke anything you do not recognise.
+router.get('/sync-devices', auth, adminOnly, (req, res) => {
+  try {
+    const deviceAuth = require('../services/deviceAuth');
+    res.json({ ok: true, mode: deviceAuth.mode(), devices: deviceAuth.listDevices() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+router.post('/sync-devices/:id/revoke', auth, adminOnly, (req, res) => {
+  try {
+    const n = require('../services/deviceAuth').revoke(Number(req.params.id), req.user && req.user.email);
+    if (!n) return res.status(404).json({ error: 'No such active device.' });
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ─── D1: GET /api/system/schema-status ─────────────────────────────────────
 // Which versioned migrations and one-time data tasks have run on THIS
 // database (the branch the request is for). Read-only. Administrators only.

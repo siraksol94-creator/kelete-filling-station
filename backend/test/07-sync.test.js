@@ -95,9 +95,9 @@ knownDefect('F1', 'fuel data entered on a till never reaches the VPS', async () 
   assert.equal(onVps[0].n, 0, 'TODAY: fuel tables are in no sync list');
 });
 
-knownDefect('S1 stage 2', 'GET /api/sync/pull needs no login and returns users with their password hashes', async () => {
+knownDefect('S1 stage 3 (KELETE_SYNC_AUTH=require, a switch)', 'in the default stage-2 mode a pull without a device token is still served, users with their password hashes included', async () => {
   const r = await fetch(`${vps.base}/api/sync/pull?tenantId=${encodeURIComponent(pair.tenant)}&since=1970-01-01T00:00:00.000Z`);
-  assert.equal(r.status, 200, 'TODAY: no authentication (nginx S1 stage 1 does not cover pull — tills need it)');
+  assert.equal(r.status, 200, 'TODAY (stage 2): tills without a token keep working; require mode refuses this (test/13)');
   const body = await r.json();
   const users = (body.records || body).users || [];
   assert.ok(users.length > 0 && users.every(u => 'password' in u), 'password hashes are included');

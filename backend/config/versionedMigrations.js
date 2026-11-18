@@ -78,4 +78,29 @@ module.exports = [
       }
     },
   },
+  {
+    version: 5,
+    name: 'sync_device_tokens',
+    // S1 stage 2 — one row per till allowed to sync with this database. Only a
+    // SHA-256 of each token is stored. Server-side only: not in any sync list.
+    up(db) {
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS sync_device_tokens (
+          id            INTEGER PRIMARY KEY AUTOINCREMENT,
+          token_hash    TEXT NOT NULL UNIQUE,
+          tenant_id     TEXT NOT NULL,
+          branch_id     TEXT,
+          device_id     TEXT,
+          label         TEXT,
+          issued_via    TEXT NOT NULL,          -- register | join-branch | auto-enrol
+          created_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+          last_seen_at  TEXT,
+          last_ip       TEXT,
+          revoked_at    TEXT,
+          revoked_by    TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_sync_device_tokens_device ON sync_device_tokens (tenant_id, device_id);
+      `);
+    },
+  },
 ];

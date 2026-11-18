@@ -28,6 +28,7 @@ function launch(role, extraEnv) {
             return r.body.rows || r.body.info;
           },
           log: () => log,
+          env: (vars) => request(base, 'POST', '/__test/env', { body: vars }),
         });
       }
     });

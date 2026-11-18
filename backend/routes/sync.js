@@ -12,6 +12,8 @@ const bcrypt = require('bcrypt');
 const { auth } = require('../middleware/auth');
 const { getLicense, activateLicense, registerBranch, getTenant } = require('../config/masterDb');
 const masterDb = require('../config/masterDb').masterDb;
+// S1 stages 2/3 — per-till sync tokens (services/deviceAuth.js).
+const deviceAuth = require('../services/deviceAuth');
 
 // v1.9.3 — slog matches the helper in services/syncService.js. The push
 // timestamp-REJECT log on line ~437 was calling slog() since v1.8.91 but
@@ -291,13 +293,15 @@ router.post('/register', async (req, res) => {
       `branch:${tenantId}:${branchId}`, branchName
     );
     registerBranch(tenantId, branchId, branchName, slug);
+    // S1 stage 2 — the new till's own sync token (licence key checked above).
+    const deviceToken = deviceAuth.issueToken({ tenantId, branchId, deviceId: req.body.deviceId || null, label: branchName, via: 'register' });
 
     // ── Activate license in master.db (stamp email + tenantId on first use)
     if (!license.tenant_email) {
       activateLicense(licenseKey.trim().toUpperCase(), tenant.email || slug, tenantId);
     }
 
-    res.json({ tenantId, branchId, expiresAt: license.expires_at });
+    res.json({ tenantId, branchId, expiresAt: license.expires_at, deviceToken });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -507,7 +511,9 @@ router.post('/join-branch', (req, res) => {
     }
 
     // ── Return existing IDs — no new branch created ───────────────────────
-    res.json({ tenantId: foundTenantId, branchId: foundBranchId, expiresAt: license.expires_at });
+    // S1 stage 2 — plus this till's own sync token (licence key checked above).
+    const deviceToken = deviceAuth.issueToken({ tenantId: foundTenantId, branchId: foundBranchId, deviceId: req.body.deviceId || null, label: req.body.label || `joined ${branchCode.trim().toUpperCase()}`, via: 'join-branch' });
+    res.json({ tenantId: foundTenantId, branchId: foundBranchId, expiresAt: license.expires_at, deviceToken });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -534,6 +540,7 @@ function lanGate(req, res, next) {
     if (!provided || provided !== lan.lanSyncKey) {
       return res.status(401).json({ error: 'Invalid or missing LAN sync key.' });
     }
+    req.lanAuthenticated = true; // S1: a LAN child, checked by key — no device token needed
     // Track child activity (deviceId from body for push, from query for pull)
     const deviceId = (req.body && req.body.deviceId) || req.query.deviceId || null;
     if (deviceId) {
@@ -547,13 +554,20 @@ function lanGate(req, res, next) {
   } catch { next(); }
 }
 
+// ─── POST /api/sync/device-token ──────────────────────────────────────────────
+// S1 stage 2 — a till installed before tokens existed asks for its own on its
+// next sync (closed once KELETE_SYNC_AUTH=require). See services/deviceAuth.js.
+router.post('/device-token', (req, res) => {
+  try { deviceAuth.enrol(req, res); } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // ─── POST /api/sync/push ──────────────────────────────────────────────────────
 // Device pushes local unsynced records to server.
 // Body: { tenantId, branchId, deviceId, records: { tableName: [...rows] } }
 // BATCHED: writes happen in chunks of 200 with event-loop yields between them so
 // the receiving server (Mother/VPS) stays responsive to other clients during
 // large incoming pushes.
-router.post('/push', lanGate, async (req, res) => {
+router.post('/push', lanGate, deviceAuth.deviceGate('tenant'), async (req, res) => {
   try {
     const { tenantId, branchId, deviceId, records } = req.body;
     if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
@@ -707,7 +721,7 @@ router.post('/push', lanGate, async (req, res) => {
 // pushed records (Mother re-stamps updated_at on push, which otherwise causes
 // the record to match the next pull's time filter).
 // Query: ?tenantId=T1&since=2024-01-01T00:00:00.000Z&deviceId=<requester-uuid>
-router.get('/pull', lanGate, async (req, res) => {
+router.get('/pull', lanGate, deviceAuth.deviceGate('tenant'), async (req, res) => {
   try {
     const { tenantId, since, deviceId } = req.query;
     if (!tenantId) return res.status(400).json({ error: 'tenantId is required' });
@@ -863,12 +877,14 @@ router.post('/reset', (req, res) => {
 // Save tenantId + branchId on local device after registration
 router.post('/configure', (req, res) => {
   try {
-    const { tenantId, branchId, vpsUrl } = req.body;
+    const { tenantId, branchId, vpsUrl, deviceToken } = req.body;
     if (!tenantId || !branchId) {
       return res.status(400).json({ error: 'tenantId and branchId are required' });
     }
     syncConfig.setRegistration(tenantId, branchId);
     if (vpsUrl) syncConfig.set('vps_url', vpsUrl);
+    // S1 stage 2 — the token the VPS issued at register / join-branch.
+    if (deviceToken) syncConfig.set('device_token', deviceToken);
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1268,7 +1284,7 @@ router.get('/master/slug', (req, res) => {
 });
 
 // GET /api/sync/master/pull?slug=<slug>&since=<iso>
-router.get('/master/pull', lanGate, async (req, res) => {
+router.get('/master/pull', lanGate, deviceAuth.deviceGate('slug'), async (req, res) => {
   try {
     if (!masterDb) return res.status(503).json({ error: 'master.db unavailable on this server' });
     const { slug, since } = req.query;
@@ -1320,7 +1336,7 @@ router.get('/master/pull', lanGate, async (req, res) => {
 // Small, HQ-owned and read-only, so it ships whole rather than through the
 // change-tracking bridge. `id` is deliberately omitted — the receiving
 // database assigns its own.
-router.get('/master/registry', lanGate, (req, res) => {
+router.get('/master/registry', lanGate, deviceAuth.deviceGate('none'), (req, res) => {
   try {
     if (!masterDb) return res.status(503).json({ error: 'master.db unavailable on this server' });
     const tenants  = masterDb.prepare(
@@ -1336,7 +1352,7 @@ router.get('/master/registry', lanGate, (req, res) => {
 });
 
 // POST /api/sync/master/push { slug, records: { table: [rows] } }
-router.post('/master/push', lanGate, async (req, res) => {
+router.post('/master/push', lanGate, deviceAuth.deviceGate('slug'), async (req, res) => {
   try {
     if (!masterDb) return res.status(503).json({ error: 'master.db unavailable on this server' });
     const { slug, records } = req.body || {};
