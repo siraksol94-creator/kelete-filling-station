@@ -69,22 +69,43 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
        GROUP BY ${ORDER_DAY} ORDER BY date`
     ).all(tenantId);
 
+    // F5 (decision 2026-11-18) — forecourt fuel in the figures: revenue from
+    // CLOSED shifts by trading day (credit tickets excluded: they are already
+    // orders, counted above), and fuel in the tanks at weighted-average cost.
+    const fa = require('../services/fuelAccounting');
+    const bt = require('../config/businessTime');
+    const today = bt.businessDate();
+    const weekStart = new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000).toISOString().slice(0, 10);
+    let fuelByDay = {}, fuelStock = { atCost: 0, atRetail: 0, litres: 0, tanksWithoutCost: 0 };
+    try { fuelByDay = fa.fuelRevenueByDay(db, weekStart, today); fuelStock = fa.fuelStockValue(db); }
+    catch (_) { /* no fuel tables on this database */ }
+    const fuelToday = fuelByDay[today] || 0;
+    const fuelWeek = Object.values(fuelByDay).reduce((a, b) => a + b, 0);
+    const trend = new Map(salesTrend.map(r => [r.date, { date: r.date, total: Number(r.total) || 0 }]));
+    for (const [day, amount] of Object.entries(fuelByDay)) {
+      const row = trend.get(day) || { date: day, total: 0 };
+      row.total += amount; row.fuel = amount; trend.set(day, row);
+    }
+    const salesTrendAll = [...trend.values()].sort((a, b) => a.date.localeCompare(b.date));
+
     res.json({
-      todaySales: parseFloat(todaySales.total),
+      todaySales: parseFloat(todaySales.total) + fuelToday,
+      todayFuelSales: fuelToday,
       totalOrders: totalOrders.cnt,
-      weeklyRevenue: parseFloat(weeklyRevenue.total),
+      weeklyRevenue: parseFloat(weeklyRevenue.total) + fuelWeek,
       totalCustomers: totalCustomers.cnt,
       // Kept alongside so nothing that already reads totalCustomers breaks.
       stockValue: {
-        atCost:           stockValue.at_cost || 0,
-        atRetail:         stockValue.at_retail || 0,
+        atCost:           (stockValue.at_cost || 0) + fuelStock.atCost,
+        atRetail:         (stockValue.at_retail || 0) + fuelStock.atRetail,
         itemsWithoutCost: stockValue.items_without_cost || 0,
         itemsInStock:     stockValue.items_in_stock || 0,
+        fuel:             fuelStock,   // tanks at weighted-average cost (included above)
       },
       topProducts,
       lowStock,
       salesByCategory,
-      salesTrend
+      salesTrend: salesTrendAll
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

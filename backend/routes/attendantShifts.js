@@ -7,6 +7,20 @@ const { assertNotApproved, nozzlesInOpenShifts } = require('../services/fuelCont
 const businessTime = require('../config/businessTime');
 const SHIFT_DATE = businessTime.shiftDateSql();       // for unaliased queries
 const SHIFT_DATE_S = businessTime.shiftDateSql('s');  // FROM attendant_shifts s
+
+// F5 — the forecourt's takings of a trading day are one cash receipt
+// (services/fuelAccounting.js), recalculated whenever a shift of that day is
+// closed, finalised, reopened or deleted. Runs inside the same transaction.
+const fuelAccounting = require('../services/fuelAccounting');
+function refreshFuelReceipt(req, shift) {
+  const day = shift && (shift.shift_date || String(shift.opened_at || '').slice(0, 10));
+  if (!day) return;
+  const cfg = syncConfig.getConfig() || {};
+  fuelAccounting.syncFuelDayReceipt(db, {
+    date: day, tenantId: (req.user && req.user.tenantId) || cfg.tenantId,
+    userId: (req.user && req.user.id) || null, branchId: cfg.branchId || null, deviceId: cfg.deviceId || null,
+  });
+}
 const { auth, hasActiveRole, SUPERVISOR_ROLES } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
@@ -559,6 +573,7 @@ router.post('/:id/finalize', auth, (req, res) => {
            Number(payment_cash), Number(payment_mobile), Number(payment_swipes),
            Number(onecard), payment_other == null ? null : Number(payment_other), Number(credit),
            notes || null, req.params.id);
+    refreshFuelReceipt(req, shift);   // F5
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });
   try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
@@ -633,6 +648,7 @@ router.post('/:id/delete', auth, async (req, res) => {
 
       // The shift itself (cascades handle shift_nozzle_readings / shift_credit_sales / shift_dips)
       db.prepare('DELETE FROM attendant_shifts WHERE id = ?').run(req.params.id);
+      refreshFuelReceipt(req, shift);   // F5: the day's receipt without this shift
     });
     tx();
     res.json({ message: 'Shift deleted' });
@@ -669,6 +685,7 @@ router.post('/:id/reopen', auth, (req, res) => {
              updated_at = datetime('now')
        WHERE id = ?
     `).run(req.params.id);
+    refreshFuelReceipt(req, shift);   // F5: an open shift's takings are not counted
     res.json({ message: 'Reopened', shift: db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id) });
   } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
@@ -828,6 +845,7 @@ router.post('/:id/close', auth, (req, res) => {
            Number(payment_mobile) || 0, Number(payment_other) || 0, Number(creditTotal),
            notes || null, req.params.id);
 
+    refreshFuelReceipt(req, shift);   // F5
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });
   try { res.json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }

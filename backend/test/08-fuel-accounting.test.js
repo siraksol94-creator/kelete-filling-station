@@ -62,20 +62,29 @@ test('the shop sale is tied to the cashier’s open shift and moves stock', () =
   assert.equal(db.prepare("SELECT current_stock FROM products WHERE code = 'OIL1'").get().current_stock, 8);
 });
 
-knownDefect('F5 (finding G)', "the Dashboard's sales for today leave out the forecourt's cash fuel sales", async () => {
+test("F5: the Dashboard's sales for today include the forecourt (closed shifts; credit counted once)", async () => {
   const d = (await app.request('GET', '/api/dashboard', { token: T() })).body;
-  // TODAY: shop K300 + the K1,000 credit ticket (an order) — the K24,000 of cash fuel is missing.
-  assert.equal(d.todaySales, shopTotal + 1000);
-  assert.ok(d.todaySales < forecourtGross, 'the station took K25,000+ but the Dashboard shows K1,300');
+  // shop K300 + credit ticket K1,000 (an order) + fuel K25,000 − that same K1,000 credit = K25,300
+  assert.equal(d.todaySales, shopTotal + forecourtGross);
+  assert.equal(d.todayFuelSales, forecourtGross - 1000);
+  const todayRow = (d.salesTrend || []).find(r => r.date === require('../config/businessTime').businessDate());
+  assert.ok(todayRow && todayRow.total >= shopTotal + forecourtGross && todayRow.fuel === forecourtGross - 1000, JSON.stringify(d.salesTrend));
 });
 
-knownDefect('F5 (finding G)', 'cash fuel sales feed none of the cash book sources', () => {
-  const cashSources = db.prepare(`
-    SELECT (SELECT COALESCE(SUM(amount),0) FROM cash_receipts WHERE deleted_at IS NULL) AS receipts,
-           (SELECT COALESCE(SUM(total_amount),0) FROM orders WHERE deleted_at IS NULL AND shift_id IS NOT NULL AND payment_method != 'Credit') AS cash_orders
-  `).get();
-  assert.equal(cashSources.receipts, 0);
-  assert.equal(cashSources.cash_orders, shopTotal, 'only the shop sale; the K24,000 cash fuel is nowhere');
+test('F5: the forecourt takings are a daily receipt in the cash book (cash / mobile / swipes; not credit or 1Card)', async () => {
+  const day = db.prepare('SELECT shift_date FROM attendant_shifts ORDER BY id LIMIT 1').get().shift_date;
+  const cr = db.prepare("SELECT * FROM cash_receipts WHERE received_from = 'Fuel sales' AND deleted_at IS NULL").all();
+  assert.equal(cr.length, 1);
+  assert.equal(cr[0].date, day);
+  assert.equal(cr[0].receipt_number, `FUEL-${day}`);
+  assert.equal(cr[0].cash_amount, 24000);
+  assert.equal(cr[0].k_amount, 24000);
+  const fa = require('../services/fuelAccounting');
+  const tenant = db.prepare("SELECT tenant_id FROM cash_receipts WHERE id = ?").get(cr[0].id).tenant_id;
+  assert.equal(cr[0].sync_id, fa.receiptSyncId(tenant, day), 'same id on every device for that day');
+  const book = (await app.request('GET', `/api/cash-book?from=${day}&to=${day}`, { token: T() })).body;
+  const entries = book.entries || book.rows || book;
+  assert.ok(JSON.stringify(entries).includes(`FUEL-${day}`), 'listed in the cash book');
 });
 
 test("F2: fuel credit sales now appear in the Dashboard's top products", async () => {
@@ -87,8 +96,28 @@ test("F2: fuel credit sales now appear in the Dashboard's top products", async (
   assert.equal(petrol.revenue, 1000);
 });
 
-knownDefect('F5', 'fuel stock has no value in the stock valuation', async () => {
+test('F5: fuel in the tanks is valued at weighted-average cost', async () => {
   const d = (await app.request('GET', '/api/dashboard', { token: T() })).body;
-  // Tanks hold ~19,000 L at ~K20/L ≈ K380,000; the valuation counts only the shop's oil.
-  assert.equal(Math.round(d.stockValue.atCost), 8 * 100);
+  // petrol 9,000 L × K20 + diesel 10,000 L × K19 + shop oil 8 × K100
+  assert.equal(Math.round(d.stockValue.fuel.atCost), 9000 * 20 + 10000 * 19);
+  assert.equal(Math.round(d.stockValue.atCost), 9000 * 20 + 10000 * 19 + 8 * 100);
+  assert.equal(d.stockValue.fuel.litres, 19000);
+});
+
+test('F5: reopening the shift takes its takings back out; closing it again puts the same receipt back', async () => {
+  const sh = db.prepare('SELECT * FROM attendant_shifts ORDER BY id LIMIT 1').get();
+  const before = db.prepare("SELECT id, sync_id FROM cash_receipts WHERE received_from = 'Fuel sales'").get();
+  const re = await app.request('POST', `/api/attendant-shifts/${sh.id}/reopen`, { token: staff.tokens.supervisor });
+  assert.equal(re.status, 200, re.text);
+  assert.ok(db.prepare('SELECT deleted_at FROM cash_receipts WHERE id = ?').get(before.id).deleted_at, 'voided while the shift is open');
+  assert.equal((await app.request('GET', '/api/dashboard', { token: T() })).body.todayFuelSales, 0);
+  const reading = (await app.request('GET', `/api/attendant-shifts/${sh.id}`, { token: T() })).body.readings[0];
+  const c = await app.request('POST', `/api/attendant-shifts/${sh.id}/close`, { token: T(),
+    body: { readings: [{ id: reading.id, closing_reading: 101000 }], payment_cash: 23500, payment_mobile: 500 } });
+  assert.equal(c.status, 200, c.text);
+  const after = db.prepare("SELECT * FROM cash_receipts WHERE received_from = 'Fuel sales'").all();
+  assert.equal(after.length, 1, 'one receipt per day, never two');
+  assert.equal(after[0].sync_id, before.sync_id);
+  assert.equal(after[0].deleted_at, null);
+  assert.deepEqual([after[0].cash_amount, after[0].momo_amount, after[0].k_amount], [23500, 500, 24000]);
 });
