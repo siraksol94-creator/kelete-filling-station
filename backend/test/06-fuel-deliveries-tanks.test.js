@@ -49,13 +49,17 @@ knownDefect('F4', 'deleting a delivery reverses the litres but not the average c
   assert.deepEqual(tankLedger(db), []);
 });
 
-knownDefect('D1 numbering', 'after a delivery is deleted, the next delivery number collides and the save fails', async () => {
-  const x = await deliver(100, 22);   // e.g. FD-000004
-  const y = await deliver(200, 22);   // e.g. FD-000005
+test('numbering: deleting a delivery never makes a number repeat; numbers keep going up', async () => {
+  const x = await deliver(100, 22);
+  const y = await deliver(200, 22);
   assert.equal((await app.request('DELETE', `/api/fuel-deliveries/${x.body.id}`, { token: T() })).status, 200);
-  const z = await deliver(300, 22);   // count + 1 = FD-000005 again
-  assert.equal(z.status, 400, `TODAY: FD- numbers are "count + 1"; deleting ${x.body.delivery_number} makes the next number repeat ${y.body.delivery_number}`);
-  assert.match(z.body.error, /UNIQUE/);
+  const z = await deliver(300, 22);
+  assert.equal(z.status, 201, z.text);
+  assert.notEqual(z.body.delivery_number, y.body.delivery_number);
+  assert.notEqual(z.body.delivery_number, x.body.delivery_number, 'a deleted number is not reused either');
+  assert.match(z.body.delivery_number, /^FD-\d{4}-[A-Z0-9]{6}-\d{4}$/, 'standard per-device document number');
+  const seq = (n) => Number(n.split('-').pop());
+  assert.ok(seq(z.body.delivery_number) > seq(y.body.delivery_number));
 });
 
 test('F4: correcting a tank opening balance posts an adjustment and keeps the original', async () => {

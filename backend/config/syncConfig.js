@@ -84,6 +84,11 @@ const NUMBER_COLUMNS = {
   loan_transactions:     'transaction_number',
   // v1.13.67 — customer-side empty deposit voucher (bearer ticket).
   empty_vouchers:        'voucher_number',
+  // Fuel: these used "row count + 1", which repeats a number after any
+  // delivery/sale other than the latest is deleted (D1 numbering defect),
+  // and would collide between devices once fuel syncs (F1).
+  fuel_deliveries:       'delivery_number',
+  fuel_sales:            'sale_number',
 };
 
 // Generates a unique document number like  ORD-2024-A1B2C3-0001
