@@ -1,6 +1,6 @@
 name: Tests
 
-# D5 — automated test suite. Runs on every pull request and every push to a
+# D5 — automated test suite (+ screen check). Runs on every pull request and every push to a
 # branch. It never deploys anything and never contacts a live system: the
 # tests use throwaway SQLite databases and refuse any non-local network
 # connection (backend/test/helpers/harness.js).
@@ -40,3 +40,23 @@ jobs:
 
       - name: Run the test suites
         run: npm test
+
+  # Screens are not unit-tested, so a broken screen file (bad JSX, an import
+  # of a file or export that does not exist) used to reach a release unseen.
+  # This parses every screen and follows every import from src/index.js.
+  # Fast: no frontend install needed (frontend/scripts/check-screens.js).
+  frontend-screens:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Every screen file parses and every import resolves
+        run: node scripts/check-screens.js
