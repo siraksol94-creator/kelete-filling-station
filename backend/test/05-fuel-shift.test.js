@@ -75,17 +75,29 @@ test('a Credit ticket for a customer creates a receivable order', async () => {
   assert.equal(order.shift_id, shift.id);
 });
 
-knownDefect('F2', 'the credit order line is written without order_sync_id, so reports cannot join it', () => {
-  assert.ok(unlinkedOrderLines(db) >= 1);
+test('F2: the credit order line carries the links reports and sync need', () => {
+  assert.equal(unlinkedOrderLines(db), 0);
+  const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(creditOrderId);
+  const line = db.prepare('SELECT * FROM order_items WHERE order_id = ?').get(creditOrderId);
+  const product = db.prepare("SELECT sync_id FROM products WHERE code = 'FUEL-ULP'").get();
+  assert.equal(line.order_sync_id, order.sync_id);
+  assert.equal(line.product_sync_id, product.sync_id);
+  assert.ok(line.sync_id && line.tenant_id, 'line has its own sync identity');
+  assert.equal(line.unit, 'L');
+  const ticket = db.prepare('SELECT linked_order_sync_id FROM shift_credit_sales WHERE linked_order_id = ?').get(creditOrderId);
+  assert.equal(ticket.linked_order_sync_id, order.sync_id);
 });
 
-knownDefect('F2', 'a Credit ticket without a customer creates NO receivable but still counts as credit', async () => {
-  const before = db.prepare('SELECT COUNT(*) AS n FROM orders').get().n;
+test('F2: a Credit ticket without a customer account is refused', async () => {
+  const before = db.prepare('SELECT COUNT(*) AS n FROM shift_credit_sales').get().n;
   const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/credit-sales`, { token: T(),
     body: { payment_method: 'Credit', customer_name: 'Walk-in on account', fuel_grade_id: fuel.petrol.id, litres: 10, price_per_litre: 25 } });
-  assert.equal(r.status, 201);
-  assert.equal(r.body.linked_order_id, null);
-  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM orders').get().n, before, 'TODAY: no order, so the K250 is in no receivable');
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /must be linked to a customer account/);
+  const gone = await app.request('POST', `/api/attendant-shifts/${shift.id}/credit-sales`, { token: T(),
+    body: { payment_method: 'Credit', customer_id: 999999, customer_name: 'Ghost', fuel_grade_id: fuel.petrol.id, litres: 10, price_per_litre: 25 } });
+  assert.equal(gone.status, 400);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM shift_credit_sales').get().n, before);
 });
 
 test('a 1Card ticket is recorded on the shift only (no receivable order)', async () => {
@@ -103,6 +115,21 @@ test('current behaviour (business decision pending): a price change re-prices th
   assert.equal(rd.price_per_litre, 24.5);
 });
 
+test('F2: credit rows sent with the shift close must have an account; the whole close is refused and nothing changes', async () => {
+  const detail = (await app.request('GET', `/api/attendant-shifts/${shift.id}`, { token: T() })).body;
+  const r1 = detail.readings.find(x => x.nozzle_id === fuel.n1.id);
+  const r2 = detail.readings.find(x => x.nozzle_id === fuel.n2.id);
+  const volBefore = vol(fuel.t1.id);
+  const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/close`, { token: T(), body: {
+    readings: [{ id: r1.id, closing_reading: 101000 }, { id: r2.id, closing_reading: 50500 }],
+    credit_sales_batch: [{ customer_name: 'Unknown Hauler', litres: 5, price_per_litre: 25 }], payment_cash: 1 } });
+  assert.equal(r.status, 400);
+  assert.match(r.body.error, /no customer account/);
+  assert.equal(db.prepare('SELECT status FROM attendant_shifts WHERE id = ?').get(shift.id).status, 'Open');
+  assert.equal(vol(fuel.t1.id), volBefore, 'readings were not applied');
+  assertLedger();
+});
+
 test('close: litres sold, tank ledger, meters, expected cash and variance', async () => {
   const detail = (await app.request('GET', `/api/attendant-shifts/${shift.id}`, { token: T() })).body;
   const r1 = detail.readings.find(x => x.nozzle_id === fuel.n1.id);
@@ -116,9 +143,10 @@ test('close: litres sold, tank ledger, meters, expected cash and variance', asyn
     dips: [{ tank_id: fuel.t1.id, dip_litres: 9000 }],
   } });
   assert.equal(r.status, 200, r.text);
-  // gross 37,125 − (mobile 2,000 + swipes 1,000 + credit 1,250 + 1Card 480) = 32,395 expected cash
-  assert.equal(r.body.expected_cash, 32395);
-  assert.equal(r.body.variance, 30000 - 32395);
+  // gross 37,125 − (mobile 2,000 + swipes 1,000 + credit 1,000 + 1Card 480) = 32,645 expected cash
+  // (F2: the K250 "credit" with no customer is now refused, so it no longer reduces expected cash)
+  assert.equal(r.body.expected_cash, 32645);
+  assert.equal(r.body.variance, 30000 - 32645);
   assert.equal(vol(fuel.t1.id), 10000 - 995, 'testing litres go back to the tank');
   assert.equal(vol(fuel.t2.id), 10000 - 500);
   assert.equal(meter(fuel.n1.id), 101000);
@@ -127,7 +155,7 @@ test('close: litres sold, tank ledger, meters, expected cash and variance', asyn
 
 knownDefect('F4', 'the "other" payment typed at close is discarded and that column holds the credit total', () => {
   const s = db.prepare('SELECT payment_other, payment_1card FROM attendant_shifts WHERE id = ?').get(shift.id);
-  assert.equal(s.payment_other, 1250, 'TODAY: credit total, not the 77 typed');
+  assert.equal(s.payment_other, 1000, 'TODAY: credit total, not the 77 typed');
   assert.equal(s.payment_1card, 480);
 });
 
@@ -157,7 +185,7 @@ test('reopen → close again with the same figures does not drain the tank twice
     readings: [{ id: r1.id, closing_reading: 101000, testing_litres: 5 }, { id: r2.id, closing_reading: 50500 }],
     payment_cash: 30000, payment_mobile: 2000, payment_swipes: 1000 } });
   assert.equal(r.status, 200, r.text);
-  assert.equal(r.body.expected_cash, 32395);
+  assert.equal(r.body.expected_cash, 32645);
   assert.equal(vol(fuel.t1.id), before);
   assertLedger();
 });

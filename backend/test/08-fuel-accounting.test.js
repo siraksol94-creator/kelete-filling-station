@@ -78,11 +78,13 @@ knownDefect('F5 (finding G)', 'cash fuel sales feed none of the cash book source
   assert.equal(cashSources.cash_orders, shopTotal, 'only the shop sale; the K24,000 cash fuel is nowhere');
 });
 
-knownDefect('F2', "fuel credit sales are invisible in the Dashboard's top products", async () => {
+test("F2: fuel credit sales now appear in the Dashboard's top products", async () => {
   const d = (await app.request('GET', '/api/dashboard', { token: T() })).body;
   const names = (d.topProducts || []).map(p => p.product_name);
   assert.ok(names.includes('Engine Oil 1L'));
-  assert.ok(!names.includes('Petrol'), 'TODAY: the credit line has no order_sync_id, so the join drops it');
+  const petrol = (d.topProducts || []).find(p => p.product_name === 'Petrol');
+  assert.ok(petrol, 'the credit line joins now that it has order_sync_id');
+  assert.equal(petrol.revenue, 1000);
 });
 
 knownDefect('F5', 'fuel stock has no value in the stock valuation', async () => {

@@ -442,8 +442,19 @@ router.post('/:id/credit-sales', auth, (req, res) => {
     if (customer_id) {
       customer = db.prepare('SELECT id, sync_id, name FROM customers WHERE id = ? AND deleted_at IS NULL').get(customer_id);
     }
+    // F2 — a Credit ticket is money a customer owes. Without a customer
+    // account it used to create NO receivable order, yet still counted as
+    // credit when the shift's expected cash was worked out — so the amount
+    // was owed by nobody, anywhere. The ticket screen already asks staff to
+    // pick a customer; the server now insists.
+    if (method === 'Credit' && !customer) {
+      throw Object.assign(new Error(customer_id
+        ? 'That customer account no longer exists. Pick another customer.'
+        : 'A Credit ticket must be linked to a customer account. Pick the customer from the list (or add them under Customers first).'), { status: 400 });
+    }
 
     let linkedOrderId = null;
+    let linkedOrderSyncId = null;
     // 'Credit' routes through the standard AR plumbing by writing an order
     // + line item. '1Card' is tracked only in shift_credit_sales (Engen
     // reconciliation is monthly, not a Kelete customer receivable).
@@ -470,11 +481,21 @@ router.post('/:id/credit-sales', auth, (req, res) => {
              null, orderSyncId, tenantId, syncCfg.branchId, syncCfg.deviceId,
              Number(req.params.id));
       linkedOrderId = info.lastInsertRowid;
+      linkedOrderSyncId = orderSyncId;
       if (product) {
+        // F2 — the line used to carry only numeric ids. Reports, statements
+        // and sync join order lines by order_sync_id / product_sync_id, so the
+        // fuel line was invisible to them (and arrived on the VPS without a
+        // valid link). Write the full set, as a POS sale line does.
         db.prepare(`
-          INSERT INTO order_items (order_id, product_id, product_name, quantity, unit_price, total_price)
-          VALUES (?,?,?,?,?,?)
-        `).run(linkedOrderId, product.id, db.prepare('SELECT name FROM fuel_grades WHERE id = ?').get(fuel_grade_id)?.name || 'Fuel', qty, ppl, amt);
+          INSERT INTO order_items (order_id, order_sync_id, product_id, product_sync_id, product_name,
+                                   quantity, unit, unit_price, total_price,
+                                   sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
+        `).run(linkedOrderId, orderSyncId, product.id, product.sync_id,
+               db.prepare('SELECT name FROM fuel_grades WHERE id = ?').get(fuel_grade_id)?.name || 'Fuel',
+               qty, db.prepare('SELECT unit FROM fuel_grades WHERE id = ?').get(fuel_grade_id)?.unit || 'L', ppl, amt,
+               randomUUID(), tenantId, syncCfg.branchId, syncCfg.deviceId);
       }
     }
 
@@ -483,12 +504,12 @@ router.post('/:id/credit-sales', auth, (req, res) => {
         shift_id, payment_method, customer_id, customer_sync_id, customer_name,
         card_number, vehicle_registration, fuel_grade_id,
         litres, price_per_litre, amount, receipt_number, notes,
-        linked_order_id, date
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        linked_order_id, linked_order_sync_id, date
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(req.params.id, method, customer?.id || null, customer?.sync_id || null, customer_name.trim(),
            card_number, vehicle_registration, fuel_grade_id,
            qty, ppl, amt, receipt_number, notes,
-           linkedOrderId, date || new Date().toISOString().slice(0, 10));
+           linkedOrderId, linkedOrderSyncId, date || new Date().toISOString().slice(0, 10));
 
     return db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(info.lastInsertRowid);
   });
@@ -734,6 +755,13 @@ router.post('/:id/close', auth, (req, res) => {
     const updFleet = db.prepare('UPDATE fleet_customers SET current_balance = current_balance + ?, updated_at = datetime(\'now\') WHERE id = ?');
     for (const cs of credit_sales_batch) {
       if (!cs.customer_name || !(Number(cs.litres) > 0)) continue;
+      // F2 — same rule as the ticket route: credit with no account behind it
+      // would be counted as credit yet owed by nobody. This batch path is not
+      // offered by any screen today (AttendantShifts.js never renders it);
+      // fleet-linked rows still work until F3 settles the fleet model.
+      if (!cs.fleet_customer_id) {
+        throw Object.assign(new Error(`Credit for "${cs.customer_name}" has no customer account. Record it on the Credit Tickets page instead.`), { status: 400 });
+      }
       const ppl = Number(cs.price_per_litre) || 0;
       const amt = cs.amount != null ? Number(cs.amount) : Number((Number(cs.litres) * ppl).toFixed(2));
       insCredit.run(req.params.id, cs.fleet_customer_id || null, cs.customer_name.trim(),
