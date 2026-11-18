@@ -139,6 +139,29 @@ test('a shift dip for the day is recorded against the book volume', async () => 
   assert.equal(dip.variance, 9000 - (10000 - 995));
 });
 
+test('decision 2026-11-18: only a supervisor (Manager) or Administrator can reopen a shift', async () => {
+  const r1 = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: staff.tokens.cashier });
+  assert.equal(r1.status, 403);
+  const r2 = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: staff.tokens.att1 });
+  assert.equal(r2.status, 403, 'not even the attendant who owns the shift');
+  const ok = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: staff.tokens.supervisor });
+  assert.equal(ok.status, 200, ok.text);
+});
+
+test('reopen → close again with the same figures does not drain the tank twice', async () => {
+  const detail = (await app.request('GET', `/api/attendant-shifts/${shift.id}`, { token: T() })).body;
+  const r1 = detail.readings.find(x => x.nozzle_id === fuel.n1.id);
+  const r2 = detail.readings.find(x => x.nozzle_id === fuel.n2.id);
+  const before = vol(fuel.t1.id);
+  const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/close`, { token: staff.tokens.supervisor, body: {
+    readings: [{ id: r1.id, closing_reading: 101000, testing_litres: 5 }, { id: r2.id, closing_reading: 50500 }],
+    payment_cash: 30000, payment_mobile: 2000, payment_swipes: 1000 } });
+  assert.equal(r.status, 200, r.text);
+  assert.equal(r.body.expected_cash, 32395);
+  assert.equal(vol(fuel.t1.id), before);
+  assertLedger();
+});
+
 test('only an Administrator may approve a shift', async () => {
   const no = await app.request('POST', `/api/fuel-shift-approvals/${approvalDate}/DAY/approve`, { token: staff.tokens.supervisor });
   assert.equal(no.status, 403);
@@ -165,7 +188,8 @@ test('after approval, cash figures cannot be re-finalized', async () => {
 });
 
 test('F4: an approved shift cannot be reopened, its tickets cannot be changed, and it cannot be deleted', async () => {
-  const re = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: staff.tokens.cashier });
+  // a supervisor MAY reopen shifts in general — the approval lock still stops them
+  const re = await app.request('POST', `/api/attendant-shifts/${shift.id}/reopen`, { token: staff.tokens.supervisor });
   assert.equal(re.status, 409);
   const ticket = db.prepare('SELECT id FROM shift_credit_sales WHERE shift_id = ? LIMIT 1').get(shift.id);
   assert.equal((await app.request('DELETE', `/api/attendant-shifts/credit-sales/${ticket.id}`, { token: T() })).status, 409);

@@ -37,20 +37,31 @@ const auth = (req, res, next) => {
 // users exactly as before. Matching on id AND email keeps a different person
 // who happens to share the numeric id from being mistaken for the caller.
 //
-// adminOnly is used by routes/users.js and the D1/D2 read-only endpoints in
-// routes/system.js; nothing else depends on it.
-// Is the caller an ACTIVE Administrator right now (not just per their token)?
-// Shared by adminOnly and by routes that need the check for only part of a
-// request (e.g. F4: changing a tank's opening balance or a nozzle meter).
-function isActiveAdmin(req) {
-  if (!req.user || req.user.role !== 'Administrator') return false;
+// adminOnly is used by routes/users.js, routes/system.js (D1/D2 read-only
+// endpoints and, since S7, backups) and routes/tanks.js (ledger check).
+// Does the caller CURRENTLY hold one of `roles` (per the database, not just
+// per their token), with an Active account? Shared by adminOnly and by routes
+// that need a role check for only part of a request.
+//
+// HQ branch-switch: req.user.id belongs to the HQ (default) DB; fall back to
+// it when the branch DB has no matching row (see S2 note above).
+function hasActiveRole(req, roles) {
+  if (!req.user || !roles.includes(req.user.role)) return false;
   const sql = "SELECT role, status FROM users WHERE id = ? AND email = ? AND deleted_at IS NULL";
   let me = db.prepare(sql).get(req.user.id, req.user.email);
   if (!me && req.hqBranchSlug && db.defaultDb) {
     me = db.defaultDb.prepare(sql).get(req.user.id, req.user.email);
   }
-  return !!me && me.role === 'Administrator' && (!me.status || me.status === 'Active');
+  return !!me && roles.includes(me.role) && (!me.status || me.status === 'Active');
 }
+
+const isActiveAdmin = (req) => hasActiveRole(req, ['Administrator']);
+
+// Business decision 2026-11-18: shift reopening and nozzle meter edits are for
+// supervisors and administrators. The system has no role named "Supervisor" —
+// supervisors use the Manager role (frontend/src/pages/Users.js ROLES). A role
+// literally named "Supervisor" is accepted too, should one be added.
+const SUPERVISOR_ROLES = ['Administrator', 'Manager', 'Supervisor'];
 
 const adminOnly = (req, res, next) => {
   try {
@@ -118,4 +129,4 @@ function withTenantDb(req, res, next) {
   next();
 }
 
-module.exports = { auth, adminOnly, isActiveAdmin, readOnlyGuard, requirePagePerm, withTenantDb };
+module.exports = { auth, adminOnly, isActiveAdmin, hasActiveRole, SUPERVISOR_ROLES, readOnlyGuard, requirePagePerm, withTenantDb };

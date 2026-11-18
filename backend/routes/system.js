@@ -12,6 +12,12 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const { auth, adminOnly } = require('../middleware/auth');
+// S7 — the backup endpoints below were `auth` only: ANY logged-in user (a
+// cashier, an attendant) could list backups, trigger one, and DOWNLOAD a full
+// archive of every database — customers, financial records and staff password
+// hashes. They are now Administrator-only, checked live against the database
+// (adminOnly), matching the frontend where the Backups page is already
+// `adminOnly` (App.js), so legitimate use is unchanged.
 const db = require('../config/database');
 
 const BACKUP_ROOT = process.env.KELETE_BACKUP_DIR || '/var/backups/kelete';
@@ -38,7 +44,7 @@ function dirSize(dirPath) {
 }
 
 // GET /api/system/backups — list all backup snapshots on disk.
-router.get('/backups', auth, (req, res) => {
+router.get('/backups', auth, adminOnly, (req, res) => {
   try {
     if (!fs.existsSync(BACKUP_ROOT)) {
       return res.json({ ok: true, backups: [], root: BACKUP_ROOT, note: 'backup directory not present' });
@@ -70,7 +76,7 @@ router.get('/backups', auth, (req, res) => {
 // to the same script cron uses. Falls back to a JS-level SQLite copy if
 // the script isn't present, so this endpoint works even on a fresh
 // install where the cron hasn't been wired yet.
-router.post('/backup', auth, (req, res) => {
+router.post('/backup', auth, adminOnly, (req, res) => {
   const scriptPath = process.env.KELETE_BACKUP_SCRIPT || '/usr/local/bin/kelete-backup.sh';
   const useScript = fs.existsSync(scriptPath);
 
@@ -119,7 +125,7 @@ router.post('/backup', auth, (req, res) => {
 
 // GET /api/system/backups/:name/download — stream a .tar.gz of one snapshot
 // to the browser. Uses `tar` under the hood (present on any Linux VPS).
-router.get('/backups/:name/download', auth, (req, res) => {
+router.get('/backups/:name/download', auth, adminOnly, (req, res) => {
   const name = String(req.params.name || '').replace(/[^0-9A-Za-z_\-]/g, '');
   if (!name) return res.status(400).json({ error: 'invalid backup name' });
   const dir = path.join(BACKUP_ROOT, name);

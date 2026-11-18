@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth, isActiveAdmin } = require('../middleware/auth');
+const { auth, hasActiveRole, SUPERVISOR_ROLES } = require('../middleware/auth');
 const { nozzlesInOpenShifts } = require('../services/fuelControls');
 
 // --- Pumps ---
@@ -108,10 +108,11 @@ router.put('/nozzles/:id', auth, (req, res) => {
       // changing either mid-shift corrupts that shift's litres.
       return res.status(409).json({ error: 'This nozzle is in an open shift. Close the shift before changing its meter reading or tank.' });
     }
-    if (meterChanges && !isActiveAdmin(req)) {
+    if (meterChanges && !hasActiveRole(req, SUPERVISOR_ROLES)) {
       // A manual meter change decides how many litres the next shift is
-      // charged for; it is an Administrator action (and is audited by D2).
-      return res.status(403).json({ error: 'Only an Administrator can change a nozzle meter reading.' });
+      // charged for. Business decision 2026-11-18: supervisors (Manager role)
+      // and administrators only. Every change is audited (D2).
+      return res.status(403).json({ error: 'Only a supervisor (Manager) or Administrator can change a nozzle meter reading.' });
     }
     db.prepare(`
       UPDATE nozzles SET pump_id = ?, tank_id = ?, code = ?, current_meter_reading = ?, status = ?, updated_at = datetime('now')

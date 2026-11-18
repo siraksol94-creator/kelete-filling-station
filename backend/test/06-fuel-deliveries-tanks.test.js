@@ -102,13 +102,16 @@ test('F4: the legacy /api/fuel-sales endpoint now goes through the tank ledger',
   assert.deepEqual(tankLedger(db), []);
 });
 
-test('F4: only an Administrator can change a nozzle meter; an unchanged meter does not need one', async () => {
+test('decision 2026-11-18: only a supervisor (Manager) or Administrator can change a nozzle meter; an unchanged meter needs neither', async () => {
   const cur = db.prepare('SELECT * FROM nozzles WHERE id = ?').get(fuel.n2.id);
   assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.cashier, body: { current_meter_reading: 1 } })).status, 403);
+  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.att1, body: { current_meter_reading: 1 } })).status, 403);
   assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.cashier, body: { ...cur, code: 'P1-DIESEL' } })).status, 200);
+  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.supervisor, body: { current_meter_reading: cur.current_meter_reading + 4 } })).status, 200);
   assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: T(), body: { current_meter_reading: cur.current_meter_reading + 10 } })).status, 200);
   const a = db.prepare("SELECT * FROM audit_log WHERE action = 'nozzle.meter_change' ORDER BY id DESC LIMIT 1").get();
-  assert.equal(JSON.parse(a.details_json).delta, 10);
+  assert.equal(JSON.parse(a.details_json).delta, 6);
+  assert.ok(db.prepare("SELECT 1 FROM audit_log WHERE source = 'request' AND actor_email = 'supervisor' AND path = ?").get(`/api/pumps/nozzles/${fuel.n2.id}`), 'who changed it is recorded');
 });
 
 test('F4: while a nozzle is in an open shift, its meter and tank cannot change and legacy sales are refused', async () => {
