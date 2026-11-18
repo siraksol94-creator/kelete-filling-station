@@ -110,6 +110,10 @@ function request(url, method = 'GET', body = null, timeoutMs = REQUEST_TIMEOUT) 
       if (lan.role === 'child' && lan.lanSyncKey) {
         headers['X-Lan-Sync-Key'] = lan.lanSyncKey;
       }
+      // S1 stage 2 — this till's own token, sent to the VPS only (never to a
+      // LAN Mother, which checks the LAN key instead).
+      const token = _syncConfig.get('device_token');
+      if (token && url.startsWith(getVpsUrl())) headers['X-Device-Token'] = token;
     }
     const options = {
       hostname: parsed.hostname,
@@ -120,6 +124,13 @@ function request(url, method = 'GET', body = null, timeoutMs = REQUEST_TIMEOUT) 
       timeout:  timeoutMs,
     };
     const req = lib.request(options, (res) => {
+      // The VPS does not recognise our token (e.g. its database was restored):
+      // forget it, so the next cycle asks for a new one.
+      if (res.headers['x-device-token-status'] === 'unknown' && _syncConfig && _syncConfig.get('device_token')) {
+        _syncConfig.set('device_token', '');
+        _lastEnrolAttempt = 0;
+        slog('device token not recognised by the server — will enrol again');
+      }
       let data = '';
       res.on('data', chunk => (data += chunk));
       res.on('end', () => {
@@ -622,6 +633,29 @@ async function pullMaster(opts = {}) {
   if (total > 0) slog(`master pull: applied ${total} row(s)`);
 }
 
+// S1 stage 2 — a till installed before device tokens asks the VPS for its own
+// token (POST /api/sync/device-token). Never fails the cycle: while the VPS is
+// in 'accept' mode syncing works without one. At most one attempt per 10 min.
+let _lastEnrolAttempt = 0;
+async function ensureDeviceToken() {
+  if (!_syncConfig || _syncConfig.get('device_token')) return;
+  if (getSyncTargetUrl() !== getVpsUrl()) return;          // LAN child: the Mother syncs with the VPS
+  if (Date.now() - _lastEnrolAttempt < 10 * 60 * 1000) return;
+  _lastEnrolAttempt = Date.now();
+  const { tenantId, branchId, deviceId } = _syncConfig.getConfig();
+  try {
+    const r = await request(`${getVpsUrl()}/api/sync/device-token`, 'POST', { tenantId, branchId, deviceId, label: os.hostname() });
+    if (r.status === 200 && r.body && r.body.deviceToken) {
+      _syncConfig.set('device_token', r.body.deviceToken);
+      slog('device token received — this till is now linked to the server');
+    } else {
+      slog(`device token not issued: HTTP ${r.status} ${JSON.stringify(r.body).slice(0, 200)}`);
+    }
+  } catch (e) {
+    slog(`device token request failed: ${e.message}`);
+  }
+}
+
 async function runCycle() {
   try {
     const { tenantId } = _syncConfig.getConfig();
@@ -639,6 +673,7 @@ async function runCycle() {
     }
 
     _status = { ..._status, state: 'syncing', error: null };
+    await ensureDeviceToken();
     await push();
     await pull();
     // master.db bridge — deposits, inter-branch transfers, HQ purchases and

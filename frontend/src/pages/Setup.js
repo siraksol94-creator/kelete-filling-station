@@ -97,7 +97,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
       await fetch('/api/sync/configure', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ tenantId: data.tenantId, branchId: data.branchId, vpsUrl }),
+        body:    JSON.stringify({ tenantId: data.tenantId, branchId: data.branchId, vpsUrl, deviceToken: data.deviceToken }),
       });
       setMode('createAdmin');
     } catch (err) {
@@ -155,7 +155,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
       await fetch('/api/sync/configure', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ tenantId: data.tenantId, branchId: data.branchId, vpsUrl }),
+        body:    JSON.stringify({ tenantId: data.tenantId, branchId: data.branchId, vpsUrl, deviceToken: data.deviceToken }),
       });
       // Trigger force-resync to pull all branch data (including users) from VPS
       fetch('/api/sync/force-resync', { method: 'POST' }).catch(() => {});

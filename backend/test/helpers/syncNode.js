@@ -25,6 +25,12 @@ app.post('/__test/sql', (req, res) => {
   } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
+// Test-only: change this participant's environment (e.g. KELETE_SYNC_AUTH).
+app.post('/__test/env', (req, res) => {
+  for (const [k, v] of Object.entries(req.body || {})) { if (v === null) delete process.env[k]; else process.env[k] = String(v); }
+  res.json({ ok: true });
+});
+
 (async () => {
   syncConfig.setRegistration(process.env.SYNC_TENANT, process.env.SYNC_BRANCH);
   const email = `${process.env.SYNC_ROLE}-owner`;
