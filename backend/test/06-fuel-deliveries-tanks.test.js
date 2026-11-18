@@ -74,10 +74,18 @@ test('F4: correcting a tank opening balance posts an adjustment and keeps the or
   assert.deepEqual(tankLedger(db), []);
 });
 
-test('F4: a non-admin can still save tank details (the form re-sends the unchanged opening)', async () => {
+test('F4: saving tank details re-sends the unchanged opening — not treated as an opening change', async () => {
   const listed = (await app.request('GET', '/api/tanks', { token: T() })).body.find(t => t.id === fuel.t2.id);
-  const r = await app.request('PUT', `/api/tanks/${fuel.t2.id}`, { token: staff.tokens.supervisor, body: { ...listed, name: 'Diesel Tank' } });
+  const r = await app.request('PUT', `/api/tanks/${fuel.t2.id}`, { token: T(), body: { ...listed, name: 'Diesel Tank' } });
   assert.equal(r.status, 200, r.text);
+});
+
+test('decision 2026-11-18 (Fuel Station access): tanks are changed by Administrators only', async () => {
+  const listed = (await app.request('GET', '/api/tanks', { token: T() })).body.find(t => t.id === fuel.t2.id);
+  for (const who of ['supervisor', 'cashier']) {
+    const r = await app.request('PUT', `/api/tanks/${fuel.t2.id}`, { token: staff.tokens[who], body: { ...listed, name: 'Renamed' } });
+    assert.equal(r.status, 403, `${who}: ${r.text}`);
+  }
 });
 
 test('F4: only an Administrator can change an opening balance', async () => {
@@ -102,12 +110,16 @@ test('F4: the legacy /api/fuel-sales endpoint now goes through the tank ledger',
   assert.deepEqual(tankLedger(db), []);
 });
 
-test('decision 2026-11-18: only a supervisor (Manager) or Administrator can change a nozzle meter; an unchanged meter needs neither', async () => {
+test('decision 2026-11-18: only a supervisor (Manager) or Administrator can change a nozzle meter; other nozzle changes are Administrator-only', async () => {
   const cur = db.prepare('SELECT * FROM nozzles WHERE id = ?').get(fuel.n2.id);
   assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.cashier, body: { current_meter_reading: 1 } })).status, 403);
   assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.att1, body: { current_meter_reading: 1 } })).status, 403);
-  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.cashier, body: { ...cur, code: 'P1-DIESEL' } })).status, 200);
-  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.supervisor, body: { current_meter_reading: cur.current_meter_reading + 4 } })).status, 200);
+  // Fuel Station access: pumps/nozzles are set up by Administrators; a cashier
+  // cannot rename one, and a supervisor may correct the meter only.
+  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.cashier, body: { ...cur, code: 'P1-DIESEL' } })).status, 403);
+  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.supervisor, body: { ...cur, code: 'P1-DIESEL' } })).status, 403);
+  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: T(), body: { ...cur, code: 'P1-DIESEL' } })).status, 200);
+  assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: staff.tokens.supervisor, body: { ...cur, code: 'P1-DIESEL', current_meter_reading: cur.current_meter_reading + 4 } })).status, 200, 'the edit form re-sends every field; only the meter changes');
   assert.equal((await app.request('PUT', `/api/pumps/nozzles/${fuel.n2.id}`, { token: T(), body: { current_meter_reading: cur.current_meter_reading + 10 } })).status, 200);
   const a = db.prepare("SELECT * FROM audit_log WHERE action = 'nozzle.meter_change' ORDER BY id DESC LIMIT 1").get();
   assert.equal(JSON.parse(a.details_json).delta, 6);

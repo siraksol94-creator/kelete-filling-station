@@ -1,6 +1,10 @@
 const router = require('express').Router();
 const db = require('../config/database');
 const { auth, adminOnly, isActiveAdmin } = require('../middleware/auth');
+// Fuel Station access (business decision 2026-11-18): fuel prices (grades),
+// pumps and tanks are set up and changed by Administrators only; cashiers and
+// other roles can still READ them (the shift, credit-ticket and fuel cash
+// screens show prices, nozzles and tank levels).
 const { recordTankMovement } = require('../config/fuelSchema');
 
 router.get('/', auth, (req, res) => {
@@ -132,7 +136,7 @@ router.get('/group/:code/bin-card', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.post('/', auth, (req, res) => {
+router.post('/', auth, adminOnly, (req, res) => {
   const tx = db.transaction(() => {
     const { code, name, fuel_grade_id, capacity_litres, current_volume = 0, low_stock_litres = 1000, vessel_count = 1, group_code = null, branch_id = null } = req.body;
     if (!code || !name || !fuel_grade_id || !capacity_litres) {
@@ -164,7 +168,7 @@ router.post('/', auth, (req, res) => {
 // the tank's existing 'opening' ledger row (or inserts one when missing)
 // and re-syncs current_volume = SUM(tank_movements.litres). No adjustment
 // row is written — operators treat this as "fix the day-one baseline".
-router.put('/:id', auth, (req, res) => {
+router.put('/:id', auth, adminOnly, (req, res) => {
   const tx = db.transaction(() => {
     const existing = db.prepare('SELECT * FROM tanks WHERE id = ?').get(req.params.id);
     if (!existing) throw new Error('Not found');
@@ -224,7 +228,7 @@ router.put('/:id', auth, (req, res) => {
   try { res.json(tx()); } catch (e) { res.status(e.status || 400).json({ error: e.message }); }
 });
 
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, adminOnly, (req, res) => {
   try {
     const nozUse = db.prepare('SELECT COUNT(*) AS c FROM nozzles WHERE tank_id = ?').get(req.params.id).c;
     if (nozUse > 0) return res.status(400).json({ error: `In use by ${nozUse} nozzle(s)` });

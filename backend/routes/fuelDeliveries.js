@@ -1,6 +1,12 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, hasActiveRole, SUPERVISOR_ROLES } = require('../middleware/auth');
+// Fuel Station access (business decision 2026-11-18): fuel deliveries are for
+// Managers / Supervisors (and Administrators) only — viewing, recording and
+// deleting. Cashiers have no access.
+const supervisorsOnly = (req, res, next) => (hasActiveRole(req, SUPERVISOR_ROLES)
+  ? next()
+  : res.status(403).json({ error: 'Fuel deliveries are for Managers, Supervisors and Administrators only.' }));
 const { recordTankMovement } = require('../config/fuelSchema');
 
 function nextDeliveryNumber() {
@@ -8,7 +14,7 @@ function nextDeliveryNumber() {
   return `FD-${String(row.c + 1).padStart(6, '0')}`;
 }
 
-router.get('/', auth, (req, res) => {
+router.get('/', auth, supervisorsOnly, (req, res) => {
   try {
     const rows = db.prepare(`
       SELECT fd.*, t.code AS tank_code, t.name AS tank_name,
@@ -24,7 +30,7 @@ router.get('/', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/:id', auth, (req, res) => {
+router.get('/:id', auth, supervisorsOnly, (req, res) => {
   const row = db.prepare(`
     SELECT fd.*, t.code AS tank_code, fg.name AS grade_name, s.name AS supplier_name
       FROM fuel_deliveries fd
@@ -37,7 +43,7 @@ router.get('/:id', auth, (req, res) => {
   res.json(row);
 });
 
-router.post('/', auth, (req, res) => {
+router.post('/', auth, supervisorsOnly, (req, res) => {
   const tx = db.transaction(() => {
     const {
       supplier_id = null, tank_id, delivery_date,
@@ -98,7 +104,7 @@ router.post('/', auth, (req, res) => {
   catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, supervisorsOnly, (req, res) => {
   const tx = db.transaction(() => {
     const row = db.prepare('SELECT * FROM fuel_deliveries WHERE id = ?').get(req.params.id);
     if (!row) throw new Error('Not found');

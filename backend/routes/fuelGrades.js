@@ -1,6 +1,10 @@
 const router = require('express').Router();
 const db = require('../config/database');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
+// Fuel Station access (business decision 2026-11-18): fuel prices (grades),
+// pumps and tanks are set up and changed by Administrators only; cashiers and
+// other roles can still READ them (the shift, credit-ticket and fuel cash
+// screens show prices, nozzles and tank levels).
 
 router.get('/', auth, (req, res) => {
   try {
@@ -15,7 +19,7 @@ router.get('/:id', auth, (req, res) => {
   res.json(row);
 });
 
-router.post('/', auth, (req, res) => {
+router.post('/', auth, adminOnly, (req, res) => {
   try {
     const { code, name, unit = 'L', selling_price = 0, cost_price = 0, color = '#6B7280', branch_id = null } = req.body;
     if (!code || !name) return res.status(400).json({ error: 'code and name are required' });
@@ -29,7 +33,7 @@ router.post('/', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.put('/:id', auth, (req, res) => {
+router.put('/:id', auth, adminOnly, (req, res) => {
   const tx = db.transaction(() => {
     const existing = db.prepare('SELECT * FROM fuel_grades WHERE id = ?').get(req.params.id);
     if (!existing) throw new Error('Not found');
@@ -77,7 +81,7 @@ router.put('/:id', auth, (req, res) => {
   try { res.json(tx()); } catch (e) { res.status(400).json({ error: e.message }); }
 });
 
-router.delete('/:id', auth, (req, res) => {
+router.delete('/:id', auth, adminOnly, (req, res) => {
   try {
     const tankUse = db.prepare('SELECT COUNT(*) AS c FROM tanks WHERE fuel_grade_id = ?').get(req.params.id).c;
     if (tankUse > 0) return res.status(400).json({ error: `In use by ${tankUse} tank(s)` });
