@@ -11,7 +11,8 @@ const router = require('express').Router();
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
+const db = require('../config/database');
 
 const BACKUP_ROOT = process.env.KELETE_BACKUP_DIR || '/var/backups/kelete';
 
@@ -134,6 +135,48 @@ router.get('/backups/:name/download', auth, (req, res) => {
     console.error('[backup tar spawn error]', e.message);
     if (!res.headersSent) res.status(500).json({ error: e.message });
   });
+});
+
+// ─── D1: GET /api/system/schema-status ─────────────────────────────────────
+// Which versioned migrations and one-time data tasks have run on THIS
+// database (the branch the request is for). Read-only. Administrators only.
+router.get('/schema-status', auth, adminOnly, (req, res) => {
+  try {
+    const { getStatus } = require('../config/migrationRunner');
+    const migrations = require('../config/versionedMigrations');
+    res.json({ ok: true, ...getStatus(db, migrations) });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── D2: GET /api/system/audit-log ──────────────────────────────────────────
+// Read-only view of audit_log for this database. Administrators only.
+// Filters: from, to (ISO date/time), action (prefix), table, entity_id,
+// actor_user_id, source. Paging: limit (max 500), before_id.
+router.get('/audit-log', auth, adminOnly, (req, res) => {
+  try {
+    const has = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='audit_log'").get();
+    if (!has) return res.json({ ok: true, rows: [], note: 'audit_log not present on this database yet' });
+    const where = [];
+    const args = [];
+    const q = req.query || {};
+    if (q.from)          { where.push('occurred_at >= ?');        args.push(String(q.from)); }
+    if (q.to)            { where.push('occurred_at <= ?');        args.push(String(q.to)); }
+    if (q.action)        { where.push('action LIKE ?');           args.push(String(q.action) + '%'); }
+    if (q.table)         { where.push('entity_table = ?');        args.push(String(q.table)); }
+    if (q.entity_id)     { where.push('entity_id = ?');           args.push(String(q.entity_id)); }
+    if (q.actor_user_id) { where.push('actor_user_id = ?');       args.push(Number(q.actor_user_id)); }
+    if (q.source)        { where.push('source = ?');              args.push(String(q.source)); }
+    if (q.before_id)     { where.push('id < ?');                  args.push(Number(q.before_id)); }
+    const limit = Math.min(Math.max(parseInt(q.limit, 10) || 100, 1), 500);
+    const rows = db.prepare(
+      `SELECT * FROM audit_log ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY id DESC LIMIT ?`
+    ).all(...args, limit);
+    res.json({ ok: true, rows, next_before_id: rows.length === limit ? rows[rows.length - 1].id : null });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 module.exports = router;

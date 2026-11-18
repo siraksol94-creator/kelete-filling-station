@@ -37,7 +37,8 @@ const auth = (req, res, next) => {
 // users exactly as before. Matching on id AND email keeps a different person
 // who happens to share the numeric id from being mistaken for the caller.
 //
-// adminOnly is used only by routes/users.js, so this changes nothing elsewhere.
+// adminOnly is used by routes/users.js and the D1/D2 read-only endpoints in
+// routes/system.js; nothing else depends on it.
 const adminOnly = (req, res, next) => {
   try {
     if (!req.user || req.user.role !== 'Administrator') {
