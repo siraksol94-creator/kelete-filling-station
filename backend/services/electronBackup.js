@@ -40,37 +40,20 @@ function log(msg) {
   console.log(`[electronBackup] ${msg}`);
 }
 
-// Uses better-sqlite3's built-in .backup() which is an atomic
-// snapshot even while the DB is being written (correct handling of
-// WAL). Falls back to a raw file copy if for some reason the DB
-// isn't accessible via better-sqlite3.
-async function backupOne(srcPath, dstPath) {
-  const name = path.basename(srcPath);
-  if (!fs.existsSync(srcPath)) {
-    log(`  · ${name}  SKIP (not found)`);
-    return;
-  }
-  try {
-    fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-    const Database = require('better-sqlite3');
-    const db = new Database(srcPath, { readonly: true, fileMustExist: true });
-    try {
-      await db.backup(dstPath);
-    } finally {
-      db.close();
-    }
-    const size = fs.statSync(dstPath).size;
-    log(`  ✓ ${name}  → ${dstPath}  (${(size / 1024).toFixed(1)} KB)`);
-  } catch (e) {
-    log(`  ✖ ${name}  FAILED: ${e.message}`);
-  }
-}
+// S6: each copy is taken with SQLite's online backup API, checked
+// (integrity_check + row counts) and recorded in the day's manifest.json by
+// backupKit. A copy that fails its check is kept as <name>.FAILED and never
+// replaces an earlier good copy from the same day.
+const backupKit = require('./backupKit');
 
 function pruneOldBackups(backupRoot) {
   try {
     if (!fs.existsSync(backupRoot)) return;
     const cutoff = Date.now() - KEEP_DAYS * 24 * 60 * 60 * 1000;
     for (const entry of fs.readdirSync(backupRoot)) {
+      // S6: only dated backup folders rotate. pre-restore/ (the copies kept
+      // before a restore) and anything else in here are never deleted.
+      if (!/^\d{4}-\d{2}-\d{2}(_\d{6}-manual(-\d+)?)?$/.test(entry)) continue;
       const full = path.join(backupRoot, entry);
       const st = fs.statSync(full);
       if (st.isDirectory() && st.mtimeMs < cutoff) {
@@ -91,33 +74,22 @@ async function runOnce() {
 
   log(`▶ starting daily backup → ${dayDir}`);
 
-  // Snapshot the main defaultDb (kelete.db in USER_DATA per database.js).
-  await backupOne(path.join(USER_DATA, 'kelete.db'), path.join(dayDir, 'kelete.db'));
-
-  // master.db and tenants/ may or may not exist on Electron depending
-  // on whether the install is multi-branch — snapshot only if present.
-  const masterCandidates = [
-    path.join(USER_DATA, 'master.db'),
-    path.join(__dirname, '..', '..', 'master.db'), // Electron repo layout fallback
-  ];
-  for (const m of masterCandidates) {
-    if (fs.existsSync(m)) {
-      await backupOne(m, path.join(dayDir, 'master.db'));
-      break;
-    }
+  // kelete.db, master.db (if this install has one) and tenants/*.db.
+  const dbs = backupKit.liveDatabases();
+  // Older installs may still have master.db in the install folder.
+  if (!dbs.some(d => d.rel === 'master.db')) {
+    const legacy = path.join(__dirname, '..', '..', 'master.db');
+    if (fs.existsSync(legacy)) dbs.push({ src: legacy, rel: 'master.db' });
   }
-
-  const tenantsDir = path.join(USER_DATA, 'tenants');
-  if (fs.existsSync(tenantsDir)) {
-    for (const f of fs.readdirSync(tenantsDir)) {
-      if (f.endsWith('.db')) {
-        await backupOne(path.join(tenantsDir, f), path.join(dayDir, 'tenants', f));
-      }
-    }
+  const r = await backupKit.backupSet(dbs, dayDir, { method: 'electron-daily' });
+  for (const [rel, x] of Object.entries(r.results)) {
+    if (x.ok) log(`  ✓ ${rel}  (${(x.bytes / 1024).toFixed(1)} KB, ${x.total_rows} rows, integrity ok)`);
+    else log(`  ✖ ${rel}  FAILED: ${x.error}${x.kept_as ? ` (kept as ${x.kept_as})` : ''}`);
   }
 
   pruneOldBackups(backupRoot);
-  log(`✓ backup complete`);
+  log(r.ok ? '✓ backup complete — every copy verified' : '✖ backup finished WITH FAILURES — see manifest.json');
+  return r;
 }
 
 function start() {

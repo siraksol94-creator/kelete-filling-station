@@ -21,6 +21,9 @@
 #
 # Uses `sqlite3 .backup` (not raw cp) so the copy is consistent even while
 # the app is writing — SQLite handles WAL correctly through this command.
+# S6: every copy is integrity-checked before it replaces anything; results go
+# to manifest.json; the script exits 1 if any copy failed. To restore, see
+# ops/backup/README.md (never copy a backup over a running database).
 #
 # Install (one-time):
 #   sudo mkdir -p /var/backups/kelete
@@ -54,6 +57,12 @@ if ! command -v sqlite3 >/dev/null 2>&1; then
   exit 1
 fi
 
+# S6: copy to "<name>.partial", check it with PRAGMA integrity_check, and only
+# then move it to "<name>". A copy that fails is kept as "<name>.FAILED" (for
+# investigation) and the run exits non-zero, so cron mail / the "Create Backup
+# Now" button report it instead of quietly keeping a broken backup.
+FAILS=0
+
 backup_one() {
   local SRC="$1"
   local DST="$2"
@@ -65,13 +74,31 @@ backup_one() {
     return 0
   fi
 
-  # `.backup` is atomic under SQLite even while the source is being written.
-  if sqlite3 "$SRC" ".backup '$DST'" 2>>"$LOG"; then
+  rm -f "$DST.partial" "$DST.partial-wal" "$DST.partial-shm"
+  # `.backup` is SQLite's online backup: consistent even while the source is
+  # being written, including anything still in the -wal file.
+  if ! sqlite3 "$SRC" ".backup '$DST.partial'" 2>>"$LOG"; then
+    log "  ✖ $NAME  FAILED to copy (source $SRC)"
+    rm -f "$DST.partial"
+    FAILS=$((FAILS + 1))
+    return 1
+  fi
+  # One self-contained file: no -wal/-shm needed to open the backup.
+  sqlite3 "$DST.partial" "PRAGMA journal_mode=DELETE;" >/dev/null 2>>"$LOG"
+  rm -f "$DST.partial-wal" "$DST.partial-shm"
+
+  local CHECK
+  CHECK="$(sqlite3 "$DST.partial" "PRAGMA integrity_check;" 2>>"$LOG")"
+  if [ "$CHECK" = "ok" ]; then
+    mv -f "$DST.partial" "$DST"
+    rm -f "$DST.FAILED"
     local SIZE
     SIZE="$(du -h "$DST" 2>/dev/null | awk '{print $1}')"
-    log "  ✓ $NAME  → $DST  ($SIZE)"
+    log "  ✓ $NAME  → $DST  ($SIZE, integrity ok)"
   else
-    log "  ✖ $NAME  FAILED (source $SRC)"
+    mv -f "$DST.partial" "$DST.FAILED"
+    log "  ✖ $NAME  FAILED integrity check — kept as $DST.FAILED: $(echo "$CHECK" | head -3 | tr '\n' ' ')"
+    FAILS=$((FAILS + 1))
     return 1
   fi
 }
@@ -92,8 +119,25 @@ fi
 
 # ── Rotation: drop day-dirs older than KEEP_DAYS ─────────────────────────────
 log "▶ Rotation (keeping last $KEEP_DAYS days)"
-find "$BACKUP_ROOT" -maxdepth 1 -type d -mtime "+$KEEP_DAYS" -print -exec rm -rf {} \; 2>>"$LOG" \
+find "$BACKUP_ROOT" -mindepth 1 -maxdepth 1 -type d -name "20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]*" -mtime "+$KEEP_DAYS" -print -exec rm -rf {} \; 2>>"$LOG" \
   | while IFS= read -r D; do log "  − pruned $D"; done
 
+# ── S6: record what was checked (row counts, sizes, SHA-256) in manifest.json ─
+VERIFY_JS="${KELETE_VERIFY_SCRIPT:-$APP_DIR/ops/backup/verify.js}"
+if command -v node >/dev/null 2>&1 && [ -f "$VERIFY_JS" ]; then
+  if node "$VERIFY_JS" "$DAY_DIR" --write-manifest --method vps-nightly >>"$LOG" 2>&1; then
+    log "  ✓ manifest.json written (all copies verified)"
+  else
+    log "  ✖ verify.js reported a failure — see $LOG and $DAY_DIR/manifest.json"
+    FAILS=$((FAILS + 1))
+  fi
+else
+  log "  · verify.js not available — integrity was checked, manifest.json not written"
+fi
+
 TOTAL_SIZE="$(du -sh "$DAY_DIR" 2>/dev/null | awk '{print $1}')"
+if [ "$FAILS" -gt 0 ]; then
+  log "✖ Backup finished with $FAILS FAILURE(S): $DAY_DIR ($TOTAL_SIZE)"
+  exit 1
+fi
 log "✓ Backup complete: $DAY_DIR ($TOTAL_SIZE)"
