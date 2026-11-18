@@ -167,3 +167,40 @@ describe('S3 — signing secret', () => {
     assert.equal(r.status, 200);
   });
 });
+
+describe('S7 — database backups are Administrator-only', () => {
+  // A fake nightly backup folder inside this test's own temporary folder.
+  before(() => {
+    const d = path.join(process.env.KELETE_BACKUP_DIR, '2026-11-18');
+    fs.mkdirSync(d, { recursive: true });
+    fs.writeFileSync(path.join(d, 'kelete.db'), 'not a real database');
+  });
+  for (const who of ['cashier', 'supervisor', 'att1']) {
+    test(`${who} cannot list, create or download backups`, async () => {
+      const t = staff.tokens[who];
+      assert.equal((await app.request('GET', '/api/system/backups', { token: t })).status, 403);
+      assert.equal((await app.request('POST', '/api/system/backup', { token: t })).status, 403);
+      assert.equal((await app.request('GET', '/api/system/backups/2026-11-18/download', { token: t })).status, 403);
+    });
+  }
+  test('without a login, backups are refused', async () => {
+    assert.equal((await app.request('GET', '/api/system/backups/2026-11-18/download')).status, 401);
+  });
+  test('an Administrator can list and download a backup', async () => {
+    const list = await app.request('GET', '/api/system/backups', { token: staff.tokens.owner });
+    assert.equal(list.status, 200);
+    assert.ok(list.body.backups.some(b => b.name === '2026-11-18'));
+    const res = await fetch(`${app.base}/api/system/backups/2026-11-18/download`, { headers: { Authorization: `Bearer ${staff.tokens.owner}` } });
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('content-type'), 'application/gzip');
+    const bytes = Buffer.from(await res.arrayBuffer());
+    assert.equal(bytes[0], 0x1f); assert.equal(bytes[1], 0x8b); // gzip signature
+  });
+  test('a demoted Administrator loses backup access immediately', async () => {
+    await createUser(app.db, { email: 'exadmin', role: 'Administrator' });
+    const t = await login(app, 'exadmin');
+    app.db.prepare("UPDATE users SET role = 'Cashier' WHERE email = 'exadmin'").run();
+    assert.equal((await app.request('GET', '/api/system/backups', { token: t })).status, 403);
+  });
+});
+

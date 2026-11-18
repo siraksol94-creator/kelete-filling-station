@@ -3,7 +3,7 @@ const db = require('../config/database');
 const { recordTankMovement } = require('../config/fuelSchema');
 // F4 — shared shift controls (approval lock, one nozzle per open shift).
 const { assertNotApproved, nozzlesInOpenShifts } = require('../services/fuelControls');
-const { auth } = require('../middleware/auth');
+const { auth, hasActiveRole, SUPERVISOR_ROLES } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 
@@ -619,6 +619,12 @@ router.post('/:id/reopen', auth, (req, res) => {
     const shift = db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
     if (!shift) return res.status(404).json({ error: 'Shift not found' });
     if (shift.status === 'Open') return res.json({ message: 'Already open', shift });
+    // Business decision 2026-11-18 — reopening a closed shift (which lets its
+    // readings, tickets and cash be changed) is for supervisors (Manager role)
+    // and administrators only.
+    if (!hasActiveRole(req, SUPERVISOR_ROLES)) {
+      return res.status(403).json({ error: 'Only a supervisor (Manager) or Administrator can reopen a shift.' });
+    }
     // F4 — an approved shift is locked: reopening it would let its readings,
     // tickets and cash be changed after sign-off.
     assertNotApproved(shift, 'reopened');
