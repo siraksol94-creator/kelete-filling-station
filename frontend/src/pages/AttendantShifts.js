@@ -249,7 +249,7 @@ export default function AttendantShifts() {
                 </td>
                 <td style={S.td}>{s.opened_at}</td>
                 <td style={S.td}>{s.closed_at || '-'}</td>
-                <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_other || 0)).toFixed(2)}</td>
+                <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_credit ?? s.payment_other ?? 0)).toFixed(2)}</td>
                 <td style={S.tdR}>K {Number(s.expected_cash || 0).toFixed(2)}</td>
                 <td style={S.tdR}>K {Number(s.actual_cash || 0).toFixed(2)}</td>
                 <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>

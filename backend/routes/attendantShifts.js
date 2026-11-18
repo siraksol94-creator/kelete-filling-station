@@ -537,7 +537,7 @@ router.post('/:id/finalize', auth, (req, res) => {
        WHERE approval_date = DATE(?) AND shift_type = COALESCE(?, 'DAY')
     `).get(shift.opened_at, shift.shift_type);
     if (approved) throw new Error(`${shift.shift_type || 'DAY'} shift is approved — un-approve on Fuel Cash Report first.`);
-    const { payment_cash = 0, payment_mobile = 0, payment_swipes = 0, notes = '' } = req.body;
+    const { payment_cash = 0, payment_mobile = 0, payment_swipes = 0, payment_other = null, notes = '' } = req.body;
     const gross = db.prepare("SELECT COALESCE(SUM(expected_cash),0) AS t FROM shift_nozzle_readings WHERE shift_id = ?").get(req.params.id).t;
     const credit  = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = 'Credit'").get(req.params.id).t;
     const onecard = db.prepare("SELECT COALESCE(SUM(amount),0) AS t FROM shift_credit_sales WHERE shift_id = ? AND payment_method = '1Card'").get(req.params.id).t;
@@ -549,12 +549,12 @@ router.post('/:id/finalize', auth, (req, res) => {
          SET status = 'Closed', closed_at = COALESCE(closed_at, datetime('now')), closed_by = COALESCE(closed_by, ?),
              expected_cash = ?, actual_cash = ?, variance = ?,
              payment_cash = ?, payment_mobile = ?, payment_swipes = ?,
-             payment_1card = ?, payment_other = ?,
+             payment_1card = ?, payment_other = COALESCE(?, payment_other), payment_credit = ?,
              notes = COALESCE(?, notes), updated_at = datetime('now')
        WHERE id = ?
     `).run(req.user?.id || null, expectedCash, Number(payment_cash), variance,
            Number(payment_cash), Number(payment_mobile), Number(payment_swipes),
-           Number(onecard), Number(credit),
+           Number(onecard), payment_other == null ? null : Number(payment_other), Number(credit),
            notes || null, req.params.id);
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });
@@ -812,12 +812,15 @@ router.post('/:id/close', auth, (req, res) => {
          SET status = 'Closed', closed_at = datetime('now'), closed_by = ?,
              expected_cash = ?, actual_cash = ?, variance = ?,
              payment_cash = ?, payment_swipes = ?, payment_1card = ?,
-             payment_mobile = ?, payment_other = ?,
+             payment_mobile = ?, payment_other = ?, payment_credit = ?,
              notes = COALESCE(?, notes), updated_at = datetime('now')
        WHERE id = ?
     `).run(req.user?.id || null, expectedCash, Number(payment_cash) || 0, variance,
            Number(payment_cash) || 0, Number(payment_swipes) || 0, Number(onecardTotal),
-           Number(payment_mobile) || 0, Number(creditTotal),
+           // "Other" as sent (it used to be dropped and the credit total stored
+           // in its place); the credit total has its own column. Neither changes
+           // expected cash, which is worked out above exactly as before.
+           Number(payment_mobile) || 0, Number(payment_other) || 0, Number(creditTotal),
            notes || null, req.params.id);
 
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);

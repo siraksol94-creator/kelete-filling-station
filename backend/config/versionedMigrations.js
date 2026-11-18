@@ -148,4 +148,34 @@ module.exports = [
       if (!cols.includes('cost_after')) db.exec('ALTER TABLE fuel_deliveries ADD COLUMN cost_after REAL');
     },
   },
+  {
+    version: 9,
+    name: 'shift_credit_total_column',
+    // Shift close stored the CREDIT total in payment_other (and whatever was
+    // sent as "Other" was dropped); the shift view then showed credit twice.
+    // New column payment_credit. Existing shifts whose payment_other equals
+    // their credit-ticket total have it moved across (other → 0); any other
+    // value is left untouched. Not marked for sync (F1 "applying" flag).
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(attendant_shifts)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('payment_credit')) db.exec('ALTER TABLE attendant_shifts ADD COLUMN payment_credit REAL');
+      const flag = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='sync_apply_state'").get();
+      if (flag) db.prepare("UPDATE sync_apply_state SET v = 1 WHERE k = 'applying'").run();
+      try {
+        db.exec(`
+          UPDATE attendant_shifts
+             SET payment_credit = payment_other, payment_other = 0
+           WHERE payment_credit IS NULL AND status != 'Open' AND COALESCE(payment_other, 0) != 0
+             AND ABS(payment_other - (SELECT COALESCE(SUM(c.amount), 0) FROM shift_credit_sales c
+                                       WHERE c.shift_id = attendant_shifts.id AND COALESCE(c.payment_method, 'Credit') = 'Credit')) < 0.005;
+          UPDATE attendant_shifts
+             SET payment_credit = (SELECT COALESCE(SUM(c.amount), 0) FROM shift_credit_sales c
+                                    WHERE c.shift_id = attendant_shifts.id AND COALESCE(c.payment_method, 'Credit') = 'Credit')
+           WHERE payment_credit IS NULL AND status != 'Open';`);
+      } finally {
+        if (flag) db.prepare("UPDATE sync_apply_state SET v = 0 WHERE k = 'applying'").run();
+      }
+    },
+  },
 ];
