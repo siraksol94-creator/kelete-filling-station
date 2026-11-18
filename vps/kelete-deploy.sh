@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+
+# ─── S5 (security remediation): RETIRED ─────────────────────────────────────
+# This script deployed every push to `main` within a minute, with
+# `git reset --hard` and a PM2 restart, and no review, backup or rollback.
+# It is replaced by vps/kelete-release.sh (manual, tagged, backed-up).
+# It now refuses to run. Remove its cron entry (see vps/RELEASE.md).
+echo "kelete-deploy.sh is retired — use vps/kelete-release.sh. Nothing was done." >&2
+exit 0
+# ────────────────────────────────────────────────────────────────────────────
 # /usr/local/bin/kelete-deploy.sh
 #
 # Pull-deploy script for Kelete POS. Runs every minute via cron:

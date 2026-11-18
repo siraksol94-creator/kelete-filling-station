@@ -6,6 +6,8 @@ const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 const { masterDb } = require('../config/masterDb');
 const { auth } = require('../middleware/auth');
+const { getJwtSecret } = require('../config/secrets');
+const throttle = require('../middleware/loginThrottle');
 
 // Login
 router.post('/login', async (req, res) => {
@@ -22,19 +24,33 @@ router.post('/login', async (req, res) => {
       tenantId = syncConfig.getConfig().tenantId || 'local-only';
     }
 
+    // S2 — per-account lockout after repeated failures (see loginThrottle.js).
+    const throttleKey = `login:${tenantId}:${String(email || '').trim().toLowerCase()}`;
+    const waitMs = throttle.lockedFor(throttleKey);
+    if (waitMs > 0) return res.status(429).json({ error: throttle.lockedMessage(waitMs) });
+
     const user = tenantId && tenantId !== 'local-only'
       ? db.prepare('SELECT * FROM users WHERE email = ? AND tenant_id = ? AND deleted_at IS NULL').get(email, tenantId)
       : db.prepare('SELECT * FROM users WHERE email = ? AND deleted_at IS NULL').get(email);
 
-    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user) { throttle.recordFailure(throttleKey); return res.status(401).json({ error: 'Invalid credentials' }); }
+    const validPassword = await bcrypt.compare(String(password || ''), user.password);
+    if (!validPassword) { throttle.recordFailure(throttleKey); return res.status(401).json({ error: 'Invalid credentials' }); }
+
+    // S2 — an Inactive account must not get a session. Checked only AFTER the
+    // password matched, so the message does not reveal which usernames exist.
+    // A NULL/empty status is treated as Active: the column is NOT NULL DEFAULT
+    // 'Active' in the schema, so this only guards against odd legacy rows.
+    if (user.status && user.status !== 'Active') {
+      return res.status(403).json({ error: 'This account is inactive. Ask an administrator to reactivate it.' });
+    }
+    throttle.clear(throttleKey);
 
     db.prepare("UPDATE users SET last_login = datetime('now'), synced=0 WHERE id = ?").run(user.id);
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role, name: `${user.first_name} ${user.last_name}`, tenantId },
-      process.env.JWT_SECRET || 'kelete-pro-secret-key-2026',
+      getJwtSecret(),
       { expiresIn: '24h' }
     );
 
@@ -61,7 +77,12 @@ router.post('/login', async (req, res) => {
 // can authorize the action without logging out and back in.
 // Accepts { password } only — tries every admin in the tenant, returns the
 // first match. Email is optional for legacy callers.
-router.post('/verify-admin', async (req, res) => {
+//
+// S2 — now requires a logged-in caller (`auth`) and is throttled per caller.
+// Its only frontend user is components/AdminPasswordPrompt.js, which runs
+// inside the logged-in app and already sends the Bearer token through the
+// axios interceptor in services/api.js, so legitimate use is unchanged.
+router.post('/verify-admin', auth, async (req, res) => {
   try {
     const { email, password } = req.body || {};
     if (!password) return res.status(400).json({ error: 'Password required.' });
@@ -70,24 +91,30 @@ router.post('/verify-admin', async (req, res) => {
     const tenantRow = slug ? db.prepare("SELECT value FROM sync_config WHERE key = ?").get(`tenant:${slug}`) : null;
     const tenantId = tenantRow ? tenantRow.value : (syncConfig.getConfig().tenantId || 'local-only');
 
+    const throttleKey = `verify-admin:${tenantId}:${req.user?.id}`;
+    const waitMs = throttle.lockedFor(throttleKey);
+    if (waitMs > 0) return res.status(429).json({ error: throttle.lockedMessage(waitMs) });
+
     let admins;
     if (email) {
       // Legacy email+password flow — preserved for any caller still using it.
       admins = tenantId && tenantId !== 'local-only'
-        ? db.prepare("SELECT id, first_name, last_name, password FROM users WHERE email = ? AND tenant_id = ? AND role = 'Administrator' AND deleted_at IS NULL").all(email, tenantId)
-        : db.prepare("SELECT id, first_name, last_name, password FROM users WHERE email = ? AND role = 'Administrator' AND deleted_at IS NULL").all(email);
+        ? db.prepare("SELECT id, first_name, last_name, password FROM users WHERE email = ? AND tenant_id = ? AND role = 'Administrator' AND deleted_at IS NULL AND COALESCE(status, 'Active') = 'Active'").all(email, tenantId)
+        : db.prepare("SELECT id, first_name, last_name, password FROM users WHERE email = ? AND role = 'Administrator' AND deleted_at IS NULL AND COALESCE(status, 'Active') = 'Active'").all(email);
     } else {
       admins = tenantId && tenantId !== 'local-only'
-        ? db.prepare("SELECT id, first_name, last_name, password FROM users WHERE tenant_id = ? AND role = 'Administrator' AND deleted_at IS NULL").all(tenantId)
-        : db.prepare("SELECT id, first_name, last_name, password FROM users WHERE role = 'Administrator' AND deleted_at IS NULL").all();
+        ? db.prepare("SELECT id, first_name, last_name, password FROM users WHERE tenant_id = ? AND role = 'Administrator' AND deleted_at IS NULL AND COALESCE(status, 'Active') = 'Active'").all(tenantId)
+        : db.prepare("SELECT id, first_name, last_name, password FROM users WHERE role = 'Administrator' AND deleted_at IS NULL AND COALESCE(status, 'Active') = 'Active'").all();
     }
 
     for (const a of admins) {
       // eslint-disable-next-line no-await-in-loop
-      if (await bcrypt.compare(password, a.password)) {
+      if (await bcrypt.compare(String(password), a.password)) {
+        throttle.clear(throttleKey);
         return res.json({ ok: true, adminName: `${a.first_name} ${a.last_name}`, adminId: a.id });
       }
     }
+    throttle.recordFailure(throttleKey);
     res.status(401).json({ error: 'Invalid admin password.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -107,13 +134,19 @@ router.get('/account-status', (req, res) => {
 // First-time registration — no auth required, only works if no users exist
 router.post('/register-first', async (req, res) => {
   try {
-    // Delete any auto-created default admin so fresh installs can register
-    db.prepare("DELETE FROM users WHERE (email = 'admin' OR email = 'admin@kelete.com') AND role = 'Administrator'").run();
-
-    const users = db.prepare('SELECT id FROM users WHERE deleted_at IS NULL').all();
-    if (users.length > 0) {
+    // S2 — check BEFORE deleting anything. This route needs no login, and it
+    // used to delete the default admin rows first and only then refuse, so any
+    // anonymous caller could remove those accounts from a live system. The
+    // outcome for a genuine fresh install is unchanged: if the only users are
+    // the auto-created default admins, they are removed and registration
+    // continues exactly as before.
+    const isDefaultAdmin = "(email = 'admin' OR email = 'admin@kelete.com') AND role = 'Administrator'";
+    const realUsers = db.prepare(`SELECT id FROM users WHERE deleted_at IS NULL AND NOT (${isDefaultAdmin})`).all();
+    if (realUsers.length > 0) {
       return res.status(403).json({ error: 'Account already exists. Please log in.' });
     }
+    // Delete any auto-created default admin so fresh installs can register
+    db.prepare(`DELETE FROM users WHERE ${isDefaultAdmin}`).run();
     const { firstName, lastName, email, password, phone, permissions } = req.body;
     if (!firstName || !lastName || !email || !password)
       return res.status(400).json({ error: 'First name, last name, email and password are required.' });
@@ -130,7 +163,7 @@ router.post('/register-first', async (req, res) => {
     const newUser = db.prepare('SELECT * FROM users WHERE id = ?').get(info.lastInsertRowid);
     const token = jwt.sign(
       { id: newUser.id, email: newUser.email, role: newUser.role, name: `${newUser.first_name} ${newUser.last_name}`, tenantId: tenantId || 'local-only', webAccess: false },
-      process.env.JWT_SECRET || 'kelete-pro-secret-key-2026',
+      getJwtSecret(),
       { expiresIn: '24h' }
     );
     res.status(201).json({

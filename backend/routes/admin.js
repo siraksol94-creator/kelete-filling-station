@@ -4,13 +4,24 @@ const path    = require('path');
 const { getLicense, createLicense, updateLicense, listLicenses, getLicenseStats,
         listTenants, registerTenant, isRegistered } = require('../config/masterDb');
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin-change-me';
-const TOKEN_SECRET   = process.env.JWT_SECRET      || 'dev-secret';
+const { getAdminPanelSecret, safeEqual } = require('../config/secrets');
+
+// S3 — no more built-in defaults. Previously ADMIN_PASSWORD fell back to the
+// public string 'admin-change-me' and token signing to 'dev-secret', so a
+// server without a .env had a licence panel anyone could log into.
+// Now: with no ADMIN_PASSWORD set, the panel login is simply disabled (503);
+// the rest of the server is unaffected.
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || '').trim();
+const KNOWN_WEAK_ADMIN = new Set(['admin-change-me', 'admin', 'admin123', 'password', 'changeme']);
+const ADMIN_LOGIN_ENABLED = ADMIN_PASSWORD.length > 0 && !KNOWN_WEAK_ADMIN.has(ADMIN_PASSWORD);
+if (!ADMIN_LOGIN_ENABLED) {
+  console.warn('[admin] ADMIN_PASSWORD is not set (or is a known default) — /admin licence panel login is disabled.');
+}
 
 // ── Simple token helpers (no extra dependencies) ──────────────────────────────
 function makeToken() {
   const payload = Buffer.from(JSON.stringify({ ts: Date.now() })).toString('base64');
-  const sig     = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('hex');
+  const sig     = crypto.createHmac('sha256', getAdminPanelSecret()).update(payload).digest('hex');
   return `${payload}.${sig}`;
 }
 
@@ -18,10 +29,15 @@ function verifyToken(token) {
   if (!token) return false;
   const [payload, sig] = token.split('.');
   if (!payload || !sig) return false;
-  const expected = crypto.createHmac('sha256', TOKEN_SECRET).update(payload).digest('hex');
-  if (sig !== expected) return false;
-  const { ts } = JSON.parse(Buffer.from(payload, 'base64').toString());
-  return Date.now() - ts < 24 * 60 * 60 * 1000; // 24h session
+  const expected = crypto.createHmac('sha256', getAdminPanelSecret()).update(payload).digest('hex');
+  if (!ADMIN_LOGIN_ENABLED) return false;
+  if (!safeEqual(sig, expected)) return false;
+  try {
+    const { ts } = JSON.parse(Buffer.from(payload, 'base64').toString());
+    return Number.isFinite(ts) && Date.now() - ts < 24 * 60 * 60 * 1000; // 24h session
+  } catch (_) {
+    return false; // malformed payload: refuse instead of throwing a 500
+  }
 }
 
 function authMiddleware(req, res, next) {
@@ -43,7 +59,10 @@ router.get('/', (req, res) => {
 
 // ─── POST /admin/login ────────────────────────────────────────────────────────
 router.post('/login', (req, res) => {
-  if (req.body.password !== ADMIN_PASSWORD) {
+  if (!ADMIN_LOGIN_ENABLED) {
+    return res.status(503).json({ error: 'Admin panel login is disabled on this server.' });
+  }
+  if (!safeEqual(req.body?.password, ADMIN_PASSWORD)) {
     return res.status(401).json({ error: 'Wrong password' });
   }
   res.json({ token: makeToken() });

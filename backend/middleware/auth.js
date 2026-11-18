@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { getJwtSecret } = require('../config/secrets');
 const db = require('../config/database');
 
 const auth = (req, res, next) => {
@@ -7,7 +8,7 @@ const auth = (req, res, next) => {
     if (!token) {
       return res.status(401).json({ error: 'Access denied. No token provided.' });
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'kelete-pro-secret-key-2026');
+    const decoded = jwt.verify(token, getJwtSecret());
     req.user = decoded;
     // HQ branch-switch override: the JWT was issued from whichever branch
     // the user originally logged into, but the request may target a
@@ -26,11 +27,34 @@ const auth = (req, res, next) => {
   }
 };
 
+// S2 — the JWT's role is a snapshot from login and lives for 24h, so a demoted
+// or deactivated admin kept admin rights until their token expired. Re-read
+// the caller's CURRENT role and status from the database.
+//
+// HQ branch-switch (X-Branch): the request runs against the branch's DB, but
+// req.user.id belongs to the HQ (default) DB the user logged into. Look there
+// when the branch DB has no matching row, so HQ admins can still manage branch
+// users exactly as before. Matching on id AND email keeps a different person
+// who happens to share the numeric id from being mistaken for the caller.
+//
+// adminOnly is used only by routes/users.js, so this changes nothing elsewhere.
 const adminOnly = (req, res, next) => {
-  if (req.user.role !== 'Administrator') {
-    return res.status(403).json({ error: 'Admin access required.' });
+  try {
+    if (!req.user || req.user.role !== 'Administrator') {
+      return res.status(403).json({ error: 'Admin access required.' });
+    }
+    const sql = "SELECT role, status FROM users WHERE id = ? AND email = ? AND deleted_at IS NULL";
+    let me = db.prepare(sql).get(req.user.id, req.user.email);
+    if (!me && req.hqBranchSlug && db.defaultDb) {
+      me = db.defaultDb.prepare(sql).get(req.user.id, req.user.email);
+    }
+    if (!me || me.role !== 'Administrator' || (me.status && me.status !== 'Active')) {
+      return res.status(403).json({ error: 'Admin access required.' });
+    }
+    next();
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
   }
-  next();
 };
 
 const readOnlyGuard = (req, res, next) => {
