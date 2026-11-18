@@ -22,8 +22,8 @@ function launch(role, extraEnv) {
         resolve({
           role, child, base, token,
           api: (method, p, opts = {}) => request(base, method, p, { token, ...opts }),
-          sql: async (sql, params = []) => {
-            const r = await request(base, 'POST', '/__test/sql', { body: { sql, params } });
+          sql: async (sql, params = [], dbName) => {
+            const r = await request(base, 'POST', '/__test/sql', { body: { sql, params, db: dbName } });
             if (r.status !== 200) throw new Error(`${role} sql: ${r.text}`);
             return r.body.rows || r.body.info;
           },

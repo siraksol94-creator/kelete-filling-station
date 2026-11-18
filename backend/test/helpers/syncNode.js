@@ -4,7 +4,8 @@
 // Env in: SYNC_ROLE, SYNC_TENANT, SYNC_BRANCH, SYNC_VPS_URL (till only).
 // Prints one line to stdout:  READY {"port":..,"token":".."}
 // Test-only endpoint (exists only in this child): POST /__test/sql {sql, params}
-// runs a statement on this participant's own database and returns rows.
+// runs a statement on this participant's own database ({db:'master'} → its
+// master.db) and returns rows.
 const { setupEnv } = require('./harness');
 setupEnv();
 if (process.env.SYNC_ROLE === 'till') process.env.VPS_URL = process.env.SYNC_VPS_URL;
@@ -17,7 +18,8 @@ const { createUser } = require('./fixtures');
 
 app.post('/__test/sql', (req, res) => {
   try {
-    const st = db.prepare(req.body.sql);
+    const target = req.body.db === 'master' ? require('../../config/masterDb').masterDb : db;
+    const st = target.prepare(req.body.sql);
     const params = req.body.params || [];
     res.json(/^\s*(select|pragma|with)/i.test(req.body.sql) ? { rows: st.all(...params) } : { info: st.run(...params) });
   } catch (e) { res.status(400).json({ error: e.message }); }

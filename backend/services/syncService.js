@@ -220,6 +220,14 @@ function oneSecondAfter(serverTs, localTs) {
   return new Date(base + 1000).toISOString().replace('T', ' ').slice(0, 19);
 }
 // Is the local row still exactly what was pushed (ignoring the synced flag)?
+// Master tables keep millisecond timestamps ('YYYY-MM-DD HH:MM:SS.mmm').
+// The earliest such timestamp after both the server's and ours.
+function oneMsAfter(serverTs, localTs) {
+  const ms = (t) => new Date(String(t || '').replace(' ', 'T') + (/[zZ]$|[+-]\d\d:?\d\d$/.test(String(t || '')) ? '' : 'Z')).getTime();
+  const base = Math.max(ms(serverTs) || 0, ms(localTs) || 0);
+  return new Date(base + 1).toISOString().replace('T', ' ').replace('Z', '');
+}
+
 function unchangedSince(sent, now) {
   for (const k of Object.keys(now)) {
     if (k === 'synced') continue;
@@ -486,7 +494,11 @@ async function pushMaster() {
   const rejected = Array.isArray(result.body && result.body.rejected) ? result.body.rejected : [];
   if (rejected.length) {
     for (const r of rejected) slog(`master push: REJECTED [${r.table}] ${r.sync_id} — ${r.reason}`);
-    const serious = rejected.filter(r => r.reason !== 'stale-timestamp');
+    // Sync fix (master): 'same_second' = our change carries the same
+    // (millisecond) timestamp as a different version on the server. Not an
+    // error: move our timestamp just past the server's (below) and keep the
+    // row pending so the next cycle sends it as the newer version.
+    const serious = rejected.filter(r => r.reason !== 'stale-timestamp' && r.reason !== 'same_second');
     if (serious.length) {
       throw new Error(
         `master push: server refused ${serious.length} row(s) — ` +
@@ -504,7 +516,17 @@ async function pushMaster() {
   // at synced=0 means the next cycle tries again, and if it is genuinely
   // stale the newer server copy arrives on the following pull and settles it.
   const refused = new Set(rejected.map(r => `${r.table} ${r.sync_id}`));
+  const sentAt = new Map();
+  for (const [table, rows] of Object.entries(records)) for (const row of rows) sentAt.set(`${table} ${row.sync_id}`, row.updated_at);
   masterDb.transaction(() => {
+    for (const r of rejected) {
+      if (r.reason !== 'same_second' || !MASTER_SYNC_TABLES.includes(r.table)) continue;
+      const bumped = oneMsAfter(r.server_updated_at, sentAt.get(`${r.table} ${r.sync_id}`));
+      // Setting updated_at explicitly passes the touch trigger's WHEN guard;
+      // synced stays 0, so the row is sent again next cycle.
+      try { masterDb.prepare(`UPDATE ${r.table} SET updated_at = ?, synced = 0 WHERE sync_id = ?`).run(bumped, r.sync_id); }
+      catch (e) { slog(`master push: could not re-date [${r.table}] ${r.sync_id}: ${e.message}`); }
+    }
     for (const [table, rows] of Object.entries(records)) {
       for (const row of rows) {
         if (!row.sync_id) continue;
@@ -550,7 +572,17 @@ async function pullMaster(opts = {}) {
         for (const row of rows) {
           if (!row.sync_id) continue;
           try {
-            const existing = masterDb.prepare(`SELECT id FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
+            const existing = masterDb.prepare(`SELECT id, synced, updated_at FROM ${table} WHERE sync_id = ?`).get(row.sync_id);
+            // Sync fix (master): a local change still waiting to go up
+            // (synced=0) that is NEWER than the incoming copy is kept — it is
+            // sent on the next push and wins there by the same rule. Before,
+            // the pull overwrote it, so a change held back as 'same_second'
+            // (or one whose push had not run yet) was lost.
+            if (existing && Number(existing.synced) === 0 && existing.updated_at && row.updated_at
+                && String(existing.updated_at) > String(row.updated_at)) {
+              slog(`master pull: kept pending local change [${table}] ${row.sync_id} (${existing.updated_at} > ${row.updated_at})`);
+              continue;
+            }
             if (!existing) {
               // Carry updated_at + synced=1 in the payload so the INSERT
               // trigger's `WHEN NEW.updated_at IS NULL` guard skips this row
