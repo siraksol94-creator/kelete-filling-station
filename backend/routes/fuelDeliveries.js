@@ -9,9 +9,14 @@ const supervisorsOnly = (req, res, next) => (hasActiveRole(req, SUPERVISOR_ROLES
   : res.status(403).json({ error: 'Fuel deliveries are for Managers, Supervisors and Administrators only.' }));
 const { recordTankMovement } = require('../config/fuelSchema');
 
+// Numbering fix — was "FD-" + (row count + 1): deleting any delivery but the
+// latest made the next number repeat an existing one (UNIQUE error, save
+// refused), and two tills would mint the same numbers once fuel syncs. Now
+// the system's standard document numbers (FD-<year>-<device>-<seq>): the
+// per-device counter only moves forward and is never reused. Existing
+// FD-000001-style numbers are left as they are.
 function nextDeliveryNumber() {
-  const row = db.prepare("SELECT COUNT(*) AS c FROM fuel_deliveries WHERE delivery_number LIKE 'FD-%'").get();
-  return `FD-${String(row.c + 1).padStart(6, '0')}`;
+  return require('../config/syncConfig').generateNumber('FD', 'fuel_deliveries');
 }
 
 router.get('/', auth, supervisorsOnly, (req, res) => {

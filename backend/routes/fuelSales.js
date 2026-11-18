@@ -5,9 +5,10 @@ const { auth } = require('../middleware/auth');
 const { recordTankMovement } = require('../config/fuelSchema');
 const { nozzlesInOpenShifts } = require('../services/fuelControls');
 
+// Numbering fix — same defect as fuel deliveries ("count + 1" repeats after a
+// delete): use the standard per-device document number (FS-<year>-<device>-<seq>).
 function nextSaleNumber() {
-  const row = db.prepare("SELECT COUNT(*) AS c FROM fuel_sales WHERE sale_number LIKE 'FS-%'").get();
-  return `FS-${String(row.c + 1).padStart(7, '0')}`;
+  return require('../config/syncConfig').generateNumber('FS', 'fuel_sales');
 }
 
 router.get('/', auth, (req, res) => {
