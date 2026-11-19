@@ -13,10 +13,15 @@
 //   • It refuses a file that has a non-empty "-wal" file beside it: that is a
 //     live database, or a copy taken without SQLite's .backup. Use the P0
 //     snapshot procedure instead.
+//   • Upgrade rehearsal (default; --no-rehearsal skips it): a SECOND scratch
+//     copy of each branch/till database is upgraded with this code's start-up
+//     migrations, to show they apply cleanly, how long they take, and what the
+//     fleet merge review will show. That copy is deleted straight afterwards.
 //   • It makes no network connections and needs no configuration or secrets.
 //   • Phase 2b output contains only counts, dates, flags and schema. Phase 2c
 //     (--include-2c, needs approval) adds a small number of usernames, tank
-//     codes and — in a SEPARATE file — fleet customer names and balances.
+//     codes, the clashing fuel codes and — in SEPARATE files — fleet customer
+//     names, balances and the proposed merge with Customers.
 //     It never outputs password hashes, secrets, URLs or tokens.
 //
 // Run from the repository root after `cd backend && npm ci` (it uses the
@@ -35,6 +40,7 @@ const breq = createRequire(path.join(BACKEND, 'package.json'));
 const args = process.argv.slice(2);
 const include2c = args.includes('--include-2c');
 const allowWal = args.includes('--allow-wal-sidecar');
+const noRehearsal = args.includes('--no-rehearsal');
 const outIdx = args.indexOf('--out');
 const outDir = outIdx >= 0 ? path.resolve(args[outIdx + 1]) : path.resolve(`p0-report-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '')}`);
 const files = args.filter((a, i) => !a.startsWith('--') && !(outIdx >= 0 && i === outIdx + 1)).map(f => path.resolve(f));
@@ -161,6 +167,7 @@ function phase2b(db, kind) {
       .some(i => { const c = all(db, `PRAGMA index_info('${i.name}')`); return c.length === 1 && c[0].name === 'date'; }),
   };
   r.unlinked_order_lines = one(db, 'SELECT COUNT(*) AS n FROM order_items WHERE order_sync_id IS NULL')?.n;
+  r.go_live = goLiveCounts(db);
   r.invariant_counts = {
     tanks_cache_not_equal_ledger: has(db, 'tank_movements') ? one(db, `SELECT COUNT(*) AS n FROM tanks t
       WHERE ABS(t.current_volume - COALESCE((SELECT SUM(litres) FROM tank_movements m WHERE m.tank_id = t.id), 0)) > 0.0001`)?.n : null,
@@ -169,6 +176,80 @@ function phase2b(db, kind) {
       WHERE p.deleted_at IS NULL GROUP BY p.id HAVING ABS(MAX(p.current_stock) - SUM(sm.quantity)) > 0.0001)`)?.n,
   };
   return r;
+}
+
+// Go-live readiness (counts only): what the upgrade will meet on this database.
+function goLiveCounts(db) {
+  const g = {};
+  const recent = (t, c) => cols(db, t).includes(c) ? `${c} >= datetime('now','-30 days')` : null;
+  // How many machines wrote data in the last 30 days → how many tills to enrol (S1).
+  const dev = [];
+  for (const [t, c] of [['orders', 'created_at'], ['attendant_shifts', 'opened_at']]) {
+    if (cols(db, t).includes('device_id') && recent(t, c)) dev.push(`SELECT device_id FROM "${t}" WHERE ${recent(t, c)} AND device_id IS NOT NULL AND device_id != ''`);
+  }
+  g.devices_seen_last_30_days = dev.length ? one(db, `SELECT COUNT(DISTINCT device_id) AS n FROM (${dev.join(' UNION ALL ')})`)?.n : null;
+  // Rows made between 00:00 and 02:00 Zambian time (22:00–24:00 UTC): the
+  // old code filed these under the previous day. New rows go on the right day;
+  // history keeps the day it was reported under.
+  g.rows_between_midnight_and_2am_last_30_days = {};
+  for (const [t, c] of [['orders', 'created_at'], ['attendant_shifts', 'opened_at'], ['stock_movements', 'created_at']]) {
+    if (recent(t, c)) g.rows_between_midnight_and_2am_last_30_days[t] = one(db, `SELECT COUNT(*) AS n FROM "${t}" WHERE ${recent(t, c)} AND strftime('%H', ${c}) IN ('22','23')`)?.n;
+  }
+  if (has(db, 'fleet_customers')) {
+    g.fleet_accounts = one(db, 'SELECT COUNT(*) AS n FROM fleet_customers')?.n;
+    g.fleet_accounts_with_balance = one(db, 'SELECT COUNT(*) AS n, COALESCE(SUM(current_balance),0) AS total FROM fleet_customers WHERE COALESCE(current_balance,0) != 0');
+  }
+  if (has(db, 'shift_credit_sales')) {
+    g.credit_tickets_naming_only_a_fleet_account = cols(db, 'shift_credit_sales').includes('fleet_customer_id')
+      ? one(db, `SELECT COUNT(*) AS n FROM shift_credit_sales WHERE fleet_customer_id IS NOT NULL${cols(db, 'shift_credit_sales').includes('customer_id') ? ' AND customer_id IS NULL' : ''}`)?.n : 0;
+  }
+  return g;
+}
+
+// Fuel set-up codes on this database, for the cross-database duplicate check (F1).
+const CODED = ['fuel_grades', 'tanks', 'pumps', 'nozzles'];
+function fuelCodes(db) {
+  const out = {};
+  for (const t of CODED) {
+    if (!cols(db, t).includes('code')) continue;
+    const sid = cols(db, t).includes('sync_id') ? 'sync_id' : 'NULL';
+    out[t] = all(db, `SELECT code, ${sid} AS sync_id FROM "${t}" WHERE code IS NOT NULL AND code != ''`);
+  }
+  return out;
+}
+
+// Upgrade rehearsal: run the new code's start-up migrations on a SEPARATE
+// scratch copy (never the original, never the read-only copy), then report
+// what happened and what the fleet merge review would show. Deleted afterwards.
+function rehearse(original) {
+  const copy = path.join(scratch, crypto.randomBytes(6).toString('hex') + '-rehearsal.db');
+  fs.copyFileSync(original, copy);
+  const db = new Database(copy);
+  const out = {};
+  try {
+    out.version_before = has(db, 'schema_migrations') ? one(db, 'SELECT MAX(version) AS v FROM schema_migrations')?.v ?? 0 : 0;
+    const t0 = Date.now();
+    let res;
+    try { res = quietly(() => breq('./config/migrations').initTenantDb(db)); }
+    catch (e) { out.error = String(e && e.message || e).slice(0, 300); }
+    out.duration_ms = Date.now() - t0;
+    if (res) {
+      out.applied = res.applied;
+      out.failed = res.failed ? { version: res.failed.version, name: res.failed.name, error: String(res.failed.error).slice(0, 300) } : null;
+      out.changed_after_applying = res.mismatched;
+    }
+    out.version_after = has(db, 'schema_migrations') ? one(db, 'SELECT MAX(version) AS v FROM schema_migrations')?.v : null;
+    out.integrity_after = one(db, 'PRAGMA quick_check')?.quick_check;
+    try {
+      const plan = breq('./services/fleetMerge').plan(db);
+      out.fleet_merge_review = plan.summary;
+      out._plan = plan;            // names: used only for the 2c file, removed before writing 2b
+    } catch (e) { out.fleet_merge_review = { error: String(e.message).slice(0, 200) }; }
+  } finally {
+    db.close();
+    for (const f of [copy, copy + '-wal', copy + '-shm']) fs.rmSync(f, { force: true });
+  }
+  return out;
 }
 
 function phase2c(db, kind, fleetRows) {
@@ -213,6 +294,8 @@ function phase2c(db, kind, fleetRows) {
 const report = { generated_at: new Date().toISOString(), phases: include2c ? ['2b', '2c'] : ['2b'], databases: {}, cross_database: {} };
 const fleetByDb = {};
 const fuelNumbers = new Map();
+const fuelCodeMap = new Map();
+const mergePlans = {};
 
 for (const original of files) {
   const label = path.relative(process.cwd(), original);
@@ -236,6 +319,13 @@ for (const original of files) {
   if (exp) entry.schema_vs_code = diffSchema(schemaOf(db), exp);
   if (include2c) { fleetByDb[label] = []; entry.phase_2c = phase2c(db, kind, fleetByDb[label]); }
   if (kind === 'tenant') {
+    for (const [t, rows] of Object.entries(fuelCodes(db))) for (const r of rows) {
+      const k = `${t}\u0000${r.code}`;
+      if (!fuelCodeMap.has(k)) fuelCodeMap.set(k, []);
+      fuelCodeMap.get(k).push({ db: label, sync_id: r.sync_id });
+    }
+  }
+  if (kind === 'tenant') {
     for (const r of all(db, "SELECT order_number FROM orders WHERE order_number LIKE 'FUEL-%'")) {
       if (!fuelNumbers.has(r.order_number)) fuelNumbers.set(r.order_number, new Set());
       fuelNumbers.get(r.order_number).add(label);
@@ -243,6 +333,12 @@ for (const original of files) {
   }
   db.close();
   fs.rmSync(copy, { force: true });
+  if (kind === 'tenant' && !noRehearsal) {
+    const rh = rehearse(original);
+    if (include2c && rh._plan) mergePlans[label] = rh._plan;
+    delete rh._plan;
+    entry.upgrade_rehearsal = rh;
+  }
   if (sha256(original) !== before) { console.error(`ABORT: ${label} changed while being inspected`); process.exit(3); }
   entry.original_unchanged = true;
   report.databases[label] = entry;
@@ -250,6 +346,20 @@ for (const original of files) {
 
 const shared = [...fuelNumbers.entries()].filter(([, s]) => s.size > 1);
 report.cross_database.fuel_order_numbers_used_in_more_than_one_database = { count: shared.length, examples: shared.slice(0, 5).map(([n, s]) => `${n}: ${[...s].join(', ')}`) };
+
+// The same fuel code held as separate records in two or more databases: F1
+// reports these as 'duplicate' and holds them back, so they need a decision.
+const codeClashes = [...fuelCodeMap.entries()].filter(([, l]) => {
+  const dbs = new Set(l.map(x => x.db));
+  const ids = new Set(l.map(x => x.sync_id || `none:${x.db}`));
+  return dbs.size > 1 && ids.size > 1;
+}).map(([k, l]) => { const [table, code] = k.split('\u0000'); return { table, code, databases: [...new Set(l.map(x => x.db))] }; });
+report.cross_database.fuel_codes_held_separately_in_more_than_one_database = {
+  count: codeClashes.length,
+  by_table: codeClashes.reduce((a, c) => ({ ...a, [c.table]: (a[c.table] || 0) + 1 }), {}),
+  database_groups: [...new Set(codeClashes.map(c => c.databases.join(' + ')))],
+  ...(include2c ? { codes: codeClashes } : {}),
+};
 
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, 'report.json'), JSON.stringify(report, null, 2));
@@ -259,6 +369,16 @@ if (include2c) {
   const csv = ['database,name,company,credit_limit,current_balance,possible_customer_matches',
     ...rows.map(r => [r.database, r.name, r.company, r.credit_limit, r.current_balance, r.possible_customer_matches].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))].join('\n');
   fs.writeFileSync(path.join(outDir, 'phase2c-fleet-balances.csv'), csv + '\n');
+}
+if (include2c) {
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = ['database,fleet_account,fleet_phone,balance,proposal,customer,matched_by,other_candidates'];
+  for (const [dbl, pl] of Object.entries(mergePlans)) {
+    for (const m of pl.matched) lines.push([dbl, m.name, m.phone, m.balance, 'merge into existing', m.customer && m.customer.name, m.by, ''].map(q).join(','));
+    for (const m of pl.create) lines.push([dbl, m.name, m.phone, m.balance, 'create new Customer', '', '', ''].map(q).join(','));
+    for (const m of pl.ambiguous) lines.push([dbl, m.name, m.phone, m.balance, 'NEEDS A DECISION', '', '', (m.candidates || []).map(c => c.name).join('; ')].map(q).join(','));
+  }
+  fs.writeFileSync(path.join(outDir, 'phase2c-fleet-merge-review.csv'), lines.join('\n') + '\n');
 }
 console.log(`Inspected ${files.length} file(s). Report: ${path.join(outDir, 'summary.md')}`);
 
@@ -279,6 +399,19 @@ function summarise(rep) {
     if (b.cash_reports) L.push(`- cash_reports: stray rebuild table = ${b.cash_reports.stray_cash_reports_migrated}; old UNIQUE(date) = ${b.cash_reports.legacy_unique_date_index}`);
     if (b.unlinked_order_lines !== undefined) L.push(`- Order lines without order_sync_id: ${b.unlinked_order_lines}`);
     if (b.invariant_counts) L.push(`- Tanks off-ledger: ${b.invariant_counts.tanks_cache_not_equal_ledger}; products with stock ≠ movements: ${b.invariant_counts.products_stock_not_equal_movements}`);
+    if (b.go_live) {
+      const g = b.go_live;
+      L.push(`- Go-live: machines writing in the last 30 days: ${g.devices_seen_last_30_days ?? 'n/a'}; rows made 00:00–02:00 Zambian time (last 30 days): ${JSON.stringify(g.rows_between_midnight_and_2am_last_30_days)}`);
+      if (g.fleet_accounts !== undefined) L.push(`- Fleet accounts: ${g.fleet_accounts}; with a balance: ${g.fleet_accounts_with_balance?.n} (total ${g.fleet_accounts_with_balance?.total}); credit tickets naming only a fleet account: ${g.credit_tickets_naming_only_a_fleet_account ?? 'n/a'}`);
+    }
+    const u = d.upgrade_rehearsal;
+    if (u) {
+      const verdict = u.error || u.failed ? '**FAILED**' : u.integrity_after === 'ok' ? 'ok' : `integrity **${u.integrity_after}**`;
+      L.push(`- Upgrade rehearsal on a scratch copy: ${verdict} — version ${u.version_before} → ${u.version_after}, ${u.duration_ms} ms${u.failed ? `; migration ${u.failed.version} (${u.failed.name}) failed: ${u.failed.error}` : ''}${u.error ? `; ${u.error}` : ''}`);
+      const f = u.fleet_merge_review;
+      if (f && !f.error) L.push(`- Fleet merge review (after upgrade): ${f.to_merge} to merge — ${f.matched} matched, ${f.create} new Customers, ${f.ambiguous} need a decision; balance to carry ${f.balance_to_carry}`);
+      else if (f) L.push(`- Fleet merge review: not available (${f.error})`);
+    }
     const s = d.schema_vs_code;
     if (s) {
       const n = (k) => s[k].length;
@@ -297,6 +430,8 @@ function summarise(rep) {
     L.push('');
   }
   const x = rep.cross_database.fuel_order_numbers_used_in_more_than_one_database;
-  L.push('## Across databases', '', `- FUEL- order numbers used in more than one database: ${x.count}${x.examples.length ? ' — e.g. ' + x.examples.join('; ') : ''}`, '');
+  const fc = rep.cross_database.fuel_codes_held_separately_in_more_than_one_database;
+  L.push('## Across databases', '', `- FUEL- order numbers used in more than one database: ${x.count}${x.examples.length ? ' — e.g. ' + x.examples.join('; ') : ''}`);
+  L.push(`- Fuel codes held as separate records in more than one database: **${fc.count}** ${JSON.stringify(fc.by_table)}${fc.database_groups.length ? ' — between: ' + fc.database_groups.join('; ') : ''}${fc.codes ? '; codes: ' + fc.codes.map(c => `${c.table} ${c.code}`).join(', ') : fc.count ? ' (codes listed with --include-2c)' : ''}`, '');
   return L.join('\n');
 }

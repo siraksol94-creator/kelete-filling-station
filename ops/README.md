@@ -1,5 +1,9 @@
 # ops/ — quarantined maintenance scripts (do not run casually)
 
+Going live? Start with [`go-live/README.md`](go-live/README.md). The other
+folders: `p0/` (read-only snapshot inspection), `backup/` (verify and restore),
+`permissions/` (permission matrix builder).
+
 `legacy-backend-scripts/` holds the one-off scripts inherited from the previous
 developer. Until S4 (security remediation) they lived in `backend/scripts/`,
 `backend/create-user.js` and `backend/reset-sync.js`, which meant:
