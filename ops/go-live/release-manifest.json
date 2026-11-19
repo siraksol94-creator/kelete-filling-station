@@ -240,6 +240,13 @@
    "covers": "UX-5",
    "what": "Weather location from the device (asks permission); plumbed tanks shown joined; 3D sign-in page (WebGL, falls back to a still backdrop)",
    "migrations": []
+  },
+  {
+   "n": 32,
+   "subject": "UX-5 fix: weather location saves on a fresh install; clear message when the business email is missing (for review)",
+   "covers": "UX-5 fix",
+   "what": "Saving the weather location starts the business settings record if there is none; the weather card asks for the business email when it's missing",
+   "migrations": []
   }
  ],
  "migrations": [

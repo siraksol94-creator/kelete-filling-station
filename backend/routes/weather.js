@@ -6,6 +6,8 @@ const db = require('../config/database');
 const { auth, adminOnly } = require('../middleware/auth');
 const bt = require('../config/businessTime');
 const weather = require('../services/weather');
+const syncConfig = require('../config/syncConfig');
+const { randomUUID } = require('crypto');
 const { adviceFor } = require('../services/weatherAdvice');
 
 function settings() {
@@ -41,8 +43,19 @@ router.put('/location', auth, adminOnly, (req, res) => {
     if (!Number.isFinite(la) || !Number.isFinite(lo) || la < -90 || la > 90 || lo < -180 || lo > 180) {
       return res.status(400).json({ error: 'Enter a valid latitude (-90 to 90) and longitude (-180 to 180).' });
     }
-    const row = db.prepare('SELECT id FROM business_settings WHERE deleted_at IS NULL ORDER BY id LIMIT 1').get();
-    if (!row) return res.status(400).json({ error: 'Business settings are not set up yet.' });
+    let row = db.prepare('SELECT id FROM business_settings WHERE deleted_at IS NULL ORDER BY id LIMIT 1').get();
+    if (!row) {
+      // No business settings yet (a fresh install): start the record the
+      // same way the Settings screen does — the rest is filled in there.
+      const cols = db.prepare('PRAGMA table_info(business_settings)').all().map((c) => c.name);
+      const { branchId, deviceId } = syncConfig.getConfig();
+      const fields = { sync_id: randomUUID(), tenant_id: syncConfig.getTenantId(req), branch_id: branchId, device_id: deviceId, synced: 0 };
+      const use = Object.keys(fields).filter((k) => cols.includes(k));
+      const info = use.length
+        ? db.prepare(`INSERT INTO business_settings (${use.join(', ')}) VALUES (${use.map(() => '?').join(', ')})`).run(...use.map((k) => fields[k]))
+        : db.prepare('INSERT INTO business_settings DEFAULT VALUES').run();
+      row = { id: info.lastInsertRowid };
+    }
     db.prepare("UPDATE business_settings SET weather_town = ?, weather_lat = ?, weather_lon = ?, updated_at = datetime('now'), synced = 0 WHERE id = ?")
       .run(String(town).slice(0, 80), la, lo, row.id);
     res.json({ ok: true, town: String(town).slice(0, 80), lat: la, lon: lo });

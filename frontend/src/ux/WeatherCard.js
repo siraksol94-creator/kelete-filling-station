@@ -2,6 +2,7 @@
 // Data and advice come from the server (/api/weather, MET Norway). If there is
 // no internet, or no location set, the card says so and nothing else changes.
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiMapPin, FiAlertTriangle, FiInfo, FiCheckCircle, FiEye } from 'react-icons/fi';
 import { getWeather, setWeatherLocation } from '../services/api';
 import WeatherIcon, { labelOf } from './WeatherIcon';
@@ -88,6 +89,7 @@ function LocationPicker({ onSaved, onCancel }) {
 }
 
 export default function WeatherCard() {
+  const navigate = useNavigate();
   const [w, setW] = useState(null);
   const [allAdvice, setAllAdvice] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -99,6 +101,18 @@ export default function WeatherCard() {
     return w.can_set
       ? <><p className="k-muted" style={{ margin: '0 0 8px' }}>Set the station's location once to see the weather and what it means for your fuel.</p><LocationPicker onSaved={() => { setEditing(false); load(); }} onCancel={editing ? () => setEditing(false) : null} /></>
       : <div className="k-empty">Weather appears here once an Administrator sets the station's location.</div>;
+  }
+  if (!w.available && w.reason === 'no-contact') {
+    // MET Norway asks every app to say who to contact; we use the business email.
+    return (
+      <div className="k-empty">
+        {w.town ? <><strong>{w.town}</strong> is saved. </> : null}
+        The weather service needs a contact email first.{' '}
+        {w.can_set
+          ? <>Add the <strong>Business Email</strong> under <button type="button" className="k-linkish" onClick={() => navigate('/settings/profile')}>Profile → Business Information</button>, then come back.</>
+          : 'Ask an Administrator to add the business email under Profile → Business Information.'}
+      </div>
+    );
   }
   if (!w.available) {
     return <div className="k-empty">Weather isn't available right now (no internet connection to the weather service). Everything else works as normal.</div>;
