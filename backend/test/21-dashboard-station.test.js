@@ -60,3 +60,67 @@ test('tanks with capacity, current volume and grade colour', () => {
   assert.equal(t1.grade, 'Petrol');
   assert.equal(station.tanks.length, 2);
 });
+
+test('days of cover: none yet without last week\'s sales (no guessing)', () => {
+  assert.ok(station.tanks.every((t) => t.days_cover === null && t.avg_daily_litres === 0));
+});
+
+test('days of cover from the 7 days before today', () => {
+  const bt = require('../config/businessTime');
+  const today = bt.businessDate();
+  const ago = (n) => new Date(Date.parse(`${today}T00:00:00Z`) - n * 86400000).toISOString().slice(0, 10);
+  // move shift A (100 L petrol) to 3 days ago: 100 L / 7 days ≈ 14.3 L/day
+  const a = app.db.prepare("SELECT s.id FROM attendant_shifts s JOIN shift_nozzle_readings r ON r.shift_id = s.id JOIN nozzles n ON n.id = r.nozzle_id WHERE n.code = 'P1-ULP' AND s.status = 'Closed'").get();
+  app.db.prepare('UPDATE attendant_shifts SET shift_date = ? WHERE id = ?').run(ago(3), a.id);
+  const st = require('../services/stationOverview').stationToday(app.db, today);
+  const t1 = st.tanks.find((t) => t.code === 'T1');
+  assert.equal(t1.avg_daily_litres, 14.3);
+  assert.equal(t1.days_cover, Math.round((9900 / (100 / 7)) * 10) / 10);
+  assert.equal(st.tanks.find((t) => t.code === 'T2').days_cover, null, 'diesel sold only today → no history yet');
+});
+
+test('takings: fuel credit tickets (FUEL- orders) count as fuel, not shop; shop & stock leave fuel out', async () => {
+  const jwt = require('jsonwebtoken');
+  const tenant = jwt.decode(staff.tokens.owner).tenantId;
+  const bt = require('../config/businessTime');
+  const today = bt.businessDate();
+  const { randomUUID } = require('crypto');
+  const order = (no, total) => {
+    const sid = randomUUID();
+    const id = app.db.prepare("INSERT INTO orders (order_number, total_amount, tenant_id, business_date, sync_id) VALUES (?, ?, ?, ?, ?)").run(no, total, tenant, today, sid).lastInsertRowid;
+    return { sid, id };
+  };
+  const shopOrder = order('ORD-0000001', 300);
+  order('FUEL-0000099', 250);
+  app.db.prepare("INSERT INTO order_items (order_id, order_sync_id, product_name, quantity, unit_price, total_price, tenant_id) VALUES (?, ?, 'Engine Oil 1L', 2, 150, 300, ?)").run(shopOrder.id, shopOrder.sid, tenant);
+  const prod = (code, name, stock, min) => app.db.prepare('INSERT INTO products (code, name, current_stock, min_stock, tenant_id, sync_id) VALUES (?, ?, ?, ?, ?, ?)').run(code, name, stock, min, tenant, randomUUID());
+  prod('OIL1', 'Engine Oil 1L', 2, 6);
+  prod('WATER', 'Water 500ml', 0, 10);
+  prod('SNACK', 'Crisps', 40, 10);
+  prod('FUEL-XX', 'Fuel product (credit tickets)', 0, 5);
+  const d = (await app.request('GET', '/api/dashboard', { token: staff.tokens.owner })).body;
+  assert.equal(d.takings.shop, 300);
+  assert.equal(d.takings.fuel, 2500 + 1200 + 250 - 100 * 25, 'shift A moved to 3 days ago in the test above');
+  assert.equal(d.takings.total, d.takings.fuel + d.takings.shop);
+  assert.deepEqual(d.shop.today, { sales: 300, orders: 1, basket: 300 });
+  assert.deepEqual(d.shop.top7.map((x) => x.name), ['Engine Oil 1L']);
+  assert.deepEqual({ out: d.shop.stock.out, low: d.shop.stock.low, healthy: d.shop.stock.healthy }, { out: 1, low: 1, healthy: 1 });
+  assert.deepEqual(d.shop.runningLow.map((x) => x.name), ['Water 500ml', 'Engine Oil 1L'], 'emptiest first; fuel products never listed');
+});
+
+test('HQ Overview branch day: fuel/shop split, week and forecourt (same rules as the Dashboard)', () => {
+  const bt = require('../config/businessTime');
+  const today = bt.businessDate();
+  // The HQ sale-day expression from routes/hq.js.
+  const HQ_SALE_DAY = "(CASE WHEN business_date IS NULL THEN substr(COALESCE(paid_at, created_at), 1, 10) ELSE COALESCE(DATE(paid_at, '+120 minutes'), business_date) END)";
+  const b = require('../services/branchDay').branchDay(app.db, today, HQ_SALE_DAY);
+  assert.deepEqual(b.takings, { fuel: 1200 + 250, shop: 300, total: 1750 }, 'shift B cash + FUEL- ticket; the shop order');
+  assert.equal(b.week.length, 7);
+  assert.equal(b.week[6].date, today);
+  assert.deepEqual(b.week[6], { date: today, fuel: 1450, total: 1750 });
+  const ago3 = b.week[3];
+  assert.equal(ago3.fuel, 2500, 'shift A, moved to 3 days ago');
+  assert.ok(b.mtd_takings.total >= b.takings.total);
+  assert.equal(b.station.cash.variance_total, -50, 'variance in full, with its sign');
+  assert.ok(b.station.tanks.every((t) => 'days_cover' in t && 'low_level' in t));
+});

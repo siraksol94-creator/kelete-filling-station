@@ -38,7 +38,7 @@
   "EmptyVouchers": "GRN",
   "StockReconciliation": "Stock"
  },
- "endpoint_count": 444,
+ "endpoint_count": 446,
  "endpoints": [
   {
    "method": "GET",
@@ -5921,6 +5921,22 @@
    "admin": true,
    "screens": [
     "settings/users"
+   ]
+  },
+  {
+   "method": "PUT",
+   "path": "/weather/location",
+   "allAccess": true,
+   "screens": [
+    "dashboard"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/weather",
+   "allAccess": true,
+   "screens": [
+    "dashboard"
    ]
   },
   {

@@ -14,6 +14,9 @@ import {
   FiAlertTriangle, FiArrowRight,
 } from 'react-icons/fi';
 import { getHqOverview, setHqBranch } from '../services/api';
+// UX-4 — group hero, branch comparison and branch tiles (fuel + shop).
+import { GroupHero, BranchCompare, BranchTile } from '../ux/HqGroup';
+import { branchBars } from '../ux/hqMetrics';
 
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtInt   = (n) => parseFloat(n || 0).toLocaleString();
@@ -67,7 +70,7 @@ export default function HqOverview() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={load}
-            style={{ padding: '8px 14px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            style={{ padding: '8px 14px', background: '#0e7490', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <FiRefreshCw /> Refresh
           </button>
         </div>
@@ -86,26 +89,38 @@ export default function HqOverview() {
         // error, mid-render race, or older endpoint version). Use a
         // zeroed default rather than crashing the whole page. v1.3.13.
         const rollup = data.rollup || {};
+        // UX-4 — the richer layout needs the server's fuel/shop takings.
+        const rich = rollup.takings_total != null;
+        const today = data.today || new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 10);
+        // Alphabetical, so branches are compared, not ranked.
+        const sortedBranches = [...(data.branches || [])].sort((a, b) => shortBranch(a.name, a.slug).localeCompare(shortBranch(b.name, b.slug)));
         return (
         <>
-          {/* Roll-up row */}
-          <div className="tiles-2up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginBottom: 22 }}>
-            <RollupCard icon={<FiTrendingUp />} label="Today's Revenue" value={fmtMoney(rollup.today_revenue)} sub={`${fmtInt(rollup.today_orders)} orders`} color="#0ea5e9" />
+          {rich && (
+            <>
+              <GroupHero rollup={rollup} branches={data.branches || []} today={today} />
+              <BranchCompare branches={sortedBranches} rollup={rollup} today={today} />
+            </>
+          )}
+          {/* Roll-up row (older server without fuel/shop takings) */}
+          {!rich && <div className="tiles-2up" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 12, marginBottom: 22 }}>
+            <RollupCard icon={<FiTrendingUp />} label="Today's Revenue" value={fmtMoney(rollup.today_revenue)} sub={`${fmtInt(rollup.today_orders)} orders`} color="#0369a1" />
             <RollupCard icon={<FiTrendingUp />} label="Month-to-Date"     value={fmtMoney(rollup.mtd_revenue)}   sub={`${fmtInt(rollup.mtd_orders)} orders`}   color="#6366f1" />
             <RollupCard icon={<FiPackage />}    label="Stock Value"       value={fmtMoney(rollup.stock_value)}   sub="At cost, all branches"  color="#0f766e" />
             {/* 2026-09-13 — Awaiting Payment / Awaiting Dispatch removed from the
                 roll-up at HQ's request. Four tiles now: Today, MTD, Stock Value
                 and AR, which make a full two-by-two on a phone too. */}
             <RollupCard icon={<FiDollarSign />} label="AR Outstanding"    value={fmtMoney(rollup.ar_outstanding)} sub="Unpaid by customers"   color="#dc2626" />
-          </div>
+          </div>}
 
           {/* 2026-09-12 — phone, as designed: one row per branch with today's
               takings and a low-stock badge. Tapping a row opens its figures
               and the Open button. */}
           <div className="phone-only">
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#5b6478', margin: '0 0 8px' }}>Branches · today</div>
-            {(data.branches || []).map(b => {
+            {sortedBranches.map(b => {
               const open = openSlugs.has(b.slug);
+              const bar = rich && !b.error ? branchBars(data.branches).find(x => x.slug === b.slug) : null;
               const low = b.error ? 0 : (parseFloat(b.stock_low_count) || 0);
               return (
                 <div key={b.slug} style={{ background: '#fff', border: '1px solid #e2e6ee', borderRadius: 12, padding: '10px 12px', marginBottom: 8 }}>
@@ -114,15 +129,21 @@ export default function HqOverview() {
                     style={{ cursor: 'pointer' }}>
                     <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
                       <span style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortBranch(b.name, b.slug)}</span>
-                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{b.error ? '—' : fmtMoney(b.today.revenue)}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{b.error ? '—' : fmtMoney(b.takings ? b.takings.total : b.today.revenue)}</span>
                     </div>
                     <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 3 }}>
                       <span style={{ fontSize: 11.5, color: b.error ? '#b91c1c' : '#5b6478', minWidth: 0 }}>
-                        {b.error ? b.error : `${fmtInt(b.today.orders)} orders`}
+                        {b.error ? b.error : (b.takings ? (b.station || b.takings.fuel > 0 ? `fuel ${fmtMoney(b.takings.fuel)} · shop ${fmtMoney(b.takings.shop)}` : `shop ${fmtMoney(b.takings.shop)}`) : `${fmtInt(b.today.orders)} orders`)}
                         {low > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 999, background: '#fdecec', color: '#9b0008' }}>{fmtInt(low)} low</span>}
                       </span>
                       <span style={{ color: '#64748b', fontSize: 14 }}>{open ? '▾' : '›'}</span>
                     </div>
+                    {bar && (
+                      <div className="k-hq-row-bar" role="img" aria-label={`Fuel ${fmtMoney(bar.fuel)}, shop ${fmtMoney(bar.shop)}`}>
+                        <div className="k-split-fuel" style={{ width: `${bar.fuelPct * 100}%` }} />
+                        <div className="k-split-shop" style={{ width: `${bar.shopPct * 100}%` }} />
+                      </div>
+                    )}
                   </div>
                   {open && !b.error && (
                     <>
@@ -139,7 +160,7 @@ export default function HqOverview() {
                         <Metric label="AR Open"   value={fmtMoney(b.ar_outstanding)} warn={b.ar_outstanding > 0.001} />
                       </div>
                       <button onClick={() => openBranch(b.slug)}
-                        style={{ width: '100%', marginTop: 8, padding: '8px 10px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12.5, fontWeight: 700 }}>
+                        style={{ width: '100%', marginTop: 8, padding: '8px 10px', background: '#0e7490', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12.5, fontWeight: 700 }}>
                         Open {shortBranch(b.name, b.slug)} <FiArrowRight size={12} />
                       </button>
                     </>
@@ -149,9 +170,17 @@ export default function HqOverview() {
             })}
           </div>
 
-          {/* Per-branch cards */}
-          <h3 className="desk-only" style={{ margin: '0 0 10px 0', fontSize: 15, color: '#0f172a' }}>Branches</h3>
-          <div className="desk-only" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
+          {rich && (
+            <>
+              <div className="k-hq-section desk-only">Branches · A to Z</div>
+              <div className="k-branch-grid desk-only">
+                {sortedBranches.map(b => <BranchTile key={b.slug} b={b} onOpen={openBranch} />)}
+              </div>
+            </>
+          )}
+          {/* Per-branch cards (older server) */}
+          {!rich && <h3 className="desk-only" style={{ margin: '0 0 10px 0', fontSize: 15, color: '#0f172a' }}>Branches</h3>}
+          {!rich && <div className="desk-only" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
             {(data.branches || []).map(b => (
               <div key={b.slug} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
@@ -164,7 +193,7 @@ export default function HqOverview() {
                     </div>
                   </div>
                   <button onClick={() => openBranch(b.slug)}
-                    style={{ padding: '6px 10px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}>
+                    style={{ padding: '6px 10px', background: '#0e7490', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}>
                     Open <FiArrowRight size={12} />
                   </button>
                 </div>
@@ -190,7 +219,7 @@ export default function HqOverview() {
                 )}
               </div>
             ))}
-          </div>
+          </div>}
 
           {data.as_of && (
             <p style={{ marginTop: 18, fontSize: 11, color: '#64748b' }}>

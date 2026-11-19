@@ -237,4 +237,17 @@ module.exports = [
       fuelSync.installTriggers(db, fuelSync.SPEC.fleet_customers);
     },
   },
+  {
+    version: 12,
+    name: 'station_weather_location',
+    // UX-4 — where the station is, for the Dashboard weather card (chosen by
+    // an Administrator from a list of towns, or typed coordinates). Additive.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(business_settings)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('weather_town')) db.exec('ALTER TABLE business_settings ADD COLUMN weather_town TEXT');
+      if (!cols.includes('weather_lat')) db.exec('ALTER TABLE business_settings ADD COLUMN weather_lat REAL');
+      if (!cols.includes('weather_lon')) db.exec('ALTER TABLE business_settings ADD COLUMN weather_lon REAL');
+    },
+  },
 ];

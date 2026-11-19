@@ -88,6 +88,54 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     }
     const salesTrendAll = [...trend.values()].sort((a, b) => a.date.localeCompare(b.date));
 
+    // UX-4 — Shop & stock, with fuel kept out of it. Fuel credit tickets are
+    // orders numbered FUEL-…; they belong to fuel, not the shop.
+    const NOT_FUEL = "COALESCE(order_number, '') NOT LIKE 'FUEL-%'";
+    const LIVE = "(status IS NULL OR status != 'Reversed') AND deleted_at IS NULL";
+    const day = (n) => new Date(Date.parse(`${today}T00:00:00Z`) - n * 86400000).toISOString().slice(0, 10);
+    const shopToday = db.prepare(`SELECT COALESCE(SUM(total_amount),0) AS total, COUNT(*) AS n FROM orders
+      WHERE ${ORDER_DAY} = ? AND ${LIVE} AND ${NOT_FUEL} AND tenant_id = ?`).get(today, tenantId);
+    const fuelCreditToday = db.prepare(`SELECT COALESCE(SUM(total_amount),0) AS total FROM orders
+      WHERE ${ORDER_DAY} = ? AND ${LIVE} AND NOT (${NOT_FUEL}) AND tenant_id = ?`).get(today, tenantId).total;
+    const shopWeek = db.prepare(`SELECT ${ORDER_DAY} AS date, COALESCE(SUM(total_amount),0) AS total FROM orders
+      WHERE ${ORDER_DAY} > ? AND ${ORDER_DAY} <= ? AND ${LIVE} AND ${NOT_FUEL} AND tenant_id = ?
+      GROUP BY ${ORDER_DAY} ORDER BY date`).all(day(7), today, tenantId);
+    const top7 = db.prepare(`SELECT oi.product_name AS name, SUM(oi.quantity) AS units, SUM(oi.total_price) AS revenue
+      FROM order_items oi JOIN orders o ON o.sync_id = oi.order_sync_id
+      WHERE COALESCE(o.business_date, DATE(o.created_at)) > ? AND (o.status IS NULL OR o.status != 'Reversed') AND o.deleted_at IS NULL
+        AND COALESCE(o.order_number, '') NOT LIKE 'FUEL-%' AND o.tenant_id = ?
+      GROUP BY oi.product_name ORDER BY revenue DESC LIMIT 5`).all(day(7), tenantId);
+    const categories30 = db.prepare(`SELECT c.name AS category, COALESCE(SUM(oi.total_price),0) AS total
+      FROM order_items oi JOIN orders o ON o.sync_id = oi.order_sync_id
+      JOIN products p ON oi.product_sync_id = p.sync_id JOIN categories c ON p.category_sync_id = c.sync_id
+      WHERE COALESCE(o.business_date, DATE(o.created_at)) > ? AND (o.status IS NULL OR o.status != 'Reversed') AND o.deleted_at IS NULL
+        AND COALESCE(o.order_number, '') NOT LIKE 'FUEL-%' AND o.tenant_id = ?
+      GROUP BY c.name ORDER BY total DESC LIMIT 8`).all(day(30), tenantId);
+    const SHELF = "p.deleted_at IS NULL AND p.tenant_id = ? AND COALESCE(p.code, '') NOT LIKE 'FUEL-%'";
+    const stockHealth = db.prepare(`SELECT
+        SUM(CASE WHEN COALESCE(p.current_stock,0) <= 0 THEN 1 ELSE 0 END) AS out,
+        SUM(CASE WHEN COALESCE(p.current_stock,0) > 0 AND COALESCE(p.min_stock,0) > 0 AND p.current_stock <= p.min_stock THEN 1 ELSE 0 END) AS low,
+        COUNT(*) AS total
+      FROM products p WHERE ${SHELF}`).get(tenantId);
+    const runningLow = db.prepare(`SELECT p.name, p.current_stock AS stock, p.min_stock AS min, p.unit FROM products p
+      WHERE ${SHELF} AND COALESCE(p.min_stock,0) > 0 AND p.current_stock <= p.min_stock
+      ORDER BY (CASE WHEN p.min_stock > 0 THEN p.current_stock * 1.0 / p.min_stock ELSE 0 END), p.name LIMIT 6`).all(tenantId);
+    const shopSales = Number(shopToday.total) || 0;
+    const shop = {
+      today: { sales: shopSales, orders: shopToday.n || 0, basket: shopToday.n ? Math.round((shopSales / shopToday.n) * 100) / 100 : 0 },
+      week: shopWeek.map((r) => ({ date: r.date, total: Number(r.total) || 0 })),
+      top7: top7.map((r) => ({ name: r.name, units: Number(r.units) || 0, revenue: Number(r.revenue) || 0 })),
+      categories30: categories30.map((r) => ({ category: r.category, total: Number(r.total) || 0 })),
+      stock: {
+        total: stockHealth.total || 0, out: stockHealth.out || 0, low: stockHealth.low || 0,
+        healthy: Math.max(0, (stockHealth.total || 0) - (stockHealth.out || 0) - (stockHealth.low || 0)),
+        atCost: stockValue.at_cost || 0, atRetail: stockValue.at_retail || 0,
+      },
+      runningLow: runningLow.map((r) => ({ ...r, stock: Number(r.stock) || 0, min: Number(r.min) || 0 })),
+    };
+    const takings = { fuel: fuelToday + (Number(fuelCreditToday) || 0), shop: shopSales };
+    takings.total = takings.fuel + takings.shop;
+
     // UX-3 — the station's day for the Dashboard cockpit (null on a shop-only branch).
     let station = null;
     try { station = require('../services/stationOverview').stationToday(db, today); }
@@ -113,6 +161,8 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       salesTrend: salesTrendAll,
       station,
       fuelStockLitres: fuelStock.litres || 0,
+      takings,
+      shop,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

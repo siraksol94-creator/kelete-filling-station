@@ -6,6 +6,8 @@ import { trendBars, niceMax } from './stationMetrics';
 
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayName = (ymd) => { const [y, m, d] = String(ymd).split('-').map(Number); return DAY[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] || ymd; };
+// Axis labels stay short so they fit on a phone: 50,000 → 50k; 1,200,000 → 1.2m.
+const axis = (n) => (n >= 1e6 ? `${+(n / 1e6).toFixed(1)}m` : n >= 1e4 ? `${Math.round(n / 1e3)}k` : Math.round(n).toLocaleString('en-ZM'));
 const k = (n) => `K ${Math.round(n).toLocaleString('en-ZM')}`;
 
 // On a phone the chart is drawn narrower (not just scaled down), so its
@@ -37,7 +39,7 @@ export default function TrendBars({ rows, height = 190, today }) {
         {[0, 0.5, 1].map((t) => (
           <g key={t}>
             <line x1={padL} x2={W} y1={y(max * t)} y2={y(max * t)} stroke="#e2e8f0" />
-            <text x={padL - 8} y={y(max * t) + 4} fontSize="11" textAnchor="end" fill="#475569">{t === 0 ? '0' : k(max * t).replace('K ', '')}</text>
+            <text x={padL - 8} y={y(max * t) + 4} fontSize="11" textAnchor="end" fill="#475569">{t === 0 ? '0' : axis(max * t)}</text>
           </g>
         ))}
         {bars.map((b, i) => {

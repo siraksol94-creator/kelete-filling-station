@@ -8,6 +8,7 @@ import { SkeletonCards } from '../ux/components';
 import FuelLoader from '../ux/FuelLoader';
 import StationCockpit from '../ux/StationCockpit';
 import TrendBars from '../ux/TrendBars';
+import ShopStock from '../ux/ShopStock';
 import { businessToday } from '../utils/businessDate';
 
 const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#6b7280'];
@@ -80,6 +81,21 @@ const Dashboard = () => {
       {/* UX-3 — station cockpit (fuel branches only; shop-only branches skip it) */}
       {data.station && <StationCockpit data={data} today={today} onNavigate={navigate} />}
 
+      {/* UX-4 — Shop & stock (fuel kept out; see ux/ShopStock.js). The older
+          layout below is kept only for a server that doesn't send `shop`. */}
+      {data.shop && (
+        <>
+          {!data.station && (
+            <section className="k-cockpit-card" style={{ marginBottom: 14 }}>
+              <header><h3>Takings this week</h3></header>
+              <TrendBars rows={data.salesTrend} today={today} />
+            </section>
+          )}
+          <h3 className="k-section-title">Shop &amp; stock</h3>
+          <ShopStock data={data} onNavigate={navigate} showWeekTotal={data.station ? undefined : data.weeklyRevenue} />
+        </>
+      )}
+      {!data.shop && (<>
       {data.station && <h3 className="k-section-title">Shop &amp; stock</h3>}
       {/* Summary Cards */}
       <div className="stat-cards">
@@ -230,6 +246,7 @@ const Dashboard = () => {
           <button className="view-all-btn" onClick={() => navigate('/stock/inventory')}>View All Inventory</button>
         </div>
       </div>
+      </>)}
     </div>
   );
 };

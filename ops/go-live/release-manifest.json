@@ -203,6 +203,36 @@
    "covers": "Security defect",
    "what": "Anonymous Administrator sign-up closed; /register now Administrator-only",
    "migrations": []
+  },
+  {
+   "n": 27,
+   "subject": "UX-1: forecourt workflows — progress, fast entry, responsive fuel screens (for review)",
+   "covers": "UX-1",
+   "what": "Shift progress, keyboard entry and phone layouts on the fuel screens (no data changes)",
+   "migrations": []
+  },
+  {
+   "n": 28,
+   "subject": "UX-2: fuelling-car loaders, attendant avatars, responsive sign-in, app-wide colour contrast (for review)",
+   "covers": "UX-2",
+   "what": "Loaders, attendant avatars, sign-in page, WCAG AA colours; Fuel Cash Report may read shifts",
+   "migrations": []
+  },
+  {
+   "n": 29,
+   "subject": "UX-3: Station Dashboard cockpit, 3D tanks, masked password dialog, Fuel POS fleet fix (for review)",
+   "covers": "UX-3",
+   "what": "Station block on the Dashboard; masked password dialog; Fuel POS fleet list after F3",
+   "migrations": []
+  },
+  {
+   "n": 30,
+   "subject": "UX-4: weather and fuel advice, animated tanks with days left, Shop & stock, HQ Overview redesign (for review)",
+   "covers": "UX-4",
+   "what": "Weather card (MET Norway) with fuel advice; tank days of cover; Shop & stock cards; HQ Overview with fuel and shop by branch",
+   "migrations": [
+    12
+   ]
   }
  ],
  "migrations": [
@@ -249,6 +279,10 @@
   {
    "version": 11,
    "name": "fleet_customer_merge"
+  },
+  {
+   "version": 12,
+   "name": "station_weather_location"
   }
  ],
  "tag_patterns_that_trigger_old_workflows": [

@@ -240,6 +240,10 @@ automatically at start-up, once, each in its own transaction.
 | 24 | Fuel sync defect | Till keeps fuel pending when the VPS doesn't take it (rollback safety) | — |
 | 25 | Go-Live Pack | Documents and read-only tools (no runtime effect) | — |
 | 26 | Security defect | `/api/auth/register` needs an Administrator's login: before, anyone could create an Administrator account | — |
+| 27 | UX-1 | Forecourt workflows: progress, fast entry, phone layouts (no data changes) | — |
+| 28 | UX-2 | Loaders, attendant avatars, sign-in page, WCAG AA colours | — |
+| 29 | UX-3 | Station block on the Dashboard; masked password dialog; Fuel POS fleet fix | — |
+| 30 | UX-4 | Weather and fuel advice (MET Norway; needs internet), tank days of cover, Shop & stock, HQ Overview by branch | 12 station_weather_location |
 
 Before tagging, on the test machine:
 
