@@ -1172,7 +1172,9 @@ const Layout = () => {
                       <FiCheckCircle className="nav-icon" /> <span>AP Approvals</span>
                     </div>
                   )}
-                  {!hq && hasPageAccess('AccountReceivables') && (
+                  {/* 2026-11-19 — shown at head office too (it was branch-only, so on
+                      localhost / keletezm.com the screen had no menu entry). */}
+                  {hasPageAccess('AccountReceivables') && (
                     <div className={`nav-item ${isActive('/accounting/account-receivables') ? 'active' : ''}`} onClick={() => navigate('/accounting/account-receivables')}>
                       <FiFileText className="nav-icon" /> <span>Account Receivables</span>
                     </div>

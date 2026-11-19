@@ -303,6 +303,13 @@
    "covers": "UX-11b",
    "what": "AR screen rebuilt (same data and actions); Fuel Cash Report shift cards as sales → deductions → expected → counted → variance, approval bars, day summary restyled. Frontend only",
    "migrations": []
+  },
+  {
+   "n": 41,
+   "subject": "Fix: Account Receivables in the menu at head office; numbers in translated texts ({{count}}) (for review)",
+   "covers": "UX fix",
+   "what": "AR menu entry shown at head office (localhost / keletezm.com) too; translation helper passes values so {{count}} fills in",
+   "migrations": []
   }
  ],
  "migrations": [

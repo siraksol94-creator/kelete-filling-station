@@ -19,7 +19,9 @@ export const LanguageProvider = ({ children }) => {
     i18n.changeLanguage(code);
   };
 
-  const t = (key) => i18n.t(key);
+  // Pass the values through so texts like "{{count}} customer(s)" fill in
+  // (they used to show the {{count}} placeholder itself).
+  const t = (key, values) => i18n.t(key, values);
 
   return (
     <LanguageContext.Provider value={{ language, changeLanguage, t }}>
