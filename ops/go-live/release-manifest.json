@@ -289,6 +289,13 @@
    "covers": "UX-10",
    "what": "Station day ring and dip streak on Shifts and Cash Report (read-only /api/station-day); shift table dates and money; in-app dialogs on every fuel screen",
    "migrations": []
+  },
+  {
+   "n": 39,
+   "subject": "UX-11: Account Receivables — debt by age, credit used per customer, oldest-debt chips; ageing now counts opening balances (for review)",
+   "covers": "UX-11",
+   "what": "AR: debt-by-age panel, credit-used bars, oldest-debt chips, shared header; GET /customers/aging counts opening balances (matches the Balance column) and is readable from the AR screen",
+   "migrations": []
   }
  ],
  "migrations": [

@@ -3,8 +3,11 @@ import {
   getCustomers, getArStats,
   getCustomerStatement, createCustomerPayment,
   getCustomerPayments, deleteCustomerPayment,
-  getSettings, getOrder, getCurrentFxRate,
+  getSettings, getOrder, getCurrentFxRate, getCustomerAging,
 } from '../services/api';
+// UX-11 — debt ageing and credit use; the shared page header.
+import { PageHero } from '../ux/ForecourtKit';
+import { ageingTotals, oldestBucket, creditBar } from '../ux/arModel';
 import ExportButtons from '../components/ExportButtons';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 import { useAuth } from '../context/AuthContext';
@@ -50,6 +53,7 @@ const AccountReceivables = () => {
   const [stats, setStats] = useState({ totalSales: 0, totalReceived: 0, outstanding: 0, customers: 0, owingCount: 0 });
   const [rows, setRows] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [aging, setAging] = useState(null);   // UX-11: per-customer debt by age
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('receivables'); // receivables | payments
   const [paymentModal, setPaymentModal] = useState(null);
@@ -136,6 +140,8 @@ const AccountReceivables = () => {
       setStats(statsRes.data || { totalSales: 0, totalReceived: 0, outstanding: 0, customers: 0, owingCount: 0 });
       setPayments(Array.isArray(paymentsRes.data) ? paymentsRes.data : []);
     } catch (err) { /* ignore */ }
+    // UX-11 — ageing (all debt as of today, by payment terms); optional.
+    getCustomerAging().then(r => setAging(Array.isArray(r.data) ? r.data : [])).catch(() => setAging(null));
   }, [filterFrom, filterTo]);
 
   useEffect(() => {
@@ -372,22 +378,12 @@ const AccountReceivables = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <div>
-          <h1>{t('accountReceivables')}</h1>
-          <p>{t('accountReceivablesSubtitle', { count: stats.owingCount })}</p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={fetchAll}
-            style={{ padding: '9px 16px', background: '#fff', color: '#1d4ed8', border: '1px solid #bfdbfe', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <FiRefreshCw size={14} /> {t('refresh')}
-          </button>
-          <button onClick={handlePrint}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', backgroundColor: '#7c3aed', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-            <FiPrinter size={15} /> {t('print')}
-          </button>
-        </div>
-      </div>
+      <PageHero icon={<FiUsers />} title={t('accountReceivables')} date={todayStr()}
+        subtitle={t('accountReceivablesSubtitle', { count: stats.owingCount })}
+        actions={<>
+          <button type="button" onClick={fetchAll} className="k-fc-btn-ghost"><FiRefreshCw size={14} /> {t('refresh')}</button>
+          <button type="button" onClick={handlePrint} className="k-fc-btn-hero"><FiPrinter size={15} /> {t('print')}</button>
+        </>} />
 
       {toast && (
         <div style={{ position: 'fixed', top: 20, right: 20, padding: '10px 18px', borderRadius: 8, color: '#fff', fontWeight: 600, background: toast.type === 'error' ? '#dc2626' : '#16a34a', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', zIndex: 1100 }}>
@@ -409,6 +405,33 @@ const AccountReceivables = () => {
             {customerCreditOnly > 0.01 && card(t('customerCredit'), fmt(customerCreditOnly), t('paidInAdvance'), 'green', FiDollarSign)}
             {card(t('customers'),     stats.customers,          `${stats.owingCount} ${t('owing')}`,        'purple', FiUsers)}
           </div>
+        );
+      })()}
+
+      {/* UX-11 — who owes what, and for how long (all debt as of today). */}
+      {aging && aging.length > 0 && (() => {
+        const at = ageingTotals(aging);
+        if (!(at.total > 0)) return null;
+        const late = at.buckets.filter(b => b.key !== 'current').reduce((a, b) => a + b.amount, 0);
+        return (
+          <section className="k-age" aria-label="Debt by age">
+            <div className="k-age-head">
+              <h3>Debt by age</h3>
+              <span className="k-age-note">All money owed as of today, by each customer's payment terms · <b>{fmt(late)}</b> overdue of <b>{fmt(at.total)}</b></span>
+            </div>
+            <div className="k-age-bar" role="img" aria-label={at.buckets.map(b => `${b.label}: ${fmt(b.amount)}`).join(', ')}>
+              {at.buckets.filter(b => b.amount > 0).map(b => <div key={b.key} style={{ width: `${(b.amount / at.total) * 100}%`, background: b.color }} />)}
+            </div>
+            <div className="k-age-tiles">
+              {at.buckets.map(b => (
+                <div key={b.key} className={`k-age-tile${b.amount > 0 ? '' : ' is-empty'}`} style={{ '--k-age': b.color }}>
+                  <span className="k-age-label"><i aria-hidden="true" />{b.label}</span>
+                  <strong className="k-fc-num">{fmt(b.amount)}</strong>
+                  <span className="k-age-count">{b.customers} customer{b.customers === 1 ? '' : 's'}</span>
+                </div>
+              ))}
+            </div>
+          </section>
         );
       })()}
 
@@ -469,8 +492,8 @@ const AccountReceivables = () => {
           <button key={t.key} onClick={() => setTab(t.key)}
             style={{
               padding: '10px 18px', background: 'none',
-              border: 'none', borderBottom: tab === t.key ? '3px solid #1d4ed8' : '3px solid transparent',
-              color: tab === t.key ? '#1d4ed8' : '#6b7280',
+              border: 'none', borderBottom: tab === t.key ? '3px solid #f59e0b' : '3px solid transparent',
+              color: tab === t.key ? '#0f172a' : '#475569',
               fontWeight: tab === t.key ? 700 : 500, fontSize: 13.5,
               cursor: 'pointer', marginBottom: -2,
             }}>
@@ -536,7 +559,18 @@ const AccountReceivables = () => {
                       </button>
                     </td>
                     <td style={{ padding: '10px 12px', color: '#6b7280' }}>{r.phone || '—'}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>{parseFloat(r.credit_limit) > 0 ? fmt(r.credit_limit) : <span style={{ color: '#6b7280' }}>—</span>}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
+                      {parseFloat(r.credit_limit) > 0 ? (() => {
+                        const cb = creditBar(r.credit_limit, r._balance < 0 ? -r._balance : 0);
+                        return (
+                          <div className="k-cl">
+                            <span>{fmt(r.credit_limit)}</span>
+                            <div className={`k-cl-bar is-${cb.level}`} role="img" aria-label={`Credit used: ${Math.round(cb.pct * 100)}%${cb.over > 0 ? `, ${fmt(cb.over)} over the limit` : ''}`}><div style={{ width: `${cb.shown * 100}%` }} /></div>
+                            <em>{cb.over > 0 ? `${fmt(cb.over)} over` : `${Math.round(cb.pct * 100)}% used`}</em>
+                          </div>
+                        );
+                      })() : <span style={{ color: '#475569' }}>—</span>}
+                    </td>
                     {/* 2026-09-10 — the balance carried over from the old
                         system. Balance already counts it; without this column
                         the only way to see it was to open each customer. */}
@@ -561,6 +595,10 @@ const AccountReceivables = () => {
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                       <span style={{ padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: s.bg, color: s.fg }}>{r._status === 'OnHold' ? 'On Hold' : r._status}</span>
+                      {(() => {
+                        const ob = oldestBucket(aging && aging.find(a => a.id === r.id));
+                        return ob && r._balance < -0.01 ? <div className="k-age-chip" style={{ '--k-age': ob.color }} title={`Oldest money owed: ${ob.label}`}>{ob.key === 'current' ? 'not yet due' : `oldest ${ob.short}${ob.key === '90_plus' ? '' : ' d'}`}</div> : null;
+                      })()}
                     </td>
                     <td style={{ padding: '8px 12px', textAlign: 'right' }}>
                       {/* v1.10.92 — Pay / Down Payment button now gates on
@@ -574,7 +612,7 @@ const AccountReceivables = () => {
                           style={{
                             padding: '5px 14px',
                             // Green Pay button when customer is in debt (negative balance under flipped convention).
-                            background: r._balance < -0.01 ? '#16a34a' : '#2563eb',
+                            background: r._balance < -0.01 ? '#15803d' : '#1d4ed8',
                             color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700,
                           }}>
                           {r._balance < -0.01 ? 'Pay' : 'Down Payment'}
