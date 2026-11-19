@@ -148,7 +148,7 @@ Treat the CSV files as business data.
 
 ## 4. Decisions needed before go-live
 
-These came up while preparing this pack. None is decided here.
+These came up while preparing this pack. None is decided here, except G0, which is a fix to ship.
 
 **G1 — Release tags vs the inherited workflows.** `vps/kelete-release.sh`
 deploys only tags, but in kelete-erp a tag matching `v*` starts `deploy.yml`.
@@ -185,6 +185,16 @@ any). Fuel sync won't merge or drop them. The till's copy is reported as
 decide which record is the real one. Fixing that is a small data fix that
 needs its own review. Until then, the VPS can still go live; the affected till
 just doesn't send that fuel data.
+
+**G0 — Anonymous Administrator sign-up (found 2026-11-19; urgent).** In the
+code as received, `POST /api/auth/register` needs no login and accepts any
+role. Anyone who can reach the server can create an Administrator and log in.
+Patch 26 closes it. Until it's deployed:
+- check the Administrators list in the app (or the Phase 2c report) for
+  accounts nobody recognises;
+- if VPS access arrives before the full release, this one fix can be
+  deployed on its own, or blocked in nginx with
+  `location = /api/auth/register { return 403; }` (no screen uses it).
 
 **G5 — Secrets on the VPS** (only if the pre-flight flags them). If
 `JWT_SECRET` is missing or a public placeholder, the new version **will not
@@ -229,6 +239,7 @@ automatically at start-up, once, each in its own transaction.
 | 23 | F3 | Fleet customers merge into Customers (Administrator review) | 11 fleet_customer_merge |
 | 24 | Fuel sync defect | Till keeps fuel pending when the VPS doesn't take it (rollback safety) | — |
 | 25 | Go-Live Pack | Documents and read-only tools (no runtime effect) | — |
+| 26 | Security defect | `/api/auth/register` needs an Administrator's login: before, anyone could create an Administrator account | — |
 
 Before tagging, on the test machine:
 
