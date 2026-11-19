@@ -6,10 +6,13 @@ import { S, shade } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { useHotkeys } from '../ux/useHotkeys';
 import { dayProgress, shiftSteps } from '../ux/fuelProgress';
-import { ProgressBar, StepTrail, VarianceBadge, ShortcutHelp, ShortcutHint } from '../ux/components';
+import { StepTrail, VarianceBadge, ShortcutHelp, ShortcutHint } from '../ux/components';
 import FuelLoader from '../ux/FuelLoader';
 import AttendantAvatar, { Celebration } from '../ux/AttendantAvatar';
 import { profileFor, milestones } from '../ux/attendantLevel';
+// UX-10 — shared header, in-app dialogs, the station-day ring.
+import { PageHero, useDialog } from '../ux/ForecourtKit';
+import StationDay from '../ux/StationDay';
 
 // "YYYY-MM-DD" ± n days, on the calendar (no time zone involved).
 function shiftDate(ymd, n) {
@@ -31,6 +34,7 @@ export default function FuelCashReport() {
   const [saving, setSaving] = useState(null);  // shiftId being saved
   const [approving, setApproving] = useState(null);  // shiftId being (un)approved
   const [msg, setMsg] = useState('');
+  const [dialog, ui] = useDialog();   // UX-10: in-app confirm
   const [loaded, setLoaded] = useState(false);     // UX-1: skeleton until the first answer
   const [helpOpen, setHelpOpen] = useState(false);
   // UX-2 — shift history for attendant levels/badges (read-only; same list as Attendant Shifts)
@@ -100,13 +104,12 @@ export default function FuelCashReport() {
     const windowShifts = rows.filter(r => (r.shift_type || 'DAY') === shiftType);
     if (windowShifts.length === 0) { setMsg(`No ${shiftType} shifts to approve.`); return; }
     if (windowShifts.some(r => r.status === 'Open')) { setMsg(`Close + finalize all ${shiftType} shifts first.`); return; }
-    if (!window.confirm(
+    if (!(await ui.confirm({ title: `Approve ${shiftType} shift`, okLabel: 'Approve', text:
       `Approve ${shiftType} shift of ${date}?\n\n` +
       `This will:\n` +
       `  • Auto-post every un-posted dip for ${shiftType} as a ledger adjustment.\n` +
       `  • Lock Mobile Money / Swipes / Actual Cash on EVERY ${shiftType} attendant.\n\n` +
-      `To change anything afterwards you must Un-approve first.`
-    )) return;
+      `To change anything afterwards you must Un-approve first.` }))) return;
     setApproving(shiftType); setMsg('');
     try {
       const r = await approveShift(date, shiftType);
@@ -117,10 +120,9 @@ export default function FuelCashReport() {
   };
 
   const unApprove = async (shiftType) => {
-    if (!window.confirm(
+    if (!(await ui.confirm({ title: `Un-approve ${shiftType} shift`, okLabel: 'Un-approve', danger: true, text:
       `Un-approve ${shiftType} shift of ${date}?\n\n` +
-      `Cash inputs re-open for editing on every ${shiftType} attendant. Posted dip adjustments on the ledger are NOT reversed — if you need to undo those post a manual counter-adjustment in Tank Ledger.`
-    )) return;
+      `Cash inputs re-open for editing on every ${shiftType} attendant. Posted dip adjustments on the ledger are NOT reversed — if you need to undo those post a manual counter-adjustment in Tank Ledger.` }))) return;
     setApproving(shiftType); setMsg('');
     try { await unApproveShift(date, shiftType); await load(); setMsg(`${shiftType} shift un-approved.`); }
     catch (e) { setMsg('Un-approve failed: ' + (e.response?.data?.error || e.message)); }
@@ -152,16 +154,17 @@ export default function FuelCashReport() {
 
   return (
     <div style={S.page} className="k-page">
-      <div style={S.header} className="k-page-header">
-        <h2 style={S.h2}><FiDollarSign /> Fuel Cash Report</h2>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <label style={S.lbl}>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} style={S.input} /></label>
-          <button onClick={load} style={S.btnSecondary}><FiRefreshCw /> Refresh</button>
+      <PageHero icon={<FiDollarSign />} title="Fuel Cash Report" date={date}
+        subtitle="Count each attendant's cash against the meters, then approve the shift"
+        actions={<>
+          <label className="k-fc-hero-date"><span>Date</span><input type="date" value={date} onChange={e => setDate(e.target.value)} /></label>
+          <button type="button" onClick={load} className="k-fc-btn-ghost"><FiRefreshCw /> Refresh</button>
           <ShortcutHint onClick={() => setHelpOpen(true)} />
-        </div>
-      </div>
+        </>} />
 
-      {msg && <div role="status" style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{msg}</div>}
+      {loaded && <StationDay date={date} compact refresh={rows.map(x => `${x.id}:${x.status}:${x.payment_cash || 0}:${x.approved_at || ''}`).join('|') + msg} />}
+
+      {msg && <div role="status" style={{ padding: 10, background: '#f8fafc', border: '1px solid #e2e8f0', borderLeft: '4px solid #f59e0b', borderRadius: 10, marginBottom: 12, fontSize: 13, color: '#0f172a' }}>{msg}</div>}
 
       {loaded && rows.length > 0 && (
         <div className="k-panel" style={{ marginBottom: 16 }}>
@@ -171,7 +174,6 @@ export default function FuelCashReport() {
             </span>
             <span className="k-muted">{progress.stepsDone} of {progress.stepsTotal} steps</span>
           </div>
-          <ProgressBar value={progress.stepsDone} max={progress.stepsTotal} tone={progress.complete ? 'ok' : 'accent'} label="Day reconciliation progress" />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 24px', marginTop: 10 }}>
             {progress.windows.map(w => (
               <span key={w.shiftType} className="k-muted">
@@ -280,6 +282,7 @@ export default function FuelCashReport() {
         <DaySummaryPanel summary={summary} liveOverride={liveTotals(rows, inputs)} />
       )}
       {celebrate && <Celebration who={celebrate.who} items={celebrate.items} onDone={() => setCelebrate(null)} />}
+      {dialog}
       <ShortcutHelp bindings={helpList.map(b => ({ ...b, run: b.run || (() => {}) }))} open={helpOpen} onClose={() => setHelpOpen(false)} title="Fuel Cash Report — shortcuts" />
     </div>
   );
