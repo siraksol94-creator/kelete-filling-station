@@ -1,9 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock } from 'react-icons/fi';
 import { getDailyRollup, finalizeShift, getDaySummary, approveShift, unApproveShift } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
+import { useHotkeys } from '../ux/useHotkeys';
+import { dayProgress, shiftSteps } from '../ux/fuelProgress';
+import { Skeleton, ProgressBar, StepTrail, VarianceBadge, ShortcutHelp, ShortcutHint } from '../ux/components';
+
+// "YYYY-MM-DD" ± n days, on the calendar (no time zone involved).
+function shiftDate(ymd, n) {
+  const [y, m, d] = String(ymd).split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d + n));
+  return t.toISOString().slice(0, 10);
+}
 
 const today = () => businessToday(); // station's day, not the UTC date
 
@@ -18,6 +28,8 @@ export default function FuelCashReport() {
   const [saving, setSaving] = useState(null);  // shiftId being saved
   const [approving, setApproving] = useState(null);  // shiftId being (un)approved
   const [msg, setMsg] = useState('');
+  const [loaded, setLoaded] = useState(false);     // UX-1: skeleton until the first answer
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const load = async () => {
     setMsg('');
@@ -38,8 +50,42 @@ export default function FuelCashReport() {
       }
       setInputs(init);
     } catch (e) { setMsg('Load failed: ' + (e.response?.data?.error || e.message)); }
+    setLoaded(true);
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [date]);
+
+  // UX-1 — day progress (closed → cash entered → approved), from saved figures.
+  const progress = useMemo(() => dayProgress(rows), [rows]);
+
+  // Fast entry: Enter moves to the next box on the same shift card;
+  // Ctrl+Enter finalises the card you're typing in (same as its button).
+  const cardKeyDown = (e, s) => {
+    if (e.target.tagName !== 'INPUT') return;
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (!s.approval && saving !== s.id) finalize(s);
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const boxes = Array.from(e.currentTarget.querySelectorAll('input:not([readonly])'));
+      const i = boxes.indexOf(e.target);
+      (boxes[i + 1] || e.currentTarget.querySelector('[data-k-finalize]'))?.focus();
+    }
+  };
+  const bindings = [
+    { combo: '[', label: 'Previous day', run: () => setDate(d => shiftDate(d, -1)) },
+    { combo: ']', label: 'Next day', run: () => setDate(d => shiftDate(d, 1)) },
+    { combo: 't', label: 'Today', run: () => setDate(today()) },
+    { combo: 'r', label: 'Refresh', run: () => load() },
+    { combo: '?', run: () => setHelpOpen(true), enabled: !helpOpen },
+  ];
+  useHotkeys(bindings);
+  const helpList = [
+    ...bindings,
+    { combo: 'enter', label: 'Next box on the same shift card' },
+    { combo: 'mod+enter', label: 'Finalise the shift card you are typing in' },
+  ];
 
   const approve = async (shiftType) => {
     const windowShifts = rows.filter(r => (r.shift_type || 'DAY') === shiftType);
@@ -90,18 +136,42 @@ export default function FuelCashReport() {
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiDollarSign /> Fuel Cash Report</h2>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={S.lbl}>Date<input type="date" value={date} onChange={e => setDate(e.target.value)} style={S.input} /></label>
           <button onClick={load} style={S.btnSecondary}><FiRefreshCw /> Refresh</button>
+          <ShortcutHint onClick={() => setHelpOpen(true)} />
         </div>
       </div>
 
-      {msg && <div style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{msg}</div>}
+      {msg && <div role="status" style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 13 }}>{msg}</div>}
 
-      {rows.length === 0 ? (
+      {loaded && rows.length > 0 && (
+        <div className="k-panel" style={{ marginBottom: 16 }}>
+          <div className="k-panel-row" style={{ marginBottom: 8 }}>
+            <span className="k-panel-title">
+              {progress.complete ? <span className="k-ok-text">✓ Day reconciled — every shift closed, cash entered and approved</span> : 'Day reconciliation'}
+            </span>
+            <span className="k-muted">{progress.stepsDone} of {progress.stepsTotal} steps</span>
+          </div>
+          <ProgressBar value={progress.stepsDone} max={progress.stepsTotal} tone={progress.complete ? 'ok' : 'accent'} label="Day reconciliation progress" />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 24px', marginTop: 10 }}>
+            {progress.windows.map(w => (
+              <span key={w.shiftType} className="k-muted">
+                <strong style={{ color: '#111827' }}>{w.shiftType}</strong>{' · '}
+                closed {w.closed}/{w.shifts} · cash {w.cash}/{w.shifts} · approved {w.approved}/{w.shifts}
+                {w.complete && <span className="k-ok-text"> ✓</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loaded ? (
+        <div style={S.card}><Skeleton rows={6} height={20} /></div>
+      ) : rows.length === 0 ? (
         <div style={{ ...S.card, padding: 40, textAlign: 'center', color: '#6b7280' }}>No shifts for this date.</div>
       ) : (
         ['DAY', 'NIGHT'].map(shiftType => {
@@ -145,7 +215,7 @@ export default function FuelCashReport() {
                   const variance = Number(ip.payment_cash || 0) - expected;
                   const closed = s.status === 'Closed';
                   return (
-                    <div key={s.id} style={S.card}>
+                    <div key={s.id} style={S.card} onKeyDown={e => cardKeyDown(e, s)}>
                       <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                         <div>
                           <strong style={{ fontSize: 16 }}>{s.attendant_name}</strong>
@@ -154,9 +224,13 @@ export default function FuelCashReport() {
                             <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span>
                             {s.approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 6 }}>LOCKED</span>}
                           </div>
+                          <div style={{ marginTop: 6 }}><StepTrail steps={shiftSteps(s)} /></div>
                         </div>
-                        <div>
-                          <button onClick={() => finalize(s)} disabled={saving === s.id || !!s.approval} style={S.btnPrimary} title={s.approval ? `${shiftType} shift approved — un-approve first` : ''}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                          {ip.payment_cash !== '' && ip.payment_cash != null
+                            ? <VarianceBadge variance={variance} />
+                            : <span className="k-muted">Enter actual cash</span>}
+                          <button data-k-finalize onClick={() => finalize(s)} disabled={saving === s.id || !!s.approval} style={S.btnPrimary} title={s.approval ? `${shiftType} shift approved — un-approve first` : 'Finalize (Ctrl + Enter while typing on this card)'}>
                             <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
                           </button>
                         </div>
@@ -190,6 +264,7 @@ export default function FuelCashReport() {
       {summary && (rows.length > 0 || (summary.pumpGrades || []).length > 0) && (
         <DaySummaryPanel summary={summary} liveOverride={liveTotals(rows, inputs)} />
       )}
+      <ShortcutHelp bindings={helpList.map(b => ({ ...b, run: b.run || (() => {}) }))} open={helpOpen} onClose={() => setHelpOpen(false)} title="Fuel Cash Report — shortcuts" />
     </div>
   );
 }
@@ -423,10 +498,10 @@ function DaySummaryPanel({ summary, liveOverride }) {
 
 function StatCell({ label, value, input, onChange, highlight, color, locked }) {
   return (
-    <div>
-      <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>{label}{locked && <span title="Shift approved — un-approve to edit" style={{ marginLeft: 4 }}>🔒</span>}</div>
+    <label style={{ display: 'block' }}>
+      <div style={{ fontSize: 11, color: '#4b5563', textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>{label}{locked && <span title="Shift approved — un-approve to edit" style={{ marginLeft: 4 }}>🔒</span>}</div>
       {input ? (
-        <input type="number" step="0.01" value={value || ''}
+        <input type="number" step="0.01" inputMode="decimal" value={value || ''}
           readOnly={locked}
           onChange={e => onChange(e.target.value)}
           title={locked ? 'Shift approved — un-approve on this card to edit' : ''}
@@ -434,6 +509,6 @@ function StatCell({ label, value, input, onChange, highlight, color, locked }) {
       ) : (
         <div style={{ fontSize: 18, fontWeight: 700, color: color || (highlight ? '#2563eb' : '#111') }}>{value}</div>
       )}
-    </div>
+    </label>
   );
 }

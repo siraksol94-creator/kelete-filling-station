@@ -85,8 +85,8 @@ export function TicketsPage({ method }) {
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiCreditCard /> {isCard ? '1Card Sales (Engen)' : 'Credit Sales (Receivables)'}</h2>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={() => printTicketList(rows, method, filter, seller, logoUrl)} style={S.btnSecondary} disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
@@ -154,15 +154,15 @@ export function TicketsPage({ method }) {
 
       {/* New ticket modal */}
       {showForm && (
-        <div style={S.backdrop} onClick={() => setShowForm(false)}>
-          <div style={{ ...S.modal, width: 'min(640px, 95vw)' }} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setShowForm(false)}>
+          <div style={{ ...S.modal, width: 'min(640px, 95vw)' }} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
               <h3 style={{ margin: 0 }}>New {isCard ? '1Card' : 'Credit'} Ticket</h3>
               <button onClick={() => setShowForm(false)} style={S.iconBtn}><FiX /></button>
             </div>
             <form onSubmit={submit}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Attendant / Shift *
                   <select value={form.shift_id} onChange={e => setForm({ ...form, shift_id: e.target.value })} required style={S.input}>
                     <option value="">-- pick an open shift --</option>
