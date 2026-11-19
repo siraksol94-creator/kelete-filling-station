@@ -89,6 +89,13 @@ router.get('/branches', (req, res) => {
   }
 });
 
+// UX-4 — a branch's fuel/shop day; an empty block if it can't be read, so
+// one odd branch never breaks the overview.
+function branchDayOrEmpty(db, today) {
+  try { return require('../services/branchDay').branchDay(db, today, HQ_SALE_DAY); }
+  catch { return {}; }
+}
+
 // GET /api/hq/overview — per-branch summary card data + roll-up totals.
 // Iterates each registered tenant, opens its DB (cached via getTenantDb),
 // and runs a handful of cheap aggregations. Designed to be the "front
@@ -184,6 +191,8 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
           stock_value:       stockValue,
           stock_low_count:   stockLowCount,
           ar_outstanding:    Math.max(0, arOutstanding),
+          // UX-4 — fuel and shop takings, the week, and the forecourt.
+          ...branchDayOrEmpty(db, todayPrefix),
         });
       } catch (e) {
         branches.push({ slug: t.slug, name: t.business_name || t.slug, error: e.message });
@@ -205,7 +214,38 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
     }, { today_revenue:0, today_orders:0, mtd_revenue:0, mtd_orders:0,
          pending_payment:0, awaiting_dispatch:0, stock_value:0, ar_outstanding:0 });
 
-    res.json({ as_of: new Date().toISOString(), branches, rollup });
+    // UX-4 — group takings (fuel + shop), litres, tanks and the week.
+    const week = new Map();
+    const group = { fuel: 0, shop: 0, mtd_fuel: 0, mtd_shop: 0, litres: 0, fuel_stock_value: 0,
+                    tanks_low: 0, shifts_open: 0, cash_variance: 0, stations: 0 };
+    for (const b of branches) {
+      if (b.error || !b.takings) continue;
+      group.fuel += b.takings.fuel; group.shop += b.takings.shop;
+      group.mtd_fuel += b.mtd_takings.fuel; group.mtd_shop += b.mtd_takings.shop;
+      group.fuel_stock_value += b.fuel_stock_value;
+      for (const d of b.week) {
+        const w = week.get(d.date) || { date: d.date, fuel: 0, total: 0 };
+        w.fuel += d.fuel; w.total += d.total; week.set(d.date, w);
+      }
+      if (b.station) {
+        group.stations += 1;
+        group.litres += Number(b.station.litres) || 0;
+        group.shifts_open += Number(b.station.shifts.open) || 0;
+        group.cash_variance += Number(b.station.cash.variance_total) || 0;
+        group.tanks_low += b.station.tanks.filter(t => t.low_level != null && t.volume <= t.low_level).length;
+      }
+    }
+    const r2 = (n) => Math.round(n * 100) / 100;
+    Object.assign(rollup, {
+      takings_fuel: r2(group.fuel), takings_shop: r2(group.shop), takings_total: r2(group.fuel + group.shop),
+      mtd_fuel: r2(group.mtd_fuel), mtd_shop: r2(group.mtd_shop), mtd_total: r2(group.mtd_fuel + group.mtd_shop),
+      litres_today: Math.round(group.litres * 10) / 10, fuel_stock_value: r2(group.fuel_stock_value),
+      tanks_low: group.tanks_low, shifts_open: group.shifts_open, cash_variance: r2(group.cash_variance),
+      stations: group.stations,
+      week: [...week.values()].sort((x, y) => x.date.localeCompare(y.date)).map(w => ({ date: w.date, fuel: r2(w.fuel), total: r2(w.total) })),
+    });
+
+    res.json({ as_of: new Date().toISOString(), today: todayPrefix, branches, rollup });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

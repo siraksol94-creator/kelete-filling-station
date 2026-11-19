@@ -6,6 +6,14 @@ import React from 'react';
 import { tankStatus } from './stationMetrics';
 
 let uid = 0;
+
+// A filled wave: crests along `y`, filled down to `bottom`. It is wider than
+// the tank so it can roll sideways (CSS moves it by one wavelength and loops).
+function wave(y, amp, len, bottom) {
+  let d = `M-60 ${bottom} L-60 ${y}`;
+  for (let x = -60; x < 160; x += len) d += ` q${len / 4} ${-amp} ${len / 2} 0 t${len / 2} 0`;
+  return `${d} L160 ${bottom} Z`;
+}
 export default function Tank3D({ tank, width = 96, showLabel = true }) {
   const st = tankStatus(tank);
   const id = React.useMemo(() => `kt${(uid += 1)}`, []);
@@ -32,21 +40,32 @@ export default function Tank3D({ tank, width = 96, showLabel = true }) {
             <stop offset="0" stopColor="#fff" stopOpacity=".75" /><stop offset="1" stopColor={color} stopOpacity=".9" />
           </radialGradient>
           <clipPath id={`${id}-clip`}><path d={`M${cx - rx} ${top} V${bot} A${rx} ${ry} 0 0 0 ${cx + rx} ${bot} V${top} Z`} /></clipPath>
+          <clipPath id={`${id}-below`}><rect x={cx - rx} y={level + 2} width={rx * 2} height={Math.max(0, bot + ry - level)} /></clipPath>
         </defs>
         {/* shadow */}
         <ellipse cx={cx} cy={bot + 9} rx={rx + 6} ry="5" fill="#0f172a" opacity=".12" />
         {/* back wall */}
         <path d={`M${cx - rx} ${top} V${bot} A${rx} ${ry} 0 0 0 ${cx + rx} ${bot} V${top}`} fill={`url(#${id}-glass)`} />
-        {/* fuel */}
+        {/* fuel — fills up on arrival, two waves roll across the top, bubbles rise, light shimmers */}
         {st.pct > 0.003 && (
           <g clipPath={`url(#${id}-clip)`}>
-            <rect x={cx - rx} y={level} width={rx * 2} height={bot - level + ry} fill={`url(#${id}-fuel)`} />
-            <ellipse className="k-tank-surface" cx={cx} cy={level} rx={rx} ry={ry} fill={`url(#${id}-surf)`} />
+            <g className="k-tank-fill" style={{ transformOrigin: `${cx}px ${bot + ry}px` }}>
+              <ellipse className="k-tank-surface" cx={cx} cy={level} rx={rx} ry={ry} fill={`url(#${id}-surf)`} />
+              <path className="k-wave k-wave-back" d={wave(level - 1, 2.6, 36, bot + ry)} fill={color} opacity=".55" />
+              <path className="k-wave k-wave-front" d={wave(level + 1.5, 2, 28, bot + ry)} fill={`url(#${id}-fuel)`} />
+              <g clipPath={`url(#${id}-below)`}>
+                {[0, 1, 2, 3].map((i) => (
+                  <circle key={i} className="k-bubble" cx={cx - 24 + i * 15} cy={bot - 4} r={1.3 + (i % 2) * 0.8} fill="#fff" opacity=".7"
+                    style={{ animationDelay: `${i * 0.85}s`, '--rise': `${-(bot - level - 6)}px` }} />
+                ))}
+                <rect className="k-shimmer" x={cx - rx} y={level} width="10" height={bot - level + ry} fill="#fff" opacity=".18" />
+              </g>
+            </g>
           </g>
         )}
         {/* low-level line */}
         {lowY != null && (
-          <g>
+          <g className={st.level === 'low' ? 'k-low-pulse' : ''}>
             <line x1={cx - rx} x2={cx + rx} y1={lowY} y2={lowY} stroke="#b91c1c" strokeWidth="1.6" strokeDasharray="4 3" />
             <text x={cx + rx - 2} y={lowY - 3} fontSize="7" fontWeight="800" fill="#b91c1c" textAnchor="end" fontFamily="Inter, system-ui, sans-serif">LOW</text>
           </g>
@@ -67,6 +86,12 @@ export default function Tank3D({ tank, width = 96, showLabel = true }) {
         <figcaption>
           <span className="k-tank-name"><strong>{tank.code}</strong>{tank.grade && <> · {tank.grade}</>}</span>
           <span className="k-tank-litres" style={{ color: tone }}>{Math.round(st.litres).toLocaleString('en-ZM')} L</span>
+          {tank.days_cover != null && (
+            <span className={`k-tank-cover ${tank.days_cover <= 2 ? 'k-cover-short' : tank.days_cover <= 4 ? 'k-cover-watch' : ''}`}
+              title={`At last week's average of ${Math.round(tank.avg_daily_litres).toLocaleString('en-ZM')} L a day (all ${tank.grade || ''} tanks together)`}>
+              ≈ {tank.days_cover < 10 ? tank.days_cover.toFixed(1) : Math.round(tank.days_cover)} days left
+            </span>
+          )}
           {st.level === 'low' && <span className="k-tank-flag">Low</span>}
         </figcaption>
       )}

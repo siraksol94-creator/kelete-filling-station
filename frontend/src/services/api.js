@@ -94,6 +94,9 @@ export const login = (data) => api.post('/auth/login', data);
 export const register = (data) => api.post('/auth/register', data);
 export const registerFirst = (data) => api.post('/auth/register-first', data);
 export const verifyAdmin = (data) => api.post('/auth/verify-admin', data);
+// UX-4 — station weather (Dashboard)
+export const getWeather = () => api.get('/weather');
+export const setWeatherLocation = (data) => api.put('/weather/location', data);
 export const changePassword = (data) => api.post('/auth/change-password', data);
 
 // In-app Messages (2026-09-14) — routes/chat.js.

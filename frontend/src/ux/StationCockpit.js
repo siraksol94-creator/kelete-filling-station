@@ -2,9 +2,11 @@
 // fuel/shop, litres by grade (dials), the tanks (3D), today's shifts and the
 // cash variance (in full), and this week's trend.
 import React from 'react';
-import { FiDroplet, FiDollarSign, FiClock, FiAlertTriangle, FiInfo, FiChevronRight } from 'react-icons/fi';
+import { FiDroplet, FiDollarSign, FiClock, FiAlertTriangle, FiInfo, FiChevronRight, FiSun, FiBarChart2 } from 'react-icons/fi';
 import Tank3D from './Tank3D';
 import GradeGauge from './GradeGauge';
+import WeatherCard from './WeatherCard';
+import TrendBars from './TrendBars';
 import { ProgressBar, VarianceBadge } from './components';
 import { takingsSplit, niceMax, shiftSteps, alerts } from './stationMetrics';
 
@@ -25,7 +27,8 @@ function Card({ icon, title, action, onAction, children, className = '' }) {
 
 export default function StationCockpit({ data, today, onNavigate = () => {} }) {
   const st = data.station;
-  const split = takingsSplit(data.todaySales, data.todayFuelSales);
+  // UX-4: `takings` separates fuel credit tickets (FUEL- orders) from the shop.
+  const split = data.takings ? takingsSplit(data.takings.total, data.takings.fuel) : takingsSplit(data.todaySales, data.todayFuelSales);
   const gaugeMax = niceMax((st.grades || []).map((g) => g.litres), 100);
   const steps = shiftSteps(st.shifts);
   const al = alerts(st);
@@ -66,10 +69,22 @@ export default function StationCockpit({ data, today, onNavigate = () => {} }) {
         <Card icon={<FiDroplet />} title="Tanks" action="Tank dips" onAction={() => onNavigate('/fuel/tank-dips')} className="k-span-7">
           {(st.tanks || []).length === 0
             ? <div className="k-empty">No tanks set up yet.</div>
-            : <div className="k-tanks">{st.tanks.map((t) => <Tank3D key={t.id} tank={t} />)}</div>}
+            : <>
+                <div className="k-tanks">{st.tanks.map((t) => <Tank3D key={t.id} tank={t} width={118} />)}</div>
+                <div className="k-tank-total">
+                  <span><strong>{L(st.tanks.reduce((a, t) => a + Math.max(0, t.volume), 0))}</strong> in the tanks</span>
+                  <span>of {L(st.tanks.reduce((a, t) => a + t.capacity, 0))} capacity</span>
+                  {data.stockValue && data.stockValue.fuel && <span>worth <strong>{K(data.stockValue.fuel.atCost)}</strong> at cost</span>}
+                </div>
+                <p className="k-muted" style={{ margin: '6px 0 0' }}>Days left use last week's average sales for each grade.</p>
+              </>}
         </Card>
 
-        <Card icon={<FiClock />} title="Today's shifts" action="Fuel Cash Report" onAction={() => onNavigate('/fuel/cash-report')} className="k-span-5">
+        <Card icon={<FiSun />} title="Weather at the station" className="k-span-5 k-card-weather">
+          <WeatherCard />
+        </Card>
+
+        <Card icon={<FiClock />} title="Today's shifts" action="Fuel Cash Report" onAction={() => onNavigate('/fuel/cash-report')} className="k-span-5 k-card-shifts">
           {st.shifts.total === 0 ? <div className="k-empty">No shifts opened today yet.</div> : (
             <>
               <div className="k-panel-row" style={{ marginBottom: 8 }}>
@@ -89,6 +104,10 @@ export default function StationCockpit({ data, today, onNavigate = () => {} }) {
               {st.cash.reconciled > 0 && <div className="k-muted">{st.cash.balanced} of {st.cash.reconciled} balanced to the ngwee</div>}
             </>
           )}
+        </Card>
+
+        <Card icon={<FiBarChart2 />} title="Takings this week · fuel and shop" className="k-span-7">
+          <TrendBars rows={data.salesTrend} today={today} />
         </Card>
       </div>
     </div>
