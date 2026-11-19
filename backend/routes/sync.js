@@ -726,7 +726,10 @@ router.post('/push', lanGate, deviceAuth.deviceGate('tenant'), async (req, res) 
       db.pragma('foreign_keys = ON');
     }
 
-    res.json({ success: true, conflicts, rejected: conflicts.length });
+    // F1 — tell the till whether fuel rows were taken. A server without fuel
+    // sync (an older version, or KELETE_FUEL_SYNC=off) skips them silently, so
+    // the till must not mark them sent unless this says so.
+    res.json({ success: true, conflicts, rejected: conflicts.length, fuel_sync: fuelSync.enabled() });
   } catch (error) {
     db.pragma('foreign_keys = ON');
     // v1.9.2 — log the full stack to pm2 logs so silent push failures are

@@ -37,9 +37,9 @@ function launch(role, extraEnv) {
   });
 }
 
-async function startPair({ tenant = 'T-SYNC-TEST' } = {}) {
-  const vps = await launch('vps', { SYNC_TENANT: tenant, SYNC_BRANCH: 'B-VPS' });
-  const till = await launch('till', { SYNC_TENANT: tenant, SYNC_BRANCH: 'B-TILL', SYNC_VPS_URL: vps.base });
+async function startPair({ tenant = 'T-SYNC-TEST', vpsEnv = {}, tillEnv = {} } = {}) {
+  const vps = await launch('vps', { SYNC_TENANT: tenant, SYNC_BRANCH: 'B-VPS', ...vpsEnv });
+  const till = await launch('till', { SYNC_TENANT: tenant, SYNC_BRANCH: 'B-TILL', SYNC_VPS_URL: vps.base, ...tillEnv });
 
   // Run one full till sync cycle (push then pull) and wait for it to finish.
   async function syncNow() {
