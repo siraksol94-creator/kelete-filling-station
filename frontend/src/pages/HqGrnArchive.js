@@ -7,6 +7,7 @@
 // subtotal, CN total, and final payable across the filtered set so
 // HQ can spot per-supplier or per-period AP movement at a glance.
 import React, { useEffect, useState } from 'react';
+import { useDialog } from '../ux/ForecourtKit';
 import { FiRefreshCw, FiEye, FiInbox, FiX, FiPaperclip, FiUser, FiClock, FiFileText, FiSlash,
   FiPackage, FiSearch, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { getHqGrnArchive, getHqGrn, getHqGrnDetail, getHqBranches, getHqSuppliers, voidHqGrn,
@@ -25,6 +26,7 @@ const monthAgoISO = () => {
 };
 
 export default function HqGrnArchive() {
+  const [dialog, ui] = useDialog();   // in-app boxes: window.prompt is blocked in the Electron tills
   const [rows, setRows]       = useState([]);
   // 2026-09-04 - the same purchase trace as HQ Purchases. A GRN number is
   // often the only reference to hand here, and the question asked of it is
@@ -109,15 +111,14 @@ export default function HqGrnArchive() {
   // has approved or paid it, a later credit note exists, or the stock is gone.
   const handleVoid = async (row) => {
     const syncId = row.grn_sync_id;
-    const reason = window.prompt(
-      `Void GRN ${row.grn_number}?\n\n` +
-      'This reverses it everywhere: the depot stock, HQ AP and the supplier balance, ' +
-      'the credit notes made with it, cancels the purchase, and sends a Return to ZRA.\n\n' +
-      'Reason (required):'
-    );
+    const reason = await ui.prompt({
+      title: `Void GRN ${row.grn_number}?`, okLabel: 'Continue', danger: true,
+      text: 'This reverses it everywhere: the depot stock, HQ AP and the supplier balance, the credit notes made with it, cancels the purchase, and sends a Return to ZRA.',
+      label: 'Reason (required)', minLength: 3,
+    });
     if (reason === null) return;
-    if (reason.trim().length < 3) { alert('Please give a reason of at least 3 characters.'); return; }
-    if (!window.confirm(`Void GRN ${row.grn_number} now? This cannot be undone.`)) return;
+    if (reason.trim().length < 3) { await ui.alert({ title: 'Reason needed', text: 'Please give a reason of at least 3 characters.' }); return; }
+    if (!(await ui.confirm({ title: 'Void GRN', text: `Void GRN ${row.grn_number} now? This cannot be undone.`, okLabel: 'Void GRN', danger: true }))) return;
     setVoiding(true);
     try {
       const r = await voidHqGrn(syncId, reason.trim());
@@ -146,6 +147,7 @@ export default function HqGrnArchive() {
 
   return (
     <div className="page-content">
+      {dialog}
       <div className="page-header">
         <div>
           <h1>HQ GRN Archive</h1>

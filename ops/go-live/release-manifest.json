@@ -310,6 +310,13 @@
    "covers": "UX fix",
    "what": "AR menu entry shown at head office (localhost / keletezm.com) too; translation helper passes values so {{count}} fills in",
    "migrations": []
+  },
+  {
+   "n": 42,
+   "subject": "Fix: reason and date boxes on HQ Deposits, GRN Archive and Payment Voucher work on the tills (no window.prompt) (for review)",
+   "covers": "UX fix",
+   "what": "window.prompt (blocked on Electron tills) replaced with in-app boxes: deposit confirm/edit date, deposit delete reason, GRN void reason + confirm, voucher reject and HQ delete reasons; reasons need 3+ characters",
+   "migrations": []
   }
  ],
  "migrations": [

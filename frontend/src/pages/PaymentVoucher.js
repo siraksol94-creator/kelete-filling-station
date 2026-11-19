@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useDialog } from '../ux/ForecourtKit';
 import { getPaymentVouchers, getPaymentVoucherStats, deletePaymentVoucher, getSettings, getPvTypes, createPvType, updatePvType, deletePvType, getHqPaymentVouchers, deleteHqPaymentVoucher, getHqExpenseRequests, approveHqExpenseRequest, rejectHqExpenseRequest, getExpenseRequests, getHqExpenseLimits, setHqExpenseLimit, isHqHost } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -21,6 +22,7 @@ const getCategoryColor = (cat) => {
 const todayStr = businessToday();
 
 const PaymentVoucher = () => {
+  const [dialog, ui] = useDialog();   // in-app boxes: window.prompt is blocked in the Electron tills
   const { hasPermission, hasPageAccess, user } = useAuth();
   // 2026-09-03 — PvTypes has been on the permissions screen since the
   // action-level rewrite but nothing ever read it, so ticking it did
@@ -161,7 +163,7 @@ const PaymentVoucher = () => {
         await approveHqExpenseRequest(r.depot_slug, r.sync_id);
         showToast(`Approved — ${r.depot_name} can now save this voucher.`);
       } else {
-        const why = window.prompt(`Reject ${curSym}${fmt2(r.amount)} for ${r.depot_name}?\n\nReason (required, the depot sees it):`);
+        const why = await ui.prompt({ title: `Reject ${curSym}${fmt2(r.amount)} for ${r.depot_name}?`, okLabel: 'Reject', danger: true, label: 'Reason (required, the depot sees it)', minLength: 3 });
         if (why === null) return;
         if (why.trim().length < 3) { showToast('Please give a reason of at least 3 characters.', 'error'); return; }
         await rejectHqExpenseRequest(r.depot_slug, r.sync_id, why.trim());
@@ -189,11 +191,11 @@ const PaymentVoucher = () => {
 
   const handleHqDelete = async (r) => {
     const amt = `${curSym}${fmt2(r.total)}`;
-    const reason = window.prompt(
-      `Delete ${r.voucher_number} at ${r.depot_name} (${amt})?\n\n` +
-      `It is deleted in ${r.depot_name}'s own book: its Cash Book goes up by ${amt}, ` +
-      `even if that day's Cash Report is already saved.\n\nReason (required):`
-    );
+    const reason = await ui.prompt({
+      title: `Delete ${r.voucher_number} at ${r.depot_name} (${amt})?`, okLabel: 'Delete voucher', danger: true,
+      text: `It is deleted in ${r.depot_name}'s own book: its Cash Book goes up by ${amt}, even if that day's Cash Report is already saved.`,
+      label: 'Reason (required)', minLength: 3,
+    });
     if (reason === null) return;
     if (reason.trim().length < 3) { showToast('Please give a reason of at least 3 characters.', 'error'); return; }
     try {
@@ -438,6 +440,7 @@ const PaymentVoucher = () => {
 
   return (
     <div className="page-content">
+      {dialog}
 
       {/* ── Page Header ─────────────────────────────────────────────── */}
       <div className="page-header">
