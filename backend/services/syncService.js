@@ -162,6 +162,13 @@ async function isOnline() {
   }
 }
 
+// F1 — set when the VPS answered a push without taking fuel rows (an older
+// server, or fuel sync switched off there). Fuel rows then stay pending, and
+// are not re-sent for an hour, so a rolled-back VPS can't make a till mark
+// fuel records as sent that the VPS never stored.
+let fuelPausedUntil = 0;
+const FUEL_RETRY_MS = 60 * 60 * 1000;
+
 // ─── Push local unsynced records → VPS ───────────────────────────────────────
 async function push() {
   const { tenantId, branchId, deviceId } = _syncConfig.getConfig();
@@ -169,6 +176,7 @@ async function push() {
 
   const records = {};
   for (const table of SYNC_TABLES) {
+    if (fuelSync.isFuel(table) && Date.now() < fuelPausedUntil) continue;
     try {
       const cols = _db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
       if (!cols.includes('sync_id') || !cols.includes('synced')) continue;
@@ -205,8 +213,11 @@ async function push() {
     for (const c of (result.body && Array.isArray(result.body.conflicts) ? result.body.conflicts : [])) {
       if (c && c.table && c.sync_id) conflicts.set(`${c.table}\u0000${c.sync_id}`, c);
     }
+    const serverTookFuel = !!(result.body && result.body.fuel_sync === true);
+    let fuelKept = 0;
     _db.transaction(() => {
       for (const [table, rows] of Object.entries(records)) {
+        if (fuelSync.isFuel(table) && !serverTookFuel) { fuelKept += rows.length; continue; }
         for (const row of rows) {
           if (!row.sync_id) continue;
           try {
@@ -229,6 +240,12 @@ async function push() {
         }
       }
     })();
+    if (fuelKept) {
+      fuelPausedUntil = Date.now() + FUEL_RETRY_MS;
+      slog(`push: the VPS did not take fuel rows (older version, or fuel sync off there) — ${fuelKept} kept pending; retrying fuel in an hour`);
+    } else if (serverTookFuel) {
+      fuelPausedUntil = 0;
+    }
   }
 }
 

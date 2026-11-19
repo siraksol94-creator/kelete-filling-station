@@ -31,6 +31,12 @@ app.post('/__test/env', (req, res) => {
   res.json({ ok: true });
 });
 
+// Test-only: this participant's sync log (syncService writes it to the temp folder).
+app.get('/__test/synclog', (req, res) => {
+  const f = require('path').join(require('os').tmpdir(), 'kelete-startup.log');
+  res.setHeader('Content-Type', 'text/plain'); res.send(require('fs').existsSync(f) ? require('fs').readFileSync(f, 'utf8') : '');
+});
+
 (async () => {
   syncConfig.setRegistration(process.env.SYNC_TENANT, process.env.SYNC_BRANCH);
   const email = `${process.env.SYNC_ROLE}-owner`;
