@@ -59,8 +59,19 @@ describe('location', () => {
   test('only Administrators can set it; bad coordinates are refused', async () => {
     assert.equal((await app.request('PUT', '/api/weather/location', { token: viewer, body: { town: 'Lusaka', lat: -15.4167, lon: 28.2833 } })).status, 403);
     assert.equal((await app.request('PUT', '/api/weather/location', { token: staff.tokens.owner, body: { town: 'X', lat: 200, lon: 0 } })).status, 400);
+    // A fresh install has no business settings yet: saving the location starts the record.
+    app.db.prepare('DELETE FROM business_settings').run();
     const r = await app.request('PUT', '/api/weather/location', { token: staff.tokens.owner, body: { town: 'Lusaka', lat: -15.41672, lon: 28.28331 } });
     assert.equal(r.status, 200, r.text);
+    const row = app.db.prepare('SELECT weather_town, weather_lat, sync_id, synced FROM business_settings').all();
+    assert.equal(row.length, 1);
+    assert.equal(row[0].weather_town, 'Lusaka');
+    assert.ok(row[0].sync_id, 'gets a sync id like any settings record');
+    assert.equal(row[0].synced, 0);
+    // Saving again updates the same record.
+    assert.equal((await app.request('PUT', '/api/weather/location', { token: staff.tokens.owner, body: { town: 'Lusaka', lat: -15.41672, lon: 28.28331 } })).status, 200);
+    assert.equal(app.db.prepare('SELECT COUNT(*) AS n FROM business_settings').get().n, 1);
+    app.db.prepare("UPDATE business_settings SET business_email = 'ops@station.example'").run();
   });
 });
 
