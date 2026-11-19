@@ -254,6 +254,7 @@ automatically at start-up, once, each in its own transaction.
 | 38 | UX-10 | Station day ring and dip streak (read-only `/api/station-day`); Shifts and Cash Report finished; in-app dialogs on all fuel screens | — |
 | 39 | UX-11 | Account Receivables: debt by age, credit used, oldest-debt chips; ageing counts opening balances | — |
 | 40 | UX-11b | Account Receivables rebuilt; Fuel Cash Report cards as a money flow (frontend only) | — |
+| 41 | Fix | Account Receivables in the menu at head office; `{{count}}` in translated texts filled in | — |
 
 Before tagging, on the test machine:
 
