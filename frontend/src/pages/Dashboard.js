@@ -9,6 +9,7 @@ import FuelLoader from '../ux/FuelLoader';
 import StationCockpit from '../ux/StationCockpit';
 import TrendBars from '../ux/TrendBars';
 import ShopStock from '../ux/ShopStock';
+import DashTray from '../ux/DashTray';
 import { businessToday } from '../utils/businessDate';
 
 const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#6b7280'];
@@ -80,6 +81,9 @@ const Dashboard = () => {
     <div className="page-content">
       {/* UX-3 — station cockpit (fuel branches only; shop-only branches skip it) */}
       {data.station && <StationCockpit data={data} today={today} onNavigate={navigate} />}
+
+      {/* UX-12 — shortcuts tray (Empty Vouchers; shown only to users who can open it). */}
+      <DashTray onNavigate={navigate} />
 
       {/* UX-4 — Shop & stock (fuel kept out; see ux/ShopStock.js). The older
           layout below is kept only for a server that doesn't send `shop`. */}
