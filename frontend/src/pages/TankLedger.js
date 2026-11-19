@@ -3,13 +3,17 @@ import { FiRefreshCw, FiBook } from 'react-icons/fi';
 import { getTanks, getTankBinCard, getTankGroupBinCard } from '../services/fuelApi';
 import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
+// UX-7 — level chart, quick ranges, range totals.
+import LedgerChart from '../ux/LedgerChart';
+import { ledgerTotals } from '../ux/ledgerSeries';
+import { fmtL as fmtLitres, fmtSignedL, fmtDay } from '../ux/forecourt';
 
 // Default range: today only. Backend returns an opening-before line + each
 // movement with its running balance, so the operator can see where a tank
 // stood at midnight and every row that moved it since.
 const today = () => businessToday();
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
-const fmtDate = s => (s || '').slice(0, 10);
+const fmtDate = s => fmtDay(s);   // UX-7: "Fri 13 Nov"
 
 const TYPE_COLORS = {
   opening:        { bg: '#eef2ff', fg: '#4338ca', label: 'OPENING' },
@@ -126,6 +130,13 @@ export default function TankLedger({ embedded = false } = {}) {
         </label>
         <label style={S.lbl}>From<input type="date" value={from} onChange={e => setFrom(e.target.value)} style={S.input} /></label>
         <label style={S.lbl}>To<input type="date" value={to} onChange={e => setTo(e.target.value)} style={S.input} /></label>
+        <div className="k-fc-quick" role="group" aria-label="Quick date range">
+          {[['Today', 0], ['7 days', 6], ['30 days', 29]].map(([lbl, back]) => {
+            const f = new Date(Date.parse(`${today()}T00:00:00Z`) - back * 86400000).toISOString().slice(0, 10);
+            const on = from === f && to === today();
+            return <button key={lbl} type="button" aria-pressed={on} className={`k-fc-chip${on ? ' is-on' : ''}`} onClick={() => { setFrom(f); setTo(today()); }}>{lbl}</button>;
+          })}
+        </div>
         <button onClick={load} style={S.btnSecondary}><FiRefreshCw /> Refresh</button>
       </div>
 
@@ -140,6 +151,26 @@ export default function TankLedger({ embedded = false } = {}) {
             <KeyStat label="Movements"      value={(data.rows || []).length} />
             <KeyStat label="Current Volume" value={fmtL(data.current_volume)} highlight />
           </div>
+
+          {(() => {
+            const cap = Number(data.tank?.capacity_litres) || (data.tank?.members || []).reduce((a, m) => a + (Number(m.capacity_litres) || 0), 0);
+            const low = Number(data.tank?.low_stock_litres) || (data.tank?.members || []).reduce((a, m) => a + (Number(m.low_stock_litres) || 0), 0);
+            const color = data.tank?.grade_color || (data.tank?.members || [])[0]?.grade_color || '#0e7490';
+            const tot = ledgerTotals(displayRows);
+            return displayRows.length > 0 && (
+              <div style={{ ...S.card, padding: '14px 16px 10px', marginBottom: 14 }}>
+                <div className="k-lc-head">
+                  <h3>Level over the period</h3>
+                  <div className="k-lc-tot">
+                    <span><b className="k-fc-num">+{fmtLitres(tot.delivered)}</b> delivered</span>
+                    <span><b className="k-fc-num">−{fmtLitres(tot.sold)}</b> sold</span>
+                    <span><b className="k-fc-num">{fmtSignedL(tot.corrected, 0)}</b> corrections</span>
+                  </div>
+                </div>
+                <LedgerChart openingBefore={data.opening_before} rows={displayRows} from={from} capacity={cap} lowLevel={low} color={color} />
+              </div>
+            );
+          })()}
 
           <div style={{ ...S.card, overflowX: 'auto' }}>
             <table style={{ ...S.table, minWidth: 760 }}>
@@ -206,9 +237,9 @@ export default function TankLedger({ embedded = false } = {}) {
 
 function KeyStat({ label, value, highlight }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '12px 14px' }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 800, color: highlight ? '#2563eb' : '#111', marginTop: 4 }}>{value}</div>
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 14px' }}>
+      <div style={{ fontSize: 11, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: highlight ? '#0e7490' : '#0f172a', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>{value}</div>
     </div>
   );
 }

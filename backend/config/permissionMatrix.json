@@ -38,7 +38,7 @@
   "EmptyVouchers": "GRN",
   "StockReconciliation": "Stock"
  },
- "endpoint_count": 446,
+ "endpoint_count": 447,
  "endpoints": [
   {
    "method": "GET",
@@ -5704,6 +5704,16 @@
   {
    "method": "GET",
    "path": "/tanks/group/:p/bin-card",
+   "any": true,
+   "screens": [
+    "fuel/tank-dips",
+    "fuel/tank-ledger",
+    "fuel/tanks"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/tanks/insights",
    "any": true,
    "screens": [
     "fuel/tank-dips",

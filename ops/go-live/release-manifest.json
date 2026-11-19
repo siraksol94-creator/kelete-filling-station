@@ -261,6 +261,13 @@
    "covers": "UX-6 fix",
    "what": "Build fix: eslint comments naming the unloaded react-hooks rule; CI screen check catches them",
    "migrations": []
+  },
+  {
+   "n": 35,
+   "subject": "UX-7: Forecourt kit and the Tanks screen — 3D tank cards, dip ring and variance bands, ledger level chart (for review)",
+   "covers": "UX-7",
+   "what": "Fuel screens' shared look (header, numbers, dialogs); Tanks: 3D cards, space left, last dip/delivery, dip ring with ±0.5%/1% bands, ledger chart. Read-only /api/tanks/insights",
+   "migrations": []
   }
  ],
  "migrations": [

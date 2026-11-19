@@ -60,4 +60,18 @@ else console.log(`✓ all ${files.length} files under src/ parse`);
   else console.log('✓ no eslint comments name unknown react-hooks rules');
 }
 
+// 4. Two files whose names differ only in capital letters are ONE file on
+//    Windows (where the tills and most PCs build), so imports break there.
+{
+  const seen = new Map();
+  const clash = [];
+  for (const f of files) {
+    const k = f.toLowerCase();
+    if (seen.has(k)) clash.push(`${path.relative(process.cwd(), seen.get(k))}  ↔  ${path.relative(process.cwd(), f)}`);
+    else seen.set(k, f);
+  }
+  if (clash.length) { failed = true; process.stderr.write(`✗ file names that differ only in capitals (one file on Windows):\n  ${clash.join('\n  ')}\n`); }
+  else console.log('✓ no file names that differ only in capitals');
+}
+
 process.exit(failed ? 1 : 0);

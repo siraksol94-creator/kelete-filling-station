@@ -31,6 +31,15 @@ router.get('/', auth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// UX-7 — GET /api/tanks/insights: per tank, space left, last dip, last
+// delivery and days of cover (read-only). Declared before '/:id'.
+router.get('/insights', auth, (req, res) => {
+  try {
+    const bt = require('../config/businessTime');
+    res.json(require('../services/tankInsights').tankInsights(db, bt.businessDate()));
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // F4 — GET /api/tanks/ledger-check (Administrator). Every tank's cached
 // volume against the sum of its ledger rows. An empty `problems` list means
 // the books balance. Declared before '/:id' so it is not read as an id.
