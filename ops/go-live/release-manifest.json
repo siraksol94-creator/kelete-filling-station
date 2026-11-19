@@ -296,6 +296,13 @@
    "covers": "UX-11",
    "what": "AR: debt-by-age panel, credit-used bars, oldest-debt chips, shared header; GET /customers/aging counts opening balances (matches the Balance column) and is readable from the AR screen",
    "migrations": []
+  },
+  {
+   "n": 40,
+   "subject": "UX-11b: Account Receivables rebuilt (headline, debt by age, chase first, one toolbar, clean rows); Fuel Cash Report cards as a money flow (for review)",
+   "covers": "UX-11b",
+   "what": "AR screen rebuilt (same data and actions); Fuel Cash Report shift cards as sales → deductions → expected → counted → variance, approval bars, day summary restyled. Frontend only",
+   "migrations": []
   }
  ],
  "migrations": [
