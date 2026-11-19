@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter, FiPrinter } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter, FiPrinter, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
 import { getAllTickets, addShiftCreditSale, deleteShiftCreditSale, getShifts, getNozzles } from '../services/fuelApi';
 import { getCustomers, getSettings } from '../services/api';
 import { S } from './fuelStyles';
 import { printTicket, printTicketList } from './ticketPrint';
 import keleteLogo from '../assets/kelete-logo.png';
 import { businessToday } from '../utils/businessDate';
+// UX-9 — Forecourt kit: summary, live calculator, credit limit, in-app dialogs.
+import { PageHero, EmptyState, useDialog } from '../ux/ForecourtKit';
+import { fmtK, fmtL, fmtDay, creditUse, ticketSummary } from '../ux/forecourt';
 
 const today = () => businessToday(); // station's day, not the UTC date
 
@@ -28,6 +31,9 @@ export function TicketsPage({ method }) {
   const [form, setForm] = useState(emptyForm);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
+  const [dialog, ui] = useDialog();
+  const [printed, setPrinted] = useState(null);   // brief "printed" stamp after a save
+  useEffect(() => { if (!printed) return undefined; const t = setTimeout(() => setPrinted(null), 2800); return () => clearTimeout(t); }, [printed]);
 
   const load = async () => {
     try {
@@ -74,25 +80,49 @@ export function TicketsPage({ method }) {
       };
       setShowForm(false); setForm(emptyForm); await load();
       printTicket(saved, method, seller, logoUrl);
+      setPrinted(saved.customer_name || 'Ticket');
     } catch (ex) { setErr(ex.response?.data?.error || ex.message || 'Save failed'); }
     finally { setSaving(false); }
   };
 
   const remove = async (r) => {
-    if (!window.confirm(`Delete ticket for ${r.customer_name}?`)) return;
+    if (!(await ui.confirm({ title: 'Delete ticket', text: `Delete ticket for ${r.customer_name}?`, okLabel: 'Delete', danger: true }))) return;
     try { await deleteShiftCreditSale(r.id); await load(); }
-    catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    catch (ex) { await ui.alert({ title: 'Delete failed', text: ex.response?.data?.error || 'Delete failed' }); }
   };
 
   return (
     <div style={S.page} className="k-page">
-      <div style={S.header} className="k-page-header">
-        <h2 style={S.h2}><FiCreditCard /> {isCard ? '1Card Sales (Engen)' : 'Credit Sales (Receivables)'}</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button onClick={() => printTicketList(rows, method, filter, seller, logoUrl)} style={S.btnSecondary} disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
-          <button onClick={() => { setForm(emptyForm); setErr(''); setShowForm(true); }} style={S.btnPrimary}><FiPlus /> New {isCard ? '1Card' : 'Credit'} Ticket</button>
-        </div>
-      </div>
+      <PageHero icon={<FiCreditCard />} title={isCard ? '1Card Sales (Engen)' : 'Credit Sales (Receivables)'} date={today()}
+        subtitle={isCard ? 'Fuel paid with an Engen 1Card — a ticket per fill' : 'Fuel taken on account — every ticket adds to what the customer owes'}
+        actions={<>
+          <button type="button" onClick={() => printTicketList(rows, method, filter, seller, logoUrl)} className="k-fc-btn-ghost" disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
+          <button type="button" onClick={() => { setForm(emptyForm); setErr(''); setShowForm(true); }} className="k-fc-btn-hero"><FiPlus /> New {isCard ? '1Card' : 'Credit'} Ticket</button>
+        </>} />
+
+      {printed && <div className="k-stamp" role="status"><FiCheckCircle aria-hidden="true" /> Ticket saved and sent to the printer — {printed}</div>}
+
+      {(() => {
+        const sum = ticketSummary(rows);
+        return (
+          <div className="k-tix-summary" aria-label="Tickets in this range">
+            <div><span>Tickets</span><strong className="k-fc-num">{sum.count}</strong></div>
+            <div><span>Litres</span><strong className="k-fc-num">{fmtL(sum.litres, 2)}</strong></div>
+            <div><span>Amount</span><strong className="k-fc-num">{fmtK(sum.amount)}</strong></div>
+            <div className="k-tix-grades">
+              <span>Litres by grade</span>
+              {sum.litres > 0 ? (
+                <>
+                  <div className="k-tix-bar" role="img" aria-label={sum.grades.map((g) => `${g.name} ${fmtL(g.litres, 2)}`).join(', ')}>
+                    {sum.grades.map((g) => <div key={g.name} style={{ width: `${(g.litres / sum.litres) * 100}%`, background: g.color }} />)}
+                  </div>
+                  <div className="k-tix-legend">{sum.grades.map((g) => <span key={g.name}><i style={{ background: g.color }} aria-hidden="true" />{g.name} {fmtL(g.litres)}</span>)}</div>
+                </>
+              ) : <em>No litres yet</em>}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Filters */}
       <div style={{ ...S.card, padding: 14, marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -107,14 +137,14 @@ export function TicketsPage({ method }) {
             </select>
           </label>
         )}
-        <div style={{ marginLeft: 'auto', fontSize: 13, color: '#374151' }}>
-          <strong>{rows.length}</strong> tickets · <strong>{totalLitres.toFixed(2)} L</strong> · <strong>K {totalAmount.toFixed(2)}</strong>
+        <div style={{ marginLeft: 'auto', fontSize: 13, color: '#334155' }} className="k-fc-num">
+          <strong>{rows.length}</strong> tickets · <strong>{fmtL(totalLitres, 2)}</strong> · <strong>{fmtK(totalAmount)}</strong>
         </div>
       </div>
 
       {/* Table */}
-      <div style={S.card}>
-        <table style={S.table}>
+      <div style={S.card} className="k-table-scroll">
+        <table style={S.table} className="phone-cards">
           <thead><tr>
             <th style={S.th}>Date</th>
             <th style={S.th}>Attendant / Shift</th>
@@ -130,24 +160,24 @@ export function TicketsPage({ method }) {
           <tbody>
             {rows.map(r => (
               <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={S.td}>{r.date || (r.created_at || '').slice(0, 10)}</td>
-                <td style={S.td}>{r.attendant_name || '-'} <span style={{ color: '#6b7280', fontSize: 12 }}>(shift #{r.shift_id})</span></td>
-                <td style={S.td}><strong>{r.customer_name}</strong>{r.card_number ? <span style={{ color: '#6b7280' }}> · {r.card_number}</span> : null}</td>
+                <td style={S.td}>{fmtDay(r.date || (r.created_at || '').slice(0, 10))}</td>
+                <td style={S.td}>{r.attendant_name || '-'} <span style={{ color: '#475569', fontSize: 12 }}>(shift #{r.shift_id})</span></td>
+                <td style={S.td}><strong>{r.customer_name}</strong>{r.card_number ? <span style={{ color: '#475569' }}> · {r.card_number}</span> : null}</td>
                 <td style={S.td}>{r.vehicle_registration || '-'}</td>
                 <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name || '-'}</span></td>
-                <td style={S.tdR}>{Number(r.litres).toFixed(2)}</td>
-                <td style={S.tdR}>K {Number(r.price_per_litre).toFixed(2)}</td>
-                <td style={S.tdR}><strong>K {Number(r.amount).toFixed(2)}</strong></td>
+                <td style={S.tdR}>{fmtL(r.litres, 2)}</td>
+                <td style={S.tdR}>{fmtK(r.price_per_litre)}</td>
+                <td style={S.tdR}><strong>{fmtK(r.amount)}</strong></td>
                 <td style={S.td}>{r.receipt_number || '-'}</td>
                 <td style={S.td}>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    <button onClick={() => printTicket(r, method, seller, logoUrl)} style={S.iconBtn} title="Print invoice"><FiPrinter /></button>
-                    <button onClick={() => remove(r)} style={S.iconBtnDanger} title="Delete"><FiTrash2 /></button>
+                    <button onClick={() => printTicket(r, method, seller, logoUrl)} style={S.iconBtn} title="Print invoice" aria-label={`Print ticket for ${r.customer_name}`}><FiPrinter /></button>
+                    <button onClick={() => remove(r)} style={S.iconBtnDanger} title="Delete" aria-label={`Delete ticket for ${r.customer_name}`}><FiTrash2 /></button>
                   </div>
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={10} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No tickets in this range.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={10} style={{ padding: 0 }}><EmptyState art={<FiCreditCard size={40} color="#b45309" />} title="No tickets in this range" text={`Change the dates, or write a new ${isCard ? '1Card' : 'credit'} ticket for an attendant on an open shift.`} /></td></tr>}
           </tbody>
         </table>
       </div>
@@ -207,7 +237,36 @@ export function TicketsPage({ method }) {
                 </label>
                 <label style={S.lbl}>Litres *<input type="number" step="0.01" value={form.litres} onChange={e => setForm({ ...form, litres: e.target.value })} required style={S.input} /></label>
                 <label style={S.lbl}>K/L<input type="number" step="0.01" value={form.price_per_litre} onChange={e => setForm({ ...form, price_per_litre: e.target.value })} style={S.input} /></label>
-                <label style={S.lbl}>Amount<input value={`K ${(Number(form.litres || 0) * Number(form.price_per_litre || 0)).toFixed(2)}`} readOnly style={{ ...S.input, background: '#f3f4f6', fontWeight: 700 }} /></label>
+                <label style={S.lbl}>Amount<input value={fmtK(Number(form.litres || 0) * Number(form.price_per_litre || 0))} readOnly style={{ ...S.input, background: '#f1f5f9', fontWeight: 800 }} /></label>
+                {(() => {
+                  const amt = Number(form.litres || 0) * Number(form.price_per_litre || 0);
+                  const cust = !isCard ? customers.find((c) => String(c.id) === String(form.customer_id)) : null;
+                  const cu = cust ? creditUse(cust, amt) : null;
+                  return (
+                    <div className="k-calc" style={{ gridColumn: '1 / -1' }} aria-live="polite">
+                      <div className="k-calc-sum k-fc-num">
+                        <span><b>{fmtL(form.litres || 0, 2)}</b><em>litres</em></span>
+                        <i aria-hidden="true">×</i>
+                        <span><b>{fmtK(form.price_per_litre || 0)}</b><em>per litre</em></span>
+                        <i aria-hidden="true">=</i>
+                        <span className="k-calc-total"><b>{fmtK(amt)}</b><em>on this ticket</em></span>
+                      </div>
+                      {cu && cu.limit != null && (
+                        <div className={`k-credit${cu.over > 0 ? ' is-over' : ''}`}>
+                          <div className="k-credit-row">
+                            <span>{cust.name} owes <b className="k-fc-num">{fmtK(cu.owed)}</b> · after this ticket <b className="k-fc-num">{fmtK(cu.after)}</b> of a <b className="k-fc-num">{fmtK(cu.limit)}</b> limit</span>
+                          </div>
+                          <div className="k-credit-bar" role="img" aria-label={`Credit used after this ticket: ${Math.round(cu.pct * 100)}% of the limit`}>
+                            <div style={{ width: `${Math.min(100, (cu.owed / cu.limit) * 100)}%` }} className="k-credit-owed" />
+                            <div style={{ width: `${Math.max(0, Math.min(100, cu.pct * 100) - Math.min(100, (cu.owed / cu.limit) * 100))}%` }} className="k-credit-new" />
+                          </div>
+                          {cu.over > 0 && <div className="k-credit-warn"><FiAlertTriangle aria-hidden="true" /> {fmtK(cu.over)} over the credit limit — check with a supervisor before fuelling.</div>}
+                        </div>
+                      )}
+                      {cust && cu && cu.limit == null && <div className="k-muted" style={{ fontSize: 12.5 }}>{cust.name} owes {fmtK(cu.owed)} · no credit limit set.</div>}
+                    </div>
+                  );
+                })()}
               </div>
               <div style={S.modalFooter}>
                 <button type="button" onClick={() => setShowForm(false)} style={S.btnSecondary}>Cancel</button>
@@ -217,6 +276,7 @@ export function TicketsPage({ method }) {
           </div>
         </div>
       )}
+      {dialog}
     </div>
   );
 }

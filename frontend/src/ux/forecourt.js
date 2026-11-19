@@ -76,3 +76,39 @@ export function fitCheck(capacity, current, litres) {
   const over = cap > 0 ? Math.max(0, after - cap) : 0;
   return { after, over, fits: over === 0, space: Math.max(0, cap - now), pctAfter: cap > 0 ? Math.min(1, after / cap) : 0 };
 }
+
+// UX-9 — margin per litre: selling price − weighted-average cost.
+export function gradeMargin(selling, cost) {
+  const s = num(selling), c = num(cost);
+  const perL = Math.round((s - c) * 10000) / 10000;
+  return { perL, pct: s > 0 ? perL / s : 0, below: perL < 0, unknownCost: c <= 0 };
+}
+
+// A customer's credit after a new ticket: limit, owed now, owed after, and
+// how far over the limit it would go (0 if within). No limit → limit null.
+export function creditUse(customer, newAmount = 0) {
+  const limit = num(customer && customer.credit_limit);
+  const owed = num(customer && customer.outstanding);
+  const after = owed + Math.max(0, num(newAmount));
+  if (!(limit > 0)) return { limit: null, owed, after, pct: null, over: 0 };
+  return { limit, owed, after, pct: Math.min(1, after / limit), over: Math.max(0, Math.round((after - limit) * 100) / 100) };
+}
+
+// Totals for a list of credit / 1Card tickets, with litres by grade.
+export function ticketSummary(rows) {
+  const byGrade = new Map();
+  let litres = 0, amount = 0;
+  for (const r of rows || []) {
+    const l = num(r.litres), a = num(r.amount);
+    litres += l; amount += a;
+    const k = r.grade_name || '—';
+    const g = byGrade.get(k) || { name: k, color: r.grade_color || '#64748b', litres: 0, amount: 0 };
+    g.litres += l; g.amount += a; byGrade.set(k, g);
+  }
+  return {
+    count: (rows || []).length,
+    litres: Math.round(litres * 100) / 100,
+    amount: Math.round(amount * 100) / 100,
+    grades: [...byGrade.values()].sort((a, b) => a.name.localeCompare(b.name)),
+  };
+}

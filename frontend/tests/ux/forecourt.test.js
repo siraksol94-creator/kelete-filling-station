@@ -80,3 +80,20 @@ test('will it fit?', () => {
   assert.equal(f.fits, false); assert.equal(f.over, 3452); assert.equal(f.pctAfter, 1);
   assert.equal(fitCheck(0, 0, 100).fits, true, 'unknown capacity: no warning');
 });
+
+import { gradeMargin, creditUse, ticketSummary } from '../../src/ux/forecourt';
+test('margin per litre, including below cost', () => {
+  assert.deepEqual(gradeMargin(32.4, 26.4), { perL: 6, pct: 6 / 32.4, below: false, unknownCost: false });
+  assert.equal(gradeMargin(25, 26.1).below, true);
+  assert.equal(gradeMargin(25, 0).unknownCost, true);
+});
+test('credit use: within, over by, no limit', () => {
+  assert.deepEqual(creditUse({ credit_limit: 50000, outstanding: 30000 }, 10000), { limit: 50000, owed: 30000, after: 40000, pct: 0.8, over: 0 });
+  assert.equal(creditUse({ credit_limit: 50000, outstanding: 48000 }, 5000).over, 3000);
+  assert.equal(creditUse({ credit_limit: 0, outstanding: 100 }, 5).limit, null);
+});
+test('ticket totals, grades alphabetical', () => {
+  const s = ticketSummary([{ litres: 40, amount: 1296, grade_name: 'Petrol' }, { litres: 100, amount: 3090, grade_name: 'Diesel' }, { litres: 10.5, amount: 340.2, grade_name: 'Petrol' }]);
+  assert.equal(s.count, 3); assert.equal(s.litres, 150.5); assert.equal(s.amount, 4726.2);
+  assert.deepEqual(s.grades.map((g) => [g.name, g.litres]), [['Diesel', 100], ['Petrol', 50.5]]);
+});

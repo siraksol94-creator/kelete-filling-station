@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiDroplet } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiDroplet, FiCheck } from 'react-icons/fi';
+// UX-9 — price board, margin per litre, named colours; the Forecourt kit look.
+import { S } from './fuelStyles';
+import { PageHero, EmptyState, useDialog } from '../ux/ForecourtKit';
+import { fmtK, gradeMargin } from '../ux/forecourt';
+import { businessToday } from '../utils/businessDate';
 import { getFuelGrades, createFuelGrade, updateFuelGrade, deleteFuelGrade } from '../services/fuelApi';
 
 const emptyForm = { code: '', name: '', unit: 'L', selling_price: 0, cost_price: 0, color: '#2563eb', status: 'Active' };
 const DEFAULT_COLORS = ['#2563eb', '#dc2626', '#f59e0b', '#16a34a', '#8b5cf6', '#0f766e'];
+// UX-9 — every colour has a name, for the picker and screen readers.
+const COLOR_NAMES = { '#2563eb': 'Blue', '#dc2626': 'Red', '#f59e0b': 'Amber', '#16a34a': 'Green', '#8b5cf6': 'Purple', '#0f766e': 'Teal' };
 
 export default function FuelGrades() {
   const [rows, setRows] = useState([]);
@@ -12,6 +19,7 @@ export default function FuelGrades() {
   const [form, setForm] = useState(emptyForm);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
+  const [dialog, ui] = useDialog();   // UX-9: in-app confirm / alert
 
   const load = async () => {
     try { const r = await getFuelGrades(); setRows(r.data || []); } catch (e) {}
@@ -32,112 +40,134 @@ export default function FuelGrades() {
         await createFuelGrade(form);
       }
       setShowForm(false); await load();
-      if (synced > 0) alert(`Price saved. ${synced} nozzle reading(s) on OPEN shifts were updated to the new price.`);
+      if (synced > 0) await ui.alert({ title: 'Price saved', text: `Price saved. ${synced} nozzle reading(s) on OPEN shifts were updated to the new price.` });
     } catch (ex) { setErr(ex.response?.data?.error || 'Save failed'); }
     finally { setSaving(false); }
   };
 
   const remove = async (row) => {
-    if (!window.confirm(`Delete fuel grade "${row.name}"?`)) return;
+    if (!(await ui.confirm({ title: 'Delete fuel grade', text: `Delete fuel grade "${row.name}"?`, okLabel: 'Delete', danger: true }))) return;
     try { await deleteFuelGrade(row.id); await load(); }
-    catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    catch (ex) { await ui.alert({ title: 'Delete failed', text: ex.response?.data?.error || 'Delete failed' }); }
   };
 
+  const active = rows.filter((r) => r.status === 'Active');
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FiDroplet /> Fuel Grades
-        </h2>
-        <button onClick={openNew} style={btnPrimary}><FiPlus /> New Grade</button>
-      </div>
+    <div style={S.page} className="k-page">
+      <PageHero icon={<FiDroplet />} title="Fuel Grades" date={businessToday()}
+        subtitle="Prices per litre, what each litre costs us, and the margin in between"
+        actions={<button type="button" onClick={openNew} className="k-fc-btn-hero"><FiPlus /> New Grade</button>} />
 
-      <div style={card}>
-        <table style={table}>
-          <thead>
-            <tr>
-              <th style={th}>Code</th><th style={th}>Name</th><th style={th}>Unit</th>
-              <th style={{ ...th, textAlign: 'right' }}>Selling Price</th>
-              <th style={{ ...th, textAlign: 'right' }}>Cost (WAC)</th>
-              <th style={th}>Status</th><th style={th}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.length === 0 && (
-              <tr><td colSpan={7} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No fuel grades yet. Add Petrol, Diesel, Paraffin to begin.</td></tr>
-            )}
-            {rows.map(r => (
-              <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={td}><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: r.color, marginRight: 8 }} />{r.code}</td>
-                <td style={td}>{r.name}</td>
-                <td style={td}>{r.unit}</td>
-                <td style={{ ...td, textAlign: 'right' }}>K {Number(r.selling_price).toFixed(2)}</td>
-                <td style={{ ...td, textAlign: 'right', color: '#6b7280' }}>K {Number(r.cost_price).toFixed(4)}</td>
-                <td style={td}>{r.status}</td>
-                <td style={td}>
-                  <button onClick={() => openEdit(r)} style={iconBtn}><FiEdit2 /></button>
-                  <button onClick={() => remove(r)} style={iconBtnDanger}><FiTrash2 /></button>
-                </td>
-              </tr>
+      {rows.length === 0 ? (
+        <div style={{ ...S.card, padding: 0 }}>
+          <EmptyState art={<FiDroplet size={46} color="#b45309" />} title="No fuel grades yet"
+            text="Add Petrol, Diesel and Paraffin with their selling price per litre. Tanks and nozzles are set up after the grades."
+            action={<button type="button" onClick={openNew} style={S.btnPrimary}><FiPlus /> New Grade</button>} />
+        </div>
+      ) : (
+        <div className="k-gr-layout">
+          {/* The forecourt price board: what the customer sees on the sign. */}
+          <section className="k-board" aria-label="Price board — selling price per litre">
+            <div className="k-board-top"><span>Price per litre</span><span>Kwacha</span></div>
+            {(active.length ? active : rows).map((r) => (
+              <div key={r.id} className="k-board-row" style={{ '--k-g': r.color || '#64748b' }}>
+                <span className="k-board-name"><i aria-hidden="true" />{r.name}<em>{r.code}</em></span>
+                <span className="k-board-price" aria-label={`${r.name}: K ${Number(r.selling_price).toFixed(2)} per litre`}>
+                  {Number(r.selling_price).toFixed(2).split('').map((ch, i) => <b key={i} className={ch === '.' ? 'is-dot' : ''}>{ch}</b>)}
+                </span>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </section>
+
+          <div className="k-gr-grid">
+            {rows.map((r) => {
+              const m = gradeMargin(r.selling_price, r.cost_price);
+              return (
+                <article key={r.id} className={`k-gr-card${r.status !== 'Active' ? ' is-inactive' : ''}`} style={{ '--k-g': r.color || '#64748b' }} aria-label={`${r.name} grade`}>
+                  <header className="k-gr-head">
+                    <div>
+                      <h3><i aria-hidden="true" />{r.name}</h3>
+                      <div className="k-gr-sub">{r.code} · per {r.unit || 'L'} · <span className={r.status === 'Active' ? 'k-gr-on' : 'k-gr-off'}>{r.status}</span></div>
+                    </div>
+                    <div>
+                      <button type="button" onClick={() => openEdit(r)} style={S.iconBtn} aria-label={`Edit ${r.name}`} title="Edit"><FiEdit2 /></button>
+                      <button type="button" onClick={() => remove(r)} style={S.iconBtnDanger} aria-label={`Delete ${r.name}`} title="Delete"><FiTrash2 /></button>
+                    </div>
+                  </header>
+                  <dl className="k-gr-figs">
+                    <div><dt>Selling price</dt><dd className="k-fc-num">{fmtK(r.selling_price)}</dd></div>
+                    <div><dt>Cost (WAC)</dt><dd className="k-fc-num">K {Number(r.cost_price || 0).toLocaleString('en-ZM', { minimumFractionDigits: 4, maximumFractionDigits: 4 })}</dd></div>
+                    <div className={m.below ? 'is-below' : ''}>
+                      <dt>Margin per litre</dt>
+                      <dd className="k-fc-num">{m.unknownCost ? '—' : `K ${m.perL.toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}`}</dd>
+                      <span className="k-gr-note">{m.unknownCost ? 'no cost yet — set by the first delivery' : m.below ? 'selling below cost' : `${(m.pct * 100).toFixed(1)}% of the price`}</span>
+                    </div>
+                  </dl>
+                  {!m.unknownCost && (
+                    <div>
+                      <div className="k-gr-bar" role="img" aria-label={`Of each kwacha: cost ${Math.round((1 - m.pct) * 100)}%, margin ${Math.round(m.pct * 100)}%`}>
+                        <div className="k-gr-bar-cost" style={{ width: `${Math.min(100, Math.max(0, (1 - m.pct) * 100))}%` }} />
+                        <div className="k-gr-bar-margin" style={{ width: `${Math.min(100, Math.max(0, m.pct * 100))}%` }} />
+                      </div>
+                      <div className="k-gr-bar-key" aria-hidden="true"><span><i className="is-cost" />cost {(Math.max(0, 1 - m.pct) * 100).toFixed(1)}%</span><span><i />margin {(m.pct * 100).toFixed(1)}%</span></div>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {showForm && (
-        <div style={backdrop} onClick={() => setShowForm(false)}>
-          <div style={modal} onClick={e => e.stopPropagation()}>
-            <div style={modalHeader}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setShowForm(false)}>
+          <div style={S.modal} className="k-modal" role="dialog" aria-modal="true" aria-label={`${editingId ? 'Edit' : 'New'} Fuel Grade`} onClick={e => e.stopPropagation()}>
+            <div style={S.modalHeader}>
               <h3 style={{ margin: 0 }}>{editingId ? 'Edit' : 'New'} Fuel Grade</h3>
-              <button onClick={() => setShowForm(false)} style={iconBtn}><FiX /></button>
+              <button onClick={() => setShowForm(false)} style={S.iconBtn} aria-label="Close"><FiX /></button>
             </div>
             <form onSubmit={save}>
-              {err && <div style={errBox}>{err}</div>}
-              <div style={formGrid}>
-                <label style={lbl}>Code *<input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} required style={input} placeholder="PMS / AGO / DPK" /></label>
-                <label style={lbl}>Name *<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required style={input} placeholder="Petrol / Diesel / Paraffin" /></label>
-                <label style={lbl}>Unit<input value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} style={input} /></label>
-                <label style={lbl}>Selling Price (K / litre) *<input type="number" step="0.0001" value={form.selling_price} onChange={e => setForm({ ...form, selling_price: e.target.value })} required style={input} /></label>
-                <label style={lbl}>Cost Price (K / litre, WAC)<input type="number" step="0.0001" value={form.cost_price} onChange={e => setForm({ ...form, cost_price: e.target.value })} style={input} /></label>
-                <label style={lbl}>Status
-                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={input}>
+              {err && <div style={S.errBox}>{err}</div>}
+              <div style={S.formGrid} className="k-form-grid">
+                <label style={S.lbl}>Code *<input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} required style={S.input} placeholder="PMS / AGO / DPK" /></label>
+                <label style={S.lbl}>Name *<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required style={S.input} placeholder="Petrol / Diesel / Paraffin" /></label>
+                <label style={S.lbl}>Unit<input value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} style={S.input} /></label>
+                <label style={S.lbl}>Selling Price (K / litre) *<input type="number" step="0.0001" value={form.selling_price} onChange={e => setForm({ ...form, selling_price: e.target.value })} required style={S.input} /></label>
+                <label style={S.lbl}>Cost Price (K / litre, WAC)<input type="number" step="0.0001" value={form.cost_price} onChange={e => setForm({ ...form, cost_price: e.target.value })} style={S.input} /></label>
+                <label style={S.lbl}>Status
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={S.input}>
                     <option>Active</option><option>Inactive</option>
                   </select>
                 </label>
-                <label style={{ ...lbl, gridColumn: '1 / -1' }}>Color
-                  <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <fieldset className="k-gr-colors" style={{ gridColumn: '1 / -1' }}>
+                  <legend>Colour <span>— used for this grade on tanks, pumps and reports</span></legend>
+                  <div role="radiogroup" aria-label="Grade colour">
                     {DEFAULT_COLORS.map(c => (
-                      <button key={c} type="button" onClick={() => setForm({ ...form, color: c })}
-                        style={{ width: 28, height: 28, borderRadius: '50%', background: c, border: form.color === c ? '3px solid #111' : '1px solid #ddd', cursor: 'pointer' }} />
+                      <button key={c} type="button" role="radio" aria-checked={form.color === c} onClick={() => setForm({ ...form, color: c })}
+                        className={`k-gr-swatch${form.color === c ? ' is-on' : ''}`} style={{ '--k-g': c }}>
+                        <i aria-hidden="true">{form.color === c && <FiCheck />}</i>{COLOR_NAMES[c]}
+                      </button>
                     ))}
                   </div>
-                </label>
+                </fieldset>
+                {(() => {
+                  const m = gradeMargin(form.selling_price, form.cost_price);
+                  return !m.unknownCost && Number(form.selling_price) > 0 ? (
+                    <div className={`k-gr-live${m.below ? ' is-below' : ''}`} style={{ gridColumn: '1 / -1' }} aria-live="polite">
+                      Margin per litre: <b className="k-fc-num">K {m.perL.toFixed(4)}</b> ({(m.pct * 100).toFixed(1)}% of the price){m.below ? ' — below cost' : ''}
+                    </div>
+                  ) : null;
+                })()}
               </div>
-              <div style={modalFooter}>
-                <button type="button" onClick={() => setShowForm(false)} style={btnSecondary}>Cancel</button>
-                <button type="submit" disabled={saving} style={btnPrimary}>{saving ? 'Saving...' : 'Save'}</button>
+              <div style={S.modalFooter}>
+                <button type="button" onClick={() => setShowForm(false)} style={S.btnSecondary}>Cancel</button>
+                <button type="submit" disabled={saving} style={S.btnPrimary}>{saving ? 'Saving...' : 'Save'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
+      {dialog}
     </div>
   );
 }
-
-const card = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' };
-const table = { width: '100%', borderCollapse: 'collapse' };
-const th = { textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: '#6b7280', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' };
-const td = { padding: '12px 16px', fontSize: 14 };
-const btnPrimary = { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#2563eb', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer', fontWeight: 500 };
-const btnSecondary = { padding: '10px 16px', background: '#f3f4f6', color: '#111', border: 0, borderRadius: 6, cursor: 'pointer' };
-const iconBtn = { background: 'transparent', border: 0, padding: 6, cursor: 'pointer', color: '#374151', marginRight: 4 };
-const iconBtnDanger = { ...iconBtn, color: '#dc2626' };
-const backdrop = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
-const modal = { background: '#fff', borderRadius: 10, width: 'min(560px, 94vw)', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
-const modalHeader = { padding: 20, borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' };
-const modalFooter = { padding: 20, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8, justifyContent: 'flex-end' };
-const formGrid = { padding: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 };
-const lbl = { display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 500, color: '#374151' };
-const input = { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, marginTop: 2 };
-const errBox = { margin: 20, padding: 12, background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 6, fontSize: 14 };
