@@ -13,6 +13,7 @@
 // directly so drawer Expected reflects today's outflow / inflow without
 // hitting profit.
 import React, { useEffect, useState, useRef } from 'react';
+import { useDialog } from '../ux/ForecourtKit';
 import {
   FiSend, FiCheck, FiX, FiRefreshCw, FiInbox, FiArrowUpRight, FiArrowDownLeft, FiTrash2, FiEdit2,
   FiPaperclip, FiCamera, FiUpload, FiEye, FiFileText, FiImage,
@@ -50,6 +51,7 @@ const parseAttachments = (raw) => {
 };
 
 const HQDeposits = () => {
+  const [dialog, ui] = useDialog();   // in-app boxes: window.prompt is blocked in the Electron tills
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown, autoDeposit } = useCurrency();
   const onHq = isHqHost();
   const isDual = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
@@ -216,16 +218,16 @@ const HQDeposits = () => {
     // time (e.g. cash arrived last week but they're only clicking
     // confirm now). Blank = keep the branch's original date.
     const currentDate = d.deposit_date || businessToday();
-    const input = window.prompt(
-      `Confirm deposit ${d.deposit_number}?\n\n` +
-      `Effective date (YYYY-MM-DD). Cash Book will show it under this date.\n` +
-      `Leave as-is to keep the branch's original date.`,
-      currentDate
-    );
+    const input = await ui.prompt({
+      title: `Confirm deposit ${d.deposit_number}`, okLabel: 'Confirm deposit',
+      text: 'Effective date — the Cash Book will show it under this date. Leave as-is to keep the branch\'s original date.',
+      label: 'Effective date', type: 'date', defaultValue: currentDate,
+      pattern: /^\d{4}-\d{2}-\d{2}$/, patternHint: 'Date must be YYYY-MM-DD.',
+    });
     if (input === null) return; // user cancelled
     const trimmed = String(input).trim();
     const dateOk = /^\d{4}-\d{2}-\d{2}$/.test(trimmed);
-    if (trimmed && !dateOk) { alert('Date must be YYYY-MM-DD.'); return; }
+    if (trimmed && !dateOk) { await ui.alert({ title: 'Check the date', text: 'Date must be YYYY-MM-DD.' }); return; }
 
     // v1.10.83 — moving a deposit to a different accounting date shifts
     // where it lands in the Cash Book. That's a sensitive edit, so it
@@ -247,17 +249,17 @@ const HQDeposits = () => {
   // Same UX as handleConfirm's date-change path: prompt for a new date,
   // then require admin password before writing. Backend uses PUT /date
   // (not /confirm) because the row is already CONFIRMED.
-  const handleEditDate = (d) => {
+  const handleEditDate = async (d) => {
     const currentDate = d.deposit_date || businessToday();
-    const input = window.prompt(
-      `Edit accounting date for ${d.deposit_number}?\n\n` +
-      `Cash Book will move this deposit to the new date on BOTH sides\n` +
-      `(the money in on one side, out on the other).`,
-      currentDate
-    );
+    const input = await ui.prompt({
+      title: `Edit accounting date for ${d.deposit_number}`, okLabel: 'Continue',
+      text: 'The Cash Book will move this deposit to the new date on BOTH sides (the money in on one side, out on the other).',
+      label: 'New accounting date', type: 'date', defaultValue: currentDate,
+      pattern: /^\d{4}-\d{2}-\d{2}$/, patternHint: 'Date must be YYYY-MM-DD.',
+    });
     if (input === null) return;
     const trimmed = String(input).trim();
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) { alert('Date must be YYYY-MM-DD.'); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) { await ui.alert({ title: 'Check the date', text: 'Date must be YYYY-MM-DD.' }); return; }
     if (trimmed === d.deposit_date) return; // no change
     setPendingDateChange({ deposit: d, newDate: trimmed, mode: 'edit' });
   };
@@ -301,16 +303,14 @@ const HQDeposits = () => {
     // 2026-08-28 — deleting a deposit now records WHY. This is cash handed
     // from a branch to HQ; removing it silently changes both sides' books
     // with nothing to say who did it or on what grounds.
-    const reason = window.prompt(
-      `Delete this deposit?
-
-${label}${extra}
-
-Reason (required, kept on record):`
-    );
+    const reason = await ui.prompt({
+      title: 'Delete this deposit?', okLabel: 'Delete deposit', danger: true,
+      text: `${label}${extra}`,
+      label: 'Reason (required, kept on record)', minLength: 3,
+    });
     if (reason === null) return;                     // cancelled
     if (reason.trim().length < 3) {
-      alert('Please give a reason of at least 3 characters — it is kept on the deposit record.');
+      await ui.alert({ title: 'Reason needed', text: 'Please give a reason of at least 3 characters — it is kept on the deposit record.' });
       return;
     }
     try {
@@ -380,6 +380,7 @@ Reason (required, kept on record):`
 
   return (
     <div className="page-content">
+      {dialog}
       <div className="page-header">
         <div>
           {/* 2026-09-18 — a depot that deposits to another depot (Bankers →

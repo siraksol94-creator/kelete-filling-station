@@ -255,6 +255,7 @@ automatically at start-up, once, each in its own transaction.
 | 39 | UX-11 | Account Receivables: debt by age, credit used, oldest-debt chips; ageing counts opening balances | — |
 | 40 | UX-11b | Account Receivables rebuilt; Fuel Cash Report cards as a money flow (frontend only) | — |
 | 41 | Fix | Account Receivables in the menu at head office; `{{count}}` in translated texts filled in | — |
+| 42 | Fix | Reason and date boxes on HQ Deposits, GRN Archive and Payment Voucher work on the tills (no `window.prompt`) | — |
 
 Before tagging, on the test machine:
 

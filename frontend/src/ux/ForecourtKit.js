@@ -3,9 +3,12 @@
 //   <PageHero icon title subtitle date actions />  the page header
 //   <EmptyState art title text action />          nothing here yet, and what to do
 //   <Ring value max label sub tone />               a progress ring (work done, never money)
-//   const [dialog, ui] = useDialog();               in-app confirm / alert
+//   const [dialog, ui] = useDialog();               in-app confirm / alert / prompt
 //     if (!(await ui.confirm({ title, text, okLabel, danger }))) return;
 //     await ui.alert({ title, text });
+//     const why = await ui.prompt({ title, text, label, minLength: 3 });   // string, or null if cancelled
+//     const day = await ui.prompt({ title, text, label, type: 'date', defaultValue });
+//   window.prompt is silently blocked in the Electron tills — use ui.prompt.
 //     return <>…{dialog}</>;
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
@@ -66,25 +69,45 @@ export function Ring({ value, max, label, sub, size = 88, tone }) {
   );
 }
 
-function Dialog({ kind, title, text, okLabel, cancelLabel, danger, onDone }) {
+function Dialog({ kind, title, text, okLabel, cancelLabel, danger, onDone, label, type = 'text', defaultValue = '', minLength = 0, pattern, patternHint, placeholder }) {
   const okRef = useRef(null);
-  useEffect(() => { const t = setTimeout(() => okRef.current && okRef.current.focus(), 30); return () => clearTimeout(t); }, []);
-  const cancel = () => onDone(false);
+  const inRef = useRef(null);
+  const [value, setValue] = useState(defaultValue == null ? '' : String(defaultValue));
+  const [err, setErr] = useState('');
+  useEffect(() => { const t = setTimeout(() => (kind === 'prompt' ? inRef.current : okRef.current)?.focus(), 30); return () => clearTimeout(t); }, [kind]);
+  const cancel = () => onDone(kind === 'prompt' ? null : false);
+  const submit = () => {
+    if (kind !== 'prompt') { onDone(true); return; }
+    const v = value.trim();
+    if (minLength && v.length < minLength) { setErr(`Please give at least ${minLength} characters.`); inRef.current && inRef.current.focus(); return; }
+    if (pattern && v && !pattern.test(v)) { setErr(patternHint || 'Please check the format.'); inRef.current && inRef.current.focus(); return; }
+    onDone(value);
+  };
   return ReactDOM.createPortal(
     <div className="k-help-backdrop" onClick={(e) => { if (e.target === e.currentTarget) cancel(); }}
       onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); cancel(); } }}>
-      <div className="k-pw-dialog k-fc-dialog" role={kind === 'confirm' ? 'alertdialog' : 'dialog'} aria-modal="true"
+      <div className="k-pw-dialog k-fc-dialog" role={kind === 'alert' ? 'dialog' : 'alertdialog'} aria-modal="true"
         aria-labelledby="k-fc-dlg-title" aria-describedby="k-fc-dlg-text">
         <div className="k-pw-head">
           <span className={`k-pw-icon${danger ? ' k-fc-icon-danger' : ''}`} aria-hidden="true">{danger ? <FiAlertTriangle /> : <FiInfo />}</span>
           <h2 id="k-fc-dlg-title">{title}</h2>
           <button type="button" className="k-icon-btn" onClick={cancel} aria-label="Close"><FiX /></button>
         </div>
-        <p id="k-fc-dlg-text" className="k-fc-dialog-text">{text}</p>
+        {text && <p id="k-fc-dlg-text" className="k-fc-dialog-text">{text}</p>}
+        {kind === 'prompt' && (
+          <label className="k-login-field k-fc-prompt">
+            {label && <span>{label}</span>}
+            <input ref={inRef} type={type} value={value} placeholder={placeholder}
+              onChange={(e) => { setValue(e.target.value); if (err) setErr(''); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
+              aria-invalid={err ? 'true' : undefined} aria-describedby={err ? 'k-fc-dlg-err' : undefined} />
+            {err && <span id="k-fc-dlg-err" className="k-field-error" role="alert">{err}</span>}
+          </label>
+        )}
         <div className="k-pw-actions">
-          {kind === 'confirm' && <button type="button" className="k-btn k-btn-quiet" onClick={cancel}>{cancelLabel || 'Cancel'}</button>}
-          <button ref={okRef} type="button" className={`k-btn ${danger ? 'k-btn-danger' : 'k-btn-primary'}`} onClick={() => onDone(true)}>
-            {okLabel || (kind === 'confirm' ? 'OK' : 'OK')}
+          {kind !== 'alert' && <button type="button" className="k-btn k-btn-quiet" onClick={cancel}>{cancelLabel || 'Cancel'}</button>}
+          <button ref={okRef} type="button" className={`k-btn ${danger ? 'k-btn-danger' : 'k-btn-primary'}`} onClick={submit}>
+            {okLabel || 'OK'}
           </button>
         </div>
       </div>
@@ -99,11 +122,12 @@ export function useDialog() {
   const [req, setReq] = useState(null);
   const open = useCallback((kind, opts) => new Promise((resolve) => {
     const o = typeof opts === 'string' ? { text: opts } : (opts || {});
-    setReq({ kind, title: o.title || (kind === 'confirm' ? 'Please confirm' : 'Notice'), ...o, resolve });
+    setReq({ kind, title: o.title || (kind === 'confirm' ? 'Please confirm' : kind === 'prompt' ? 'Please answer' : 'Notice'), ...o, resolve });
   }), []);
   const ui = React.useMemo(() => ({
     confirm: (o) => open('confirm', o),
     alert: (o) => open('alert', o).then(() => undefined),
+    prompt: (o) => open('prompt', o),
   }), [open]);
   const dialog = req ? <Dialog {...req} onDone={(v) => { const r = req.resolve; setReq(null); r(v); }} /> : null;
   return [dialog, ui];
