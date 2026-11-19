@@ -30,7 +30,24 @@ router.get('/', auth, (req, res) => {
         ${whereActive}
        ORDER BY n.code
     `).all();
-    const grouped = pumps.map(p => ({ ...p, nozzles: nozzles.filter(n => n.pump_id === p.id) }));
+    // UX-8 — who is on each pump right now: attendants whose OPEN shift has
+    // a reading on one of its nozzles (read-only; for the pump island view).
+    let onShift = [];
+    try {
+      onShift = db.prepare(`
+        SELECT DISTINCT n.pump_id, s.id AS shift_id, s.attendant_user_id,
+               TRIM(COALESCE(u.first_name, '') || ' ' || COALESCE(u.last_name, '')) AS attendant_name
+          FROM shift_nozzle_readings snr
+          JOIN attendant_shifts s ON s.id = snr.shift_id AND s.status = 'Open'
+          JOIN nozzles n ON n.id = snr.nozzle_id
+          LEFT JOIN users u ON u.id = s.attendant_user_id
+         ORDER BY attendant_name`).all();
+    } catch (_) { onShift = []; }
+    const grouped = pumps.map(p => ({
+      ...p,
+      nozzles: nozzles.filter(n => n.pump_id === p.id),
+      on_shift: onShift.filter(o => o.pump_id === p.id).map(({ pump_id, ...o }) => o),
+    }));
     res.json(grouped);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

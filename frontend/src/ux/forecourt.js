@@ -53,3 +53,26 @@ export function dipBand(variance, bookLitres) {
 
 // Space left in a tank (never negative).
 export const spaceLeft = (capacity, volume) => Math.max(0, num(capacity) - num(volume));
+
+// UX-8 — a delivery checked three ways: what was ordered, what the invoice
+// says was delivered, and what the dips show went in (dip after − dip
+// before). Differences are shown in full; the band uses the same ±0.5% /
+// ±1% rule as the dips, measured against the litres delivered.
+export function deliveryCheck(d) {
+  const has = (v) => v !== '' && v != null && Number.isFinite(Number(v));
+  const delivered = num(d && d.litres_delivered);
+  const ordered = has(d && d.litres_ordered) ? num(d.litres_ordered) : null;
+  const dipped = has(d && d.dip_before) && has(d && d.dip_after) ? num(d.dip_after) - num(d.dip_before) : null;
+  const vsOrdered = ordered == null ? null : Math.round((delivered - ordered) * 100) / 100;
+  const vsDipped = dipped == null ? null : Math.round((dipped - delivered) * 100) / 100;
+  const band = vsDipped == null ? null : dipBand(vsDipped, delivered);
+  return { delivered, ordered, dipped, vsOrdered, vsDipped, band };
+}
+
+// Will a delivery fit? The tank after it, and by how much it would overflow.
+export function fitCheck(capacity, current, litres) {
+  const cap = num(capacity), now = num(current), add = Math.max(0, num(litres));
+  const after = now + add;
+  const over = cap > 0 ? Math.max(0, after - cap) : 0;
+  return { after, over, fits: over === 0, space: Math.max(0, cap - now), pctAfter: cap > 0 ? Math.min(1, after / cap) : 0 };
+}

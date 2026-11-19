@@ -268,6 +268,13 @@
    "covers": "UX-7",
    "what": "Fuel screens' shared look (header, numbers, dialogs); Tanks: 3D cards, space left, last dip/delivery, dip ring with ±0.5%/1% bands, ledger chart. Read-only /api/tanks/insights",
    "migrations": []
+  },
+  {
+   "n": 36,
+   "subject": "UX-8: Fuel Deliveries timeline with the three-way check and will-it-fit; Pumps & Nozzles as a forecourt with meters and who is on shift (for review)",
+   "covers": "UX-8",
+   "what": "Deliveries: timeline, ordered vs invoice vs dips (±0.5%/1% bands), will-it-fit preview; Pumps: dispenser drawings, meter displays, who is on shift. Read-only extras on GET /pumps and GET /fuel-deliveries",
+   "migrations": []
   }
  ],
  "migrations": [

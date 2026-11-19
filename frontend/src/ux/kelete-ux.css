@@ -805,3 +805,114 @@
 .k-tk-stage .k-tanks-mini .k-tank-link-label { font-size: 12px; }
 .k-tk-members { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: -4px; padding: 0 2px; font-size: 12.5px; color: #475569; font-variant-numeric: tabular-nums; }
 .k-tk-members b { color: #0f172a; }
+
+/* ── UX-8 · Fuel Deliveries ─────────────────────────────────────────── */
+.k-dl-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 0 0 16px; }
+.k-dl-summary > div { display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; }
+.k-dl-summary span { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
+.k-dl-summary strong { font-size: 20px; font-weight: 800; color: #0f172a; }
+.k-dl-summary em { font-style: normal; font-size: 12.5px; color: #475569; }
+.k-dl-list { list-style: none; margin: 0; padding: 0; position: relative; }
+.k-dl-list::before { content: ''; position: absolute; left: 27px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(#e2e8f0, #cbd5e1, #e2e8f0); }
+.k-dl-item { position: relative; display: grid; grid-template-columns: 56px 1fr; gap: 12px; margin-bottom: 14px; }
+.k-dl-when { position: relative; z-index: 1; width: 56px; height: 56px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; color: #fff; box-shadow: 0 6px 14px -8px rgba(15, 23, 42, .7); }
+.k-dl-when b { font-size: 20px; line-height: 1; }
+.k-dl-when span { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #fde68a; margin-top: 2px; }
+.k-dl-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 14px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+.k-dl-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.k-dl-num { font-weight: 800; color: #0f172a; font-size: 15px; }
+.k-dl-num span { font-weight: 600; color: #475569; font-size: 13px; }
+.k-dl-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; font-size: 13px; color: #334155; }
+.k-dl-tank { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #0f172a; }
+.k-dl-tank i { width: 10px; height: 10px; border-radius: 3px; }
+.k-dl-body { display: grid; grid-template-columns: minmax(220px, auto) 1fr; gap: 14px; align-items: center; margin-top: 10px; }
+.k-dl-main { display: flex; align-items: center; gap: 12px; }
+.k-dl-litres { font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -.01em; }
+.k-dl-cost { font-size: 13px; color: #475569; }
+.k-dl-cost b { color: #0f172a; }
+.k-dl-check { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.k-dl-check > div { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border-radius: 12px; background: #f8fafc; border: 1px solid #eef2f7; min-width: 0; }
+.k-dl-check dt { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
+.k-dl-check dd { margin: 0; font-size: 15px; font-weight: 800; color: #0f172a; }
+.k-dl-diff { font-size: 12px; color: #475569; }
+.k-dl-check .k-fc-band { margin-top: 3px; }
+.k-dl-notes { margin: 10px 0 0; font-size: 13px; color: #334155; border-top: 1px dashed #e2e8f0; padding-top: 8px; }
+.k-dl-form { display: grid; grid-template-columns: 1fr 260px; gap: 0; }
+.k-dl-preview { padding: 18px 18px 18px 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.k-dl-preview h4 { margin: 0; align-self: flex-start; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #475569; }
+.k-dl-fit { margin: 0; width: 100%; display: grid; gap: 4px; }
+.k-dl-fit > div { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.k-dl-fit dt { color: #475569; }
+.k-dl-fit dd { margin: 0; font-weight: 800; color: #0f172a; text-align: right; }
+.k-dl-fit dd span { font-weight: 600; color: #475569; }
+.k-dl-ok, .k-dl-over { width: 100%; display: flex; gap: 6px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; font-size: 13px; font-weight: 700; }
+.k-dl-ok { background: #f0fdf4; color: #14532d; border: 1px solid #bbf7d0; }
+.k-dl-over { background: #fef2f2; color: #7f1d1d; border: 1px solid #fecaca; }
+.k-dl-live { width: 100%; font-size: 12.5px; color: #334155; line-height: 1.5; padding: 8px 10px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0; }
+.k-dl-live .k-fc-band { margin-left: 4px; }
+.k-tanker.is-moving .k-tanker-wheel { animation: k-wheel 1.2s linear infinite; }
+.k-tanker.is-moving { animation: k-tanker-roll 3.6s ease-in-out infinite; }
+@keyframes k-wheel { to { transform: rotate(360deg); } }
+@keyframes k-tanker-roll { 0%, 100% { transform: translateX(-8px); } 50% { transform: translateX(8px); } }
+@media (max-width: 820px) {
+  .k-dl-body { grid-template-columns: 1fr; }
+  .k-dl-form { grid-template-columns: 1fr; }
+  .k-dl-preview { padding: 0 20px 16px; }
+}
+@media (max-width: 520px) {
+  .k-dl-list::before { left: 19px; }
+  .k-dl-item { grid-template-columns: 40px 1fr; gap: 8px; }
+  .k-dl-when { width: 40px; height: 46px; border-radius: 12px; }
+  .k-dl-when b { font-size: 16px; }
+  .k-dl-check { grid-template-columns: 1fr 1fr; }
+  .k-dl-check > div:last-child { grid-column: 1 / -1; }
+  .k-dl-main .k-tanker { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .k-tanker.is-moving, .k-tanker.is-moving .k-tanker-wheel { animation: none; } }
+
+/* ── UX-8 · Pumps & Nozzles ─────────────────────────────────────────── */
+.k-pumps { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 16px; }
+.k-pump-card { display: grid; grid-template-columns: 150px 1fr; gap: 14px; background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; padding: 14px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 14px 28px -24px rgba(15, 23, 42, .5); }
+.k-pump-art { display: flex; align-items: center; justify-content: center; border-radius: 14px; padding: 8px 4px 2px;
+  background: radial-gradient(ellipse 80% 30% at 50% 96%, rgba(15, 23, 42, .1), transparent 70%), linear-gradient(180deg, #f1f5f9, #fff 70%); }
+.k-pump-code { font: 800 13px Inter, system-ui, sans-serif; fill: #fff; letter-spacing: .08em; }
+.k-pump-lcd { font: 700 10px ui-monospace, "SFMono-Regular", Consolas, monospace; fill: #6ee7b7; }
+.k-pump-lcd-name { font: 700 7px Inter, system-ui, sans-serif; fill: #a7f3d0; letter-spacing: .06em; }
+.k-pump-noz { font: 800 6.5px Inter, system-ui, sans-serif; fill: #e2e8f0; }
+.k-pump.is-live .k-pump-glow { animation: k-pump-glow 2.4s ease-in-out infinite; }
+@keyframes k-pump-glow { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+.k-pump-main { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.k-pump-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.k-pump-head h3 { margin: 0; font-size: 18px; font-weight: 800; color: #0f172a; }
+.k-pump-head h3 span { font-size: 14px; font-weight: 600; color: #475569; margin-left: 4px; }
+.k-pump-crew { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; font-size: 12.5px; color: #475569; }
+.k-pump-crew.is-on { color: #14532d; font-weight: 700; }
+.k-pump-dot { width: 8px; height: 8px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 0 0 rgba(22, 163, 74, .6); animation: k-pump-ping 2s ease-out infinite; }
+@keyframes k-pump-ping { 0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, .55); } 100% { box-shadow: 0 0 0 9px rgba(22, 163, 74, 0); } }
+.k-pump-who { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 999px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #14532d; }
+.k-pump-tools { display: flex; align-items: center; gap: 2px; }
+.k-noz-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.k-noz { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: #f8fafc; border: 1px solid #eef2f7; border-left: 4px solid var(--k-noz); }
+.k-noz-code { min-width: 40px; height: 40px; padding: 0 6px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: #0f172a; color: #fff; font-weight: 800; font-size: 13px; box-shadow: inset 0 -3px 0 var(--k-noz); }
+.k-noz-info { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.k-noz-tank { font-size: 12.5px; color: #475569; font-weight: 600; }
+.k-noz-price { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.k-noz-price span { font-size: 10.5px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: .05em; }
+.k-noz-price b { font-size: 15px; color: #0f172a; }
+.k-noz-tools { display: flex; }
+.k-noz-empty { padding: 14px; text-align: center; color: #475569; font-size: 13px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; }
+.k-meter { display: inline-flex; align-items: center; gap: 2px; padding: 4px 6px; border-radius: 8px; background: #0b1220; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .6); width: fit-content; }
+.k-meter b { display: inline-block; min-width: 13px; padding: 2px 1px; border-radius: 3px; background: linear-gradient(#1e293b, #0f172a 50%, #1e293b); color: #f8fafc; font: 700 13px ui-monospace, "SFMono-Regular", Consolas, monospace; text-align: center; }
+.k-meter b.is-pad { color: #94a3b8; }
+.k-meter b.is-frac { color: #fde68a; }
+.k-meter i { color: #fde68a; font-style: normal; font-weight: 800; }
+.k-meter em { font-style: normal; color: #cbd5e1; font: 700 11px Inter, system-ui, sans-serif; margin-left: 4px; }
+@media (max-width: 640px) {
+  .k-pumps { grid-template-columns: 1fr; }
+  .k-pump-card { grid-template-columns: 1fr; }
+  .k-pump-art { max-height: 190px; }
+  .k-noz { grid-template-columns: auto 1fr auto; }
+  .k-noz-price { grid-column: 2; grid-row: 2; align-items: flex-start; flex-direction: row; gap: 6px; align-items: baseline; }
+  .k-noz-tools { grid-column: 3; grid-row: 1 / span 2; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) { .k-pump.is-live .k-pump-glow, .k-pump-dot { animation: none; } }

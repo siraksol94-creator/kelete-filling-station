@@ -24,6 +24,7 @@ router.get('/', auth, supervisorsOnly, (req, res) => {
     const rows = db.prepare(`
       SELECT fd.*, t.code AS tank_code, t.name AS tank_name,
              fg.code AS grade_code, fg.name AS grade_name,
+             fg.color AS grade_color, t.capacity_litres AS tank_capacity,   -- UX-8 (read-only extras)
              s.name AS supplier_name
         FROM fuel_deliveries fd
         LEFT JOIN tanks t ON t.id = fd.tank_id
