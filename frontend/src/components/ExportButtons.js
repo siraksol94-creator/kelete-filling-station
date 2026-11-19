@@ -71,7 +71,7 @@ export default function ExportButtons({
         onClick={() => run('xlsx', () => exportRowsToXlsx(rows, columns, filename, sheetName))}
         disabled={disabled || busy}
         title={disabled ? 'No rows to export' : 'Download as Excel (.xlsx)'}
-        style={btnStyle('#16a34a', disabled)}>
+        style={btnStyle('#15803d', disabled)}>
         <FiDownload size={12} /> {busy === 'xlsx' ? '…' : (compact ? 'XLS' : 'Excel')}
       </button>
       <button

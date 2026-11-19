@@ -244,7 +244,9 @@ router.get('/aging', auth, readOnlyGuard, (req, res) => {
         COALESCE(orders_agg.total_sold, 0)       AS total_sold,
         COALESCE(orders_agg.cash_at_sale, 0)     AS cash_at_sale,
         COALESCE(payments_agg.total_paid, 0)     AS total_paid,
-        COALESCE(orders_agg.total_sold, 0)
+        -- UX-11: the opening balance counts, as it does in the list (2026-09-07).
+        COALESCE(c.opening_balance, 0)
+          + COALESCE(orders_agg.total_sold, 0)
           - COALESCE(orders_agg.cash_at_sale, 0)
           - COALESCE(payments_agg.total_paid, 0) AS outstanding
       FROM customers c
@@ -266,7 +268,8 @@ router.get('/aging', auth, readOnlyGuard, (req, res) => {
         GROUP BY customer_sync_id
       ) payments_agg ON payments_agg.customer_sync_id = c.sync_id
       WHERE c.deleted_at IS NULL AND c.tenant_id = ?
-        AND COALESCE(orders_agg.total_sold, 0)
+        AND COALESCE(c.opening_balance, 0)
+          + COALESCE(orders_agg.total_sold, 0)
           - COALESCE(orders_agg.cash_at_sale, 0)
           - COALESCE(payments_agg.total_paid, 0) > 0.01
       ORDER BY c.name
@@ -287,13 +290,22 @@ router.get('/aging', auth, readOnlyGuard, (req, res) => {
       const buckets = { current: 0, '1_30': 0, '31_60': 0, '61_90': 0, '90_plus': 0 };
       const today = new Date();
       const terms = parseInt(c.payment_terms_days || 0);
-      for (const o of orders) {
+      // UX-11 — the opening balance (carried over from the old system) is the
+      // oldest debt: payments clear it first, and what is left of it is aged
+      // from the day the customer was added (it has no date of its own).
+      const opening = Math.max(0, parseFloat(c.opening_balance || 0));
+      const debts = [];
+      if (opening > 0.001) debts.push({ total_amount: opening, cash_at_sale: 0, order_date: String(c.created_at || '').slice(0, 10) || new Date().toISOString().slice(0, 10), opening: true });
+      for (const o of orders) debts.push(o);
+      let openingLeft = 0;
+      for (const o of debts) {
         // Only the credit portion of this order is part of AR
         const creditPortion = Math.max(0, parseFloat(o.total_amount) - parseFloat(o.cash_at_sale));
         if (creditPortion <= 0.001) continue;
         if (remaining >= creditPortion) { remaining -= creditPortion; continue; }
         const unpaid = creditPortion - remaining;
         remaining = 0;
+        if (o.opening) openingLeft = unpaid;
         const orderDate = new Date(o.order_date + 'T00:00:00');
         const dueDate = new Date(orderDate.getTime() + terms * 86400000);
         const daysOver = Math.floor((today - dueDate) / 86400000);
@@ -307,6 +319,7 @@ router.get('/aging', auth, readOnlyGuard, (req, res) => {
         id: c.id, name: c.name, type: c.type, phone: c.phone,
         credit_limit: c.credit_limit, payment_terms_days: c.payment_terms_days, credit_status: c.credit_status,
         total_sold: c.total_sold, total_paid: c.total_paid, outstanding: c.outstanding,
+        opening_balance: Math.max(0, parseFloat(c.opening_balance || 0)), opening_unpaid: Math.round(openingLeft * 100) / 100,
         ...buckets,
       };
     });

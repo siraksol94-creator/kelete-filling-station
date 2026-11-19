@@ -1650,6 +1650,11 @@
    "method": "GET",
    "path": "/customers/aging",
    "perms": [
+    "AccountReceivables:Add",
+    "AccountReceivables:Delete",
+    "AccountReceivables:Edit",
+    "AccountReceivables:View",
+    "Accounting",
     "Customers",
     "Customers:Add",
     "Customers:Delete",
@@ -1657,6 +1662,7 @@
     "Customers:View"
    ],
    "screens": [
+    "accounting/account-receivables",
     "suppliers-customers/customers"
    ]
   },
