@@ -1,17 +1,17 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock } from 'react-icons/fi';
+import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock, FiLock } from 'react-icons/fi';
 import { getDailyRollup, finalizeShift, getDaySummary, approveShift, unApproveShift, getShifts } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S, shade } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { useHotkeys } from '../ux/useHotkeys';
 import { dayProgress, shiftSteps } from '../ux/fuelProgress';
-import { StepTrail, VarianceBadge, ShortcutHelp, ShortcutHint } from '../ux/components';
+import { StepTrail, ShortcutHelp, ShortcutHint } from '../ux/components';
 import FuelLoader from '../ux/FuelLoader';
 import AttendantAvatar, { Celebration } from '../ux/AttendantAvatar';
 import { profileFor, milestones } from '../ux/attendantLevel';
 // UX-10 — shared header, in-app dialogs, the station-day ring.
-import { PageHero, useDialog } from '../ux/ForecourtKit';
+import { PageHero, EmptyState, useDialog } from '../ux/ForecourtKit';
 import StationDay from '../ux/StationDay';
 
 // "YYYY-MM-DD" ± n days, on the calendar (no time zone involved).
@@ -189,32 +189,40 @@ export default function FuelCashReport() {
       {!loaded ? (
         <div style={S.card}><FuelLoader message="Loading the day's shifts…" /></div>
       ) : rows.length === 0 ? (
-        <div style={{ ...S.card, padding: 40, textAlign: 'center', color: '#6b7280' }}>No shifts for this date.</div>
+        <div style={{ ...S.card, padding: 0 }}><EmptyState art={<FiDollarSign size={44} color="#b45309" />} title="No shifts on this day" text="Pick another date with the arrows ([ and ]) or the date box, or open a shift on Attendant Shifts." /></div>
       ) : (
         ['DAY', 'NIGHT'].map(shiftType => {
           const windowShifts = rows.filter(r => (r.shift_type || 'DAY') === shiftType);
           if (windowShifts.length === 0) return null;
           const approval = windowShifts.find(r => r.approval)?.approval || null;
+          const anyOpen = windowShifts.some(r => r.status === 'Open');
           return (
-            <div key={shiftType} style={{ marginBottom: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
-                <h3 style={{ margin: 0, fontSize: 14, fontWeight: 800, color: shiftType === 'DAY' ? '#2563eb' : '#4338ca', letterSpacing: '1px' }}>
-                  {shiftType} SHIFT · {windowShifts.length} attendant{windowShifts.length !== 1 ? 's' : ''}
-                  {approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 8, letterSpacing: 0 }}>APPROVED · {approval.approved_by_name || '—'}</span>}
-                </h3>
-                {isAdmin && (
-                  approval ? (
-                    <button onClick={() => unApprove(shiftType)} disabled={approving === shiftType} style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}>
-                      <FiUnlock /> Un-approve {shiftType}
-                    </button>
+            <section key={shiftType} className={`k-cr-window${approval ? ' is-approved' : ''}`} aria-label={`${shiftType} shift`}>
+              <header className="k-cr-window-head">
+                <div className="k-cr-window-title">
+                  <span className={`k-cr-shift-tag is-${shiftType.toLowerCase()}`}>{shiftType === 'DAY' ? '☀' : '☾'} {shiftType} SHIFT</span>
+                  <span className="k-muted">{windowShifts.length} attendant{windowShifts.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="k-cr-approval">
+                  {approval ? (
+                    <span className="k-cr-approved"><FiShield aria-hidden="true" /> Approved by {approval.approved_by_name || '—'} · cash locked</span>
                   ) : (
-                    <button onClick={() => approve(shiftType)} disabled={approving === shiftType || windowShifts.some(r => r.status === 'Open')} style={{ ...S.btnPrimary, background: '#15803d' }} title={windowShifts.some(r => r.status === 'Open') ? 'Close + finalize all ' + shiftType + ' shifts first' : ''}>
-                      <FiShield /> {approving === shiftType ? 'Approving…' : `Approve ${shiftType}`}
-                    </button>
-                  )
-                )}
-              </div>
-              <div style={{ display: 'grid', gap: 16 }}>
+                    <span className="k-cr-pending">{anyOpen ? `Close every ${shiftType} shift, then count the cash` : 'Ready for an Administrator to approve'}</span>
+                  )}
+                  {isAdmin && (
+                    approval ? (
+                      <button onClick={() => unApprove(shiftType)} disabled={approving === shiftType} style={{ ...S.btnSecondary, color: '#92400e', borderColor: '#fcd34d', background: '#fffbeb' }}>
+                        <FiUnlock /> Un-approve {shiftType}
+                      </button>
+                    ) : (
+                      <button onClick={() => approve(shiftType)} disabled={approving === shiftType || anyOpen} style={{ ...S.btnPrimary, background: '#15803d' }} title={anyOpen ? 'Close + finalize all ' + shiftType + ' shifts first' : ''}>
+                        <FiShield /> {approving === shiftType ? 'Approving…' : `Approve ${shiftType}`}
+                      </button>
+                    )
+                  )}
+                </div>
+              </header>
+              <div className="k-cr-cards">
                 {windowShifts.map(s => {
                   const ip = inputs[s.id] || {};
                   const fuelGross = Number(s.gross_from_nozzles || 0);
@@ -231,49 +239,76 @@ export default function FuelCashReport() {
                   const expected = Math.max(0, gross - nonCash);
                   const variance = Number(ip.payment_cash || 0) - expected;
                   const closed = s.status === 'Closed';
+                  const locked = !!s.approval;
+                  const counted = ip.payment_cash !== '' && ip.payment_cash != null;
+                  const set = (k) => (v) => setInputs({ ...inputs, [s.id]: { ...ip, [k]: v } });
+                  const split = [
+                    { k: 'Credit', v: credit, c: '#7c3aed' }, { k: '1Card', v: onecard, c: '#0e7490' },
+                    { k: 'Mobile money', v: mobileTotal, c: '#ca8a04' }, { k: 'Swipes', v: swipesTotal, c: '#2563eb' },
+                    { k: 'Other', v: otherAmt, c: '#64748b' }, { k: 'Cash expected', v: expected, c: '#15803d' },
+                  ].filter(x => x.v > 0.004);
                   return (
-                    <div key={s.id} style={S.card} onKeyDown={e => cardKeyDown(e, s)}>
-                      <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-                        <div>
-                          <AttendantAvatar profile={profileOf(s)} size={34} showName />
-                          <div style={{ fontSize: 12, color: '#6b7280' }}>
-                            Shift #{s.id} · opened {s.opened_at} ·{' '}
-                            <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span>
-                            {s.approval && <span style={{ ...S.pill('#16a34a'), marginLeft: 6 }}>LOCKED</span>}
+                    <article key={s.id} className={`k-cr-card${locked ? ' is-locked' : ''}${closed ? '' : ' is-open'}`} onKeyDown={e => cardKeyDown(e, s)} aria-label={`${s.attendant_name}, shift ${s.id}`}>
+                      <header className="k-cr-head">
+                        <div className="k-cr-who">
+                          <AttendantAvatar profile={profileOf(s)} size={38} showName />
+                          <div className="k-cr-meta">
+                            <span>Shift #{s.id}</span>
+                            <span>opened {String(s.opened_at || '').slice(11, 16) || '—'}</span>
+                            <span style={S.pill(closed ? '#64748b' : '#16a34a')}>{s.status}</span>
+                            {locked && <span className="k-cr-lock"><FiLock aria-hidden="true" /> Locked</span>}
                           </div>
                           <div style={{ marginTop: 6 }}><StepTrail steps={shiftSteps(s)} /></div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                          {ip.payment_cash !== '' && ip.payment_cash != null
-                            ? <VarianceBadge variance={variance} />
-                            : <span className="k-muted">Enter actual cash</span>}
-                          <button data-k-finalize onClick={() => finalize(s)} disabled={saving === s.id || !!s.approval} style={S.btnPrimary} title={s.approval ? `${shiftType} shift approved — un-approve first` : 'Finalize (Ctrl + Enter while typing on this card)'}>
-                            <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
-                          </button>
+                        <button data-k-finalize onClick={() => finalize(s)} disabled={saving === s.id || locked} style={S.btnPrimary} title={locked ? `${shiftType} shift approved — un-approve first` : 'Finalize (Ctrl + Enter while typing on this card)'}>
+                          <FiCheckCircle /> {saving === s.id ? 'Finalizing…' : (closed ? 'Update' : 'Finalize')}
+                        </button>
+                      </header>
+
+                      <div className="k-cr-body">
+                        <div className="k-cr-flow" aria-label="From sales to the cash that should be in hand">
+                          <FlowRow label="Fuel sales (meters)" value={fuelGross} />
+                          <FlowRow label="Shop sales on this shift" hint="lubricants etc." value={posGross} sign="+" />
+                          <FlowRow label="Gross takings" value={gross} total />
+                          <FlowRow label="Credit tickets" hint="automatic" value={credit} sign="−" />
+                          <FlowRow label="1Card tickets" hint="automatic" value={onecard} sign="−" />
+                          <FlowRow label="Mobile money" hint={posMomo > 0 ? `+ ${fmtK(posMomo)} from the shop till` : null} sign="−" input value={ip.payment_mobile} onChange={set('payment_mobile')} locked={locked} />
+                          <FlowRow label="Swipes" hint={posBank > 0 ? `+ ${fmtK(posBank)} from the shop till` : null} sign="−" input value={ip.payment_swipes} onChange={set('payment_swipes')} locked={locked} />
+                          <FlowRow label="Other" hint="vouchers etc." sign="−" input value={ip.payment_other} onChange={set('payment_other')} locked={locked} />
+                          <FlowRow label="Cash that should be in hand" value={expected} total strong />
+                        </div>
+
+                        <div className="k-cr-count">
+                          <label className="k-cr-cash">
+                            <span>Cash counted *{locked && <FiLock aria-hidden="true" style={{ marginLeft: 6 }} />}</span>
+                            <div className="k-cr-cash-input">
+                              <b aria-hidden="true">K</b>
+                              <input type="number" step="0.01" inputMode="decimal" value={ip.payment_cash || ''} readOnly={locked}
+                                onChange={e => set('payment_cash')(e.target.value)} aria-label={`Cash counted for ${s.attendant_name}`}
+                                title={locked ? 'Shift approved — un-approve to edit' : ''} placeholder="0.00" />
+                            </div>
+                          </label>
+                          <div className={`k-cr-var${!counted ? ' is-waiting' : Math.abs(variance) < 0.01 ? ' is-even' : variance < 0 ? ' is-short' : ' is-over'}`}>
+                            <span>Variance</span>
+                            <strong className="k-fc-num">{counted ? `${variance > 0.004 ? '+' : ''}${fmtK(variance)}` : '—'}</strong>
+                            <em>{!counted ? 'enter the cash counted' : Math.abs(variance) < 0.01 ? 'balanced' : variance < 0 ? 'short — less cash than expected' : 'over — more cash than expected'}</em>
+                          </div>
+                          {gross > 0 && (
+                            <div className="k-cr-split">
+                              <span className="k-cr-split-title">How the takings were paid</span>
+                              <div className="k-cr-split-bar" role="img" aria-label={split.map(x => `${x.k} ${fmtK(x.v)}`).join(', ')}>
+                                {split.map(x => <div key={x.k} style={{ width: `${(x.v / gross) * 100}%`, background: x.c }} />)}
+                              </div>
+                              <div className="k-cr-split-key">{split.map(x => <span key={x.k}><i style={{ background: x.c }} aria-hidden="true" />{x.k}</span>)}</div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, padding: 16 }}>
-                        <StatCell label="Fuel Gross" value={`K ${fuelGross.toFixed(2)}`} />
-                        <StatCell label="POS Sales (lube etc.)" value={`K ${posGross.toFixed(2)}`} />
-                        <StatCell label="Credit (auto)" value={`K ${credit.toFixed(2)}`} />
-                        <StatCell label="1Card (auto)" value={`K ${onecard.toFixed(2)}`} />
-                        <StatCell label={posMomo > 0 ? `Mobile Money (+${posMomo.toFixed(2)} POS)` : 'Mobile Money'} input locked={!!s.approval} value={ip.payment_mobile}
-                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_mobile: v } })} />
-                        <StatCell label={posBank > 0 ? `Swipes (+${posBank.toFixed(2)} POS)` : 'Swipes'} input locked={!!s.approval} value={ip.payment_swipes}
-                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_swipes: v } })} />
-                        <StatCell label="Other (vouchers etc.)" input locked={!!s.approval} value={ip.payment_other}
-                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_other: v } })} />
-                        <StatCell label="Expected Cash" value={`K ${expected.toFixed(2)}`} highlight />
-                        <StatCell label="Actual Cash *" input locked={!!s.approval} value={ip.payment_cash}
-                          onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_cash: v } })} />
-                        <StatCell label="Variance" value={`K ${variance.toFixed(2)}`}
-                          color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#b91c1c' : '#15803d')} />
-                      </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>
-            </div>
+            </section>
           );
         })
       )}
@@ -351,25 +386,24 @@ function DaySummaryPanel({ summary, liveOverride }) {
   }
   const gradeList = Object.values(byGrade).sort((a, b) => (a.grade_name || '').localeCompare(b.grade_name || ''));
 
-  const col = { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16 };
-  const colTitle = { fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, paddingBottom: 8, borderBottom: '2px solid #e5e7eb' };
-  const line = { display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13 };
-  const totLine = { ...line, marginTop: 8, paddingTop: 8, borderTop: '1px solid #e5e7eb', fontWeight: 700, fontSize: 14 };
+  // UX-10b — the Forecourt kit look: soft cards, slate labels, tabular figures.
+  const col = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 16, boxShadow: '0 1px 2px rgba(15,23,42,.04)' };
+  const colTitle = { fontSize: 11, fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10, paddingBottom: 8, borderBottom: '2px solid #f1f5f9' };
+  const line = { display: 'flex', justifyContent: 'space-between', gap: 8, padding: '4px 0', fontSize: 13, color: '#0f172a', fontVariantNumeric: 'tabular-nums' };
+  const totLine = { ...line, marginTop: 8, paddingTop: 8, borderTop: '1px solid #e2e8f0', fontWeight: 800, fontSize: 14 };
 
   return (
     <div style={{ marginTop: 20 }}>
-      <h3 style={{ fontSize: 15, fontWeight: 700, color: '#111', marginBottom: 10 }}>Day Summary</h3>
+      <h3 className="k-cr-section">Day summary · all shifts</h3>
 
       {/* Per-grade totals banner — the 'how much Petrol / Diesel today' answer */}
       {gradeList.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
           {gradeList.map(g => (
-            <div key={g.grade_id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderLeft: `4px solid ${g.grade_color || '#2563eb'}`, borderRadius: 8, padding: 14 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Total {g.grade_name} Sold
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#111', marginTop: 4 }}>{fmtL(g.litres)}</div>
-              <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{fmtK(g.amount)}</div>
+            <div key={g.grade_id} className="k-cr-grade" style={{ '--k-g': g.grade_color || '#0e7490' }}>
+              <div className="k-cr-grade-name"><i aria-hidden="true" />{g.grade_name} sold today</div>
+              <div className="k-cr-grade-l k-fc-num">{fmtL(g.litres)}</div>
+              <div className="k-cr-grade-k k-fc-num">{fmtK(g.amount)}</div>
             </div>
           ))}
         </div>
@@ -380,12 +414,12 @@ function DaySummaryPanel({ summary, liveOverride }) {
         {/* Column 1: Fuel Sales per Pump × Grade */}
         <div style={col}>
           <div style={colTitle}>Fuel Sales</div>
-          {pumpList.length === 0 ? <div style={{ fontSize: 13, color: '#6b7280' }}>No readings.</div> : pumpList.map(p => (
+          {pumpList.length === 0 ? <div style={{ fontSize: 13, color: '#475569' }}>No readings.</div> : pumpList.map(p => (
             <div key={p.pump_code} style={{ marginBottom: 8 }}>
               {p.items.map(it => (
                 <div key={it.grade_id} style={line}>
                   <span>{p.pump_code} {it.grade_name}</span>
-                  <span style={{ color: '#6b7280' }}>{fmtL(it.litres)}</span>
+                  <span style={{ color: '#475569' }}>{fmtL(it.litres)}</span>
                   <span style={{ fontWeight: 600, minWidth: 90, textAlign: 'right' }}>{fmtK(it.amount)}</span>
                 </div>
               ))}
@@ -393,22 +427,22 @@ function DaySummaryPanel({ summary, liveOverride }) {
           ))}
           <div style={totLine}>
             <span>TOTAL FUEL SALES</span>
-            <span style={{ color: '#2563eb' }}>{fmtK(fuelTotal)}</span>
+            <span style={{ color: '#0e7490' }}>{fmtK(fuelTotal)}</span>
           </div>
         </div>
 
         {/* Column 2: Dip vs Read reconciliation per grade + per-tank levels */}
         <div style={col}>
           <div style={colTitle}>Dip vs Read (per grade)</div>
-          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 10 }}>No readings or dips.</div> : dips.map(d => {
+          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#475569', marginBottom: 10 }}>No readings or dips.</div> : dips.map(d => {
             const hasDip = d.dip_total != null;
             const varColor = !hasDip ? '#6b7280' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance >= 0 ? '#15803d' : '#b91c1c'));
             return (
               <div key={d.grade_id} style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
                 <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color ? shade(d.grade_color, 0.42) : '#111', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Read (meter)</span><span>{fmtL(d.read_total)}</span></div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Dip (physical)</span><span>{hasDip ? fmtL(d.dip_total) : <span style={{ color: '#6b7280', fontSize: 11 }}>needs 2+ dips</span>}</span></div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Variance (R-D)</span><span style={{ color: varColor, fontWeight: 700 }}>{hasDip ? ((d.variance >= 0 ? '+' : '') + fmtL(d.variance)) : '—'}</span></div>
+                <div style={line}><span style={{ color: '#475569' }}>Read (meter)</span><span>{fmtL(d.read_total)}</span></div>
+                <div style={line}><span style={{ color: '#475569' }}>Dip (physical)</span><span>{hasDip ? fmtL(d.dip_total) : <span style={{ color: '#475569', fontSize: 11 }}>needs 2+ dips</span>}</span></div>
+                <div style={line}><span style={{ color: '#475569' }}>Variance (R-D)</span><span style={{ color: varColor, fontWeight: 700 }}>{hasDip ? ((d.variance >= 0 ? '+' : '') + fmtL(d.variance)) : '—'}</span></div>
               </div>
             );
           })}
@@ -416,7 +450,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
           <div style={{ ...colTitle, marginTop: 4 }}>Tank Dips (per tank)</div>
           {(() => {
             const list = summary.tank_dips_detail || [];
-            if (list.length === 0) return <div style={{ fontSize: 13, color: '#6b7280' }}>No tanks.</div>;
+            if (list.length === 0) return <div style={{ fontSize: 13, color: '#475569' }}>No tanks.</div>;
             // Collapse plumbed group members (same group_code) into one
             // visual line — code list, sum of measured levels, grade.
             const groups = [];
@@ -441,7 +475,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
                 <div key={`g-${g.group_code}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
                   <span>
                     <strong>{codes}</strong>
-                    <span style={{ color: '#6b7280', fontSize: 11, marginLeft: 4 }}>{first.grade_name || ''} · Group {g.group_code}</span>
+                    <span style={{ color: '#475569', fontSize: 11, marginLeft: 4 }}>{first.grade_name || ''} · Group {g.group_code}</span>
                   </span>
                   <span style={{ color: total == null ? '#6b7280' : '#111', fontWeight: total == null ? 400 : 600 }}>
                     {total != null ? fmtL(total) : <span style={{ fontSize: 11 }}>not dipped</span>}
@@ -454,7 +488,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
                 <div key={`t-${t.tank_id}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
                   <span>
                     <strong>{t.tank_code}</strong>
-                    <span style={{ color: '#6b7280', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
+                    <span style={{ color: '#475569', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
                   </span>
                   <span style={{ color: t.closing_dip == null ? '#6b7280' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
                     {t.closing_dip != null ? fmtL(t.closing_dip) : <span style={{ fontSize: 11 }}>not dipped</span>}
@@ -473,17 +507,17 @@ function DaySummaryPanel({ summary, liveOverride }) {
           <div style={line}><span>Mobile Money</span><span>{fmtK(mobileMoney)}</span></div>
           <div style={line}><span>Other</span><span>{fmtK(otherAmt)}</span></div>
 
-          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Engen 1Card</span><span>{fmtK(onecardTotal)}</span></div>
+          <div style={{ ...line, marginTop: 6, color: '#475569', fontWeight: 600 }}><span>Engen 1Card</span><span>{fmtK(onecardTotal)}</span></div>
           {onecards.map((c, i) => (
-            <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#6b7280' }}>
+            <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#475569' }}>
               <span>{c.customer_name}{c.card_number ? ` (${c.card_number})` : ''}</span>
               <span>{fmtK(c.total)}</span>
             </div>
           ))}
 
-          <div style={{ ...line, marginTop: 6, color: '#6b7280', fontWeight: 600 }}><span>Credit</span><span>{fmtK(creditTotal)}</span></div>
+          <div style={{ ...line, marginTop: 6, color: '#475569', fontWeight: 600 }}><span>Credit</span><span>{fmtK(creditTotal)}</span></div>
           {credits.map((c, i) => (
-            <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#6b7280' }}>
+            <div key={i} style={{ ...line, paddingLeft: 10, fontSize: 12, color: '#475569' }}>
               <span>{c.customer_name}</span>
               <span>{fmtK(c.total)}</span>
             </div>
@@ -492,7 +526,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
           <div style={totLine}><span>TOTAL DEDUCTIONS</span><span>{fmtK(totalDeductions)}</span></div>
           <div style={{ ...totLine, borderTop: 'none', marginTop: 4 }}>
             <span>EXPECTED CASH</span>
-            <span style={{ color: '#2563eb' }}>{fmtK(expectedCash)}</span>
+            <span style={{ color: '#0e7490' }}>{fmtK(expectedCash)}</span>
           </div>
           <div style={{ ...line, fontWeight: 700, fontSize: 14 }}><span>CASH IN HAND</span><span>{fmtK(cashInHand)}</span></div>
 
@@ -507,7 +541,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
             <span style={{
               fontSize: 18, fontWeight: 800,
               color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#b91c1c' : '#15803d'),
-            }}>{fmtK(variance)}</span>
+            }}>{variance > 0.004 ? '+' : ''}{fmtK(variance)}</span>
           </div>
         </div>
       </div>
@@ -515,19 +549,20 @@ function DaySummaryPanel({ summary, liveOverride }) {
   );
 }
 
-function StatCell({ label, value, input, onChange, highlight, color, locked }) {
+// UX-10b — one line of the money flow: a figure, or (for tenders the
+// cashier types) an input; "−" lines are taken off the gross.
+function FlowRow({ label, hint, value, sign, input, onChange, locked, total, strong }) {
   return (
-    <label style={{ display: 'block' }}>
-      <div style={{ fontSize: 11, color: '#4b5563', textTransform: 'uppercase', fontWeight: 600, marginBottom: 4 }}>{label}{locked && <span title="Shift approved — un-approve to edit" style={{ marginLeft: 4 }}>🔒</span>}</div>
+    <div className={`k-flow${total ? ' is-total' : ''}${strong ? ' is-strong' : ''}`}>
+      <span className="k-flow-sign" aria-hidden="true">{sign || (total ? '=' : '')}</span>
+      <span className="k-flow-label">{label}{hint && <em>{hint}</em>}</span>
       {input ? (
-        <input type="number" step="0.01" inputMode="decimal" value={value || ''}
-          readOnly={locked}
-          onChange={e => onChange(e.target.value)}
-          title={locked ? 'Shift approved — un-approve on this card to edit' : ''}
-          style={{ ...S.input, width: '100%', fontWeight: 700, textAlign: 'right', background: locked ? '#f3f4f6' : undefined, cursor: locked ? 'not-allowed' : undefined }} />
+        <input type="number" step="0.01" inputMode="decimal" value={value || ''} readOnly={locked}
+          onChange={e => onChange(e.target.value)} aria-label={label} placeholder="0.00"
+          title={locked ? 'Shift approved — un-approve to edit' : ''} className="k-flow-input" />
       ) : (
-        <div style={{ fontSize: 18, fontWeight: 700, color: color || (highlight ? '#2563eb' : '#111') }}>{value}</div>
+        <span className="k-flow-value k-fc-num">{fmtK(value)}</span>
       )}
-    </label>
+    </div>
   );
 }

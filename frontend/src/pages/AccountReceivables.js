@@ -7,6 +7,7 @@ import {
 } from '../services/api';
 // UX-11 — debt ageing and credit use; the shared page header.
 import { PageHero } from '../ux/ForecourtKit';
+import { fmtDay } from '../ux/forecourt';
 import { ageingTotals, oldestBucket, creditBar } from '../ux/arModel';
 import ExportButtons from '../components/ExportButtons';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
@@ -14,8 +15,8 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import {
-  FiSearch, FiDollarSign, FiFileText, FiX, FiRefreshCw,
-  FiUsers, FiAlertCircle, FiChevronRight, FiTrash2, FiPrinter,
+  FiSearch, FiFileText, FiX, FiRefreshCw,
+  FiUsers, FiChevronRight, FiTrash2, FiPrinter, FiPhone, FiCheckCircle,
 } from 'react-icons/fi';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
@@ -54,6 +55,7 @@ const AccountReceivables = () => {
   const [rows, setRows] = useState([]);
   const [payments, setPayments] = useState([]);
   const [aging, setAging] = useState(null);   // UX-11: per-customer debt by age
+  const [quick, setQuick] = useState('all');   // UX-11b: quick filter on the receivables list
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState('receivables'); // receivables | payments
   const [paymentModal, setPaymentModal] = useState(null);
@@ -365,19 +367,38 @@ const AccountReceivables = () => {
     });
   };
 
-  const card = (label, value, sub, variant, Icon) => (
-    <div className={`stat-card ${variant}`}>
-      <div className="stat-icon"><Icon /></div>
-      <div>
-        <div className="stat-label">{label}</div>
-        <div className="stat-value">{value}</div>
-        {sub && <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>{sub}</div>}
-      </div>
-    </div>
-  );
+  // ── UX-11b · the screen, rebuilt (same data, same actions) ────────────
+  const ageById = new Map((aging || []).map(a => [a.id, a]));
+  const owedOf = (r) => (r._balance < -0.01 ? -r._balance : 0);
+  const overdueOf = (a) => (a ? ['1_30', '31_60', '61_90', '90_plus'].reduce((s, k) => s + Math.max(0, Number(a[k]) || 0), 0) : 0);
+  const outstandingOnly = rows.reduce((s, r) => s + Math.max(0, -(parseFloat(r._balance) || 0)), 0);
+  const customerCreditOnly = rows.reduce((s, r) => s + Math.max(0, (parseFloat(r._balance) || 0)), 0);
+  const ages = ageingTotals(aging || []);
+  const overdueTotal = ages.buckets.filter(b => b.key !== 'current').reduce((s, b) => s + b.amount, 0);
+  const isOver = (r) => { const cb = creditBar(r.credit_limit, owedOf(r)); return !!(cb && cb.over > 0); };
+  const QUICK = [
+    { key: 'all', label: 'All', test: () => true },
+    { key: 'owing', label: 'Owing', test: (r) => owedOf(r) > 0.01 },
+    { key: 'overdue', label: 'Overdue', test: (r) => overdueOf(ageById.get(r.id)) > 0.01 },
+    { key: 'over', label: 'Over limit', test: isOver },
+    { key: 'paid', label: 'Paid up', test: (r) => owedOf(r) <= 0.01 },
+  ];
+  const quickDef = QUICK.find(q => q.key === quick) || QUICK[0];
+  const shownRows = receivablesRows.filter(quickDef.test);
+  const chase = rows.filter(r => owedOf(r) > 0.01)
+    .map(r => ({ r, a: ageById.get(r.id), ob: oldestBucket(ageById.get(r.id)) }))
+    .filter(x => overdueOf(x.a) > 0.01)
+    .sort((x, y) => (['current', '1_30', '31_60', '61_90', '90_plus'].indexOf(y.ob?.key) - ['current', '1_30', '31_60', '61_90', '90_plus'].indexOf(x.ob?.key)) || (overdueOf(y.a) - overdueOf(x.a)))
+    .slice(0, 5);
+  const isMonth = filterFrom === _firstOfMonth && filterTo === _todayStr;
+  const isAll = !filterFrom && !filterTo;
+  const periodLabel = isAll ? 'all time' : isMonth ? 'this month' : `${filterFrom || '…'} to ${filterTo || '…'}`;
+  const initials = (n) => String(n || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const hue = (n) => { let h = 0; for (const ch of String(n || '')) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+  const canPay = hasPermission('AccountReceivables:Add') !== false || hasPermission('Customers:Edit') !== false;
 
   return (
-    <div className="page-content">
+    <div className="page-content k-ar">
       <PageHero icon={<FiUsers />} title={t('accountReceivables')} date={todayStr()}
         subtitle={t('accountReceivablesSubtitle', { count: stats.owingCount })}
         actions={<>
@@ -386,238 +407,238 @@ const AccountReceivables = () => {
         </>} />
 
       {toast && (
-        <div style={{ position: 'fixed', top: 20, right: 20, padding: '10px 18px', borderRadius: 8, color: '#fff', fontWeight: 600, background: toast.type === 'error' ? '#dc2626' : '#16a34a', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', zIndex: 1100 }}>
-          {toast.msg}
+        <div role="status" className={`k-ar-toast${toast.type === 'error' ? ' is-error' : ''}`}>{toast.msg}</div>
+      )}
+
+      {/* Headline figures */}
+      <div className="k-ar-kpis">
+        <div className="k-ar-kpi is-main">
+          <span>{t('outstanding')}</span>
+          <strong className="k-fc-num">{fmt(outstandingOnly)}</strong>
+          <em>{stats.owingCount} customer{stats.owingCount === 1 ? '' : 's'} owing{aging && ages.total > 0 ? <> · <b className="k-fc-num">{fmt(overdueTotal)}</b> overdue</> : null}</em>
+          {ages.total > 0 && (
+            <div className="k-ar-kpi-bar" role="img" aria-label={ages.buckets.map(b => `${b.label}: ${fmt(b.amount)}`).join(', ')}>
+              {ages.buckets.filter(b => b.amount > 0).map(b => <div key={b.key} style={{ width: `${(b.amount / ages.total) * 100}%`, background: b.color }} />)}
+            </div>
+          )}
+        </div>
+        <div className="k-ar-kpi">
+          <span>{t('totalReceived')}</span>
+          <strong className="k-fc-num">{fmt(stats.totalReceived)}</strong>
+          <em>{periodLabel}</em>
+        </div>
+        <div className="k-ar-kpi">
+          <span>{t('totalSales')}</span>
+          <strong className="k-fc-num">{fmt(stats.totalSales)}</strong>
+          <em>{periodLabel} · {t('allCustomers').toLowerCase()}</em>
+        </div>
+        <div className="k-ar-kpi">
+          <span>{customerCreditOnly > 0.01 ? t('customerCredit') : t('customers')}</span>
+          <strong className="k-fc-num">{customerCreditOnly > 0.01 ? fmt(customerCreditOnly) : stats.customers}</strong>
+          <em>{customerCreditOnly > 0.01 ? t('paidInAdvance') : `${stats.owingCount} ${t('owing')}`}</em>
+        </div>
+      </div>
+
+      {/* Debt by age + who to chase first (all debt as of today) */}
+      {aging && ages.total > 0 && (
+        <div className="k-ar-pair">
+          <section className="k-ar-card" aria-label="Debt by age">
+            <header><h3>Debt by age</h3><span>as of today, by each customer's payment terms</span></header>
+            <ul className="k-ar-ages">
+              {ages.buckets.map(b => (
+                <li key={b.key} style={{ '--k-age': b.color }}>
+                  <span className="k-ar-age-name"><i aria-hidden="true" />{b.label}</span>
+                  <span className="k-ar-age-track" aria-hidden="true"><span style={{ width: `${ages.total > 0 ? (b.amount / ages.total) * 100 : 0}%` }} /></span>
+                  <strong className="k-fc-num">{fmt(b.amount)}</strong>
+                  <em>{b.customers} cust.</em>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="k-ar-card" aria-label="Chase first">
+            <header><h3>Chase first</h3><span>oldest overdue money first</span></header>
+            {chase.length === 0 ? (
+              <div className="k-ar-clear"><FiCheckCircle aria-hidden="true" /> Nobody is overdue. Well kept.</div>
+            ) : (
+              <ol className="k-ar-chase">
+                {chase.map(({ r, a, ob }) => (
+                  <li key={r.id}>
+                    <span className="k-ar-ava" style={{ background: `hsl(${hue(r.name)} 45% 30%)` }} aria-hidden="true">{initials(r.name)}</span>
+                    <div className="k-ar-chase-who">
+                      <button type="button" className="k-ar-link" onClick={() => openStatement(r)}>{r.name}</button>
+                      <span>{ob && <span className="k-age-chip" style={{ '--k-age': ob.color }}>{ob.label}</span>}{r.phone && <a href={`tel:${r.phone.replace(/\s+/g, '')}`} className="k-ar-tel"><FiPhone aria-hidden="true" /> {r.phone}</a>}</span>
+                    </div>
+                    <div className="k-ar-chase-amt">
+                      <strong className="k-fc-num">{fmt(overdueOf(a))}</strong>
+                      <em>overdue of {fmt(owedOf(r))}</em>
+                    </div>
+                    {canPay && <button type="button" className="k-ar-pay" onClick={() => openPayment(r)}>Pay</button>}
+                  </li>
+                ))}
+              </ol>
+            )}
+          </section>
         </div>
       )}
 
-      {/* Stat cards — split Outstanding from Customer Credit so the dashboard never shows a
-          confusing net like "−$30 Outstanding". rows already carry the flipped _balance
-          (positive = advance, negative = still owed). */}
-      {(() => {
-        const outstandingOnly    = rows.reduce((s, r) => s + Math.max(0, -(parseFloat(r._balance) || 0)), 0);
-        const customerCreditOnly = rows.reduce((s, r) => s + Math.max(0,  (parseFloat(r._balance) || 0)), 0);
-        return (
-          <div className="stat-cards">
-            {card(t('totalSales'),    fmt(stats.totalSales),    t('allCustomers'),                          'blue',   FiDollarSign)}
-            {card(t('totalReceived'), fmt(stats.totalReceived), t('paidIn'),                                'green',  FiDollarSign)}
-            {card(t('outstanding'),   (outstandingOnly > 0.01 ? '−' : '') + fmt(outstandingOnly), t('stillOwed'), 'red', FiAlertCircle)}
-            {customerCreditOnly > 0.01 && card(t('customerCredit'), fmt(customerCreditOnly), t('paidInAdvance'), 'green', FiDollarSign)}
-            {card(t('customers'),     stats.customers,          `${stats.owingCount} ${t('owing')}`,        'purple', FiUsers)}
+      {/* Toolbar: tabs, period, search, quick filters, export */}
+      <div className="k-ar-toolbar">
+        <div className="k-ar-toolbar-row">
+          <div className="k-fc-tabs" role="tablist" aria-label="Receivables views" style={{ margin: 0 }}>
+            {[{ key: 'receivables', label: t('receivables') }, { key: 'payments', label: t('payments') }].map(x => (
+              <button key={x.key} type="button" role="tab" aria-selected={tab === x.key} className="k-fc-tab" onClick={() => setTab(x.key)}>{x.label}</button>
+            ))}
           </div>
-        );
-      })()}
-
-      {/* UX-11 — who owes what, and for how long (all debt as of today). */}
-      {aging && aging.length > 0 && (() => {
-        const at = ageingTotals(aging);
-        if (!(at.total > 0)) return null;
-        const late = at.buckets.filter(b => b.key !== 'current').reduce((a, b) => a + b.amount, 0);
-        return (
-          <section className="k-age" aria-label="Debt by age">
-            <div className="k-age-head">
-              <h3>Debt by age</h3>
-              <span className="k-age-note">All money owed as of today, by each customer's payment terms · <b>{fmt(late)}</b> overdue of <b>{fmt(at.total)}</b></span>
+          <div className="k-ar-period">
+            <div className="k-fc-quick" role="group" aria-label={t('filterByDate')}>
+              <button type="button" className={`k-fc-chip${isMonth ? ' is-on' : ''}`} aria-pressed={isMonth} onClick={() => { setFilterFrom(_firstOfMonth); setFilterTo(_todayStr); }}>{t('thisMonth')}</button>
+              <button type="button" className={`k-fc-chip${isAll ? ' is-on' : ''}`} aria-pressed={isAll} onClick={() => { setFilterFrom(''); setFilterTo(''); }}>{t('allTime')}</button>
             </div>
-            <div className="k-age-bar" role="img" aria-label={at.buckets.map(b => `${b.label}: ${fmt(b.amount)}`).join(', ')}>
-              {at.buckets.filter(b => b.amount > 0).map(b => <div key={b.key} style={{ width: `${(b.amount / at.total) * 100}%`, background: b.color }} />)}
-            </div>
-            <div className="k-age-tiles">
-              {at.buckets.map(b => (
-                <div key={b.key} className={`k-age-tile${b.amount > 0 ? '' : ' is-empty'}`} style={{ '--k-age': b.color }}>
-                  <span className="k-age-label"><i aria-hidden="true" />{b.label}</span>
-                  <strong className="k-fc-num">{fmt(b.amount)}</strong>
-                  <span className="k-age-count">{b.customers} customer{b.customers === 1 ? '' : 's'}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        );
-      })()}
-
-      {/* ── Date Filter Bar ─────────────────────────────────────────── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
-        padding: '12px 16px', background: '#f8fafc',
-        border: '1px solid #e5e7eb', borderRadius: 10,
-      }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
-          <input type="date" value={filterFrom} max={filterTo || _todayStr}
-            onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }} />
+            <label className="k-ar-date"><span>{t('from')}</span><input type="date" value={filterFrom} max={filterTo || _todayStr} onChange={e => setFilterFrom(e.target.value)} /></label>
+            <label className="k-ar-date"><span>{t('to')}</span><input type="date" value={filterTo} min={filterFrom || undefined} max={_todayStr} onChange={e => setFilterTo(e.target.value)} /></label>
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
-          <input type="date" value={filterTo} min={filterFrom || undefined} max={_todayStr}
-            onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }} />
+        <div className="k-ar-toolbar-row">
+          <label className="k-ar-search">
+            <FiSearch aria-hidden="true" />
+            <input type="text" placeholder={tab === 'receivables' ? t('searchCustomer') : t('searchByCustomerOrRef')} value={search} onChange={e => setSearch(e.target.value)} aria-label={tab === 'receivables' ? t('searchCustomer') : t('searchByCustomerOrRef')} />
+          </label>
+          {tab === 'receivables' && (
+            <div className="k-ar-quick" role="group" aria-label="Show">
+              {QUICK.map(q => {
+                const n = receivablesRows.filter(q.test).length;
+                return <button key={q.key} type="button" aria-pressed={quick === q.key} className={`k-ar-qchip${quick === q.key ? ' is-on' : ''}`} onClick={() => setQuick(q.key)}>{q.label}<b>{n}</b></button>;
+              })}
+            </div>
+          )}
+          <div className="k-ar-export">
+            {tab === 'receivables' ? (
+              <ExportButtons
+                rows={shownRows}
+                filename="account-receivables"
+                sheetName="Receivables"
+                columns={[
+                  { key: 'name',         label: 'Customer' },
+                  { key: 'phone',        label: 'Phone' },
+                  { key: 'credit_limit', label: 'Credit Limit', format: v => Number(v || 0).toFixed(2) },
+                  // 2026-09-10 — these read the same derived figures the table shows.
+                  { key: '_opening',     label: 'Opening Balance', format: v => Number(v || 0).toFixed(2) },
+                  { key: '_sold',        label: 'Total Sales',  format: v => Number(v || 0).toFixed(2) },
+                  { key: '_paid',        label: 'Total Paid',   format: v => Number(v || 0).toFixed(2) },
+                  { key: '_balance',     label: 'Balance',      format: v => Number(v || 0).toFixed(2) },
+                  { key: '_status',      label: 'Status' },
+                ]}
+                pdfOptions={{ title: 'Account Receivables' }}
+              />
+            ) : (
+              <ExportButtons
+                rows={payments}
+                filename="customer-payments"
+                sheetName="Payments"
+                columns={[
+                  { key: 'date',          label: 'Date' },
+                  { key: 'customer_name', label: 'Customer' },
+                  { key: 'method',        label: 'Method' },
+                  { key: 'reference',     label: 'Reference' },
+                  { key: 'notes',         label: 'Notes' },
+                  { key: 'amount',        label: 'Amount', format: v => Number(v || 0).toFixed(2) },
+                  { key: 'created_by_name', label: 'By' },
+                ]}
+                pdfOptions={{ title: 'Customer Payments' }}
+              />
+            )}
+          </div>
         </div>
-        {/* The highlighted button is the one in force. Both used to be
-            styled once and for all, so "This Month" looked selected whatever
-            the dates actually said. */}
-        {(() => {
-          const isMonth = filterFrom === _firstOfMonth && filterTo === _todayStr;
-          const isAll   = !filterFrom && !filterTo;
-          const base = { padding: '5px 12px', borderRadius: 7, fontSize: 12, cursor: 'pointer' };
-          const on   = { border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', fontWeight: 600 };
-          const off  = { border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontWeight: 400 };
-          return (
-            <>
-              <button onClick={() => { setFilterFrom(_firstOfMonth); setFilterTo(_todayStr); }}
-                style={{ ...base, ...(isMonth ? on : off) }}>
-                {t('thisMonth')}
-              </button>
-              <button onClick={() => { setFilterFrom(''); setFilterTo(''); }}
-                style={{ ...base, ...(isAll ? on : off) }}>
-                {t('allTime')}
-              </button>
-            </>
-          );
-        })()}
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280' }}>
-          {filterFrom || filterTo
-            ? `${filterFrom || '—'} ${t('to')} ${filterTo || '—'}`
-            : t('showingAllTime')}
-        </span>
       </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e5e7eb' }}>
-        {[
-          { key: 'receivables', label: t('receivables') },
-          { key: 'payments',    label: t('payments') },
-        ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            style={{
-              padding: '10px 18px', background: 'none',
-              border: 'none', borderBottom: tab === t.key ? '3px solid #f59e0b' : '3px solid transparent',
-              color: tab === t.key ? '#0f172a' : '#475569',
-              fontWeight: tab === t.key ? 700 : 500, fontSize: 13.5,
-              cursor: 'pointer', marginBottom: -2,
-            }}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div style={{ marginBottom: 12, position: 'relative' }}>
-        <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
-        <input type="text" placeholder={tab === 'receivables' ? t('searchCustomer') : t('searchByCustomerOrRef')}
-          value={search} onChange={e => setSearch(e.target.value)}
-          style={{ width: '100%', padding: '10px 12px 10px 36px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
-      </div>
-
-      {/* Receivables tab */}
+      {/* Receivables */}
       {tab === 'receivables' && (
-        <>
-        {/* v1.13.43 — universal export (ZRA #30) */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <ExportButtons
-            rows={receivablesRows}
-            filename="account-receivables"
-            sheetName="Receivables"
-            columns={[
-              { key: 'name',         label: 'Customer' },
-              { key: 'phone',        label: 'Phone' },
-              { key: 'credit_limit', label: 'Credit Limit', format: v => Number(v || 0).toFixed(2) },
-              // 2026-09-10 — these read the same derived figures the table
-              // shows. They used to ask for `total_sales` and `balance`, which
-              // no row carries, so every export printed 0.00 in both; and
-              // `total_paid` alone leaves out the cash taken at the till.
-              { key: '_opening',     label: 'Opening Balance', format: v => Number(v || 0).toFixed(2) },
-              { key: '_sold',        label: 'Total Sales',  format: v => Number(v || 0).toFixed(2) },
-              { key: '_paid',        label: 'Total Paid',   format: v => Number(v || 0).toFixed(2) },
-              { key: '_balance',     label: 'Balance',      format: v => Number(v || 0).toFixed(2) },
-              { key: '_status',      label: 'Status' },
-            ]}
-            pdfOptions={{ title: 'Account Receivables' }}
-          />
-        </div>
-        <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="k-ar-list">
+          <table className="data-table phone-cards k-ar-table">
             <thead>
-              <tr style={{ background: '#f9fafb' }}>
-                {[t('customer'),t('phone'),t('creditLimit'),t('openingBalance'),t('totalSales'),t('totalPaid'),t('balance'),t('status'),t('action')].map((h, i) => (
-                  <th key={i} style={{ padding: '11px 12px', textAlign: i < 2 ? 'left' : 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.3, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
-                ))}
+              <tr>
+                <th>{t('customer')}</th>
+                <th>{t('creditLimit')}</th>
+                <th className="r">{t('totalSales')} / {t('totalPaid')}</th>
+                <th className="r">{t('balance')}</th>
+                <th>{t('status')}</th>
+                <th className="r">{t('action')}</th>
               </tr>
             </thead>
             <tbody>
-              {receivablesRows.length === 0 ? (
-                <tr><td colSpan={9} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>{t('noReceivables')}</td></tr>
-              ) : receivablesRows.map(r => {
+              {shownRows.length === 0 ? (
+                <tr><td colSpan={6} className="k-ar-empty">{receivablesRows.length === 0 ? t('noReceivables') : `No customers match “${quickDef.label}”${search ? ' and your search' : ''}.`}</td></tr>
+              ) : shownRows.map(r => {
                 const s = statusBadge(r._status);
+                const a = ageById.get(r.id);
+                const ob = oldestBucket(a);
+                const owed = owedOf(r);
+                const cb = parseFloat(r.credit_limit) > 0 ? creditBar(r.credit_limit, owed) : null;
+                const segs = a ? [['current', '#0e7490'], ['1_30', '#ca8a04'], ['31_60', '#ea580c'], ['61_90', '#dc2626'], ['90_plus', '#7f1d1d']].map(([k, c]) => ({ k, c, v: Math.max(0, Number(a[k]) || 0) })).filter(x => x.v > 0.005) : [];
+                const segTotal = segs.reduce((x, y) => x + y.v, 0);
                 return (
-                  <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '10px 12px' }}>
-                      <button onClick={() => openStatement(r)}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontWeight: 600, color: '#1d4ed8', fontSize: 13, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                        {r.name} <FiChevronRight size={13} />
-                      </button>
+                  <tr key={r.id}>
+                    <td>
+                      <div className="k-ar-cust">
+                        <span className="k-ar-ava" style={{ background: `hsl(${hue(r.name)} 45% 30%)` }} aria-hidden="true">{initials(r.name)}</span>
+                        <div>
+                          <button type="button" className="k-ar-link" onClick={() => openStatement(r)}>{r.name} <FiChevronRight size={13} aria-hidden="true" /></button>
+                          <div className="k-ar-sub">{r.phone || 'no phone'}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#6b7280' }}>{r.phone || '—'}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                      {parseFloat(r.credit_limit) > 0 ? (() => {
-                        const cb = creditBar(r.credit_limit, r._balance < 0 ? -r._balance : 0);
-                        return (
-                          <div className="k-cl">
-                            <span>{fmt(r.credit_limit)}</span>
-                            <div className={`k-cl-bar is-${cb.level}`} role="img" aria-label={`Credit used: ${Math.round(cb.pct * 100)}%${cb.over > 0 ? `, ${fmt(cb.over)} over the limit` : ''}`}><div style={{ width: `${cb.shown * 100}%` }} /></div>
-                            <em>{cb.over > 0 ? `${fmt(cb.over)} over` : `${Math.round(cb.pct * 100)}% used`}</em>
-                          </div>
-                        );
-                      })() : <span style={{ color: '#475569' }}>—</span>}
+                    <td>
+                      {cb ? (
+                        <div className="k-cl k-cl-left">
+                          <span className="k-fc-num">{fmt(r.credit_limit)}</span>
+                          <div className={`k-cl-bar is-${cb.level}`} role="img" aria-label={`Credit used: ${Math.round(cb.pct * 100)}%${cb.over > 0 ? `, ${fmt(cb.over)} over the limit` : ''}`}><div style={{ width: `${cb.shown * 100}%` }} /></div>
+                          <em>{cb.over > 0 ? `${fmt(cb.over)} over` : `${Math.round(cb.pct * 100)}% used`}</em>
+                        </div>
+                      ) : <span className="k-ar-sub">no limit</span>}
                     </td>
-                    {/* 2026-09-10 — the balance carried over from the old
-                        system. Balance already counts it; without this column
-                        the only way to see it was to open each customer. */}
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                      {r._opening > 0 ? fmt(r._opening) : <span style={{ color: '#6b7280' }}>—</span>}
+                    <td className="r">
+                      <div className="k-ar-stack">
+                        <div className="k-fc-num">{fmt(r._sold)}</div>
+                        <div className="k-ar-paid k-fc-num">{fmt(r._paid)} paid</div>
+                        {/* 2026-09-10 — the balance carried over from the old system; Balance already counts it. */}
+                        {r._opening > 0 && <div className="k-ar-sub">+ {fmt(r._opening)} opening</div>}
+                      </div>
                     </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmt(r._sold)}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>{fmt(r._paid)}</td>
-                    {/* 2026-09-13 — overpaid (an advance / down payment) reads
-                        +K4,255 in green, not K4,255 in amber. Owed stays −K in red. */}
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: r._balance < -0.01 ? '#dc2626' : '#15803d' }}>
-                      {/* Signed value — the sign goes BEFORE the currency symbol (standard accounting). */}
-                      {r._balance < -0.01 ? '−' : r._balance > 0.01 ? '+' : ''}{fmt(Math.abs(r._balance))}
+                    <td className="r"><div className="k-ar-stack">
+                      {/* Signed: −K owed (red), +K paid in advance (green). */}
+                      <div className={`k-ar-bal k-fc-num${r._balance < -0.01 ? ' is-owed' : r._balance > 0.01 ? ' is-credit' : ''}`}>
+                        {r._balance < -0.01 ? '−' : r._balance > 0.01 ? '+' : ''}{fmt(Math.abs(r._balance))}
+                      </div>
                       {/* v1.8.57 — FRA / K equivalents at captured sale rates. */}
                       {r._balance < -0.01 && (r._outstandingFra > 0.01 || r._outstandingK > 0.01) && (
-                        <div style={{ fontSize: 10, fontWeight: 500, color: '#64748b', marginTop: 2 }}>
+                        <div className="k-ar-sub">
                           ≈ {r._outstandingFra > 0.01 && <>FRA {Math.round(r._outstandingFra).toLocaleString()}</>}
                           {r._outstandingFra > 0.01 && r._outstandingK > 0.01 && ' · '}
                           {r._outstandingK > 0.01 && <>K {Math.round(r._outstandingK).toLocaleString()}</>}
                         </div>
                       )}
-                    </td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right' }}>
-                      <span style={{ padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700, background: s.bg, color: s.fg }}>{r._status === 'OnHold' ? 'On Hold' : r._status}</span>
-                      {(() => {
-                        const ob = oldestBucket(aging && aging.find(a => a.id === r.id));
-                        return ob && r._balance < -0.01 ? <div className="k-age-chip" style={{ '--k-age': ob.color }} title={`Oldest money owed: ${ob.label}`}>{ob.key === 'current' ? 'not yet due' : `oldest ${ob.short}${ob.key === '90_plus' ? '' : ' d'}`}</div> : null;
-                      })()}
-                    </td>
-                    <td style={{ padding: '8px 12px', textAlign: 'right' }}>
-                      {/* v1.10.92 — Pay / Down Payment button now gates on
-                          AccountReceivables:Add (recording a payment IS an AR
-                          add operation) with a Customers:Edit fallback so
-                          pre-v1.10.92 grants keep working. Previously only
-                          Customers:Edit was checked, which meant granting
-                          full AR perms did NOT reveal the Pay button. */}
-                      {(hasPermission('AccountReceivables:Add') !== false || hasPermission('Customers:Edit') !== false) && (
-                        <button onClick={() => openPayment(r)}
-                          style={{
-                            padding: '5px 14px',
-                            // Green Pay button when customer is in debt (negative balance under flipped convention).
-                            background: r._balance < -0.01 ? '#15803d' : '#1d4ed8',
-                            color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700,
-                          }}>
-                          {r._balance < -0.01 ? 'Pay' : 'Down Payment'}
-                        </button>
+                      {segTotal > 0 && (
+                        <div className="k-ar-mini" role="img" aria-label={`Owed by age: ${segs.map(x => `${x.k.replace('_', '–').replace('current', 'not yet due')} ${fmt(x.v)}`).join(', ')}`}>
+                          {segs.map(x => <span key={x.k} style={{ width: `${(x.v / segTotal) * 100}%`, background: x.c }} />)}
+                        </div>
                       )}
+                    </div></td>
+                    <td>
+                      <div className="k-ar-stack is-left">
+                        <span className="k-ar-status" style={{ background: s.bg, color: s.fg }}>{r._status === 'OnHold' ? 'On Hold' : r._status}</span>
+                        {ob && owed > 0.01 && <span className="k-age-chip" style={{ '--k-age': ob.color }} title={`Oldest money owed: ${ob.label}`}>{ob.key === 'current' ? 'not yet due' : ob.label}</span>}
+                      </div>
+                    </td>
+                    <td className="r">
+                      <div className="k-ar-actions">
+                        <button type="button" className="k-ar-icon" onClick={() => openStatement(r)} title="Statement" aria-label={`Statement for ${r.name}`}><FiFileText /></button>
+                        {/* v1.10.92 — gated on AccountReceivables:Add with a Customers:Edit fallback. */}
+                        {canPay && (
+                          <button type="button" onClick={() => openPayment(r)} className={`k-ar-pay${r._balance < -0.01 ? '' : ' is-down'}`}>
+                            {r._balance < -0.01 ? 'Pay' : 'Down Payment'}
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -625,82 +646,54 @@ const AccountReceivables = () => {
             </tbody>
           </table>
         </div>
-        </>
       )}
 
-      {/* Payments tab */}
+      {/* Payments */}
       {tab === 'payments' && (
-        <>
-        {/* v1.13.43 — universal export (ZRA #30) */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-          <ExportButtons
-            rows={payments}
-            filename="customer-payments"
-            sheetName="Payments"
-            columns={[
-              { key: 'date',          label: 'Date' },
-              { key: 'customer_name', label: 'Customer' },
-              { key: 'method',        label: 'Method' },
-              { key: 'reference',     label: 'Reference' },
-              { key: 'notes',         label: 'Notes' },
-              { key: 'amount',        label: 'Amount', format: v => Number(v || 0).toFixed(2) },
-              { key: 'created_by_name', label: 'By' },
-            ]}
-            pdfOptions={{ title: 'Customer Payments' }}
-          />
-        </div>
-        <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
-          <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div className="k-ar-list">
+          <table className="data-table phone-cards k-ar-table">
             <thead>
-              <tr style={{ background: '#f9fafb' }}>
-                {['Date','Customer','Method','Reference','Notes','Amount','By','Action'].map((h, i) => (
-                  <th key={i} style={{ padding: '11px 12px', textAlign: i === 5 ? 'right' : i === 7 ? 'right' : 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.3, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+              <tr>
+                {['Date', 'Customer', 'Method', 'Reference', 'Notes', 'Amount', 'By', ''].map((h, i) => (
+                  <th key={i} className={i === 5 || i === 7 ? 'r' : ''}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {paymentsRows.length === 0 ? (
-                <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No payments recorded.</td></tr>
+                <tr><td colSpan={8} className="k-ar-empty">No payments recorded.</td></tr>
               ) : paymentsRows.map(p => (
-                <tr key={`${p.source || 'manual'}-${p.id}`} style={{ borderBottom: '1px solid #f3f4f6', background: p.source === 'pos' ? '#fafafa' : '#fff' }}>
-                  <td style={{ padding: '10px 12px' }}>{(p.payment_date || '').slice(0, 10)}</td>
-                  <td style={{ padding: '10px 12px', fontWeight: 600 }}>{p.customer_name || '—'}</td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>
-                    {p.payment_method}
-                    {p.source === 'pos' && (
-                      <span style={{ marginLeft: 6, padding: '1px 6px', background: '#dbeafe', color: '#1d4ed8', borderRadius: 8, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.3 }}>POS</span>
-                    )}
+                <tr key={`${p.source || 'manual'}-${p.id}`} className={p.source === 'pos' ? 'is-pos' : ''}>
+                  <td style={{ whiteSpace: 'nowrap' }}>{fmtDay((p.payment_date || '').slice(0, 10))}</td>
+                  <td><strong>{p.customer_name || '—'}</strong></td>
+                  <td>
+                    <span className="k-ar-method">{p.payment_method || '—'}</span>
+                    {p.source === 'pos' && <span className="k-ar-pos">POS</span>}
                   </td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{p.reference || '—'}</td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280' }}>{p.notes || '—'}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#15803d' }}>{fmt(p.amount)}</td>
-                  <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 12 }}>{p.created_by_name || '—'}</td>
-                  <td style={{ padding: '8px 12px', textAlign: 'right' }}>
+                  <td className="k-ar-sub">{p.reference || '—'}</td>
+                  <td className="k-ar-sub">{p.notes || '—'}</td>
+                  <td className="r"><strong className="k-fc-num" style={{ color: '#15803d' }}>{fmt(p.amount)}</strong></td>
+                  <td className="k-ar-sub">{p.created_by_name || '—'}</td>
+                  <td className="r">
                     {p.source !== 'pos' && hasPermission('Customers:Edit') !== false && (
-                      <button onClick={() => handleDeletePayment(p)} title="Delete payment"
-                        style={{ width: 26, height: 26, background: '#fee2e2', color: '#b91c1c', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <FiTrash2 size={12} />
-                      </button>
+                      <button type="button" className="k-ar-icon is-danger" onClick={() => handleDeletePayment(p)} title="Delete payment" aria-label={`Delete payment from ${p.customer_name}`}><FiTrash2 /></button>
                     )}
-                    {p.source === 'pos' && (
-                      <span style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic' }}>via sale</span>
-                    )}
+                    {p.source === 'pos' && <span className="k-ar-sub" style={{ fontStyle: 'italic' }}>via sale</span>}
                   </td>
                 </tr>
               ))}
             </tbody>
             {paymentsRows.length > 0 && (
               <tfoot>
-                <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
-                  <td colSpan={5} style={{ padding: '10px 12px' }}>TOTAL</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>{fmt(paymentsRows.reduce((s, p) => s + parseFloat(p.amount || 0), 0))}</td>
+                <tr>
+                  <td colSpan={5}><strong>TOTAL</strong></td>
+                  <td className="r"><strong className="k-fc-num" style={{ color: '#15803d' }}>{fmt(paymentsRows.reduce((s, p) => s + parseFloat(p.amount || 0), 0))}</strong></td>
                   <td colSpan={2}></td>
                 </tr>
               </tfoot>
             )}
           </table>
         </div>
-        </>
       )}
 
       {/* Payment modal */}
