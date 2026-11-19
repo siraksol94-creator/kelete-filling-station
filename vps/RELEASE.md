@@ -52,8 +52,12 @@ sync tokens have their own switch; see `vps/SYNC-DEVICES.md`.
 ## Every release
 
 1. The change is reviewed and merged to `main`.
-2. Tag it: `git tag v1.14.0 && git push origin v1.14.0`.
-3. At a quiet time, on the VPS: `kelete-release deploy v1.14.0`.
+2. Tag it with a name that starts none of the inherited GitHub workflows
+   (`v*` starts `deploy.yml`, `mobile-v*` the APK build). See decision G1 in
+   `ops/go-live/README.md`:
+   `node ops/go-live/check-release.js --tag kelete-20261126-1`, then
+   `git tag kelete-20261126-1 && git push origin kelete-20261126-1`.
+3. At a quiet time, on the VPS: `kelete-release deploy kelete-20261126-1`.
    It backs up and integrity-checks every database, switches to the tag,
    restarts, and waits for `/api/health`. If the app is not healthy it puts
    the previous version back by itself.

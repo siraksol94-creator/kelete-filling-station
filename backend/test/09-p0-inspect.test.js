@@ -39,6 +39,9 @@ before(() => {
   const b = new Database(currentFile);
   initTenantDb(b);
   b.prepare("INSERT INTO orders (order_number,total_amount) VALUES ('FUEL-0000001',100)").run();
+  // Go-live: the VPS also holds its own grade ULP (the till has a separate one).
+  b.prepare("INSERT INTO fuel_grades (code,name) VALUES ('ULP','Petrol (VPS)')").run();
+  b.prepare("INSERT INTO fuel_grades (code,name) VALUES ('LPG','Gas')").run();     // only here: no clash
   b.close();
 
   // master.db snapshot (VACUUM INTO = a consistent copy, like .backup).
@@ -120,4 +123,47 @@ test('2c: fleet balances go to a separate file with possible customer matches', 
 test('the tool leaves no temporary copies behind', () => {
   const left = fs.readdirSync(require('os').tmpdir()).filter(n => n.startsWith('kelete-p0-'));
   assert.deepEqual(left, []);
+});
+
+// ─── go-live checks ──────────────────────────────────────────────────────
+test('go-live: the upgrade is rehearsed on a scratch copy — original schema up to the current version', () => {
+  const versions = require('../config/versionedMigrations').map(m => m.version);
+  const u = entry(report, legacyFile).upgrade_rehearsal;
+  assert.equal(u.version_before, 0);
+  assert.equal(u.version_after, Math.max(...versions));
+  assert.deepEqual(u.applied, versions.sort((x, y) => x - y));
+  assert.equal(u.failed, null);
+  assert.equal(u.integrity_after, 'ok');
+  assert.equal(entry(report, legacyFile).phase_2b.schema_version, 'not versioned (pre-D1)', 'the inspected copy itself was not upgraded');
+  const v = entry(report, currentFile).upgrade_rehearsal;
+  assert.deepEqual(v.applied, [], 'an up-to-date database needs nothing');
+  assert.equal(entry(report, masterFile).upgrade_rehearsal, undefined);
+});
+
+test('go-live: fleet merge review counts (2b) and names (2c, separate file)', () => {
+  const f = entry(report, legacyFile).upgrade_rehearsal.fleet_merge_review;
+  assert.equal(f.to_merge, 1);
+  assert.equal(f.balance_to_carry, 12500);
+  const g = entry(report, legacyFile).phase_2b.go_live;
+  assert.equal(g.fleet_accounts, 1);
+  assert.deepEqual(g.fleet_accounts_with_balance, { n: 1, total: 12500 });
+  assert.ok(!JSON.stringify(report).includes('Hauliers'), 'no names in 2b');
+  assert.ok(!fs.existsSync(path.join(p('out-2b'), 'phase2c-fleet-merge-review.csv')));
+  const csv = fs.readFileSync(path.join(outDir2c, 'phase2c-fleet-merge-review.csv'), 'utf8');
+  assert.match(csv, /"Hauliers".*"12500"/);
+});
+
+test('go-live: a fuel code held separately on the VPS and a till is flagged; the code itself only in 2c', () => {
+  const c = report.cross_database.fuel_codes_held_separately_in_more_than_one_database;
+  assert.equal(c.count, 1);
+  assert.deepEqual(c.by_table, { fuel_grades: 1 });
+  assert.equal(c.codes, undefined);
+  assert.deepEqual(report2c.cross_database.fuel_codes_held_separately_in_more_than_one_database.codes.map(x => [x.table, x.code]), [['fuel_grades', 'ULP']]);
+  assert.match(fs.readFileSync(path.join(p('out-2b'), 'summary.md'), 'utf8'), /Fuel codes held as separate records in more than one database: \*\*1\*\*/);
+});
+
+test('go-live: the summary shows the rehearsal verdict for each branch/till database', () => {
+  const md = fs.readFileSync(path.join(p('out-2b'), 'summary.md'), 'utf8');
+  assert.match(md, /Upgrade rehearsal on a scratch copy: ok — version 0 → \d+/);
+  assert.match(md, /Fleet merge review \(after upgrade\): 1 to merge/);
 });

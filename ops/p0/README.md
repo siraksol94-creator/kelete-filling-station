@@ -14,8 +14,29 @@ node ops/p0/inspect.js --include-2c --out ~/kelete-p0/reports/2c  <same files>
 ```
 
 Outputs: `summary.md` (read this first), `report.json` (full detail), and, for
-2c only, `phase2c-fleet-balances.csv` (customer names and amounts; handle as
-business data).
+2c only, `phase2c-fleet-balances.csv` and `phase2c-fleet-merge-review.csv`
+(customer names and amounts; handle as business data).
+
+## Go-live checks (in the 2b report)
+
+- **Upgrade rehearsal.** Each branch/till database is copied a second time and
+  upgraded with this code's start-up migrations. The report shows the version
+  before and after, any migration that failed, the time taken, and the
+  integrity of the result. A failure here means **do not deploy**. The copy is
+  deleted straight afterwards. Use `--no-rehearsal` to skip it.
+- **Fleet merge review.** Counts from the rehearsed copy: how many fleet
+  accounts would merge, be created as Customers, or need a decision, plus the
+  balance that would move into Accounts Receivable. Names appear only in the
+  2c file.
+- **Fuel codes held separately in two places.** The same grade, tank, pump or
+  nozzle code held as separate records in more than one database. Fuel sync
+  (F1) holds these back as `duplicate`, so each one needs a decision before go-live.
+  The codes themselves are listed with `--include-2c`.
+- **Machines writing data** in the last 30 days: the number of tills to enrol
+  for sync tokens (S1).
+- **Rows made between 00:00 and 02:00 Zambian time** in the last 30 days: the
+  sales the old code filed under the previous day. New ones will land on the
+  right day.
 
 ## Guarantees
 

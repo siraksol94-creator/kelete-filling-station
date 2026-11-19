@@ -1,0 +1,252 @@
+{
+ "_note": "The exact order the patches are applied in kelete-erp. ops/go-live/check-release.js checks a checkout against it. Commit hashes differ between machines after `git am`, so patches are matched by subject.",
+ "patches": [
+  {
+   "n": 1,
+   "subject": "Security remediation S1-stage1, S2, S3, S4, S5 (for review — not deployed)",
+   "covers": "S1 (stage 1), S2, S3, S4, S5",
+   "what": "Security: no default secrets, till network lock-down, legacy scripts quarantined, manual tagged releases",
+   "migrations": []
+  },
+  {
+   "n": 2,
+   "subject": "D1 migration versioning + D2 audit trail (for review — not deployed)",
+   "covers": "D1, D2",
+   "what": "Versioned migrations; audit trail",
+   "migrations": [
+    1,
+    2
+   ]
+  },
+  {
+   "n": 3,
+   "subject": "D5 automated test suite + A2 testable app (for review — not deployed)",
+   "covers": "D5, A2",
+   "what": "Automated test suite; testable app",
+   "migrations": []
+  },
+  {
+   "n": 4,
+   "subject": "P0: read-only snapshot inspection tool (Phase 2b/2c) + tests (for review)",
+   "covers": "P0",
+   "what": "Read-only snapshot inspection tool (ops only — never runs on the VPS or tills)",
+   "migrations": []
+  },
+  {
+   "n": 5,
+   "subject": "F4: fuel ledger and shift controls + flipped known-defect tests (for review — not deployed)",
+   "covers": "F4",
+   "what": "Fuel ledger and shift controls",
+   "migrations": [
+    3
+   ]
+  },
+  {
+   "n": 6,
+   "subject": "S7: backups Administrator-only; reopen and meter edits for supervisors (Manager) and Administrators + tests (for review — not deployed)",
+   "covers": "S7 (part 1)",
+   "what": "Backups Administrator-only; reopen and meter edits for Managers/Supervisors and Administrators",
+   "migrations": []
+  },
+  {
+   "n": 7,
+   "subject": "Sync fix: same-second changes and changes made during a push are no longer lost (for review — not deployed)",
+   "covers": "Sync defect",
+   "what": "Same-second changes and changes made during a push are no longer lost",
+   "migrations": []
+  },
+  {
+   "n": 8,
+   "subject": "F2: fuel credit lines carry sync links; Credit tickets need a customer",
+   "covers": "F2",
+   "what": "Fuel credit lines carry sync links; Credit tickets need a customer",
+   "migrations": [
+    4
+   ]
+  },
+  {
+   "n": 9,
+   "subject": "S6: verified backups (SQLite online backup + manifest) and a guarded restore tool (for review — not deployed)",
+   "covers": "S6",
+   "what": "Verified backups and a guarded restore tool",
+   "migrations": []
+  },
+  {
+   "n": 10,
+   "subject": "Sync fix (master): a same-timestamp change on a master table is no longer dropped (for review — not deployed)",
+   "covers": "Sync defect (master)",
+   "what": "A same-timestamp change on a master table is no longer dropped",
+   "migrations": []
+  },
+  {
+   "n": 11,
+   "subject": "S7 (full matrix): the server applies the screens' permissions (for review — not deployed)",
+   "covers": "S7 (full matrix)",
+   "what": "Server applies the screens' permissions (KELETE_PERMISSIONS)",
+   "migrations": []
+  },
+  {
+   "n": 12,
+   "subject": "S1 stages 2/3: per-till sync tokens (stage 2 on by default; stage 3 is a switch) (for review — not deployed)",
+   "covers": "S1 (stages 2/3)",
+   "what": "Per-till sync tokens (KELETE_SYNC_AUTH)",
+   "migrations": [
+    5
+   ]
+  },
+  {
+   "n": 13,
+   "subject": "F1: fuel data syncs between tills and the VPS (for review — not deployed)",
+   "covers": "F1",
+   "what": "Fuel data syncs between tills and the VPS (KELETE_FUEL_SYNC)",
+   "migrations": [
+    6
+   ]
+  },
+  {
+   "n": 14,
+   "subject": "Fuel dates in Zambian time: shifts, approvals, defaults and fuel reports no longer use the UTC date (for review — not deployed)",
+   "covers": "Date defect (fuel)",
+   "what": "Fuel dates in Zambian time",
+   "migrations": [
+    7
+   ]
+  },
+  {
+   "n": 15,
+   "subject": "Fuel Station access: prices, pumps and tanks for Administrators; deliveries for Managers/Supervisors (for review — not deployed)",
+   "covers": "Access decision",
+   "what": "Fuel Station access by role",
+   "migrations": []
+  },
+  {
+   "n": 16,
+   "subject": "Fuel delivery numbers never repeat after a deletion (for review — not deployed)",
+   "covers": "Fuel defect",
+   "what": "Delivery numbers never repeat",
+   "migrations": []
+  },
+  {
+   "n": 17,
+   "subject": "Deleting a fuel delivery also reverses its effect on the average cost (for review — not deployed)",
+   "covers": "Fuel defect",
+   "what": "Deleting a delivery reverses its average-cost effect",
+   "migrations": [
+    8
+   ]
+  },
+  {
+   "n": 18,
+   "subject": "Shift close keeps the \"Other\" payment; the credit total gets its own column (for review — not deployed)",
+   "covers": "Fuel defect",
+   "what": "Shift close keeps \"Other\"; credit total column",
+   "migrations": [
+    9
+   ]
+  },
+  {
+   "n": 19,
+   "subject": "Shop, accounting and customer dates in Zambian time (for review — not deployed)",
+   "covers": "Date defect (shop)",
+   "what": "Shop, accounting and customer dates in Zambian time",
+   "migrations": [
+    10
+   ]
+  },
+  {
+   "n": 20,
+   "subject": "CI: check every screen file parses and every import resolves (for review)",
+   "covers": "CI",
+   "what": "Screen parse/import check in CI (no runtime effect)",
+   "migrations": []
+  },
+  {
+   "n": 21,
+   "subject": "\"Other\" tender: a field on the Fuel Cash Report that reduces expected cash (for review — not deployed)",
+   "covers": "Decision: \"Other\" tender",
+   "what": "\"Other\" field on the Fuel Cash Report reduces expected cash",
+   "migrations": []
+  },
+  {
+   "n": 22,
+   "subject": "F5: fuel revenue in the Dashboard and cash book; fuel stock at weighted-average cost (for review — not deployed)",
+   "covers": "F5",
+   "what": "Fuel revenue in Dashboard and cash book; fuel stock at weighted-average cost",
+   "migrations": []
+  },
+  {
+   "n": 23,
+   "subject": "F3: merge fleet customers into Customers (one receivables ledger)",
+   "covers": "F3",
+   "what": "Fleet customers merge into Customers (Administrator review; nothing merges by itself)",
+   "migrations": [
+    11
+   ]
+  },
+  {
+   "n": 24,
+   "subject": "Fuel sync: a till keeps fuel records pending when the VPS doesn't take them (rollback safety)",
+   "covers": "Fuel sync defect",
+   "what": "Till keeps fuel pending when the VPS doesn't take it (rollback safety)",
+   "migrations": []
+  },
+  {
+   "n": 25,
+   "subject": "Go-Live Pack: P0 pre-flight, go-live checks in the inspector, release checker, deployment and rollback plan (for review)",
+   "covers": "Go-Live Pack",
+   "what": "Documents and read-only tools only (no runtime effect)",
+   "migrations": []
+  }
+ ],
+ "migrations": [
+  {
+   "version": 1,
+   "name": "baseline"
+  },
+  {
+   "version": 2,
+   "name": "audit_log"
+  },
+  {
+   "version": 3,
+   "name": "fuel_ledger_guards"
+  },
+  {
+   "version": 4,
+   "name": "credit_ticket_order_sync_link"
+  },
+  {
+   "version": 5,
+   "name": "sync_device_tokens"
+  },
+  {
+   "version": 6,
+   "name": "fuel_sync"
+  },
+  {
+   "version": 7,
+   "name": "shift_business_date"
+  },
+  {
+   "version": 8,
+   "name": "delivery_cost_trail"
+  },
+  {
+   "version": 9,
+   "name": "shift_credit_total_column"
+  },
+  {
+   "version": 10,
+   "name": "business_date_orders_stock"
+  },
+  {
+   "version": 11,
+   "name": "fleet_customer_merge"
+  }
+ ],
+ "tag_patterns_that_trigger_old_workflows": [
+  "v*",
+  "mobile-v*"
+ ],
+ "suggested_release_tag": "kelete-YYYYMMDD-N"
+}
