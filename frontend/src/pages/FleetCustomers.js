@@ -7,6 +7,7 @@ import {
 import { S } from './fuelStyles';
 import { useAuth } from '../context/AuthContext';
 import FleetMergePanel from '../components/FleetMergePanel';
+import { useDialog } from '../ux/ForecourtKit';   // UX-10: in-app confirm / alert
 
 const emptyCust = { name: '', company: '', phone: '', email: '', address: '', credit_limit: 0, status: 'Active' };
 const emptyVeh = { registration: '', make: '', model: '', driver_name: '', driver_phone: '', status: 'Active' };
@@ -18,6 +19,7 @@ export default function FleetCustomers() {
   const [custForm, setCustForm] = useState(null);
   const [vehForm, setVehForm] = useState(null);
   const [err, setErr] = useState('');
+  const [dialog, ui] = useDialog();
 
   const load = async () => { try { setRows((await getFleetCustomers()).data || []); } catch (e) {} };
   useEffect(() => { load(); }, []);
@@ -35,9 +37,9 @@ export default function FleetCustomers() {
   };
 
   const removeCust = async (r) => {
-    if (!window.confirm(`Delete fleet customer "${r.name}"?`)) return;
+    if (!(await ui.confirm({ title: 'Delete fleet customer', text: `Delete fleet customer "${r.name}"?`, okLabel: 'Delete', danger: true }))) return;
     try { await deleteFleetCustomer(r.id); setSelected(null); await load(); }
-    catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    catch (ex) { await ui.alert({ title: 'Delete failed', text: ex.response?.data?.error || 'Delete failed' }); }
   };
 
   const saveVeh = async (e) => {
@@ -49,8 +51,8 @@ export default function FleetCustomers() {
     } catch (ex) { setErr(ex.response?.data?.error || 'Save failed'); }
   };
   const removeVeh = async (v) => {
-    if (!window.confirm(`Delete vehicle ${v.registration}?`)) return;
-    try { await deleteFleetVehicle(v.id); await openCustomer(selected); } catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    if (!(await ui.confirm({ title: 'Delete vehicle', text: `Delete vehicle ${v.registration}?`, okLabel: 'Delete', danger: true }))) return;
+    try { await deleteFleetVehicle(v.id); await openCustomer(selected); } catch (ex) { await ui.alert({ title: 'Delete failed', text: ex.response?.data?.error || 'Delete failed' }); }
   };
 
   return (
@@ -171,6 +173,7 @@ export default function FleetCustomers() {
           </div>
         </div>
       )}
+      {dialog}
     </div>
   );
 }

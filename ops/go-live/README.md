@@ -251,6 +251,7 @@ automatically at start-up, once, each in its own transaction.
 | 35 | UX-7 | Forecourt kit for the fuel screens; Tanks: 3D cards, dip ring and ±0.5%/1% bands, ledger chart (read-only `/api/tanks/insights`) | — |
 | 36 | UX-8 | Deliveries: timeline, three-way check, will-it-fit; Pumps: forecourt view, meters, who is on shift (read-only extras on two GETs) | — |
 | 37 | UX-9 | Fuel Grades price board and margin; Credit / 1Card summary, calculator, credit-limit warning (frontend only) | — |
+| 38 | UX-10 | Station day ring and dip streak (read-only `/api/station-day`); Shifts and Cash Report finished; in-app dialogs on all fuel screens | — |
 
 Before tagging, on the test machine:
 

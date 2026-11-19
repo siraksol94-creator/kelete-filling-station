@@ -825,6 +825,7 @@ app.use('/api/customers', require('./routes/customers'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/weather', require('./routes/weather'));   // UX-4
+app.use('/api/station-day', require('./routes/stationDay'));   // UX-10
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/cash-reports', require('./routes/cashReport'));

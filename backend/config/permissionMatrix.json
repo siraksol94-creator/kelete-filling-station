@@ -38,7 +38,7 @@
   "EmptyVouchers": "GRN",
   "StockReconciliation": "Stock"
  },
- "endpoint_count": 447,
+ "endpoint_count": 448,
  "endpoints": [
   {
    "method": "GET",
@@ -5260,6 +5260,15 @@
    ],
    "screens": [
     "stock/siv"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/station-day",
+   "any": true,
+   "screens": [
+    "fuel/cash-report",
+    "fuel/shifts"
    ]
   },
   {

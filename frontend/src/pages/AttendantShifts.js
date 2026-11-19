@@ -6,11 +6,17 @@ import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { useHotkeys } from '../ux/useHotkeys';
 import { closeChecklist, cleanStreak, shiftSummary, formatKwacha } from '../ux/fuelProgress';
+import { fmtDay } from '../ux/forecourt';
+// UX-10 — "Thu 19 Nov · 06:02" for a shift's open / close stamp (shown as stored).
+const whenOf = (stamp) => { const t = String(stamp || ''); return t ? `${fmtDay(t.slice(0, 10))} · ${t.slice(11, 16)}` : '—'; };
 import { Checklist, ProgressBar, ShortcutHelp, ShortcutHint, SummaryStrip, Kbd } from '../ux/components';
 import FuelLoader from '../ux/FuelLoader';
 import AttendantAvatar, { Celebration } from '../ux/AttendantAvatar';
 import { profileFor, milestones } from '../ux/attendantLevel';
 import { usePasswordDialog } from '../ux/PasswordDialog';
+// UX-10 — shared header, in-app dialogs, the station-day ring.
+import { PageHero, useDialog } from '../ux/ForecourtKit';
+import StationDay from '../ux/StationDay';
 
 // Thousands separator for display (handles partial typing like "384343."
 // so the user can still key a decimal point without the formatter eating it).
@@ -58,6 +64,7 @@ export default function AttendantShifts() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(null);   // { who, items } after a milestone
   const [passwordDialog, askPassword] = usePasswordDialog();   // UX-3: masked, replaces window.prompt
+  const [dialog, ui] = useDialog();   // UX-10: in-app confirm / alert
   const closeFormRef = useRef(null);
   const openFormRef = useRef(null);
 
@@ -295,13 +302,14 @@ export default function AttendantShifts() {
   // ── Render ───────────────────────────────────────────────────────────
   return (
     <div style={S.page} className="k-page">
-      <div style={S.header} className="k-page-header">
-        <h2 style={S.h2}><FiClock /> Attendant Shifts</h2>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <PageHero icon={<FiClock />} title="Attendant Shifts" date={businessToday()}
+        subtitle="Open a shift on the pumps, close it with the meters, then count the cash"
+        actions={<>
           <ShortcutHint onClick={() => setHelpOpen(true)} />
-          <button onClick={startOpen} style={S.btnPrimary} title="Open Shift (Alt + N)"><FiPlay /> Open Shift</button>
-        </div>
-      </div>
+          <button type="button" onClick={startOpen} className="k-fc-btn-hero" title="Open Shift (Alt + N)"><FiPlay /> Open Shift</button>
+        </>} />
+
+      {loaded && <StationDay date={businessToday()} refresh={shifts.map(x => `${x.id}:${x.status}:${x.payment_cash || 0}`).join('|')} />}
 
       {loaded && (
         <SummaryStrip items={[
@@ -343,12 +351,12 @@ export default function AttendantShifts() {
                   <AttendantAvatar profile={profileOf(s.attendant_user_id, s.attendant_name)} size={36} showName compact />
                   {s.shift_type && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: s.shift_type === 'NIGHT' ? '#eef2ff' : '#eff6ff', color: s.shift_type === 'NIGHT' ? '#4338ca' : '#1e3a8a', borderRadius: 10, fontWeight: 700 }}>{s.shift_type}</span>}
                 </td>
-                <td style={S.td}>{s.opened_at}</td>
-                <td style={S.td}>{s.closed_at || '-'}</td>
-                <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_credit ?? s.payment_other ?? 0) + (s.payment_credit != null ? Number(s.payment_other || 0) : 0)).toFixed(2)}</td>
-                <td style={S.tdR}>K {Number(s.expected_cash || 0).toFixed(2)}</td>
-                <td style={S.tdR}>K {Number(s.actual_cash || 0).toFixed(2)}</td>
-                <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#15803d') }}>K {Number(s.variance || 0).toFixed(2)}</td>
+                <td style={{ ...S.td, whiteSpace: 'nowrap' }}>{whenOf(s.opened_at)}</td>
+                <td style={{ ...S.td, whiteSpace: 'nowrap' }}>{s.closed_at ? whenOf(s.closed_at) : '—'}</td>
+                <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{formatKwacha(Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_credit ?? s.payment_other ?? 0) + (s.payment_credit != null ? Number(s.payment_other || 0) : 0)))}</td>
+                <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{formatKwacha(s.expected_cash || 0)}</td>
+                <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{formatKwacha(s.actual_cash || 0)}</td>
+                <td style={{ ...S.tdR, whiteSpace: 'nowrap', fontWeight: 700, color: Math.abs(s.variance || 0) < 0.01 ? '#0f172a' : (s.variance < 0 ? '#b91c1c' : '#15803d') }}>{formatKwacha(s.variance || 0)}</td>
                 <td style={S.td}>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {s.status === 'Open' ? (
@@ -358,9 +366,9 @@ export default function AttendantShifts() {
                         <button onClick={async () => { const d = (await getShift(s.id)).data; setViewShift(d); }} style={S.btnSecondary}><FiFileText /> Report</button>
                         <button
                           onClick={async () => {
-                            if (!window.confirm(`Reopen shift #${s.id} for ${s.attendant_name}? Readings & payments stay saved; you can add missed Credit/1Card tickets then finalise again in Fuel Cash Report.`)) return;
+                            if (!(await ui.confirm({ title: 'Reopen shift', okLabel: 'Reopen', text: `Reopen shift #${s.id} for ${s.attendant_name}? Readings & payments stay saved; you can add missed Credit/1Card tickets then finalise again in Fuel Cash Report.` }))) return;
                             try { await reopenShift(s.id); await load(); }
-                            catch (e) { alert('Reopen failed: ' + (e.response?.data?.error || e.message)); }
+                            catch (e) { await ui.alert({ title: 'Reopen failed', text: 'Reopen failed: ' + (e.response?.data?.error || e.message) }); }
                           }}
                           style={{ ...S.btnSecondary, color: '#b45309', borderColor: '#fcd34d', background: '#fffbeb' }}
                         ><FiUnlock /> Reopen</button>
@@ -368,7 +376,7 @@ export default function AttendantShifts() {
                     )}
                     <button
                       onClick={async () => {
-                        if (!window.confirm(
+                        if (!(await ui.confirm({ title: 'Delete shift', okLabel: 'Continue', danger: true, text:
                           `Permanently delete shift #${s.id} (${s.attendant_name})?\n\n` +
                           `This will also delete ALL connected data:\n` +
                           `  • Nozzle readings (meter + tank volumes will be reversed)\n` +
@@ -376,15 +384,14 @@ export default function AttendantShifts() {
                           `  • 1Card sales\n` +
                           `  • Dip readings\n` +
                           `  • Cash reconciliation for this shift\n\n` +
-                          `This cannot be undone.`
-                        )) return;
+                          `This cannot be undone.` }))) return;
                         const pwd = await askPassword({
                           title: 'Confirm with your password', label: 'Your password', danger: true,
                           subject: `Delete shift #${s.id} (${s.attendant_name}) and everything connected to it`,
                           note: 'Only an Administrator can delete a shift. This cannot be undone.', actionLabel: 'Delete shift' });
                         if (!pwd) return;
                         try { await deleteShift(s.id, pwd); await load(); }
-                        catch (e) { alert('Delete failed: ' + (e.response?.data?.error || e.message)); }
+                        catch (e) { await ui.alert({ title: 'Delete failed', text: 'Delete failed: ' + (e.response?.data?.error || e.message) }); }
                       }}
                       style={{ ...S.btnSecondary, color: '#b91c1c', borderColor: '#fecaca', background: '#fef2f2' }}
                     ><FiTrash2 /> Delete</button>
@@ -398,6 +405,7 @@ export default function AttendantShifts() {
         )}
       </div>
       {passwordDialog}
+      {dialog}
       {celebrate && <Celebration who={celebrate.who} items={celebrate.items} onDone={() => setCelebrate(null)} />}
       <ShortcutHelp open={helpOpen} onClose={() => setHelpOpen(false)} title="Attendant Shifts — shortcuts" bindings={[
         { combo: 'alt+n', label: 'Open a new shift' },
@@ -803,7 +811,7 @@ function Tile({ label, value, highlight, color }) {
   return (
     <div style={S.statCard}>
       <div style={S.statLabel}>{label}</div>
-      <div style={{ ...S.statValue, color: color || (highlight ? '#2563eb' : '#111') }}>{value}</div>
+      <div style={{ ...S.statValue, color: color || (highlight ? '#0e7490' : '#0f172a') }}>{value}</div>
     </div>
   );
 }

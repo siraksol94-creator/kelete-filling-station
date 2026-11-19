@@ -282,6 +282,13 @@
    "covers": "UX-9",
    "what": "Fuel Grades: price board, margin per litre, named colours; Credit/1Card: summary, litres by grade, live calculator, credit limit warning, in-app dialogs. Frontend only",
    "migrations": []
+  },
+  {
+   "n": 38,
+   "subject": "UX-10: Station day ring (closed, counted, dipped, approved → sealed) and dip streak; Shifts and Cash Report finished; no browser pop-ups left on fuel screens (for review)",
+   "covers": "UX-10",
+   "what": "Station day ring and dip streak on Shifts and Cash Report (read-only /api/station-day); shift table dates and money; in-app dialogs on every fuel screen",
+   "migrations": []
   }
  ],
  "migrations": [
