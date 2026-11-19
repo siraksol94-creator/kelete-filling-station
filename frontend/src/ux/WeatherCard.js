@@ -6,6 +6,7 @@ import { FiMapPin, FiAlertTriangle, FiInfo, FiCheckCircle, FiEye } from 'react-i
 import { getWeather, setWeatherLocation } from '../services/api';
 import WeatherIcon, { labelOf } from './WeatherIcon';
 import ZAMBIA_TOWNS from './zambiaTowns';
+import { askDeviceLocation, locationPermission, locationProblem, nameForSpot } from './deviceLocation';
 
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayName = (ymd, i) => (i === 0 ? 'Today' : DAY[new Date(`${ymd}T12:00:00Z`).getUTCDay()]);
@@ -17,11 +18,27 @@ function LocationPicker({ onSaved, onCancel }) {
   const [custom, setCustom] = useState({ lat: '', lon: '' });
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
+  // "Use this device's location": the device asks the person first.
+  const [here, setHere] = useState(null);        // { lat, lon, label, km, accuracy }
+  const [locating, setLocating] = useState(false);
+  const [perm, setPerm] = useState(null);
+  useEffect(() => { locationPermission().then(setPerm); }, []);
+  const useDevice = async () => {
+    setErr(''); setLocating(true);
+    try {
+      const p = await askDeviceLocation();
+      const n = nameForSpot(p.lat, p.lon);
+      setHere({ ...p, label: n.label, km: n.km });
+      setTown('__device');
+    } catch (ex) { setErr(locationProblem(ex && ex.code)); }
+    finally { setLocating(false); locationPermission().then(setPerm); }
+  };
   const save = async (e) => {
     e.preventDefault(); setErr(''); setSaving(true);
     try {
       const pick = ZAMBIA_TOWNS.find((x) => x.name === town);
-      const body = town === '__custom' ? { town: 'Station', lat: Number(custom.lat), lon: Number(custom.lon) } : { town: pick.name, lat: pick.lat, lon: pick.lon };
+      const body = town === '__device' && here ? { town: here.label, lat: here.lat, lon: here.lon }
+        : town === '__custom' ? { town: 'Station', lat: Number(custom.lat), lon: Number(custom.lon) } : { town: pick.name, lat: pick.lat, lon: pick.lon };
       await setWeatherLocation(body);
       onSaved();
     } catch (ex) { setErr(ex.response?.data?.error || 'Could not save the location.'); }
@@ -29,9 +46,28 @@ function LocationPicker({ onSaved, onCancel }) {
   };
   return (
     <form className="k-wx-picker" onSubmit={save}>
+      <div className="k-wx-geo">
+        <button type="button" className="k-wx-geo-btn" onClick={useDevice} disabled={locating} aria-describedby="k-wx-geo-note">
+          <span className={`k-wx-geo-pin${locating ? ' is-finding' : ''}`} aria-hidden="true" />
+          {locating ? 'Finding this device…' : "Use this device's location"}
+        </button>
+        <span id="k-wx-geo-note" className="k-wx-geo-note">
+          {perm === 'denied' ? 'Location is blocked for this site — allow it in the browser settings to use this.'
+            : perm === 'granted' ? 'Location access is allowed on this device.'
+            : 'Your device will ask before sharing its location. Only the station\'s coordinates are saved.'}
+        </span>
+      </div>
+      {town === '__device' && here && (
+        <div className="k-wx-geo-found" role="status">
+          <strong>{here.label}</strong>
+          <span>{here.lat.toFixed(4)}, {here.lon.toFixed(4)}{here.accuracy ? ` · within about ${here.accuracy >= 1000 ? `${Math.round(here.accuracy / 1000)} km` : `${Math.round(here.accuracy)} m`}` : ''}</span>
+        </div>
+      )}
+      <div className="k-wx-or" aria-hidden="true"><span>or choose a town</span></div>
       <label className="k-login-field" style={{ marginBottom: 8 }}>
         <span>Where is the station?</span>
         <select value={town} onChange={(e) => setTown(e.target.value)} style={{ width: '100%', minHeight: 42, borderRadius: 10, border: '1.5px solid #64748b', padding: '0 10px', fontSize: 15 }}>
+          {here && <option value="__device">This device — {here.label}</option>}
           {ZAMBIA_TOWNS.map((x) => <option key={x.name} value={x.name}>{x.name}</option>)}
           <option value="__custom">Other — type coordinates</option>
         </select>

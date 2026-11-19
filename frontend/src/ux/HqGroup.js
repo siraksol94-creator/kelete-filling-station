@@ -6,7 +6,7 @@ import React from 'react';
 import {
   FiDollarSign, FiDroplet, FiBarChart2, FiLayers, FiArrowRight, FiAlertTriangle, FiInfo, FiPackage,
 } from 'react-icons/fi';
-import Tank3D from './Tank3D';
+import TankRow from './TankRow';
 import TrendBars from './TrendBars';
 import { ProgressBar, VarianceBadge } from './components';
 import { shiftSteps } from './stationMetrics';
@@ -238,14 +238,7 @@ export function BranchTile({ b, onOpen }) {
       {st && (
         <div className="k-branch-forecourt">
           {(st.tanks || []).length > 0 && (
-            <div className="k-branch-tanks">
-              {st.tanks.map((tk) => (
-                <div key={tk.code} className="k-mini-tank">
-                  <Tank3D tank={tk} width={56} showLabel={false} />
-                  <span>{tk.code}</span>
-                </div>
-              ))}
-            </div>
+            <div className="k-branch-tanks"><TankRow tanks={st.tanks} width={56} mini /></div>
           )}
           <div className="k-branch-shifts">
             <div className="k-branch-label">{st.shifts.total === 0 ? 'No shifts opened today' : `Shifts · ${steps.done} of ${steps.max} steps`}</div>

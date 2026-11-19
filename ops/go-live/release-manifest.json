@@ -233,6 +233,13 @@
    "migrations": [
     12
    ]
+  },
+  {
+   "n": 31,
+   "subject": "UX-5: weather from the device's location, connected tanks joined by a pipe, live 3D sign-in (for review)",
+   "covers": "UX-5",
+   "what": "Weather location from the device (asks permission); plumbed tanks shown joined; 3D sign-in page (WebGL, falls back to a still backdrop)",
+   "migrations": []
   }
  ],
  "migrations": [

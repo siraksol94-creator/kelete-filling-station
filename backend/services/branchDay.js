@@ -68,7 +68,7 @@ function branchDay(db, today, saleDaySql) {
       shifts: station.shifts,
       cash: station.cash,
       tanks: station.tanks.map((t) => ({
-        code: t.code, grade: t.grade, color: t.color, capacity: t.capacity, volume: t.volume,
+        code: t.code, grade: t.grade, color: t.color, capacity: t.capacity, volume: t.volume, group_code: t.group_code || null,
         low_level: t.low_level, days_cover: t.days_cover,
       })),
     },

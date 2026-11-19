@@ -43,3 +43,23 @@ test('weather symbols map to the right picture', () => {
   assert.equal(kindOf('partlycloudy_day'), 'partly');
   assert.equal(kindOf('cloudy'), 'cloud');
 });
+
+import { groupTanks, groupLabel } from '../../src/ux/tankGroups';
+test('connected tanks: grouped where the first one sits; fuel settles from the fuller tank', () => {
+  const items = groupTanks([
+    { code: 'T1', group_code: 'a', capacity: 30000, volume: 18000 },
+    { code: 'T2', capacity: 30000, volume: 3000 },
+    { code: 'T3', group_code: 'A', capacity: 20000, volume: 6000 },
+    { code: 'T4', group_code: 'solo', capacity: 10000, volume: 2000 },
+  ]);
+  assert.deepEqual(items.map((i) => i.kind), ['group', 'single', 'single']);
+  assert.equal(groupLabel(items[0]), 'T1 + T3');
+  assert.equal(items[0].volume, 24000);
+  assert.equal(items[0].capacity, 50000);
+  assert.equal(items[0].links[0].dir, 'right', '60% → 30%');
+  assert.equal(items[0].links[0].strength, 1);
+  assert.equal(items[2].tank.code, 'T4', 'a group of one is just a tank');
+  const level = groupTanks([{ code: 'A', group_code: 'g', capacity: 100, volume: 50 }, { code: 'B', group_code: 'g', capacity: 200, volume: 100 }]);
+  assert.equal(level[0].links[0].dir, 'still');
+  assert.deepEqual(groupTanks(undefined), []);
+});

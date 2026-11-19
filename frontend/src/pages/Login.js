@@ -5,8 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { isHqHost, setHqBranch } from '../services/api';
 import { isMobileApp } from '../utils/platform';
 import keleteLogo from '../assets/kelete-logo.png';
-import ForecourtArt from '../ux/ForecourtArt';
-import { FuelCar } from '../ux/FuelLoader';
+import Login3D from '../ux/Login3D';
 
 // v1.5.1: HQ login no longer forces a branch pick. On the bare HQ host
 // (keletezm.com) the user just types email + password — authenticated
@@ -94,53 +93,60 @@ const Login = () => {
     );
   }
 
-  // UX-2 — the website sign-in: forecourt panel + form; one column on phones.
+  // UX-4 — the website sign-in: a live 3D scene, the station's name, and the
+  // form on a frosted panel; one column on phones.
   // Same fields, same login call and messages as before.
   const station = businessName || (hq ? 'Kelete HQ' : 'Kelete');
   const caps = (e) => setCapsOn(!!(e.getModifierState && e.getModifierState('CapsLock')));
   return (
-    <div className="k-login">
-      <section className="k-login-brand" aria-label="About Kelete">
-        <div className="k-login-brand-inner">
-          <div className="k-login-kicker">{hq ? 'Head Office' : 'Station management'}</div>
-          <h1 className="k-login-station">{station}</h1>
-          <p className="k-login-tag">Forecourt, shop and accounts — every shift, litre and kwacha in one place.</p>
-          <ForecourtArt />
-          <ul className="k-login-points">
-            <li><span aria-hidden="true">⛽</span> Shifts &amp; meter readings</li>
-            <li><span aria-hidden="true">💵</span> Cash reconciliation</li>
-            <li><span aria-hidden="true">🛢️</span> Tank dips &amp; deliveries</li>
-          </ul>
-        </div>
+    <div className={`k-l3${loading ? ' is-busy' : ''}`}>
+      {/* UX-4 — live 3D backdrop (decorative); a still gradient if WebGL is off */}
+      <Login3D busy={loading} />
+      <header className="k-l3-top">
+        <span className="k-l3-mark" aria-hidden="true" />
+        <span className="k-l3-word">KELETE</span>
+        <span className="k-l3-top-kicker">{hq ? 'Head Office' : 'Station management'}</span>
+      </header>
+
+      <section className="k-l3-hero" aria-label="About Kelete">
+        <div className="k-l3-kicker">{hq ? 'Head Office' : 'Station management'}</div>
+        <h1 className="k-l3-station">{station}</h1>
+        <p className="k-l3-tag">Every shift, litre and kwacha — in one place.</p>
+        <ul className="k-l3-points">
+          <li><strong>Forecourt</strong><span>Shifts, meters, dips</span></li>
+          <li><strong>Cash</strong><span>Reconciled to the ngwee</span></li>
+          <li><strong>Shop</strong><span>Stock, sales, accounts</span></li>
+        </ul>
       </section>
-      <main className="k-login-main">
-        <form className="k-login-form" onSubmit={handleSubmit} noValidate={false}>
-          <div className="k-login-mobile-brand" aria-hidden="true"><FuelCar width={42} /> <span>{station}</span></div>
+
+      <main className="k-l3-panel">
+        <form className="k-l3-form" onSubmit={handleSubmit} noValidate={false}>
           <h2>Sign in</h2>
-          <p className="k-login-sub">Welcome back. Use the username and password your administrator gave you.</p>
-          {error && <div className="login-error" role="alert">{error}</div>}
-          <label className="k-login-field">
+          <p className="k-l3-sub">Use the username and password your administrator gave you.</p>
+          {error && <div className="k-l3-error" role="alert">{error}</div>}
+          <label className="k-l3-field">
             <span>Username</span>
             <input type="text" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your username"
               autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false" autoFocus required />
           </label>
-          <label className="k-login-field">
+          <label className="k-l3-field">
             <span>Password</span>
-            <span className="k-login-pw">
+            <span className="k-l3-pw">
               <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
                 onKeyUp={caps} onKeyDown={caps} placeholder="Your password" autoComplete="current-password" required
                 aria-describedby={capsOn ? 'k-caps' : undefined} />
               <button type="button" onClick={() => setShowPassword(v => !v)} aria-pressed={showPassword}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
             </span>
-            {capsOn && <span id="k-caps" className="k-login-caps" role="status">Caps Lock is on</span>}
+            {capsOn && <span id="k-caps" className="k-l3-caps" role="status">Caps Lock is on</span>}
           </label>
-          <button type="submit" className="k-login-submit" disabled={loading}>
-            {loading ? <><FuelCar width={30} className="k-login-car" /> Signing in…</> : 'Sign in'}
+          <button type="submit" className="k-l3-submit" disabled={loading}>
+            {loading ? <><span className="k-l3-spin" aria-hidden="true" /> Signing in…</> : <>Sign in <span aria-hidden="true" className="k-l3-arrow">→</span></>}
           </button>
-          <p className="k-login-foot">Trouble signing in? Ask your station administrator to reset your password.</p>
+          <p className="k-l3-foot">Trouble signing in? Ask your station administrator to reset your password.</p>
         </form>
       </main>
+      <footer className="k-l3-credit" aria-hidden="true">Kelete Investment Ltd · Zambia</footer>
     </div>
   );
 };

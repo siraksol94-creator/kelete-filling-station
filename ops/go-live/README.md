@@ -244,6 +244,7 @@ automatically at start-up, once, each in its own transaction.
 | 28 | UX-2 | Loaders, attendant avatars, sign-in page, WCAG AA colours | — |
 | 29 | UX-3 | Station block on the Dashboard; masked password dialog; Fuel POS fleet fix | — |
 | 30 | UX-4 | Weather and fuel advice (MET Norway; needs internet), tank days of cover, Shop & stock, HQ Overview by branch | 12 station_weather_location |
+| 31 | UX-5 | Weather location from the device (it asks first); connected tanks joined by a pipe; live 3D sign-in | — |
 
 Before tagging, on the test machine:
 
