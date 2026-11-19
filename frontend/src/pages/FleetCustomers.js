@@ -54,8 +54,8 @@ export default function FleetCustomers() {
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiTruck /> Fleet / Credit Customers</h2>
         <button onClick={() => setCustForm({ ...emptyCust })} style={S.btnPrimary}><FiPlus /> New Customer</button>
       </div>
@@ -123,12 +123,12 @@ export default function FleetCustomers() {
       </div>
 
       {custForm && (
-        <div style={S.backdrop} onClick={() => setCustForm(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setCustForm(null)}>
+          <div style={S.modal} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}><h3 style={{ margin: 0 }}>{custForm.id ? 'Edit' : 'New'} Fleet Customer</h3><button onClick={() => setCustForm(null)} style={S.iconBtn}><FiX /></button></div>
             <form onSubmit={saveCust}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={S.lbl}>Name *<input value={custForm.name} onChange={e => setCustForm({ ...custForm, name: e.target.value })} required style={S.input} /></label>
                 <label style={S.lbl}>Company<input value={custForm.company || ''} onChange={e => setCustForm({ ...custForm, company: e.target.value })} style={S.input} /></label>
                 <label style={S.lbl}>Phone<input value={custForm.phone || ''} onChange={e => setCustForm({ ...custForm, phone: e.target.value })} style={S.input} /></label>
@@ -151,12 +151,12 @@ export default function FleetCustomers() {
       )}
 
       {vehForm && (
-        <div style={S.backdrop} onClick={() => setVehForm(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setVehForm(null)}>
+          <div style={S.modal} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}><h3 style={{ margin: 0 }}>{vehForm.id ? 'Edit' : 'New'} Vehicle</h3><button onClick={() => setVehForm(null)} style={S.iconBtn}><FiX /></button></div>
             <form onSubmit={saveVeh}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={S.lbl}>Registration *<input value={vehForm.registration} onChange={e => setVehForm({ ...vehForm, registration: e.target.value.toUpperCase() })} required style={S.input} /></label>
                 <label style={S.lbl}>Make<input value={vehForm.make || ''} onChange={e => setVehForm({ ...vehForm, make: e.target.value })} style={S.input} /></label>
                 <label style={S.lbl}>Model<input value={vehForm.model || ''} onChange={e => setVehForm({ ...vehForm, model: e.target.value })} style={S.input} /></label>

@@ -1,8 +1,12 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FiPlus, FiX, FiPlay, FiStopCircle, FiClock, FiCheckCircle, FiTrash2, FiFileText, FiEdit, FiUnlock } from 'react-icons/fi';
 import { getShifts, getShift, openShift, closeShift, getNozzles, getTanks, getPumpsWithNozzles, addShiftCreditSale, reopenShift, deleteShift } from '../services/fuelApi';
 import { getUsers, getCustomers } from '../services/api';
 import { S } from './fuelStyles';
+import { businessToday } from '../utils/businessDate';
+import { useHotkeys } from '../ux/useHotkeys';
+import { closeChecklist, cleanStreak, shiftSummary, formatKwacha } from '../ux/fuelProgress';
+import { Skeleton, Checklist, ProgressBar, ShortcutHelp, ShortcutHint, SummaryStrip, Kbd } from '../ux/components';
 
 // Thousands separator for display (handles partial typing like "384343."
 // so the user can still key a decimal point without the formatter eating it).
@@ -45,6 +49,11 @@ export default function AttendantShifts() {
   const [ticketMethod, setTicketMethod] = useState('Credit');
   const [ticket, setTicket] = useState({ customer_name: '', customer_id: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' });
   const [savingTicket, setSavingTicket] = useState(false);
+  // UX-1
+  const [loaded, setLoaded] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const closeFormRef = useRef(null);
+  const openFormRef = useRef(null);
 
   const load = async () => {
     try {
@@ -56,6 +65,7 @@ export default function AttendantShifts() {
       setCustomers(cs.data || []);
       setPumps(p.data || []);
     } catch (e) {}
+    setLoaded(true);
   };
   useEffect(() => { load(); }, []);
 
@@ -123,6 +133,46 @@ export default function AttendantShifts() {
       return { ...r, closing: c, sold, amt, invalid };
     });
   }, [closingShift, cd.readings]);
+
+  // UX-1 — Close Shift checklist (counts what's already on screen; no new rules).
+  const checklist = useMemo(() => closeChecklist(liveNozzleRows), [liveNozzleRows]);
+  const meterKeyDown = (e, idx) => {
+    if (e.key !== 'Enter' || e.ctrlKey || e.metaKey) return;
+    e.preventDefault();                       // Enter = next meter, not "submit"
+    const form = closeFormRef.current;
+    const next = form && form.querySelector(`[data-k-meter="${idx + 1}"]`);
+    if (next) next.focus();
+    else form && form.querySelector('[data-k-save]')?.focus();
+  };
+  useEffect(() => {
+    if (!closingShift) return;
+    const t = setTimeout(() => {
+      const form = closeFormRef.current;
+      const first = form && Array.from(form.querySelectorAll('[data-k-meter]')).find(el => !el.value);
+      (first || (form && form.querySelector('[data-k-meter="0"]')))?.focus();
+    }, 50);
+    return () => clearTimeout(t);
+  }, [closingShift]);
+
+  const startOpen = () => {
+    const h = new Date().getHours();
+    setErr('');
+    setOpenForm({ attendant_user_id: '', nozzle_ids: [], shift_type: (h >= 6 && h < 18) ? 'DAY' : 'NIGHT' });
+  };
+  const anyModal = !!(openForm || closingShift || ticketShift || viewShift);
+  const submitForm = (ref) => { const f = ref.current; if (f) (f.requestSubmit ? f.requestSubmit() : f.submit()); };
+  const bindings = [
+    { combo: 'alt+n', label: 'Open a new shift', run: startOpen, enabled: !anyModal },
+    { combo: 'mod+enter', label: 'Save the form that is open', allowInInputs: true, enabled: !!(openForm || closingShift),
+      run: () => submitForm(closingShift ? closeFormRef : openFormRef) },
+    { combo: 'escape', label: 'Close the window that is open', allowInInputs: true, enabled: anyModal,
+      run: () => { setOpenForm(null); setClosingShift(null); setTicketShift(null); setViewShift(null); } },
+    { combo: '?', run: () => setHelpOpen(true), enabled: !helpOpen },
+  ];
+  useHotkeys(bindings);
+  const today = businessToday();
+  const summary = useMemo(() => shiftSummary(shifts, today), [shifts, today]);
+  const streak = useMemo(() => cleanStreak(shifts), [shifts]);
 
   const grossSales = useMemo(() => liveNozzleRows.reduce((s, r) => s + r.amt, 0), [liveNozzleRows]);
   // Credit + 1Card totals come from the tickets already logged on this shift
@@ -219,17 +269,31 @@ export default function AttendantShifts() {
 
   // ── Render ───────────────────────────────────────────────────────────
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiClock /> Attendant Shifts</h2>
-        <button onClick={() => {
-          const h = new Date().getHours();
-          setOpenForm({ attendant_user_id: '', nozzle_ids: [], shift_type: (h >= 6 && h < 18) ? 'DAY' : 'NIGHT' });
-        }} style={S.btnPrimary}><FiPlay /> Open Shift</button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <ShortcutHint onClick={() => setHelpOpen(true)} />
+          <button onClick={startOpen} style={S.btnPrimary} title="Open Shift (Alt + N)"><FiPlay /> Open Shift</button>
+        </div>
       </div>
 
-      <div style={S.card}>
-        <table style={S.table}>
+      {loaded && (
+        <SummaryStrip items={[
+          { key: 'open', label: 'Open now', value: summary.open },
+          { key: 'closed', label: 'Closed today', value: summary.closedToday },
+          { key: 'cash', label: 'Awaiting cash entry', value: summary.awaitingCash, tone: summary.awaitingCash ? 'warn' : undefined,
+            hint: summary.awaitingCash ? 'Finish them in Fuel Cash Report' : 'All closed shifts have cash entered' },
+          { key: 'streak', label: 'Clean-shift streak', value: streak.count, tone: streak.count ? 'ok' : undefined,
+            hint: streak.lastBreak
+              ? `Reconciled shifts in a row that balanced. Before that: shift #${streak.lastBreak.id}, ${formatKwacha(streak.lastBreak.variance)}`
+              : 'Reconciled shifts in a row that balanced' },
+        ]} />
+      )}
+
+      <div style={S.card} className="k-table-scroll">
+        {!loaded ? <Skeleton rows={5} height={18} /> : (
+        <table style={S.table} className="phone-cards">
           <thead><tr>
             <th style={S.th}>Status</th><th style={S.th}>Attendant</th>
             <th style={S.th}>Opened</th><th style={S.th}>Closed</th>
@@ -293,22 +357,29 @@ export default function AttendantShifts() {
                 </td>
               </tr>
             ))}
-            {shifts.length === 0 && <tr><td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No shifts yet.</td></tr>}
+            {shifts.length === 0 && <tr><td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No shifts yet. Open the first one with <Kbd combo="alt+n" />.</td></tr>}
           </tbody>
         </table>
+        )}
       </div>
+      <ShortcutHelp open={helpOpen} onClose={() => setHelpOpen(false)} title="Attendant Shifts — shortcuts" bindings={[
+        { combo: 'alt+n', label: 'Open a new shift' },
+        { combo: 'enter', label: 'Close Shift: next closing meter' },
+        { combo: 'mod+enter', label: 'Save the window that is open (Open Shift, Close Shift)' },
+        { combo: 'escape', label: 'Close the window that is open' },
+      ]} />
 
       {/* ── Open shift modal (unchanged) ─────────────────────────────── */}
       {openForm && (
-        <div style={S.backdrop} onClick={() => setOpenForm(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
-            <div style={S.modalHeader}><h3 style={{ margin: 0 }}>Open Shift</h3><button onClick={() => setOpenForm(null)} style={S.iconBtn}><FiX /></button></div>
-            <form onSubmit={submitOpen}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setOpenForm(null)}>
+          <div style={S.modal} className="k-modal" role="dialog" aria-modal="true" aria-label="Open Shift" onClick={e => e.stopPropagation()}>
+            <div style={S.modalHeader}><h3 style={{ margin: 0 }}>Open Shift</h3><button onClick={() => setOpenForm(null)} style={S.iconBtn} aria-label="Close"><FiX /></button></div>
+            <form onSubmit={submitOpen} ref={openFormRef}>
               {err && <div style={S.errBox}>{err}</div>}
               <div style={{ padding: 20 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }} className="k-form-grid">
                   <label style={S.lbl}>Attendant *
-                    <select value={openForm.attendant_user_id} onChange={e => setOpenForm({ ...openForm, attendant_user_id: e.target.value })} required style={S.input}>
+                    <select autoFocus value={openForm.attendant_user_id} onChange={e => setOpenForm({ ...openForm, attendant_user_id: e.target.value })} required style={S.input}>
                       <option value="">-- select --</option>
                       {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.role})</option>)}
                     </select>
@@ -323,7 +394,7 @@ export default function AttendantShifts() {
                 <div style={{ marginTop: 16 }}>
                   <strong style={{ fontSize: 13, color: '#374151' }}>Pumps for this attendant *</strong>
                   <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }} className="k-form-grid">
                     {pumps.map(p => {
                       const pumpNozIds = (p.nozzles || []).map(n => n.id);
                       const allIn = pumpNozIds.length > 0 && pumpNozIds.every(id => openForm.nozzle_ids.includes(id));
@@ -356,6 +427,7 @@ export default function AttendantShifts() {
                 </div>
               </div>
               <div style={S.modalFooter}>
+                <span className="k-muted k-hide-sm" style={{ marginRight: 'auto' }}><Kbd combo="mod+enter" /> to open · <Kbd combo="escape" /> to cancel</span>
                 <button type="button" onClick={() => setOpenForm(null)} style={S.btnSecondary}>Cancel</button>
                 <button type="submit" style={S.btnPrimary}>Open Shift</button>
               </div>
@@ -366,19 +438,32 @@ export default function AttendantShifts() {
 
       {/* ── Close shift modal — the big one ──────────────────────────── */}
       {closingShift && (
-        <div style={S.backdrop} onClick={() => setClosingShift(null)}>
-          <div style={{ ...S.modal, width: 'min(1100px, 97vw)', maxHeight: '95vh' }} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setClosingShift(null)}>
+          <div style={{ ...S.modal, width: 'min(1100px, 97vw)', maxHeight: '95vh' }} className="k-modal" role="dialog" aria-modal="true" aria-label={`Close Shift — ${closingShift.attendant_name}`} onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
               <h3 style={{ margin: 0 }}>Close Shift — {closingShift.attendant_name}</h3>
-              <button onClick={() => setClosingShift(null)} style={S.iconBtn}><FiX /></button>
+              <button onClick={() => setClosingShift(null)} style={S.iconBtn} aria-label="Close"><FiX /></button>
             </div>
-            <form onSubmit={submitClose}>
-              {err && <div style={S.errBox}>{err}</div>}
-              <div style={{ padding: 20, overflowY: 'auto', maxHeight: 'calc(95vh - 160px)' }}>
+            <form onSubmit={submitClose} ref={closeFormRef}>
+              {err && <div style={S.errBox} role="alert">{err}</div>}
+              <div style={{ padding: 20, overflowY: 'auto', maxHeight: 'calc(95vh - 160px)' }} className="k-modal-body">
+
+                {/* UX-1 — what's left before saving */}
+                <div className="k-panel k-sticky-top" style={{ marginBottom: 4 }}>
+                  <div className="k-panel-row" style={{ marginBottom: 8 }}>
+                    <span className="k-panel-title">{checklist.ready ? 'Ready to save' : 'Before saving'}</span>
+                    <span className="k-muted">{checklist.entered} of {checklist.nozzles} meters · <Kbd combo="enter" /> next meter · <Kbd combo="mod+enter" /> save</span>
+                  </div>
+                  <ProgressBar value={checklist.entered} max={checklist.nozzles || 1} tone={checklist.invalid ? 'warn' : (checklist.ready ? 'ok' : 'accent')} label="Closing meters entered" />
+                  <div style={{ marginTop: 10 }}>
+                    <Checklist compact items={checklist.items.map(i => i.key === 'valid' && checklist.invalid ? { ...i, warn: true } : i)} />
+                  </div>
+                </div>
 
                 {/* ── Section 1: nozzle readings ─────────────────────── */}
                 <SectionHeader title="1. Nozzle Readings" />
-                <table style={S.table}>
+                <div className="k-table-scroll">
+                <table style={S.table} className="phone-cards">
                   <thead><tr>
                     <th style={S.th}>Nozzle</th><th style={S.th}>Grade</th>
                     <th style={{ ...S.th, textAlign: 'right' }}>Opening</th>
@@ -388,14 +473,18 @@ export default function AttendantShifts() {
                     <th style={{ ...S.th, textAlign: 'right' }}>Amount</th>
                   </tr></thead>
                   <tbody>
-                    {liveNozzleRows.map(r => (
+                    {liveNozzleRows.map((r, idx) => (
                       <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6', background: r.invalid ? '#fef2f2' : undefined }}>
                         <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
                         <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                         <td style={S.tdR}>{fmtNum(r.opening_reading, 2)}</td>
-                        <td style={S.tdR}>
+                        <td style={S.tdR} className="k-meter-cell">
                           <div style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                             <input type="text" inputMode="decimal"
+                              data-k-meter={idx}
+                              onKeyDown={e => meterKeyDown(e, idx)}
+                              aria-label={`Closing meter for ${r.nozzle_code}`}
+                              aria-invalid={r.invalid ? 'true' : undefined}
                               value={formatThousands(cd.readings[r.id]?.closing_reading ?? '')}
                               onChange={e => {
                                 const raw = e.target.value.replace(/,/g, '');
@@ -417,7 +506,7 @@ export default function AttendantShifts() {
                               </button>
                             )}
                           </div>
-                          {r.invalid && <div style={{ color: '#dc2626', fontSize: 11, marginTop: 2 }}>closing &lt; opening</div>}
+                          {r.invalid && <div className="k-field-error" role="alert">Below the opening ({fmtNum(r.opening_reading, 2)})</div>}
                         </td>
                         <td style={S.tdR}><strong>{fmtNum(r.sold, 2)}</strong></td>
                         <td style={S.tdR}>K {fmtNum(r.price_per_litre, 2)}</td>
@@ -426,12 +515,13 @@ export default function AttendantShifts() {
                     ))}
                     <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
                       <td colSpan={4} style={{ ...S.td, textAlign: 'right' }}>TOTAL READING SALES</td>
-                      <td style={S.tdR}>{fmtNum(liveNozzleRows.reduce((s, r) => s + r.sold, 0), 2)}</td>
-                      <td style={S.td}></td>
-                      <td style={S.tdR}>K {fmtNum(grossSales, 2)}</td>
+                      <td style={S.tdR} data-label="Litres">{fmtNum(liveNozzleRows.reduce((s, r) => s + r.sold, 0), 2)}</td>
+                      <td style={S.td} data-label=""></td>
+                      <td style={S.tdR} data-label="Amount">K {fmtNum(grossSales, 2)}</td>
                     </tr>
                   </tbody>
                 </table>
+                </div>
 
                 <div style={{ marginTop: 16, padding: 12, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 13, color: '#1e3a8a' }}>
                   <strong>Gross from meters: K {fmtNum(grossSales, 2)}</strong><br />
@@ -443,8 +533,9 @@ export default function AttendantShifts() {
                 </label>
               </div>
               <div style={S.modalFooter}>
+                <span className="k-muted k-hide-sm" style={{ marginRight: 'auto' }}><Kbd combo="mod+enter" /> to save · <Kbd combo="escape" /> to cancel</span>
                 <button type="button" onClick={() => setClosingShift(null)} style={S.btnSecondary}>Cancel</button>
-                <button type="submit" style={S.btnPrimary}><FiCheckCircle /> Save Meters</button>
+                <button type="submit" data-k-save style={S.btnPrimary}><FiCheckCircle /> Save Meters</button>
               </div>
             </form>
           </div>
@@ -453,15 +544,15 @@ export default function AttendantShifts() {
 
       {/* ── Quick ticket modal (Credit OR 1Card during an open shift) ── */}
       {ticketShift && (
-        <div style={S.backdrop} onClick={() => setTicketShift(null)}>
-          <div style={{ ...S.modal, width: 'min(560px, 95vw)' }} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setTicketShift(null)}>
+          <div style={{ ...S.modal, width: 'min(560px, 95vw)' }} className="k-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
               <h3 style={{ margin: 0 }}>{ticketMethod === '1Card' ? 'Engen 1Card Ticket' : 'Credit Ticket'} — {ticketShift.attendant_name}</h3>
               <button onClick={() => setTicketShift(null)} style={S.iconBtn}><FiX /></button>
             </div>
             <form onSubmit={submitTicket}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 {ticketMethod === 'Credit' ? (
                   <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Customer *
                     <input list="ticket-customer-list" value={ticket.customer_name} onChange={e => {
@@ -520,8 +611,8 @@ export default function AttendantShifts() {
 
       {/* ── View report modal (closed shifts) ────────────────────────── */}
       {viewShift && (
-        <div style={S.backdrop} onClick={() => setViewShift(null)}>
-          <div style={{ ...S.modal, width: 'min(900px, 95vw)', maxHeight: '92vh', overflow: 'auto' }} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setViewShift(null)}>
+          <div style={{ ...S.modal, width: 'min(900px, 95vw)', maxHeight: '92vh', overflow: 'auto' }} className="k-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
               <h3 style={{ margin: 0 }}>Shift Report — {viewShift.attendant_name}</h3>
               <button onClick={() => setViewShift(null)} style={S.iconBtn}><FiX /></button>
@@ -587,7 +678,7 @@ export default function AttendantShifts() {
               })}
 
               <h4 style={{ marginTop: 20 }}>Reconciliation</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="k-form-grid">
                 <div>
                   <PayRow label="Cash" value={Number(viewShift.payment_cash || 0).toFixed(2)} readOnly />
                   <PayRow label="Swipes" value={Number(viewShift.payment_swipes || 0).toFixed(2)} readOnly />

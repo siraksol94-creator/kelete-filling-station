@@ -9,7 +9,8 @@ export const S = {
   page: { padding: '24px 24px 96px', height: 'calc(100vh - 56px)', overflowY: 'auto', boxSizing: 'border-box' },
   header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
   h2: { margin: 0, display: 'flex', alignItems: 'center', gap: 8 },
-  card: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' },
+  // UX-1: cards scroll sideways instead of clipping wide tables on small screens.
+  card: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflowX: 'auto', overflowY: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: '#6b7280', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
   td: { padding: '12px 16px', fontSize: 14 },
@@ -25,7 +26,7 @@ export const S = {
   modalFooter: { padding: 20, borderTop: '1px solid #e5e7eb', display: 'flex', gap: 8, justifyContent: 'flex-end' },
   formGrid: { padding: 20, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 },
   lbl: { display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 500, color: '#374151' },
-  input: { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, marginTop: 2 },
+  input: { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, marginTop: 2, minHeight: 38, boxSizing: 'border-box' },
   errBox: { margin: 20, padding: 12, background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 6, fontSize: 14 },
   pill: (color) => ({ display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: color + '22', color, fontSize: 12, fontWeight: 600 }),
   statCard: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 },

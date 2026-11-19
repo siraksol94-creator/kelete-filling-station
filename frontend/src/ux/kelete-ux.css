@@ -1,0 +1,137 @@
+/* UX-1 — shared styles for the new building blocks and responsive behaviour.
+   Loaded after index.css. Class names start with "k-" so nothing existing
+   is restyled by accident. */
+
+:root {
+  --k-space-1: 4px; --k-space-2: 8px; --k-space-3: 12px; --k-space-4: 16px; --k-space-5: 24px;
+  --k-text-xs: 11px; --k-text-sm: 13px; --k-text-md: 14px; --k-text-lg: 16px;
+  --k-ink: #111827; --k-ink-muted: #4b5563;          /* 4b5563 on white: 7.5:1 */
+  --k-line: #e5e7eb; --k-surface: #ffffff; --k-surface-2: #f9fafb;
+  --k-accent: #1d4ed8;                                 /* 6.7:1 on white */
+  --k-ok: #15803d; --k-ok-bg: #f0fdf4; --k-ok-line: #bbf7d0;
+  --k-warn: #b45309; --k-warn-bg: #fffbeb; --k-warn-line: #fcd34d;
+  --k-danger: #b91c1c; --k-danger-bg: #fef2f2; --k-danger-line: #fecaca;
+  --k-page-pad: 24px;
+  --k-tap: 40px;                                       /* minimum touch target */
+}
+
+/* Visible keyboard focus everywhere (mouse clicks don't show it). */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.k-sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ── Skeletons ─────────────────────────────────────────────────────────── */
+.k-skeleton-group { display: grid; gap: 10px; padding: 16px; }
+.k-skeleton {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #eef0f3 0%, #f7f8fa 40%, #eef0f3 80%);
+  background-size: 300% 100%;
+  animation: k-shimmer 1.4s ease-in-out infinite;
+}
+.k-skeleton-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.k-skeleton-card { background: var(--k-surface); border: 1px solid var(--k-line); border-radius: 10px; padding: 16px; }
+@keyframes k-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .k-skeleton { animation: none; } }
+
+/* ── Progress ──────────────────────────────────────────────────────────── */
+.k-progress { height: 8px; border-radius: 999px; background: #e5e7eb; overflow: hidden; }
+.k-progress-fill { height: 100%; border-radius: 999px; transition: width .3s ease; }
+.k-tone-accent { background: var(--k-accent); }
+.k-tone-ok { background: var(--k-ok); }
+.k-tone-warn { background: #d97706; }
+@media (prefers-reduced-motion: reduce) { .k-progress-fill { transition: none; } }
+
+.k-checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: var(--k-text-sm); color: var(--k-ink-muted); }
+.k-checklist li { display: flex; align-items: center; gap: 8px; }
+.k-checklist .k-check-icon { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center; border: 1.5px solid #cbd5e1; color: #94a3b8; font-size: 12px; flex: none; }
+.k-checklist li.k-done { color: var(--k-ink); }
+.k-checklist li.k-done .k-check-icon { background: var(--k-ok); border-color: var(--k-ok); color: #fff; }
+.k-checklist li.k-warn { color: var(--k-danger); font-weight: 600; }
+.k-checklist li.k-warn .k-check-icon { border-color: var(--k-danger); color: var(--k-danger); }
+.k-checklist-compact { gap: 3px; font-size: var(--k-text-xs); }
+
+.k-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: var(--k-text-xs); color: var(--k-ink-muted); }
+.k-steps li { display: inline-flex; align-items: center; gap: 5px; }
+.k-step-dot { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; }
+.k-steps li.k-step-done { color: var(--k-ink); font-weight: 600; }
+.k-steps li.k-step-done .k-step-dot { background: var(--k-ok); border-color: var(--k-ok); }
+
+/* ── Variance ──────────────────────────────────────────────────────────── */
+.k-variance { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 3px 10px; font-weight: 700; font-size: var(--k-text-sm); border: 1px solid; white-space: nowrap; }
+.k-variance-lg { font-size: var(--k-text-lg); padding: 5px 12px; }
+.k-variance-balanced { color: var(--k-ok); background: var(--k-ok-bg); border-color: var(--k-ok-line); }
+.k-variance-short { color: var(--k-danger); background: var(--k-danger-bg); border-color: var(--k-danger-line); }
+.k-variance-over { color: var(--k-warn); background: var(--k-warn-bg); border-color: var(--k-warn-line); }
+.k-variance-amount { font-weight: 500; opacity: .85; }
+
+/* ── Summary strip ─────────────────────────────────────────────────────── */
+.k-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.k-summary-item { background: var(--k-surface); border: 1px solid var(--k-line); border-radius: 10px; padding: 12px 14px; }
+.k-summary-label { font-size: var(--k-text-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--k-ink-muted); }
+.k-summary-value { font-size: 22px; font-weight: 800; color: var(--k-ink); margin-top: 2px; }
+.k-summary-hint { font-size: var(--k-text-xs); color: var(--k-ink-muted); margin-top: 2px; }
+.k-tone-text-ok .k-summary-value { color: var(--k-ok); }
+.k-tone-text-warn .k-summary-value { color: var(--k-warn); }
+
+/* ── Panels used by the fuel screens ───────────────────────────────────── */
+.k-panel { background: var(--k-surface); border: 1px solid var(--k-line); border-radius: 10px; padding: 14px 16px; }
+.k-panel-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.k-panel-title { font-size: var(--k-text-sm); font-weight: 700; color: var(--k-ink); }
+.k-muted { color: var(--k-ink-muted); font-size: var(--k-text-sm); }
+.k-ok-text { color: var(--k-ok); font-weight: 700; }
+.k-sticky-foot { position: sticky; bottom: 0; background: var(--k-surface); z-index: 2; }
+/* Stays in view at the top of a scrolling window (e.g. the Close Shift checklist). */
+.k-sticky-top { position: sticky; top: -20px; z-index: 3; box-shadow: 0 6px 12px -10px rgba(15, 23, 42, .35); }
+.k-field-error { color: var(--k-danger); font-size: var(--k-text-xs); margin-top: 3px; font-weight: 600; }
+
+/* Disabled actions look disabled (several fuel buttons were disabled but
+   looked clickable, e.g. Update on an approved shift). */
+.k-page button:disabled, .k-modal button:disabled { opacity: .5; cursor: not-allowed; filter: saturate(.6); }
+
+/* ── Shortcuts ─────────────────────────────────────────────────────────── */
+.k-kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid #cbd5e1; border-bottom-width: 2px; border-radius: 5px; background: #f8fafc; font: 600 11px/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #334155; text-align: center; }
+.k-hint-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; min-height: var(--k-tap); border: 1px solid var(--k-line); border-radius: 6px; background: var(--k-surface); color: var(--k-ink-muted); font-size: var(--k-text-sm); cursor: pointer; }
+.k-hint-btn:hover { background: var(--k-surface-2); }
+.k-help-backdrop { position: fixed; inset: 0; background: rgba(15, 23, 42, .45); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+.k-help { background: #fff; border-radius: 12px; width: min(420px, 94vw); box-shadow: 0 20px 50px rgba(0,0,0,.25); }
+.k-help-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--k-line); }
+.k-help-table { width: 100%; border-collapse: collapse; font-size: var(--k-text-sm); }
+.k-help-table td { padding: 9px 16px; border-bottom: 1px solid #f1f5f9; }
+.k-help-table td:first-child { width: 1%; white-space: nowrap; }
+.k-icon-btn { border: 0; background: transparent; padding: 8px; cursor: pointer; color: var(--k-ink-muted); min-width: var(--k-tap); min-height: var(--k-tap); }
+
+/* ── Responsive behaviour for the fuel screens ─────────────────────────── */
+/* Fuel pages and modals carry these classes next to their inline styles; the
+   !important rules here only apply on small screens. */
+@media (max-width: 900px) {
+  :root { --k-page-pad: 16px; }
+  .k-page { padding: 16px 12px 96px !important; }
+  .k-page-header { flex-wrap: wrap; gap: 10px; }
+}
+@media (max-width: 640px) {
+  .k-page { padding: 12px 8px 96px !important; }
+  .k-modal { width: 100vw !important; max-width: 100vw !important; height: 100dvh; max-height: 100dvh !important; border-radius: 0 !important; display: flex; flex-direction: column; }
+  .k-modal > form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+  .k-modal-body { max-height: none !important; flex: 1; overflow: visible !important; }
+  .k-sticky-top { top: 0; }
+  /* Closing meter on a phone card: box and "= opening" on one line, the
+     warning underneath at full width. */
+  table.phone-cards tbody td.k-meter-cell { flex-wrap: wrap; }
+  td.k-meter-cell input { width: 132px !important; }
+  td.k-meter-cell .k-field-error { flex-basis: 100%; text-align: right; }
+  .k-modal-backdrop { align-items: stretch !important; }
+  .k-form-grid { grid-template-columns: 1fr !important; }
+  .k-hide-sm { display: none; }
+  .k-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .k-summary-value { font-size: 18px; }
+  .k-actions-col { white-space: normal; }
+  .k-page button, .k-modal button { min-height: var(--k-tap); }
+}
+
+/* Tables scroll sideways inside their card instead of spilling off-screen.
+   On phones, fuel tables use the app's own table.phone-cards layout (one
+   labelled card per row, labels filled in by Layout from the headers). */
+.k-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }

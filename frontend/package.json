@@ -43,6 +43,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "check:screens": "node scripts/check-screens.js",
+    "test:ux": "node scripts/test-ux.js",
     "build:web": "cross-env PUBLIC_URL=/ REACT_APP_API_URL=/api react-scripts build",
     "build:electron": "cross-env REACT_APP_API_URL=http://localhost:5303/api react-scripts build",
     "electron": "electron .",

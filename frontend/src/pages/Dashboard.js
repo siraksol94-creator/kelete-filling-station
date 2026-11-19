@@ -4,6 +4,7 @@ import { getDashboard } from '../services/api';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiDollarSign, FiShoppingCart, FiTrendingUp, FiPackage, FiAlertTriangle } from 'react-icons/fi';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Skeleton, SkeletonCards } from '../ux/components';
 
 const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#6b7280'];
 
@@ -60,9 +61,11 @@ const Dashboard = () => {
   }));
 
   if (loading) {
+    // UX-1: placeholders in the shape of the dashboard instead of "Loading…"
     return (
-      <div className="page-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 300 }}>
-        <div style={{ color: '#9ca3af', fontSize: 15 }}>Loading dashboard...</div>
+      <div className="page-content">
+        <SkeletonCards count={4} />
+        <div className="k-skeleton-card" style={{ marginTop: 16 }}><Skeleton rows={6} height={18} /></div>
       </div>
     );
   }

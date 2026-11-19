@@ -75,8 +75,8 @@ export default function FuelPOS() {
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiDollarSign /> Fuel POS</h2>
         <div style={{ fontSize: 13, color: '#6b7280' }}>
           {shift ? <>Active shift: <strong>{shift.attendant_name}</strong></> : <span style={{ color: '#dc2626' }}>No active shift</span>}

@@ -93,8 +93,8 @@ export default function PumpsNozzles() {
   };
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiZap /> Pumps & Nozzles</h2>
         {isAdmin
           ? <button onClick={() => setPumpForm({ code: '', name: '' })} style={S.btnPrimary}><FiPlus /> New Pump</button>
@@ -149,12 +149,12 @@ export default function PumpsNozzles() {
       </div>
 
       {pumpForm && (
-        <div style={S.backdrop} onClick={() => setPumpForm(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setPumpForm(null)}>
+          <div style={S.modal} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}><h3 style={{ margin: 0 }}>{pumpForm.id ? 'Edit' : 'New'} Pump</h3><button onClick={() => setPumpForm(null)} style={S.iconBtn}><FiX /></button></div>
             <form onSubmit={savePump}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={S.lbl}>Code *<input value={pumpForm.code} onChange={e => setPumpForm({ ...pumpForm, code: e.target.value })} required style={S.input} placeholder="P1" /></label>
                 <label style={S.lbl}>Name *<input value={pumpForm.name} onChange={e => setPumpForm({ ...pumpForm, name: e.target.value })} required style={S.input} /></label>
               </div>
@@ -168,12 +168,12 @@ export default function PumpsNozzles() {
       )}
 
       {nozForm && (
-        <div style={S.backdrop} onClick={() => setNozForm(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setNozForm(null)}>
+          <div style={S.modal} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}><h3 style={{ margin: 0 }}>{nozForm.id ? 'Edit' : 'New'} Nozzle</h3><button onClick={() => setNozForm(null)} style={S.iconBtn}><FiX /></button></div>
             <form onSubmit={saveNoz}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={S.lbl}>Nozzle Code *<input value={nozForm.code} onChange={e => setNozForm({ ...nozForm, code: e.target.value })} required disabled={!isAdmin} style={S.input} placeholder="N1" /></label>
                 <label style={S.lbl}>Tank *
                   <select value={nozForm.tank_id} onChange={e => setNozForm({ ...nozForm, tank_id: e.target.value })} required disabled={!isAdmin} style={S.input}>

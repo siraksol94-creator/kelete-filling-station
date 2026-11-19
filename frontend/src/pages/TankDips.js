@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FiActivity, FiRefreshCw, FiCheckCircle, FiClock } from 'react-icons/fi';
 import { getTankDips, saveTankDip } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
+import { dipProgress } from '../ux/fuelProgress';
+import { Skeleton, ProgressBar } from '../ux/components';
 
 const today = () => businessToday();
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
@@ -20,8 +22,12 @@ export default function TankDips({ embedded = false } = {}) {
   const [edits, setEdits] = useState({});
   const [saving, setSaving] = useState(null);
   const [msg, setMsg] = useState('');
+  const [loaded, setLoaded] = useState(false);   // UX-1
 
   const rowKey = r => r.tank_ids.join('-');
+  // UX-1 — a tank can't hold negative litres: say so at the box and don't send it.
+  const fieldError = (v) => (v !== '' && v != null && Number(v) < 0) ? "Can't be negative" : '';
+  const progress = useMemo(() => dipProgress(rows, edits), [rows, edits]);   // same key as rowKey
 
   const load = async () => {
     setMsg('');
@@ -37,6 +43,7 @@ export default function TankDips({ embedded = false } = {}) {
       }
       setEdits(seed);
     } catch (e) { setMsg('Load failed: ' + (e.response?.data?.error || e.message)); }
+    setLoaded(true);
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [date, shiftType]);
 
@@ -44,6 +51,7 @@ export default function TankDips({ embedded = false } = {}) {
     const key = rowKey(row);
     const ip = edits[key] || {};
     if (ip.measured === '' || ip.measured == null) { setMsg('Enter measured litres first.'); return; }
+    if (fieldError(ip.measured)) { setMsg(`${row.tank_code}: measured litres can't be negative.`); return; }
     setSaving(key); setMsg('');
     try {
       await saveTankDip({ tank_ids: row.tank_ids, shift_type: shiftType, dip_date: date, measured_litres: Number(ip.measured), notes: ip.notes || '' });
@@ -77,10 +85,27 @@ export default function TankDips({ embedded = false } = {}) {
         Dips auto-post when an <strong>Administrator approves the SHIFT</strong> on Fuel Cash Report. Until then they sit as pending checks and do not change the book volume.
       </div>
 
-      {msg && <div style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, marginBottom: 12, fontSize: 13, color: '#166534' }}>{msg}</div>}
+      {msg && <div role="status" style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, marginBottom: 12, fontSize: 13, color: '#166534' }}>{msg}</div>}
+
+      {loaded && rows.length > 0 && (
+        <div className="k-panel" style={{ marginBottom: 12 }}>
+          <div className="k-panel-row" style={{ marginBottom: 8 }}>
+            <span className="k-panel-title">
+              {progress.complete ? <span className="k-ok-text">✓ Every tank dipped for the {shiftType} shift</span> : `Tanks dipped for the ${shiftType} shift`}
+            </span>
+            <span className="k-muted">
+              {progress.saved} of {progress.total} saved
+              {progress.typedNotSaved > 0 && <strong style={{ color: '#b45309' }}> · {progress.typedNotSaved} typed but not saved</strong>}
+              <span className="k-hide-sm"> · Enter in a box saves that row</span>
+            </span>
+          </div>
+          <ProgressBar value={progress.saved} max={progress.total} tone={progress.complete ? 'ok' : 'accent'} label="Tanks dipped" />
+        </div>
+      )}
 
       <div style={{ ...S.card, overflowX: 'auto' }}>
-        <table style={{ ...S.table, minWidth: 820 }}>
+        {!loaded ? <Skeleton rows={4} height={20} /> : (
+        <table style={{ ...S.table, minWidth: 820 }} className="phone-cards">
           <thead><tr>
             <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Tank / Group</th>
             <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Grade</th>
@@ -92,7 +117,7 @@ export default function TankDips({ embedded = false } = {}) {
             <th style={S.th}></th>
           </tr></thead>
           <tbody>
-            {rows.map(row => {
+            {rows.map((row, idx) => {
               const key = rowKey(row);
               const ip = edits[key] || {};
               const measured = Number(ip.measured);
@@ -108,10 +133,20 @@ export default function TankDips({ embedded = false } = {}) {
                   <td style={S.td}><span style={{ ...S.pill(row.grade_color || '#6b7280'), whiteSpace: 'nowrap' }}>{row.grade_name || '-'}</span></td>
                   <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{fmtL(row.book_volume)}</td>
                   <td style={S.tdR}>
-                    <input type="number" step="0.01" value={ip.measured || ''}
+                    <input type="number" step="0.01" min="0" inputMode="decimal" value={ip.measured || ''}
                       disabled={fullyPosted}
+                      data-k-dip={idx}
+                      aria-label={`Measured litres for ${row.tank_code}`}
+                      aria-invalid={fieldError(ip.measured) ? 'true' : undefined}
                       onChange={e => setEdits({ ...edits, [key]: { ...ip, measured: e.target.value } })}
-                      style={{ ...S.input, width: 140, textAlign: 'right', background: fullyPosted ? '#f3f4f6' : '#fff' }} />
+                      onKeyDown={e => {
+                        if (e.key !== 'Enter') return;
+                        e.preventDefault();
+                        if (!fieldError(ip.measured) && ip.measured !== '' && saving !== key) save(row);
+                        e.currentTarget.closest('table')?.querySelector(`[data-k-dip="${idx + 1}"]`)?.focus();
+                      }}
+                      style={{ ...S.input, width: 140, textAlign: 'right', background: fullyPosted ? '#f3f4f6' : '#fff', borderColor: fieldError(ip.measured) ? '#b91c1c' : undefined }} />
+                    {fieldError(ip.measured) && <div className="k-field-error" role="alert">{fieldError(ip.measured)}</div>}
                   </td>
                   <td style={{ ...S.tdR, color: vColor, fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {liveVariance != null ? (liveVariance >= 0 ? '+' : '') + liveVariance.toFixed(2) + ' L' : '—'}
@@ -131,7 +166,7 @@ export default function TankDips({ embedded = false } = {}) {
                       </span>
                     ) : (
                       <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <button onClick={() => save(row)} disabled={saving === key} style={{ ...S.btnPrimary, padding: '6px 10px', fontSize: 12 }}>
+                        <button onClick={() => save(row)} disabled={saving === key || !!fieldError(ip.measured)} style={{ ...S.btnPrimary, padding: '6px 10px', fontSize: 12 }}>
                           {saving === key ? 'Saving…' : (row.dip_rows.length > 0 ? 'Update' : 'Save')}
                         </button>
                         {row.dip_rows.length > 0 && (
@@ -148,8 +183,9 @@ export default function TankDips({ embedded = false } = {}) {
             {rows.length === 0 && <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No tanks.</td></tr>}
           </tbody>
         </table>
+        )}
       </div>
     </>
   );
-  return embedded ? body : <div style={S.page}>{body}</div>;
+  return embedded ? body : <div style={S.page} className="k-page">{body}</div>;
 }

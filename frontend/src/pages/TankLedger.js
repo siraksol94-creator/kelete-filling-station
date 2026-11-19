@@ -201,7 +201,7 @@ export default function TankLedger({ embedded = false } = {}) {
       {!data && !loading && <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>Pick a tank to view its ledger.</div>}
     </>
   );
-  return embedded ? body : <div style={S.page}>{body}</div>;
+  return embedded ? body : <div style={S.page} className="k-page">{body}</div>;
 }
 
 function KeyStat({ label, value, highlight }) {

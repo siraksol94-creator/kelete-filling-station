@@ -46,8 +46,8 @@ export default function FuelDeliveries() {
   const total = form ? (Number(form.litres_delivered || 0) * Number(form.cost_per_litre || 0)) : 0;
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiDownloadCloud /> Fuel Deliveries (GRN)</h2>
         <button onClick={() => setForm({ ...emptyForm })} style={S.btnPrimary}><FiPlus /> Record Delivery</button>
       </div>
@@ -82,12 +82,12 @@ export default function FuelDeliveries() {
       </div>
 
       {form && (
-        <div style={S.backdrop} onClick={() => setForm(null)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setForm(null)}>
+          <div style={S.modal} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}><h3 style={{ margin: 0 }}>New Fuel Delivery</h3><button onClick={() => setForm(null)} style={S.iconBtn}><FiX /></button></div>
             <form onSubmit={save}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={S.lbl}>Date *<input type="date" value={form.delivery_date} onChange={e => setForm({ ...form, delivery_date: e.target.value })} required style={S.input} /></label>
                 <label style={S.lbl}>Supplier
                   <select value={form.supplier_id} onChange={e => setForm({ ...form, supplier_id: e.target.value })} style={S.input}>

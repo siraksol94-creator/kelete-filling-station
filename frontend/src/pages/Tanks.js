@@ -189,8 +189,8 @@ export default function Tanks() {
   );
 
   return (
-    <div style={S.page}>
-      <div style={S.header}>
+    <div style={S.page} className="k-page">
+      <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiDatabase /> Tanks</h2>
         {tab === 'tanks' && canManage && (
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -285,15 +285,15 @@ export default function Tanks() {
       )}
 
       {tab === 'tanks' && showForm && (
-        <div style={S.backdrop} onClick={() => setShowForm(false)}>
-          <div style={S.modal} onClick={e => e.stopPropagation()}>
+        <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setShowForm(false)}>
+          <div style={S.modal} className="k-modal" onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
               <h3 style={{ margin: 0 }}>{editingId ? 'Edit' : 'New'} Tank</h3>
               <button onClick={() => setShowForm(false)} style={S.iconBtn}><FiX /></button>
             </div>
             <form onSubmit={save}>
               {err && <div style={S.errBox}>{err}</div>}
-              <div style={S.formGrid}>
+              <div style={S.formGrid} className="k-form-grid">
                 <label style={S.lbl}>Code *<input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} required style={S.input} placeholder="T1" /></label>
                 <label style={S.lbl}>Name *<input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required style={S.input} /></label>
                 <label style={S.lbl}>Fuel Grade *

@@ -60,3 +60,6 @@ jobs:
 
       - name: Every screen file parses and every import resolves
         run: node scripts/check-screens.js
+
+      - name: Frontend logic tests (UX progress, feedback and shortcut rules)
+        run: node scripts/test-ux.js
