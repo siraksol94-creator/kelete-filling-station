@@ -3,7 +3,7 @@
 // cash variance (in full), and this week's trend.
 import React from 'react';
 import { FiDroplet, FiDollarSign, FiClock, FiAlertTriangle, FiInfo, FiChevronRight, FiSun, FiBarChart2 } from 'react-icons/fi';
-import Tank3D from './Tank3D';
+import TankRow from './TankRow';
 import GradeGauge from './GradeGauge';
 import WeatherCard from './WeatherCard';
 import TrendBars from './TrendBars';
@@ -70,7 +70,7 @@ export default function StationCockpit({ data, today, onNavigate = () => {} }) {
           {(st.tanks || []).length === 0
             ? <div className="k-empty">No tanks set up yet.</div>
             : <>
-                <div className="k-tanks">{st.tanks.map((t) => <Tank3D key={t.id} tank={t} width={118} />)}</div>
+                <TankRow tanks={st.tanks} width={118} />
                 <div className="k-tank-total">
                   <span><strong>{L(st.tanks.reduce((a, t) => a + Math.max(0, t.volume), 0))}</strong> in the tanks</span>
                   <span>of {L(st.tanks.reduce((a, t) => a + t.capacity, 0))} capacity</span>
