@@ -40,6 +40,9 @@ export default function FuelPOS() {
     else { setVehicles([]); setVehicleId(''); }
   }, [fleetCustomerId]);
 
+  // F3: a fleet account merged into Customers can't take Fleet sales any more
+  // (the server refuses them); only unmerged accounts are offered here.
+  const fleetOpen = useMemo(() => fleet.filter(f => !f.merged_at && (f.status || 'Active') === 'Active'), [fleet]);
   const selectedNoz = useMemo(() => nozzles.find(n => n.id === Number(nozzleId)), [nozzles, nozzleId]);
   const ppl = selectedNoz ? Number(selectedNoz.price_per_litre || 0) : 0;
 
@@ -145,12 +148,17 @@ export default function FuelPOS() {
               ))}
             </div>
 
+            {payment === 'Fleet' && fleet.some(f => f.merged_at) && (
+              <div role="note" style={{ marginTop: 12, padding: '10px 12px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 8, fontSize: 13, color: '#78350f' }}>
+                Fleet accounts merged into Customers aren't listed here. Record their fuel as a <strong>Credit ticket</strong> on the shift instead.
+              </div>
+            )}
             {payment === 'Fleet' && (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 12 }}>
                 <label style={S.lbl}>Fleet Customer *
                   <select value={fleetCustomerId} onChange={e => setFleetCustomerId(e.target.value)} required style={S.input}>
                     <option value="">-- select --</option>
-                    {fleet.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                    {fleetOpen.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                   </select>
                 </label>
                 <label style={S.lbl}>Vehicle

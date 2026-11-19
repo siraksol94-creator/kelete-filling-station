@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiSearch, FiSave, FiRefreshCw, FiPackage, FiPrinter } from 'react-icons/fi';
 import { matchTokens } from '../utils/tokenSearch';
+import { usePasswordDialog } from '../ux/PasswordDialog';
 
 const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
 
@@ -36,6 +37,7 @@ const defaultUnitName = (product) => {
 
 const OpeningBalance = () => {
   const { hasPermission, user } = useAuth();
+  const [passwordDialog, askPassword] = usePasswordDialog();   // UX-3: masked, replaces window.prompt
   const { symbol: curSym } = useCurrency();
   const [products, setProducts] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -188,7 +190,8 @@ const OpeningBalance = () => {
       : `Save ${dirtyIds.size} change(s)?`;
     if (!window.confirm(confirmMsg)) return;
 
-    const password = window.prompt('Manager passcode to save opening balances:');
+    const password = await askPassword({ title: 'Manager passcode', label: 'Passcode', actionLabel: 'Save opening balances',
+      note: 'Opening balances need the manager passcode.' });
     if (!password) return;
 
     setSaving(true);
@@ -407,6 +410,7 @@ const OpeningBalance = () => {
 
   return (
     <div className="page-content">
+      {passwordDialog}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1>Opening Balance</h1>

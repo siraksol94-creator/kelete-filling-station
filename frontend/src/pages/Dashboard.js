@@ -6,6 +6,9 @@ import { FiDollarSign, FiShoppingCart, FiTrendingUp, FiPackage, FiAlertTriangle 
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { SkeletonCards } from '../ux/components';
 import FuelLoader from '../ux/FuelLoader';
+import StationCockpit from '../ux/StationCockpit';
+import TrendBars from '../ux/TrendBars';
+import { businessToday } from '../utils/businessDate';
 
 const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#6b7280'];
 
@@ -71,15 +74,20 @@ const Dashboard = () => {
     );
   }
 
+  const today = businessToday();
   return (
     <div className="page-content">
+      {/* UX-3 — station cockpit (fuel branches only; shop-only branches skip it) */}
+      {data.station && <StationCockpit data={data} today={today} onNavigate={navigate} />}
+
+      {data.station && <h3 className="k-section-title">Shop &amp; stock</h3>}
       {/* Summary Cards */}
       <div className="stat-cards">
         <div className="stat-card red">
           <div className="stat-icon"><FiDollarSign /></div>
           <div>
-            <div className="stat-label">Today's Sales</div>
-            <div className="stat-value">K {data.todaySales?.toLocaleString()}</div>
+            <div className="stat-label">{data.station ? 'Shop sales today' : "Today's Sales"}</div>
+            <div className="stat-value">K {(data.station ? Math.max(0, (data.todaySales || 0) - (data.todayFuelSales || 0)) : data.todaySales)?.toLocaleString()}</div>
           </div>
         </div>
         <div className="stat-card blue">
@@ -130,8 +138,8 @@ const Dashboard = () => {
       <div className="dashboard-grid">
         {/* Sales Trend Chart */}
         <div className="chart-card">
-          <h3>Sales Trend (This Week)</h3>
-          {salesTrend.length === 0 ? (
+          <h3>{data.station ? 'Takings this week (fuel + shop)' : 'Sales Trend (This Week)'}</h3>
+          {data.station ? <TrendBars rows={data.salesTrend} today={today} height={240} /> : salesTrend.length === 0 ? (
             <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>No sales data yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={280}>

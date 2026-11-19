@@ -261,3 +261,90 @@
   .k-login-main { padding-top: 32px; }
 }
 @media (prefers-reduced-motion: reduce) { .k-star, .k-login-car { animation: none; } }
+
+/* ════════════════════════ UX-3 ════════════════════════ */
+/* Shared buttons (new screens) */
+.k-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid transparent; font: 700 14px/1 Inter, system-ui, sans-serif; cursor: pointer; }
+.k-btn-primary { background: #1d4ed8; color: #fff; }
+.k-btn-primary:hover:not(:disabled) { background: #1e40af; }
+.k-btn-danger { background: #b91c1c; color: #fff; }
+.k-btn-danger:hover:not(:disabled) { background: #991b1b; }
+.k-btn-quiet { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+.k-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Masked password dialog */
+.k-pw-dialog { background: #fff; border-radius: 16px; width: min(420px, 94vw); padding: 18px 20px 20px; box-shadow: 0 24px 60px rgba(15, 23, 42, .3); }
+.k-pw-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.k-pw-head h2 { flex: 1; margin: 0; font-size: 17px; font-weight: 800; color: #0f172a; }
+.k-pw-icon { width: 34px; height: 34px; border-radius: 10px; background: #eff6ff; color: #1d4ed8; display: inline-flex; align-items: center; justify-content: center; }
+.k-pw-subject { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; font-size: 14px; font-weight: 600; color: #0f172a; margin-bottom: 10px; }
+.k-pw-danger { background: #fef2f2; border-color: #fecaca; color: #7f1d1d; }
+.k-pw-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+/* ── Station cockpit (Dashboard) ───────────────────────── */
+.k-cockpit { margin-bottom: 22px; }
+.k-cockpit-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.k-cockpit-kicker { font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #0e7490; }
+.k-cockpit-head h2 { margin: 2px 0 0; font-size: 24px; font-weight: 800; color: #0f172a; letter-spacing: -.01em; }
+.k-alerts { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.k-alerts li { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 999px; border: 1px solid; }
+.k-alert-danger { color: #991b1b; background: #fef2f2; border-color: #fecaca; }
+.k-alert-warn { color: #92400e; background: #fffbeb; border-color: #fcd34d; }
+.k-alert-info { color: #1e3a8a; background: #eff6ff; border-color: #bfdbfe; }
+.k-cockpit-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; }
+.k-span-4 { grid-column: span 4; } .k-span-5 { grid-column: span 5; } .k-span-7 { grid-column: span 7; } .k-span-8 { grid-column: span 8; } .k-span-12 { grid-column: span 12; }
+.k-cockpit-card { background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px 18px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04), 0 10px 24px -18px rgba(15, 23, 42, .35); min-width: 0; }
+.k-cockpit-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.k-cockpit-card h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: #0f172a; }
+.k-cockpit-ico { width: 28px; height: 28px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ecfeff, #cffafe); color: #0e7490; box-shadow: inset 0 -2px 0 rgba(14, 116, 144, .15); }
+.k-link-btn { display: inline-flex; align-items: center; gap: 2px; border: 0; background: none; color: #1d4ed8; font-weight: 700; font-size: 13px; cursor: pointer; padding: 6px 4px; min-height: 32px; }
+.k-link-btn:hover { text-decoration: underline; }
+.k-big { font-size: 30px; font-weight: 800; color: #0f172a; letter-spacing: -.02em; }
+.k-split { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin: 12px 0 10px; background: #e2e8f0; box-shadow: inset 0 1px 2px rgba(15, 23, 42, .15); }
+.k-split-fuel { background: linear-gradient(180deg, #22b4cf, #0e7490); }
+.k-split-shop { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+.k-split-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.k-split-legend dt { font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 6px; }
+.k-split-legend dd { margin: 2px 0 0; font-size: 15px; font-weight: 800; color: #0f172a; }
+.k-dot-fuel, .k-dot-shop { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.k-dot-fuel { background: #0e7490; } .k-dot-shop { background: #b91c1c; }
+.k-gauges { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-around; }
+.k-gauge { margin: 0; text-align: center; }
+.k-gauge figcaption { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-top: -4px; }
+.k-gauge-value { font-size: 20px; font-weight: 800; color: #0f172a; }
+.k-gauge-value small { font-size: 12px; color: #475569; }
+.k-gauge-name { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #334155; }
+.k-gauge-name i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.k-gauge-amount { font-size: 12px; color: #475569; }
+.k-gauge-needle { transform-origin: 60px 58px; animation: k-needle .9s cubic-bezier(.2, 1.3, .4, 1); }
+@keyframes k-needle { from { transform: rotate(-180deg); } to { transform: rotate(0); } }
+.k-tanks { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: flex-end; }
+.k-tank3d { margin: 0; display: flex; flex-direction: column; align-items: center; }
+.k-tank3d figcaption { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: #334155; line-height: 1.3; margin-top: 2px; }
+.k-tank3d figcaption strong { font-size: 13px; color: #0f172a; }
+.k-tank-litres { font-weight: 800; }
+.k-tank-name { white-space: nowrap; }
+.k-tank-flag { margin-top: 2px; font-size: 11px; font-weight: 800; color: #fff; background: #b91c1c; border-radius: 999px; padding: 1px 8px; }
+.k-tank-surface { animation: k-ripple 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes k-ripple { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(.78); } }
+.k-shift-counts { list-style: none; padding: 0; margin: 12px 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.k-shift-counts li { text-align: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 4px; }
+.k-shift-counts strong { display: block; font-size: 20px; color: #0f172a; }
+.k-shift-counts span { font-size: 11px; font-weight: 700; color: #475569; }
+.k-cash-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+.k-empty { padding: 18px 8px; text-align: center; color: #475569; font-size: 13px; }
+.k-section-title { font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #475569; margin: 6px 0 12px; }
+.k-trend { margin: 0; }
+.k-trend-legend { display: flex; gap: 16px; justify-content: flex-end; font-size: 12px; font-weight: 700; color: #334155; }
+.k-trend-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.k-trend-legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+@media (max-width: 1100px) { .k-span-4, .k-span-8, .k-span-5, .k-span-7 { grid-column: span 12; } }
+@media (max-width: 640px) {
+  .k-cockpit-head h2 { font-size: 19px; }
+  .k-big { font-size: 24px; }
+  .k-gauges { justify-content: center; }
+  .k-shift-counts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .k-tanks { justify-content: center; }
+  .page-content .bottom-grid { grid-template-columns: 1fr !important; }
+}
+@media (prefers-reduced-motion: reduce) { .k-gauge-needle, .k-tank-surface { animation: none; } }
