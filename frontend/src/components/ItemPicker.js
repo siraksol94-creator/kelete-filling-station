@@ -225,14 +225,14 @@ export default function ItemPicker({
                     }}>
                     <span style={{ color: tag ? '#15803d' : '#111827', fontWeight: tag ? 600 : 400 }}>{p.name}</span>
                     {tag
-                      ? <span style={{ color: '#16a34a', fontSize: 11, whiteSpace: 'nowrap' }}>{tag}</span>
-                      : p.code && <span style={{ color: '#9ca3af', fontFamily: 'monospace', fontSize: 11 }}>{p.code}</span>}
+                      ? <span style={{ color: '#15803d', fontSize: 11, whiteSpace: 'nowrap' }}>{tag}</span>
+                      : p.code && <span style={{ color: '#6b7280', fontFamily: 'monospace', fontSize: 11 }}>{p.code}</span>}
                   </div>
                 </React.Fragment>
               );
             })}
             {products.length > matches.length && (
-              <div style={{ padding: '6px 10px', fontSize: 10, color: '#9ca3af', background: '#f9fafb' }}>
+              <div style={{ padding: '6px 10px', fontSize: 10, color: '#6b7280', background: '#f9fafb' }}>
                 Showing {matches.length} — keep typing to narrow down.
               </div>
             )}

@@ -112,7 +112,7 @@ export default function HqVariances() {
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
             <FiInbox size={36} style={{ marginBottom: 8, opacity: 0.4 }} />
             <p style={{ fontStyle: 'italic' }}>No variances match the current filter.</p>
           </div>

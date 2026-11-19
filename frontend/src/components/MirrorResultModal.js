@@ -36,7 +36,7 @@ export default function MirrorResultModal({ result, onClose }) {
               </thead>
               <tbody>
                 {slugs.length === 0 && (
-                  <tr><td colSpan={5} style={{ padding: 14, textAlign: 'center', color: '#94a3b8' }}>No registered branches.</td></tr>
+                  <tr><td colSpan={5} style={{ padding: 14, textAlign: 'center', color: '#64748b' }}>No registered branches.</td></tr>
                 )}
                 {slugs.map(slug => {
                   const b = per_branch[slug] || {};
@@ -48,7 +48,7 @@ export default function MirrorResultModal({ result, onClose }) {
                       <td style={td}>{cellCount(b.products)}</td>
                       <td style={td}>{cellCount(b.categories)}</td>
                       <td style={td}>{cellCount(b.units)}</td>
-                      <td style={{ ...td, color: errCount > 0 ? '#b91c1c' : '#16a34a', fontWeight: 600 }}>{errCount}</td>
+                      <td style={{ ...td, color: errCount > 0 ? '#b91c1c' : '#15803d', fontWeight: 600 }}>{errCount}</td>
                     </tr>
                   );
                 })}
@@ -56,7 +56,7 @@ export default function MirrorResultModal({ result, onClose }) {
             </table>
           </div>
 
-          <p style={{ marginTop: 14, fontSize: 11, color: '#94a3b8' }}>
+          <p style={{ marginTop: 14, fontSize: 11, color: '#64748b' }}>
             Inserted = new rows added at the branch. Updated = HQ-owned fields (name, code, category, units, image, barcode) refreshed; branch prices, stock, status are untouched.
           </p>
         </div>

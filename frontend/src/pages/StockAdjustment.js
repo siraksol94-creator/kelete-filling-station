@@ -161,7 +161,7 @@ const StockAdjustment = () => {
           <div><div className="stat-label">{t('total')} {t('stockAdjustment')}</div><div className="stat-value">{hasPermission('StockAdjustment:View') ? stats.total : 'N/A'}</div></div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#dcfce7', color: '#16a34a' }}><FiTrendingUp /></div>
+          <div className="stat-icon" style={{ background: '#dcfce7', color: '#15803d' }}><FiTrendingUp /></div>
           <div><div className="stat-label">{t('increase')}s</div><div className="stat-value">{hasPermission('StockAdjustment:View') ? stats.increases : 'N/A'}</div></div>
         </div>
         <div className="stat-card">
@@ -207,7 +207,7 @@ const StockAdjustment = () => {
                       {adj.adjustment_type === 'increase' ? t('increase') : t('decrease')}
                     </span>
                   </td>
-                  <td style={{ fontWeight: 600, color: adj.adjustment_type === 'increase' ? '#16a34a' : '#dc2626' }}>
+                  <td style={{ fontWeight: 600, color: adj.adjustment_type === 'increase' ? '#15803d' : '#dc2626' }}>
                     {adj.adjustment_type === 'increase' ? '+' : '-'}{(parseFloat(parseFloat(adj.quantity))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {adj.unit}
                   </td>
                   <td>{adj.reason || '—'}</td>
@@ -220,7 +220,7 @@ const StockAdjustment = () => {
                           title="Edit"
                           style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            color: '#9ca3af', padding: 4, borderRadius: 6,
+                            color: '#6b7280', padding: 4, borderRadius: 6,
                             display: 'inline-flex', alignItems: 'center', transition: 'color 0.15s',
                           }}
                           onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
@@ -235,7 +235,7 @@ const StockAdjustment = () => {
                           title="Delete"
                           style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            color: '#9ca3af', padding: 4, borderRadius: 6,
+                            color: '#6b7280', padding: 4, borderRadius: 6,
                             display: 'inline-flex', alignItems: 'center', transition: 'color 0.15s',
                           }}
                           onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
@@ -305,7 +305,7 @@ const StockAdjustment = () => {
                       style={{
                         flex: 1, padding: '9px 0', border: `2px solid ${adjustmentType === 'increase' ? '#16a34a' : '#e5e7eb'}`,
                         borderRadius: 8, background: adjustmentType === 'increase' ? '#dcfce7' : '#fff',
-                        color: adjustmentType === 'increase' ? '#16a34a' : '#6b7280',
+                        color: adjustmentType === 'increase' ? '#15803d' : '#6b7280',
                         cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4
                       }}
                     >
@@ -343,7 +343,7 @@ const StockAdjustment = () => {
               {selectedProduct && quantity && parseFloat(quantity) > 0 && (
                 <div style={{ marginBottom: 16, padding: '10px 14px', background: adjustmentType === 'increase' ? '#dcfce7' : '#fee2e2', borderRadius: 8, fontSize: 13 }}>
                   {t('newStockWillBe')}:{' '}
-                  <strong style={{ color: adjustmentType === 'increase' ? '#16a34a' : '#dc2626' }}>
+                  <strong style={{ color: adjustmentType === 'increase' ? '#15803d' : '#dc2626' }}>
                     {formatStockForProduct(parseFloat(selectedProduct.store_balance) + (adjustmentType === 'increase' ? 1 : -1) * parseFloat(quantity), selectedProduct)}
                   </strong>
                 </div>

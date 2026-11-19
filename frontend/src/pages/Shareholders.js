@@ -147,7 +147,7 @@ const Shareholders = () => {
           </thead>
           <tbody>
             {list.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>No shareholders yet. Click "New Shareholder" to add one.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No shareholders yet. Click "New Shareholder" to add one.</td></tr>
             ) : list.map(s => {
               const st = stats.find(x => x.id === s.id) || { total_injected: 0, total_drawn: 0, total_dividends: 0, net_capital: 0 };
               return (
@@ -156,7 +156,7 @@ const Shareholders = () => {
                   <td style={{ color: '#6b7280', fontSize: 12 }}>{s.email || '—'}</td>
                   <td style={{ color: '#6b7280', fontSize: 12 }}>{s.phone || '—'}</td>
                   <td style={{ textAlign: 'right' }}>{s.share_percentage > 0 ? `${s.share_percentage}%` : '—'}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: st.net_capital >= 0 ? '#16a34a' : '#dc2626' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: st.net_capital >= 0 ? '#15803d' : '#dc2626' }}>
                     {curSym}{parseFloat(st.net_capital).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: '#6b21a8' }}>

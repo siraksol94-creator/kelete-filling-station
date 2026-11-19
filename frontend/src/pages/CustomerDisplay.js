@@ -49,7 +49,7 @@ const CustomerDisplay = () => {
             <div style={{ fontSize: 12, color: '#93c5fd', letterSpacing: 2, textTransform: 'uppercase' }}>Point of Sale</div>
           </div>
         </div>
-        <div style={{ fontSize: 13, color: '#9ca3af', textAlign: 'right' }}>
+        <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'right' }}>
           {new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
       </div>
@@ -60,12 +60,12 @@ const CustomerDisplay = () => {
         {/* Payment received screen */}
         {screen === 'payment' && paymentData && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: 14, letterSpacing: 3, textTransform: 'uppercase', color: '#9ca3af', marginBottom: 24 }}>Amount Received</div>
+            <div style={{ fontSize: 14, letterSpacing: 3, textTransform: 'uppercase', color: '#6b7280', marginBottom: 24 }}>Amount Received</div>
             <div style={{ fontSize: 96, fontWeight: 900, color: '#22c55e', fontFamily: 'monospace', marginBottom: 16 }}>
               K{(parseFloat(paymentData.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
             </div>
             <div style={{ width: 60, height: 3, background: '#22c55e', margin: '0 auto 32px', borderRadius: 2 }} />
-            <div style={{ fontSize: 22, color: '#9ca3af', marginBottom: 16 }}>
+            <div style={{ fontSize: 22, color: '#6b7280', marginBottom: 16 }}>
               Total Due: <span style={{ color: '#fff', fontWeight: 700 }}>K{(parseFloat(paymentData.total)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
             </div>
             {paymentData.amount >= paymentData.total ? (
@@ -91,7 +91,7 @@ const CustomerDisplay = () => {
             <div style={{ width: 60, height: 3, background: '#3b82f6', margin: '0 auto 48px', borderRadius: 2 }} />
 
             {/* Developer info */}
-            <div style={{ color: '#9ca3af', fontSize: 18, lineHeight: 2 }}>
+            <div style={{ color: '#6b7280', fontSize: 18, lineHeight: 2 }}>
               <div style={{ fontSize: 14, textTransform: 'uppercase', letterSpacing: 3, color: '#6b7280', marginBottom: 8 }}>Powered by</div>
               <div style={{ fontSize: 24, fontWeight: 600, color: '#e5e7eb', marginBottom: 4 }}>SIDAN IT & Business Solutions</div>
               <div>📞 +260 775 722 196 / +260 775 722 228</div>
@@ -110,9 +110,9 @@ const CustomerDisplay = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 20 }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid rgba(59,130,246,0.4)' }}>
-                  <th style={{ textAlign: 'left', padding: '12px 0', color: '#9ca3af', fontWeight: 500, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Item</th>
-                  <th style={{ textAlign: 'center', padding: '12px 0', color: '#9ca3af', fontWeight: 500, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Qty</th>
-                  <th style={{ textAlign: 'right', padding: '12px 0', color: '#9ca3af', fontWeight: 500, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Price</th>
+                  <th style={{ textAlign: 'left', padding: '12px 0', color: '#6b7280', fontWeight: 500, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Item</th>
+                  <th style={{ textAlign: 'center', padding: '12px 0', color: '#6b7280', fontWeight: 500, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Qty</th>
+                  <th style={{ textAlign: 'right', padding: '12px 0', color: '#6b7280', fontWeight: 500, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Price</th>
                 </tr>
               </thead>
               <tbody>
@@ -128,7 +128,7 @@ const CustomerDisplay = () => {
 
             {/* Total */}
             <div style={{ marginTop: 32, borderTop: '2px solid rgba(59,130,246,0.4)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 22, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 2 }}>Total</span>
+              <span style={{ fontSize: 22, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 2 }}>Total</span>
               <span style={{ fontSize: 48, fontWeight: 800, color: '#3b82f6' }}>${(parseFloat(total)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
             </div>
           </>

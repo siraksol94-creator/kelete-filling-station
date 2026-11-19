@@ -164,7 +164,7 @@ export default function HqRouteSales() {
                       </div>
                     </div>
                     {d.sellers.length === 0 ? (
-                      <div style={{ padding: '10px 14px', fontSize: 12.5, color: '#94a3b8', fontStyle: 'italic' }}>No route sellers</div>
+                      <div style={{ padding: '10px 14px', fontSize: 12.5, color: '#64748b', fontStyle: 'italic' }}>No route sellers</div>
                     ) : (
                       <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -181,11 +181,11 @@ export default function HqRouteSales() {
                               <tr key={s.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                                 <td style={td}>
                                   <div style={{ fontWeight: 600, color: '#0f172a' }}>{s.name}</div>
-                                  {s.phone && <div style={{ fontSize: 11.5, color: '#94a3b8' }}>{s.phone}</div>}
+                                  {s.phone && <div style={{ fontSize: 11.5, color: '#64748b' }}>{s.phone}</div>}
                                 </td>
                                 <td style={{ ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{fmtInt(s.orders)}</td>
                                 <td style={{ ...td, textAlign: 'right', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(s.revenue)}</td>
-                                <td style={{ ...td, textAlign: 'right', color: s.credit_sales > 0.004 ? AMBER : '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(s.credit_sales)}</td>
+                                <td style={{ ...td, textAlign: 'right', color: s.credit_sales > 0.004 ? AMBER : '#64748b', fontVariantNumeric: 'tabular-nums' }}>{fmtMoney(s.credit_sales)}</td>
                               </tr>
                             ))}
                           </tbody>

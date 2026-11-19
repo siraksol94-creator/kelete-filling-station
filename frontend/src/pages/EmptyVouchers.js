@@ -232,7 +232,7 @@ export default function EmptyVouchers() {
           );
         })}
         <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
-          <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+          <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
           <input type="text" value={query} onChange={e => setQuery(e.target.value)}
                  placeholder="Search by voucher #, name, or phone…"
                  style={{ width: '100%', padding: '9px 12px 9px 32px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
@@ -242,9 +242,9 @@ export default function EmptyVouchers() {
       {/* List */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>No vouchers.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No vouchers.</div>
         ) : (
           <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
@@ -265,11 +265,11 @@ export default function EmptyVouchers() {
                   <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                     <td style={{ ...td, fontFamily: 'monospace', fontWeight: 700 }}>{r.voucher_number}</td>
                     <td style={td}>
-                      {r.issued_to_name || <span style={{ color: '#9ca3af' }}>—</span>}
+                      {r.issued_to_name || <span style={{ color: '#6b7280' }}>—</span>}
                       {r.issued_to_phone && <div style={{ fontSize: 11, color: '#6b7280' }}>{r.issued_to_phone}</div>}
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>{r.qty_original}</td>
-                    <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: r.qty_remaining > 0 ? '#0e7490' : '#94a3b8' }}>{r.qty_remaining}</td>
+                    <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: r.qty_remaining > 0 ? '#0e7490' : '#64748b' }}>{r.qty_remaining}</td>
                     <td style={td}>
                       <span style={{ padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700, background: meta.bg, color: meta.color, border: `1px solid ${meta.border}` }}>
                         {meta.label}
@@ -382,8 +382,8 @@ export default function EmptyVouchers() {
                          onClose={() => setDetail(null)} />
             <div style={{ padding: '18px 22px', overflowY: 'auto', flex: 1 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14, fontSize: 12 }}>
-                <ProvField label="Issued to">{detail.voucher.issued_to_name || <span style={{ color: '#9ca3af' }}>—</span>}</ProvField>
-                <ProvField label="Phone">{detail.voucher.issued_to_phone || <span style={{ color: '#9ca3af' }}>—</span>}</ProvField>
+                <ProvField label="Issued to">{detail.voucher.issued_to_name || <span style={{ color: '#6b7280' }}>—</span>}</ProvField>
+                <ProvField label="Phone">{detail.voucher.issued_to_phone || <span style={{ color: '#6b7280' }}>—</span>}</ProvField>
                 <ProvField label="Issued at">{fmtDate(detail.voucher.issued_at)}</ProvField>
                 <ProvField label="Issued by">{detail.voucher.issued_by_name || '—'}</ProvField>
                 {detail.voucher.notes && <ProvField label="Notes" span>{detail.voucher.notes}</ProvField>}
@@ -398,7 +398,7 @@ export default function EmptyVouchers() {
               </div>
               <h4 style={{ margin: '18px 0 8px', fontSize: 13, fontWeight: 700, color: '#111827' }}>Claim history ({detail.claims.length})</h4>
               {detail.claims.length === 0 ? (
-                <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 12, border: '1px dashed #e5e7eb', borderRadius: 8 }}>No claims yet.</div>
+                <div style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 12, border: '1px dashed #e5e7eb', borderRadius: 8 }}>No claims yet.</div>
               ) : (
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>

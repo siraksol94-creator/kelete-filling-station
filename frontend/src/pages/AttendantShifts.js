@@ -6,7 +6,10 @@ import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { useHotkeys } from '../ux/useHotkeys';
 import { closeChecklist, cleanStreak, shiftSummary, formatKwacha } from '../ux/fuelProgress';
-import { Skeleton, Checklist, ProgressBar, ShortcutHelp, ShortcutHint, SummaryStrip, Kbd } from '../ux/components';
+import { Checklist, ProgressBar, ShortcutHelp, ShortcutHint, SummaryStrip, Kbd } from '../ux/components';
+import FuelLoader from '../ux/FuelLoader';
+import AttendantAvatar, { Celebration } from '../ux/AttendantAvatar';
+import { profileFor, milestones } from '../ux/attendantLevel';
 
 // Thousands separator for display (handles partial typing like "384343."
 // so the user can still key a decimal point without the formatter eating it).
@@ -52,6 +55,7 @@ export default function AttendantShifts() {
   // UX-1
   const [loaded, setLoaded] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(null);   // { who, items } after a milestone
   const closeFormRef = useRef(null);
   const openFormRef = useRef(null);
 
@@ -64,8 +68,11 @@ export default function AttendantShifts() {
       setTanks(t.data || []);
       setCustomers(cs.data || []);
       setPumps(p.data || []);
+      setLoaded(true);
+      return { shifts: sh.data || [] };
     } catch (e) {}
     setLoaded(true);
+    return null;
   };
   useEffect(() => { load(); }, []);
 
@@ -170,6 +177,15 @@ export default function AttendantShifts() {
     { combo: '?', run: () => setHelpOpen(true), enabled: !helpOpen },
   ];
   useHotkeys(bindings);
+  // UX-2 — attendant profiles (levels from shifts finished; badges kept for good).
+  const nameOf = (id, fallback) => { const u = users.find(x => Number(x.id) === Number(id)); return u ? `${u.first_name} ${u.last_name}`.trim() : (fallback || `#${id}`); };
+  const profileOf = (id, fallbackName, list = shifts) => profileFor(list, { id, name: nameOf(id, fallbackName) });
+  const crew = useMemo(() => {
+    const ids = Array.from(new Set(shifts.map(s => s.attendant_user_id).filter(Boolean)));
+    return ids.map(id => profileFor(shifts, { id, name: nameOf(id, shifts.find(s => s.attendant_user_id === id)?.attendant_name) }))
+      .sort((a, b) => a.who.name.localeCompare(b.who.name));   // alphabetical: not a ranking
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shifts, users]);
   const today = businessToday();
   const summary = useMemo(() => shiftSummary(shifts, today), [shifts, today]);
   const streak = useMemo(() => cleanStreak(shifts), [shifts]);
@@ -253,6 +269,7 @@ export default function AttendantShifts() {
       .filter(([_, v]) => v !== '' && v != null)
       .map(([tid, v]) => ({ tank_id: Number(tid), dip_litres: Number(v) }));
 
+    const before = profileOf(closingShift.attendant_user_id, closingShift.attendant_name);
     try {
       await closeShift(closingShift.id, {
         readings, credit_sales_batch, dips,
@@ -263,7 +280,13 @@ export default function AttendantShifts() {
         payment_other:  Number(cd.payment_other  || 0),
         notes: cd.notes,
       });
-      setClosingShift(null); await load();
+      setClosingShift(null);
+      const fresh = await load();
+      if (fresh) {
+        const after = profileOf(before.who.id, before.who.name, fresh.shifts);
+        const items = milestones(before, after);
+        if (items.length) setCelebrate({ who: before.who.name, items });
+      }
     } catch (ex) { setErr(ex.response?.data?.error || 'Close failed'); }
   };
 
@@ -291,8 +314,15 @@ export default function AttendantShifts() {
         ]} />
       )}
 
+      {loaded && crew.length > 0 && (
+        <div className="k-crew" aria-label="Crew">
+          <span className="k-crew-label">Crew</span>
+          {crew.map(p => <AttendantAvatar key={p.who.id} profile={p} size={34} showName />)}
+        </div>
+      )}
+
       <div style={S.card} className="k-table-scroll">
-        {!loaded ? <Skeleton rows={5} height={18} /> : (
+        {!loaded ? <FuelLoader message="Loading shifts…" /> : (
         <table style={S.table} className="phone-cards">
           <thead><tr>
             <th style={S.th}>Status</th><th style={S.th}>Attendant</th>
@@ -308,7 +338,7 @@ export default function AttendantShifts() {
               <tr key={s.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={S.td}><span style={S.pill(s.status === 'Open' ? '#16a34a' : '#6b7280')}>{s.status}</span></td>
                 <td style={S.td}>
-                  {s.attendant_name || `#${s.attendant_user_id}`}
+                  <AttendantAvatar profile={profileOf(s.attendant_user_id, s.attendant_name)} size={36} showName compact />
                   {s.shift_type && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: s.shift_type === 'NIGHT' ? '#eef2ff' : '#eff6ff', color: s.shift_type === 'NIGHT' ? '#4338ca' : '#1e3a8a', borderRadius: 10, fontWeight: 700 }}>{s.shift_type}</span>}
                 </td>
                 <td style={S.td}>{s.opened_at}</td>
@@ -316,7 +346,7 @@ export default function AttendantShifts() {
                 <td style={S.tdR}>K {Number((s.expected_cash || 0) + Number(s.payment_swipes || 0) + Number(s.payment_1card || 0) + Number(s.payment_mobile || 0) + Number(s.payment_credit ?? s.payment_other ?? 0) + (s.payment_credit != null ? Number(s.payment_other || 0) : 0)).toFixed(2)}</td>
                 <td style={S.tdR}>K {Number(s.expected_cash || 0).toFixed(2)}</td>
                 <td style={S.tdR}>K {Number(s.actual_cash || 0).toFixed(2)}</td>
-                <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#16a34a') }}>K {Number(s.variance || 0).toFixed(2)}</td>
+                <td style={{ ...S.tdR, color: Math.abs(s.variance || 0) < 0.01 ? '#111' : (s.variance < 0 ? '#dc2626' : '#15803d') }}>K {Number(s.variance || 0).toFixed(2)}</td>
                 <td style={S.td}>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     {s.status === 'Open' ? (
@@ -362,6 +392,7 @@ export default function AttendantShifts() {
         </table>
         )}
       </div>
+      {celebrate && <Celebration who={celebrate.who} items={celebrate.items} onDone={() => setCelebrate(null)} />}
       <ShortcutHelp open={helpOpen} onClose={() => setHelpOpen(false)} title="Attendant Shifts — shortcuts" bindings={[
         { combo: 'alt+n', label: 'Open a new shift' },
         { combo: 'enter', label: 'Close Shift: next closing meter' },
@@ -378,7 +409,10 @@ export default function AttendantShifts() {
               {err && <div style={S.errBox}>{err}</div>}
               <div style={{ padding: 20 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }} className="k-form-grid">
-                  <label style={S.lbl}>Attendant *
+                  <label style={S.lbl}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>Attendant *
+                      {openForm.attendant_user_id && <AttendantAvatar profile={profileOf(openForm.attendant_user_id)} size={26} />}
+                    </span>
                     <select autoFocus value={openForm.attendant_user_id} onChange={e => setOpenForm({ ...openForm, attendant_user_id: e.target.value })} required style={S.input}>
                       <option value="">-- select --</option>
                       {users.map(u => <option key={u.id} value={u.id}>{u.first_name} {u.last_name} ({u.role})</option>)}
@@ -393,7 +427,7 @@ export default function AttendantShifts() {
                 </div>
                 <div style={{ marginTop: 16 }}>
                   <strong style={{ fontSize: 13, color: '#374151' }}>Pumps for this attendant *</strong>
-                  <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
+                  <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }} className="k-form-grid">
                     {pumps.map(p => {
                       const pumpNozIds = (p.nozzles || []).map(n => n.id);
@@ -412,7 +446,7 @@ export default function AttendantShifts() {
                               {(p.nozzles || []).map(n => (
                                 <span key={n.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6' }}>
                                   <strong>{n.code}</strong>
-                                  <span style={{ color: n.grade_color || '#9ca3af' }}>·</span>
+                                  <span style={{ color: n.grade_color || '#6b7280' }}>·</span>
                                   <span>{n.grade_name}</span>
                                 </span>
                               ))}
@@ -441,7 +475,24 @@ export default function AttendantShifts() {
         <div style={S.backdrop} className="k-modal-backdrop" onClick={() => setClosingShift(null)}>
           <div style={{ ...S.modal, width: 'min(1100px, 97vw)', maxHeight: '95vh' }} className="k-modal" role="dialog" aria-modal="true" aria-label={`Close Shift — ${closingShift.attendant_name}`} onClick={e => e.stopPropagation()}>
             <div style={S.modalHeader}>
-              <h3 style={{ margin: 0 }}>Close Shift — {closingShift.attendant_name}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                {(() => {
+                  const p = profileOf(closingShift.attendant_user_id, closingShift.attendant_name);
+                  const lv = p.level;
+                  return (<>
+                    <AttendantAvatar profile={p} size={44} />
+                    <div style={{ minWidth: 0 }}>
+                      <h3 style={{ margin: 0 }}>Close Shift — {closingShift.attendant_name}</h3>
+                      <div className="k-muted">
+                        Level {lv.level} · {lv.title}
+                        {lv.next && (lv.toNext === 1
+                          ? <> · <strong style={{ color: '#92400e' }}>this shift makes {lv.next}!</strong></>
+                          : <> · {lv.toNext} shifts to {lv.next}</>)}
+                      </div>
+                    </div>
+                  </>);
+                })()}
+              </div>
               <button onClick={() => setClosingShift(null)} style={S.iconBtn} aria-label="Close"><FiX /></button>
             </div>
             <form onSubmit={submitClose} ref={closeFormRef}>
@@ -475,7 +526,7 @@ export default function AttendantShifts() {
                   <tbody>
                     {liveNozzleRows.map((r, idx) => (
                       <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6', background: r.invalid ? '#fef2f2' : undefined }}>
-                        <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
+                        <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#6b7280', fontSize: 12 }}>({r.pump_code})</span></td>
                         <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                         <td style={S.tdR}>{fmtNum(r.opening_reading, 2)}</td>
                         <td style={S.tdR} className="k-meter-cell">
@@ -632,7 +683,7 @@ export default function AttendantShifts() {
                 <tbody>
                   {(viewShift.readings || []).map(r => (
                     <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#9ca3af', fontSize: 12 }}>({r.pump_code})</span></td>
+                      <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#6b7280', fontSize: 12 }}>({r.pump_code})</span></td>
                       <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
                       <td style={S.tdR}>{Number(r.opening_reading).toFixed(2)}</td>
                       <td style={S.tdR}>{Number(r.closing_reading || 0).toFixed(2)}</td>
@@ -708,7 +759,7 @@ export default function AttendantShifts() {
                           <td style={S.td}>{d.grade_name}</td>
                           <td style={S.tdR}>{d.reading_litres != null ? Number(d.reading_litres).toFixed(2) : '-'}</td>
                           <td style={S.tdR}>{Number(d.dip_litres).toFixed(2)}</td>
-                          <td style={{ ...S.tdR, color: Math.abs(d.variance || 0) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#16a34a') }}>{d.variance != null ? Number(d.variance).toFixed(2) : '-'}</td>
+                          <td style={{ ...S.tdR, color: Math.abs(d.variance || 0) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#15803d') }}>{d.variance != null ? Number(d.variance).toFixed(2) : '-'}</td>
                         </tr>
                       ))}
                     </tbody>

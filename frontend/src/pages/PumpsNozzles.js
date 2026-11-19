@@ -140,7 +140,7 @@ export default function PumpsNozzles() {
                   </tr>
                 ))}
                 {(p.nozzles || []).length === 0 && (
-                  <tr><td colSpan={6} style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No nozzles on this pump</td></tr>
+                  <tr><td colSpan={6} style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No nozzles on this pump</td></tr>
                 )}
               </tbody>
             </table>

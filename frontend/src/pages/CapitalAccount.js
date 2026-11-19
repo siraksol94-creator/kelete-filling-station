@@ -193,7 +193,7 @@ const CapitalAccount = () => {
         <td style="padding:6px 9px">${formatDate(r.date)}</td>
         <td style="padding:6px 9px">${r.type}</td>
         <td style="padding:6px 9px">${r.owner_name || '—'}</td>
-        <td style="padding:6px 9px;text-align:right;font-weight:700;color:${r.type==='Injection'?'#16a34a':'#dc2626'}">${r.type==='Drawing'?'-':'+'}${curSym}${fmt(r.amount)}</td>
+        <td style="padding:6px 9px;text-align:right;font-weight:700;color:${r.type==='Injection'?'#15803d':'#dc2626'}">${r.type==='Drawing'?'-':'+'}${curSym}${fmt(r.amount)}</td>
         <td style="padding:6px 9px">${r.description || '—'}</td>
       </tr>`).join('');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Capital Account — ${printedAt}</title>
@@ -288,7 +288,7 @@ const CapitalAccount = () => {
           {shareholders.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
-          {entries.length} entry{entries.length !== 1 ? 'ies' : ''} · Net <strong style={{ color: filteredTotal >= 0 ? '#16a34a' : '#dc2626' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
+          {entries.length} entry{entries.length !== 1 ? 'ies' : ''} · Net <strong style={{ color: filteredTotal >= 0 ? '#15803d' : '#dc2626' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
         </div>
       </div>
 
@@ -304,7 +304,7 @@ const CapitalAccount = () => {
           </thead>
           <tbody>
             {entries.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>No capital entries.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No capital entries.</td></tr>
             ) : entries.map(r => {
               const ts = TYPE_STYLE[r.type] || TYPE_STYLE.Injection;
               return (
@@ -313,7 +313,7 @@ const CapitalAccount = () => {
                   <td>{formatDate(r.date)}</td>
                   <td><span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: ts.bg, color: ts.color, border: `1px solid ${ts.border}` }}>{r.type}</span></td>
                   <td>{r.owner_name || '—'}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: r.type === 'Injection' ? '#16a34a' : '#dc2626' }}>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: r.type === 'Injection' ? '#15803d' : '#dc2626' }}>
                     {r.type === 'Drawing' ? '−' : '+'}{curSym}{parseFloat(r.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ color: '#6b7280', fontSize: 12 }}>{r.description || '—'}</td>
@@ -376,7 +376,7 @@ const CapitalAccount = () => {
                   {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + ((methodShown('bank') || parseFloat(form.bank_amount || 0) > 0) ? 1 : 0) + ((methodShown('momo') || parseFloat(form.momo_amount || 0) > 0) ? 1 : 0)}, 1fr)`, gap: 10 }}>
                     {[
-                      { key: 'cash_amount', label: 'Cash', color: '#16a34a' },
+                      { key: 'cash_amount', label: 'Cash', color: '#15803d' },
                       { key: 'bank_amount', label: 'Bank', color: '#2563eb' },
                       { key: 'momo_amount', label: 'MoMo', color: '#f59e0b' },
                     ].filter(f => methodShown(f.label) || parseFloat(form[f.key] || 0) > 0).map((f) => (
@@ -433,7 +433,7 @@ const CapitalAccount = () => {
                   <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Type</strong><div style={{ marginTop: 4 }}><span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, ...(TYPE_STYLE[viewEntry.type] || TYPE_STYLE.Injection), border: `1px solid ${(TYPE_STYLE[viewEntry.type] || TYPE_STYLE.Injection).border}` }}>{viewEntry.type}</span></div></div>
                   <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Date</strong><div style={{ marginTop: 4 }}>{formatDate(viewEntry.date)}</div></div>
                   <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Owner</strong><div style={{ marginTop: 4 }}>{viewEntry.owner_name || '—'}</div></div>
-                  <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Total</strong><div style={{ marginTop: 4, fontWeight: 700, color: viewEntry.type === 'Injection' ? '#16a34a' : '#dc2626' }}>{viewEntry.type === 'Drawing' ? '−' : '+'}{curSym}{parseFloat(viewEntry.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
+                  <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Total</strong><div style={{ marginTop: 4, fontWeight: 700, color: viewEntry.type === 'Injection' ? '#15803d' : '#dc2626' }}>{viewEntry.type === 'Drawing' ? '−' : '+'}{curSym}{parseFloat(viewEntry.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
                 </div>
                 <div style={{ background: '#f9fafb', padding: 12, borderRadius: 8, marginBottom: 12 }}>
                   <div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Method split</div>
@@ -444,7 +444,7 @@ const CapitalAccount = () => {
                   </div>
                 </div>
                 {viewEntry.description && <div style={{ marginBottom: 12, padding: '10px 12px', background: '#f9fafb', borderLeft: '3px solid #9ca3af', fontSize: 13 }}>{viewEntry.description}</div>}
-                <div style={{ fontSize: 11, color: '#9ca3af' }}>Created by {viewEntry.created_by_name || '—'} on {formatDate(viewEntry.created_at?.split(' ')[0])}</div>
+                <div style={{ fontSize: 11, color: '#6b7280' }}>Created by {viewEntry.created_by_name || '—'} on {formatDate(viewEntry.created_at?.split(' ')[0])}</div>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setViewEntry(null)}>Close</button>

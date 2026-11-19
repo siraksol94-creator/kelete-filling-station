@@ -115,7 +115,7 @@ export default function FleetCustomers() {
                     </td>
                   </tr>
                 ))}
-                {(selected.vehicles || []).length === 0 && <tr><td colSpan={4} style={{ padding: 16, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No vehicles</td></tr>}
+                {(selected.vehicles || []).length === 0 && <tr><td colSpan={4} style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No vehicles</td></tr>}
               </tbody>
             </table>
           </div>

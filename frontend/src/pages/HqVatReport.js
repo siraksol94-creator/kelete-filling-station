@@ -194,7 +194,7 @@ export default function HqVatReport() {
   });
   const exBtn = (color, disabled) => ({
     display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 6,
-    border: `1.5px solid ${color}`, background: disabled ? '#f3f4f6' : '#fff', color: disabled ? '#9ca3af' : color,
+    border: `1.5px solid ${color}`, background: disabled ? '#f3f4f6' : '#fff', color: disabled ? '#6b7280' : color,
     cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
   });
   const noLines = !totalLines;
@@ -260,7 +260,7 @@ export default function HqVatReport() {
         {showing && (
           <div style={{ fontSize: 12, color: '#374151', borderTop: '1px dashed #e5e7eb', paddingTop: 10 }}>
             Showing: <b style={{ color: '#111827' }}>{showing}</b>
-            <span style={{ color: '#9ca3af' }}> — the first row of every export</span>
+            <span style={{ color: '#6b7280' }}> — the first row of every export</span>
           </div>
         )}
       </div>

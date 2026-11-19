@@ -482,7 +482,7 @@ const ZraConfig = () => {
       )}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
       ) : (
         <>
           {/* Editable config */}
@@ -669,7 +669,7 @@ const ZraConfig = () => {
                 ['Taxpayer Name', initState.zra_taxpr_nm],
               ].map(([label, value]) => (
                 <div key={label} style={{ padding: 12, borderRadius: 8, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: value ? '#111827' : '#cbd5e1', fontFamily: 'monospace' }}>{value ?? '—'}</div>
                 </div>
               ))}
@@ -691,12 +691,12 @@ const ZraConfig = () => {
                 <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>
                   Bulk-load the ZRA-published <strong>UNSPSC-Classification-Codes.xlsx</strong> straight into the local database. Use this to unblock Item Details before the VSDC WAR is installed — you can still re-sync from VSDC later.
                 </p>
-                <p style={{ margin: '6px 0 0', fontSize: 11, color: '#9ca3af' }}>
+                <p style={{ margin: '6px 0 0', fontSize: 11, color: '#6b7280' }}>
                   Rows currently cached: <strong style={{ color: '#111827' }}>{syncState.counts.itemClasses.toLocaleString()}</strong>
                 </p>
               </div>
               <div>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1.5px solid #0ea5e9', background: importingXlsx ? '#f3f4f6' : '#fff', color: importingXlsx ? '#9ca3af' : '#0ea5e9', cursor: importingXlsx ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1.5px solid #0ea5e9', background: importingXlsx ? '#f3f4f6' : '#fff', color: importingXlsx ? '#6b7280' : '#0ea5e9', cursor: importingXlsx ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                   <FiDownloadCloud size={14} /> {importingXlsx ? 'Importing…' : 'Pick Excel file'}
                   <input type="file" accept=".xlsx,.xls" onChange={handleImportUnspscXlsx} disabled={importingXlsx} style={{ display: 'none' }} />
                 </label>
@@ -757,7 +757,7 @@ const ZraConfig = () => {
                     )}
                     <button onClick={card.run} disabled={syncing[card.key] || !isInitialized}
                       title={!isInitialized ? 'Initialize the device first' : 'Sync now'}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (syncing[card.key] || !isInitialized) ? '#f3f4f6' : '#fff', color: (syncing[card.key] || !isInitialized) ? '#9ca3af' : '#2563eb', cursor: (syncing[card.key] || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (syncing[card.key] || !isInitialized) ? '#f3f4f6' : '#fff', color: (syncing[card.key] || !isInitialized) ? '#6b7280' : '#2563eb', cursor: (syncing[card.key] || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                       <FiDownloadCloud size={12} /> {syncing[card.key] ? 'Syncing…' : 'Sync Now'}
                     </button>
                   </div>
@@ -830,7 +830,7 @@ const ZraConfig = () => {
                 />
                 <button onClick={runInvcLookup} disabled={diagInvc.loading || !isInitialized || !invcNoInput}
                   title={!isInitialized ? 'Initialize the device first' : 'Query ZRA for this invoice'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#f3f4f6' : '#2563eb', color: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#9ca3af' : '#fff', cursor: (diagInvc.loading || !isInitialized || !invcNoInput) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#f3f4f6' : '#2563eb', color: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#6b7280' : '#fff', cursor: (diagInvc.loading || !isInitialized || !invcNoInput) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                   {diagInvc.loading ? 'Checking…' : 'Look up'}
                 </button>
               </div>
@@ -865,7 +865,7 @@ const ZraConfig = () => {
                 </div>
                 <button onClick={runReconcileItems} disabled={diagItems.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Run reconciliation now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagItems.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagItems.loading || !isInitialized) ? '#9ca3af' : '#2563eb', cursor: (diagItems.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagItems.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagItems.loading || !isInitialized) ? '#6b7280' : '#2563eb', cursor: (diagItems.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiRefreshCw size={12} /> {diagItems.loading ? 'Checking…' : 'Reconcile'}
                 </button>
                 {diagItems.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagItems.error}</div>}
@@ -891,7 +891,7 @@ const ZraConfig = () => {
                 </div>
                 <button onClick={runRrpSync} disabled={diagRrp.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Pull RRPs now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #16a34a', background: (diagRrp.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagRrp.loading || !isInitialized) ? '#9ca3af' : '#16a34a', cursor: (diagRrp.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #16a34a', background: (diagRrp.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagRrp.loading || !isInitialized) ? '#6b7280' : '#15803d', cursor: (diagRrp.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiDownloadCloud size={12} /> {diagRrp.loading ? 'Syncing…' : 'Sync RRPs'}
                 </button>
                 {diagRrp.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagRrp.error}</div>}
@@ -914,7 +914,7 @@ const ZraConfig = () => {
                 </div>
                 <button onClick={runStockReconcile} disabled={diagStock.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Check stock drift now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #f59e0b', background: (diagStock.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagStock.loading || !isInitialized) ? '#9ca3af' : '#f59e0b', cursor: (diagStock.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #f59e0b', background: (diagStock.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagStock.loading || !isInitialized) ? '#6b7280' : '#f59e0b', cursor: (diagStock.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiRefreshCw size={12} /> {diagStock.loading ? 'Checking…' : 'Check drift'}
                 </button>
                 {diagStock.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagStock.error}</div>}
@@ -938,7 +938,7 @@ const ZraConfig = () => {
                             {d.note ? ` — ${d.note}` : ''}
                           </div>
                         ))}
-                        {diagStock.result.drift_count > 5 && <div style={{ padding: '2px 0', color: '#9ca3af' }}>… and {diagStock.result.drift_count - 5} more</div>}
+                        {diagStock.result.drift_count > 5 && <div style={{ padding: '2px 0', color: '#6b7280' }}>… and {diagStock.result.drift_count - 5} more</div>}
                       </div>
                     )}
                   </div>
@@ -973,7 +973,7 @@ const ZraConfig = () => {
                 </div>
                 <button onClick={runImportsPull} disabled={diagImports.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Pull import declarations now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #0ea5e9', background: (diagImports.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagImports.loading || !isInitialized) ? '#9ca3af' : '#0ea5e9', cursor: (diagImports.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #0ea5e9', background: (diagImports.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagImports.loading || !isInitialized) ? '#6b7280' : '#0ea5e9', cursor: (diagImports.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiDownloadCloud size={12} /> {diagImports.loading ? 'Pulling…' : 'Pull imports'}
                 </button>
                 {diagImports.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagImports.error}</div>}
@@ -983,7 +983,7 @@ const ZraConfig = () => {
                       {diagImports.result.inserted != null && <span style={{ color: '#6b7280' }}> · {diagImports.result.inserted} new</span>}
                     </div>
                     {(diagImports.result.pulled || 0) === 0 ? (
-                      <div style={{ color: '#9ca3af', marginTop: 2 }}>✓ Expected — no ASYCUDA declarations for this TPIN.</div>
+                      <div style={{ color: '#6b7280', marginTop: 2 }}>✓ Expected — no ASYCUDA declarations for this TPIN.</div>
                     ) : (
                       <div style={{ color: '#b45309', marginTop: 4 }}>
                         Review and decide them on the <strong>HQ ZRA Import Queue</strong> page.
@@ -1003,7 +1003,7 @@ const ZraConfig = () => {
                 </div>
                 <button onClick={runBranchesList} disabled={diagBranches.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Fetch ZRA branches'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #7c3aed', background: (diagBranches.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagBranches.loading || !isInitialized) ? '#9ca3af' : '#7c3aed', cursor: (diagBranches.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #7c3aed', background: (diagBranches.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagBranches.loading || !isInitialized) ? '#6b7280' : '#7c3aed', cursor: (diagBranches.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiPackage size={12} /> {diagBranches.loading ? 'Loading…' : 'Show branches'}
                 </button>
                 {diagBranches.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagBranches.error}</div>}
@@ -1014,7 +1014,7 @@ const ZraConfig = () => {
                       {(diagBranches.result.branches || []).map((b, i) => (
                         <div key={i} style={{ padding: '3px 0', color: '#6b7280', borderTop: i > 0 ? '1px dashed #e5e7eb' : 'none' }}>
                           <strong style={{ color: '#111827' }}>{b.bhfId || '—'}</strong> · {b.bhfNm || '—'}
-                          {b.locDesc && <span style={{ color: '#9ca3af' }}> · {b.locDesc}</span>}
+                          {b.locDesc && <span style={{ color: '#6b7280' }}> · {b.locDesc}</span>}
                         </div>
                       ))}
                     </div>
@@ -1030,10 +1030,10 @@ const ZraConfig = () => {
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Recent VSDC Calls</h3>
-              <span style={{ fontSize: 12, color: '#9ca3af' }}>{audit.length} entr{audit.length === 1 ? 'y' : 'ies'} · click a row for full request/response</span>
+              <span style={{ fontSize: 12, color: '#6b7280' }}>{audit.length} entr{audit.length === 1 ? 'y' : 'ies'} · click a row for full request/response</span>
             </div>
             {audit.length === 0 ? (
-              <div style={{ padding: 24, color: '#9ca3af', fontSize: 13, textAlign: 'center' }}>No VSDC calls yet. Click Initialize Device to make the first one.</div>
+              <div style={{ padding: 24, color: '#6b7280', fontSize: 13, textAlign: 'center' }}>No VSDC calls yet. Click Initialize Device to make the first one.</div>
             ) : (
               <div style={{ overflowX: 'auto', maxHeight: 500 }}>
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>

@@ -4,7 +4,8 @@ import { getDashboard } from '../services/api';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiDollarSign, FiShoppingCart, FiTrendingUp, FiPackage, FiAlertTriangle } from 'react-icons/fi';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Skeleton, SkeletonCards } from '../ux/components';
+import { SkeletonCards } from '../ux/components';
+import FuelLoader from '../ux/FuelLoader';
 
 const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#6b7280'];
 
@@ -64,8 +65,8 @@ const Dashboard = () => {
     // UX-1: placeholders in the shape of the dashboard instead of "Loading…"
     return (
       <div className="page-content">
+        <FuelLoader message="Fuelling up the dashboard…" />
         <SkeletonCards count={4} />
-        <div className="k-skeleton-card" style={{ marginTop: 16 }}><Skeleton rows={6} height={18} /></div>
       </div>
     );
   }
@@ -131,7 +132,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3>Sales Trend (This Week)</h3>
           {salesTrend.length === 0 ? (
-            <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 13 }}>No sales data yet</div>
+            <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>No sales data yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={salesTrend}>
@@ -149,7 +150,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3>Sales by Category</h3>
           {categoryData.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 13 }}>No category data yet</div>
+            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>No category data yet</div>
           ) : (
             <>
               <ResponsiveContainer width="100%" height={200}>
@@ -184,7 +185,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3>Top Selling Products</h3>
           {(data.topProducts || []).length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No sales recorded yet</div>
+            <div style={{ padding: '24px 0', textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No sales recorded yet</div>
           ) : (
             data.topProducts.map((product, i) => (
               <div key={i} className="top-product-item">
@@ -203,7 +204,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3><FiAlertTriangle style={{ color: '#ca8a04', marginRight: 6 }} /> Low Stock Alert</h3>
           {(data.lowStock || []).length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>All stock levels are healthy</div>
+            <div style={{ padding: '24px 0', textAlign: 'center', color: '#6b7280', fontSize: 13 }}>All stock levels are healthy</div>
           ) : (
             data.lowStock.map((item, i) => (
               <div key={i} className="low-stock-item">

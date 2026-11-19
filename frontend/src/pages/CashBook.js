@@ -253,7 +253,7 @@ const CashBook = () => {
       // Six stat cards, each stacked USD / FRA / K.
       const cards = [
         { label: 'Opening Balance',     bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe', data: openingByCcy },
-        { label: 'Total Receipts (CR)', bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0', data: perCcy.receipts },
+        { label: 'Total Receipts (CR)', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0', data: perCcy.receipts },
         { label: 'Total Payments (PV)', bg: '#fef2f2', color: '#dc2626', border: '#fecaca', data: perCcy.payments },
         { label: 'Total AP (COGS)',     bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff', data: perCcy.ap },
         { label: 'Profit',              bg: '#f8fafc', color: '#111827', border: '#e2e8f0', data: profitByCcy, signColor: true },
@@ -510,7 +510,7 @@ const CashBook = () => {
         <div class="stat"><div class="stat-lbl">Total Receipts (CR)</div><div class="stat-val" style="color:#16a34a">${curSym}${fmt(stats.totalReceipts)}</div></div>
         <div class="stat"><div class="stat-lbl">Total Payments (PV)</div><div class="stat-val" style="color:#dc2626">${curSym}${fmt(stats.totalPV)}</div></div>
         <div class="stat"><div class="stat-lbl">Total AP (COGS)</div><div class="stat-val" style="color:#7c3aed">${curSym}${fmt(stats.totalAP)}</div></div>
-        <div class="stat"><div class="stat-lbl">Profit</div><div class="stat-val" style="color:${profit >= 0 ? '#16a34a' : '#dc2626'}">${curSym}${fmt(profit)}</div></div>
+        <div class="stat"><div class="stat-lbl">Profit</div><div class="stat-val" style="color:${profit >= 0 ? '#15803d' : '#dc2626'}">${curSym}${fmt(profit)}</div></div>
         <div class="stat"><div class="stat-lbl">Current Balance</div><div class="stat-val">${curSym}${fmt(stats.currentBalance)}</div></div>
       </div>
       <table>
@@ -847,7 +847,7 @@ const CashBook = () => {
           { key: 'opening',  label: t('openingBalance'),  color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe',
             byCcy: stats.openingByCcy || { usd: 0, fra: 0, k: 0 },
             single: stats.openingBalance },
-          { key: 'receipts', label: t('receiptsCR'),      color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0',
+          { key: 'receipts', label: t('receiptsCR'),      color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0',
             byCcy: perCcy.receipts, single: stats.totalReceipts },
           { key: 'payments', label: t('paymentsPV'),      color: '#dc2626', bg: '#fef2f2', border: '#fecaca',
             byCcy: perCcy.payments, single: stats.totalPV },
@@ -916,13 +916,13 @@ const CashBook = () => {
               {/* v1.9.27 — Liquor branches edit Cash / MoMo / Bank
                   openings; Kelete branches keep per-currency editors. */}
               {(isLiquorStyle ? [
-                { key: 'cash', label: 'Cash on Hand', color: '#16a34a', show: true },
-                { key: 'momo', label: 'Mobile Money', color: '#ea580c', show: methodShown('momo') || Math.abs(stats.openingByMethod?.momo || 0) > 0.004 },
+                { key: 'cash', label: 'Cash on Hand', color: '#15803d', show: true },
+                { key: 'momo', label: 'Mobile Money', color: '#c2410c', show: methodShown('momo') || Math.abs(stats.openingByMethod?.momo || 0) > 0.004 },
                 { key: 'bank', label: 'Cash at Bank', color: '#7c3aed', show: methodShown('bank') || Math.abs(stats.openingByMethod?.bank || 0) > 0.004 },
               ] : [
-                { key: 'usd', label: 'USD ($)', color: '#16a34a', show: showUSDccy },
+                { key: 'usd', label: 'USD ($)', color: '#15803d', show: showUSDccy },
                 { key: 'fra', label: 'FRA',     color: '#7c3aed', show: showFRAccy },
-                { key: 'k',   label: 'K',       color: '#ea580c', show: showKccy   },
+                { key: 'k',   label: 'K',       color: '#c2410c', show: showKccy   },
               ]).filter(f => f.show).map(f => (
                 <div key={f.key}>
                   <label style={{ fontSize: 12, color: f.color, fontWeight: 700, textTransform: 'uppercase', marginBottom: 4, display: 'block' }}>{f.label}</label>
@@ -1021,18 +1021,18 @@ const CashBook = () => {
                 <tr style={{ background: '#f0f9ff' }}>
                   <td style={{ fontWeight: 500 }}>—</td>
                   <td style={{ fontWeight: 600 }}>{t('openingBalance')}</td>
-                  <td style={{ color: '#9ca3af', fontSize: 12 }}>OB</td>
+                  <td style={{ color: '#6b7280', fontSize: 12 }}>OB</td>
                   <td></td>
                   {isLiquorStyle ? (
                     <>
-                      <td style={{ color: openingBal > 0 ? '#16a34a' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>
+                      <td style={{ color: openingBal > 0 ? '#15803d' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>
                         {openingBal > 0 ? `${curSym}${openingBal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}
                       </td>
                       <td style={{ color: '#cbd5e1', textAlign: 'right' }}>—</td>
                     </>
                   ) : (
                     <>
-                      {showUSDccy && <td style={{ color: obUsd ? '#16a34a' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obUsd ? `${curSym}${obUsd.toLocaleString()}` : '—'}</td>}
+                      {showUSDccy && <td style={{ color: obUsd ? '#15803d' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obUsd ? `${curSym}${obUsd.toLocaleString()}` : '—'}</td>}
                       {showFRAccy && <td style={{ color: obFra ? '#2563eb' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obFra ? `${Math.round(obFra).toLocaleString()} FRA` : '—'}</td>}
                       {showKccy && <td style={{ color: obK ? '#7c3aed' : '#cbd5e1', fontWeight: 600, textAlign: 'right' }}>{obK ? `${Math.round(obK).toLocaleString()} K` : '—'}</td>}
                     </>
@@ -1062,12 +1062,12 @@ const CashBook = () => {
                 <tr key={e.id} style={typeof rowBg === 'string' ? { background: rowBg } : rowBg}>
                   <td>{formatDate(e.date)}</td>
                   <td style={{ fontWeight: 500 }}>{e.description}</td>
-                  <td style={{ color: '#9ca3af', fontSize: 12 }}>{e.reference}</td>
+                  <td style={{ color: '#6b7280', fontSize: 12 }}>{e.reference}</td>
                   <td>
                     <span style={{
                       display: 'inline-block', padding: '2px 7px', borderRadius: 10, fontSize: 11, fontWeight: 700,
                       background: isAP ? '#ede9fe' : isCR ? '#dcfce7' : (isDepIn || isDepOut) ? '#fef3c7' : '#fee2e2',
-                      color: isAP ? '#7c3aed' : isCR ? '#16a34a' : (isDepIn || isDepOut) ? '#92400e' : '#dc2626'
+                      color: isAP ? '#7c3aed' : isCR ? '#15803d' : (isDepIn || isDepOut) ? '#92400e' : '#dc2626'
                     }}>
                       {e.type}
                     </span>
@@ -1092,7 +1092,7 @@ const CashBook = () => {
                     const fmtK = (n) => `${curSym}${parseFloat(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
                     return (
                       <>
-                        <td style={{ textAlign: 'right', color: inflow > 0 ? '#16a34a' : '#cbd5e1', fontWeight: inflow > 0 ? 600 : 400 }}>
+                        <td style={{ textAlign: 'right', color: inflow > 0 ? '#15803d' : '#cbd5e1', fontWeight: inflow > 0 ? 600 : 400 }}>
                           {inflow > 0 ? `+${fmtK(inflow)}` : '—'}
                         </td>
                         <td style={{ textAlign: 'right', color: outflow > 0 ? '#dc2626' : '#cbd5e1', fontWeight: outflow > 0 ? 600 : 400 }}>
@@ -1103,7 +1103,7 @@ const CashBook = () => {
                   })() : (
                     <>
                       {showUSDccy && (
-                        <td style={{ textAlign: 'right', color: usdNet > 0 ? '#16a34a' : usdNet < 0 ? '#dc2626' : '#cbd5e1', fontWeight: usdNet !== 0 ? 600 : 400 }}>
+                        <td style={{ textAlign: 'right', color: usdNet > 0 ? '#15803d' : usdNet < 0 ? '#dc2626' : '#cbd5e1', fontWeight: usdNet !== 0 ? 600 : 400 }}>
                           {usdNet !== 0 ? `${usdNet > 0 ? '+' : '-'}${fmtUsd(Math.abs(usdNet))}` : '—'}
                         </td>
                       )}
@@ -1161,7 +1161,7 @@ const CashBook = () => {
               );
             })}
             {entries.length === 0 && (
-              <tr><td colSpan="8" style={{ textAlign: 'center', color: '#9ca3af', padding: 24 }}>No transactions yet. Create Cash Receipts, Payment Vouchers, or AP Payments.</td></tr>
+              <tr><td colSpan="8" style={{ textAlign: 'center', color: '#6b7280', padding: 24 }}>No transactions yet. Create Cash Receipts, Payment Vouchers, or AP Payments.</td></tr>
             )}
             {/* v1.8.61 — per-currency totals row. Sum in / out separately
                 across all entries, then display net per currency. */}
@@ -1214,30 +1214,30 @@ const CashBook = () => {
                     const fmtK = (n) => `${curSym}${parseFloat(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
                     return (
                       <>
-                        <td style={{ textAlign: 'right', color: '#16a34a' }}>+{fmtK(totIn)}</td>
+                        <td style={{ textAlign: 'right', color: '#15803d' }}>+{fmtK(totIn)}</td>
                         <td style={{ textAlign: 'right', color: '#dc2626' }}>-{fmtK(totOut)}</td>
                       </>
                     );
                   })() : (
                     <>
-                      {showUSDccy && <td style={{ textAlign: 'right', color: t.usd >= 0 ? '#16a34a' : '#dc2626' }}>{t.usd >= 0 ? '+' : '-'}{fmtUsd(Math.abs(t.usd))}</td>}
+                      {showUSDccy && <td style={{ textAlign: 'right', color: t.usd >= 0 ? '#15803d' : '#dc2626' }}>{t.usd >= 0 ? '+' : '-'}{fmtUsd(Math.abs(t.usd))}</td>}
                       {showFRAccy && <td style={{ textAlign: 'right', color: t.fra >= 0 ? '#2563eb' : '#dc2626' }}>{t.fra >= 0 ? '+' : '-'}{fmtRaw(Math.abs(t.fra))} FRA</td>}
                       {showKccy && <td style={{ textAlign: 'right', color: t.k   >= 0 ? '#7c3aed' : '#dc2626' }}>{t.k   >= 0 ? '+' : '-'}{fmtRaw(Math.abs(t.k))} K</td>}
                     </>
                   )}
-                  <td style={{ textAlign: 'right', color: closeBal >= 0 ? '#16a34a' : '#dc2626' }}>
+                  <td style={{ textAlign: 'right', color: closeBal >= 0 ? '#15803d' : '#dc2626' }}>
                     {isLiquorStyle ? (() => {
                       // v1.10.47 — sum all three currentByCcy slots for
                       // the Liquor closing total (all K on Liquor).
                       const closeK = (closeAll.usd || 0) + (closeAll.fra || 0) + (closeAll.k || 0);
                       return (
-                        <span style={{ color: closeK >= 0 ? '#16a34a' : '#dc2626' }}>
+                        <span style={{ color: closeK >= 0 ? '#15803d' : '#dc2626' }}>
                           {curSym}{closeK.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                         </span>
                       );
                     })() : activeCcy === 'all' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 2, lineHeight: 1.25 }}>
-                        {showUSDccy && <span style={{ color: closeAll.usd >= 0 ? '#16a34a' : '#dc2626' }}>{fmtUsd(closeAll.usd)}</span>}
+                        {showUSDccy && <span style={{ color: closeAll.usd >= 0 ? '#15803d' : '#dc2626' }}>{fmtUsd(closeAll.usd)}</span>}
                         {showFRAccy && <span style={{ color: closeAll.fra >= 0 ? '#2563eb' : '#dc2626' }}>{fmtRaw(closeAll.fra)} FRA</span>}
                         {showKccy   && <span style={{ color: closeAll.k   >= 0 ? '#7c3aed' : '#dc2626' }}>{fmtRaw(closeAll.k)} K</span>}
                       </div>
@@ -1260,11 +1260,11 @@ const CashBook = () => {
             <div className="no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 52, background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 1001, borderBottom: '1px solid #1e293b' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <FiPrinter size={16} style={{ color: '#64748b' }} />
-                <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview — Cash Book ({entries.length} entries)</span>
+                <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>Print Preview — Cash Book ({entries.length} entries)</span>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
                 <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#1d4ed8', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}><FiPrinter size={14} /> Print</button>
-                <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}><FiX size={14} /> Close</button>
+                <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}><FiX size={14} /> Close</button>
               </div>
             </div>
 
@@ -1289,10 +1289,10 @@ const CashBook = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
                   {[
                     { label: 'Opening Balance',   value: curSym + fmt(openingBal),          bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-                    { label: 'Total Receipts (CR)',value: curSym + fmt(stats.totalReceipts), bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+                    { label: 'Total Receipts (CR)',value: curSym + fmt(stats.totalReceipts), bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
                     { label: 'Total Payments (PV)',value: curSym + fmt(stats.totalPV),       bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
                     { label: 'Total AP (COGS)',    value: curSym + fmt(stats.totalAP),       bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff' },
-                    { label: 'Profit',             value: curSym + fmt(profit),              bg: profit >= 0 ? '#f0fdf4' : '#fef2f2', color: profit >= 0 ? '#16a34a' : '#dc2626', border: profit >= 0 ? '#bbf7d0' : '#fecaca' },
+                    { label: 'Profit',             value: curSym + fmt(profit),              bg: profit >= 0 ? '#f0fdf4' : '#fef2f2', color: profit >= 0 ? '#15803d' : '#dc2626', border: profit >= 0 ? '#bbf7d0' : '#fecaca' },
                     { label: 'Current Balance',    value: curSym + fmt(stats.currentBalance),bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
                   ].map(chip => (
                     <div key={chip.label} style={{ padding: '12px 16px', borderRadius: 10, background: chip.bg, border: `1.5px solid ${chip.border}`, textAlign: 'center' }}>
@@ -1316,7 +1316,7 @@ const CashBook = () => {
                       <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#eff6ff' }}>
                         <td style={{ padding: '8px 12px', color: '#6b7280' }}>—</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700 }}>Opening Balance</td>
-                        <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10 }}>OB</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10 }}>OB</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700, color: '#1d4ed8' }}>OB</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#1d4ed8' }}>{curSym}{fmt(openingBal)}</td>
                         <td style={{ padding: '8px 12px' }} />
@@ -1329,9 +1329,9 @@ const CashBook = () => {
                           <tr key={e.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
                             <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(e.date)}</td>
                             <td style={{ padding: '8px 12px' }}>{e.description || ''}</td>
-                            <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10 }}>{e.reference || ''}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10 }}>{e.reference || ''}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 700, color: typeColor }}>{e.type}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#16a34a', fontWeight: 500 }}>{parseFloat(e.receipt_amount) > 0 ? curSym + fmt(e.receipt_amount) : ''}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#15803d', fontWeight: 500 }}>{parseFloat(e.receipt_amount) > 0 ? curSym + fmt(e.receipt_amount) : ''}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'right', color: '#dc2626', fontWeight: 500 }}>{parseFloat(e.payment_amount) > 0 ? curSym + fmt(e.payment_amount) : ''}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>{curSym}{fmt(e.balance)}</td>
                           </tr>
@@ -1341,7 +1341,7 @@ const CashBook = () => {
                     <tfoot>
                       <tr style={{ background: '#eff6ff', borderTop: '2px solid #bfdbfe' }}>
                         <td colSpan={4} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#1d4ed8' }}>TOTALS</td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, color: '#16a34a' }}>{curSym}{fmt(totals.receipts)}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, color: '#15803d' }}>{curSym}{fmt(totals.receipts)}</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, color: '#dc2626' }}>{curSym}{fmt(totals.payments)}</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13 }}>{curSym}{fmt(stats.currentBalance)}</td>
                       </tr>

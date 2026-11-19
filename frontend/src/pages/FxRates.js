@@ -234,7 +234,7 @@ export default function FxRates() {
           </div>
         </div>
         {!isFallback && (
-          <div style={{ gridColumn: '1 / -1', fontSize: 11, color: '#94a3b8' }}>
+          <div style={{ gridColumn: '1 / -1', fontSize: 11, color: '#64748b' }}>
             In effect since {savedCurrent.effective_date}{savedCurrent.set_by_name ? ` · set by ${savedCurrent.set_by_name}` : ''}{savedCurrent.notes ? ` · ${savedCurrent.notes}` : ''}
           </div>
         )}
@@ -308,7 +308,7 @@ export default function FxRates() {
           </div>
         </div>
         {chartData.length === 0 ? (
-          <div style={{ padding: 20, color: '#94a3b8', fontSize: 13 }}>
+          <div style={{ padding: 20, color: '#64748b', fontSize: 13 }}>
             {historyLoading ? 'Fetching live history…' : 'No data yet.'}
           </div>
         ) : (
@@ -334,7 +334,7 @@ export default function FxRates() {
             </ResponsiveContainer>
           </div>
         )}
-        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 8, fontStyle: 'italic' }}>
+        <div style={{ fontSize: 11, color: '#64748b', marginTop: 8, fontStyle: 'italic' }}>
           Manual lines snap to the last saved rate on or before each day (so an unchanged rate shows as a flat line). Live BCC is the central-bank official snapshot for that date.
         </div>
       </div>
@@ -454,7 +454,7 @@ export default function FxRates() {
                   {hasK && <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700 }}>{r.buy_rate_k ? fmtRate(r.buy_rate_k) : '—'}</td>}
                   <td style={tdStyle}>{r.notes || '—'}</td>
                   <td style={tdStyle}>{r.set_by_name || '—'}</td>
-                  <td style={{ ...tdStyle, color: '#94a3b8', fontSize: 11 }}>
+                  <td style={{ ...tdStyle, color: '#64748b', fontSize: 11 }}>
                     {r.created_at ? new Date(r.created_at + 'Z').toLocaleString() : '—'}
                   </td>
                   <td style={tdStyle}>

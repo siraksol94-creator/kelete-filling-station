@@ -81,7 +81,7 @@ export default function ExpiryReport() {
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} size={15} />
+          <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} size={15} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -124,9 +124,9 @@ export default function ExpiryReport() {
       {/* Table */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>Loading…</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>No items found.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>No items found.</div>
         ) : (
           <div style={{ maxHeight: 520, overflowY: 'auto' }}>
           <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>

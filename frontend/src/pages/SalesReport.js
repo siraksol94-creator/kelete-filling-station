@@ -2047,7 +2047,7 @@ const SalesReport = () => {
           </div>
 
           {/* Arrow separator */}
-          <div style={{ paddingBottom: 10, color: '#9ca3af', fontSize: 18, fontWeight: 300, flexShrink: 0 }}>→</div>
+          <div style={{ paddingBottom: 10, color: '#6b7280', fontSize: 18, fontWeight: 300, flexShrink: 0 }}>→</div>
 
           {/* To Date */}
           <div style={{ flex: '0 0 auto' }}>
@@ -2100,7 +2100,7 @@ const SalesReport = () => {
             apply, and putting it alongside them would suggest they combine. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
           <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: 420 }}>
-            <FiSearch size={15} style={{ position: 'absolute', left: 11, top: 11, color: '#94a3b8' }} />
+            <FiSearch size={15} style={{ position: 'absolute', left: 11, top: 11, color: '#64748b' }} />
             <input
               value={invoiceInput}
               onChange={e => setInvoiceInput(e.target.value)}
@@ -2117,7 +2117,7 @@ const SalesReport = () => {
             {invoiceInput && (
               <button onClick={() => { setInvoiceInput(''); setInvoiceSearch(''); }} title="Clear"
                 style={{ position: 'absolute', right: 6, top: 6, background: 'none', border: 0,
-                         cursor: 'pointer', color: '#94a3b8', padding: 4, lineHeight: 1 }}>
+                         cursor: 'pointer', color: '#64748b', padding: 4, lineHeight: 1 }}>
                 <FiX size={15} />
               </button>
             )}
@@ -2468,7 +2468,7 @@ const SalesReport = () => {
                       {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b45309' }}>{curSym}{rowCogs.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
                       {SHOW_MARGIN_COLUMNS && <td style={{ color: rowProfit >= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>{curSym}{rowProfit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
                       <td>{curSym}{(parseFloat(parseFloat(order.amount_received || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                      <td style={{ color: '#16a34a' }}>{curSym}{(parseFloat(parseFloat(order.change_amount || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ color: '#15803d' }}>{curSym}{(parseFloat(parseFloat(order.change_amount || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                       <td>
                         <span className={`badge ${order.status === 'Reversed' ? 'badge-danger' : order.status === 'Partial' ? 'badge-warning' : 'badge-success'}`}>
                           {order.status}
@@ -2498,7 +2498,7 @@ const SalesReport = () => {
                               onClick={() => handleReverse(order)}
                               disabled={order.status === 'Reversed'}
                               title="Reverse Order"
-                              style={{ padding: '5px 10px', background: order.status === 'Reversed' ? '#e5e7eb' : '#dc2626', color: order.status === 'Reversed' ? '#9ca3af' : '#fff', border: 'none', borderRadius: 6, cursor: order.status === 'Reversed' ? 'not-allowed' : 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
+                              style={{ padding: '5px 10px', background: order.status === 'Reversed' ? '#e5e7eb' : '#dc2626', color: order.status === 'Reversed' ? '#6b7280' : '#fff', border: 'none', borderRadius: 6, cursor: order.status === 'Reversed' ? 'not-allowed' : 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                             >
                               <FiRotateCcw size={13} /> Reverse
                             </button>
@@ -2554,7 +2554,7 @@ const SalesReport = () => {
                         <td>
                           <div style={{ lineHeight: 1.25 }}>
                             <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{cnZraRcpt}</div>
-                            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 1 }}>{cnKeleteRef}</div>
+                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{cnKeleteRef}</div>
                           </div>
                         </td>
                         <td>{formatDate(cnDate)}</td>
@@ -2564,7 +2564,7 @@ const SalesReport = () => {
                         {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b45309' }}>{curSym}0.00</td>}
                         {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b91c1c', fontWeight: 600 }}>−{curSym}{Math.abs(negProfit).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
                         <td style={{ color: '#b91c1c' }}>−{curSym}{Math.abs(negReceived).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                        <td style={{ color: '#9ca3af' }}>{curSym}0.00</td>
+                        <td style={{ color: '#6b7280' }}>{curSym}0.00</td>
                         <td>
                           <span className="badge badge-danger" style={{ background: '#fee2e2', color: '#b91c1c', borderColor: '#fca5a5' }}>Credit Note</span>
                         </td>
@@ -2670,18 +2670,18 @@ const SalesReport = () => {
                       const avgInDisp = displayPriceInDefaultUnit(item.avg_price, item);
                       return (
                       <tr key={idx} onClick={() => handleProductBreakdown(item.product_name)} style={{ cursor: 'pointer' }} title="Click to see individual sales">
-                        <td style={{ color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                        <td style={{ color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
                         <td><strong>{formatStockForProduct(item.total_qty, item)}</strong></td>
                         <td><strong style={{ color: '#2563eb' }}>{item.product_name}</strong></td>
                         <td style={{ color: '#6b7280', fontSize: 12 }}>{item.category_name || '—'}</td>
                         <td style={{ color: '#6b7280' }}>
                           {disp.name || '—'}
                           {disp.conv > 1 && (
-                            <div style={{ fontSize: 10, color: '#9ca3af' }}>1 {disp.name} = {disp.conv} {item.unit}</div>
+                            <div style={{ fontSize: 10, color: '#6b7280' }}>1 {disp.name} = {disp.conv} {item.unit}</div>
                           )}
                         </td>
-                        <td>{curSym}{(parseFloat(avgInDisp.price)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} <span style={{ fontSize: 10, color: '#9ca3af' }}>/ {avgInDisp.unit}</span></td>
-                        <td><strong style={{ color: '#16a34a' }}>{curSym}{(parseFloat(parseFloat(item.total_revenue))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+                        <td>{curSym}{(parseFloat(avgInDisp.price)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} <span style={{ fontSize: 10, color: '#6b7280' }}>/ {avgInDisp.unit}</span></td>
+                        <td><strong style={{ color: '#15803d' }}>{curSym}{(parseFloat(parseFloat(item.total_revenue))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
                       </tr>
                       );
                     })}
@@ -2689,7 +2689,7 @@ const SalesReport = () => {
                   <tfoot>
                     <tr style={{ background: '#f8faff', fontWeight: 700 }}>
                       <td colSpan={6} style={{ textAlign: 'right', paddingRight: 16, color: '#374151' }}>Grand Total</td>
-                      <td style={{ color: '#16a34a' }}>K{(parseFloat(filteredItems.reduce((s, p) => s + parseFloat(p.total_revenue), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ color: '#15803d' }}>K{(parseFloat(filteredItems.reduce((s, p) => s + parseFloat(p.total_revenue), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -2719,8 +2719,8 @@ const SalesReport = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${2 + (showMomo ? 1 : 0) + (showBank ? 1 : 0)}, 1fr)`, gap: 14, padding: '16px 20px' }}>
               {[
-                { label: 'Cash',         value: totalCashReceived,   color: '#16a34a', show: true },
-                { label: 'Mobile Money', value: totalMomoReceived,   color: '#ea580c', show: showMomo },
+                { label: 'Cash',         value: totalCashReceived,   color: '#15803d', show: true },
+                { label: 'Mobile Money', value: totalMomoReceived,   color: '#c2410c', show: showMomo },
                 { label: 'Bank',         value: totalBankReceived,   color: '#2563eb', show: showBank },
                 { label: 'Credit',       value: totalCreditByMethod, color: '#dc2626', show: true },
               ].filter(b => b.show).map(b => (
@@ -2738,8 +2738,8 @@ const SalesReport = () => {
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>Receipt #</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>Customer</th>
                   <th style={{ padding: '10px 12px', textAlign: 'right' }}>Total</th>
-                  <th style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a' }}>Cash</th>
-                  {showMomo && <th style={{ padding: '10px 12px', textAlign: 'right', color: '#ea580c' }}>MoMo</th>}
+                  <th style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>Cash</th>
+                  {showMomo && <th style={{ padding: '10px 12px', textAlign: 'right', color: '#c2410c' }}>MoMo</th>}
                   {showBank && <th style={{ padding: '10px 12px', textAlign: 'right', color: '#2563eb' }}>Bank</th>}
                   <th style={{ padding: '10px 12px', textAlign: 'right', color: '#dc2626' }}>Credit</th>
                 </tr>
@@ -2760,8 +2760,8 @@ const SalesReport = () => {
                       <td style={{ padding: '8px 12px', fontFamily: 'monospace' }}>{fmtInvoiceNo(o.order_number)}</td>
                       <td style={{ padding: '8px 12px' }}>{o.customer_name || 'Walk-in'}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>{fmtK(o.total_amount)}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: cash > 0 ? '#16a34a' : '#cbd5e1' }}>{cash > 0 ? fmtK(cash) : '—'}</td>
-                      {showMomo && <td style={{ padding: '8px 12px', textAlign: 'right', color: momo > 0 ? '#ea580c' : '#cbd5e1' }}>{momo > 0 ? fmtK(momo) : '—'}</td>}
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: cash > 0 ? '#15803d' : '#cbd5e1' }}>{cash > 0 ? fmtK(cash) : '—'}</td>
+                      {showMomo && <td style={{ padding: '8px 12px', textAlign: 'right', color: momo > 0 ? '#c2410c' : '#cbd5e1' }}>{momo > 0 ? fmtK(momo) : '—'}</td>}
                       {showBank && <td style={{ padding: '8px 12px', textAlign: 'right', color: bank > 0 ? '#2563eb' : '#cbd5e1' }}>{bank > 0 ? fmtK(bank) : '—'}</td>}
                       <td style={{ padding: '8px 12px', textAlign: 'right', color: credit > 0 ? '#dc2626' : '#cbd5e1' }}>{credit > 0 ? fmtK(credit) : '—'}</td>
                     </tr>
@@ -2772,8 +2772,8 @@ const SalesReport = () => {
                 <tr style={{ background: '#f9fafb', fontWeight: 700, borderTop: '2px solid #e5e7eb' }}>
                   <td colSpan={3} style={{ padding: '10px 12px', textAlign: 'right' }}>TOTAL</td>
                   <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtK(totalRevenue)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a' }}>{fmtK(totalCashReceived)}</td>
-                  {showMomo && <td style={{ padding: '10px 12px', textAlign: 'right', color: '#ea580c' }}>{fmtK(totalMomoReceived)}</td>}
+                  <td style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>{fmtK(totalCashReceived)}</td>
+                  {showMomo && <td style={{ padding: '10px 12px', textAlign: 'right', color: '#c2410c' }}>{fmtK(totalMomoReceived)}</td>}
                   {showBank && <td style={{ padding: '10px 12px', textAlign: 'right', color: '#2563eb' }}>{fmtK(totalBankReceived)}</td>}
                   <td style={{ padding: '10px 12px', textAlign: 'right', color: '#dc2626' }}>{fmtK(totalCreditByMethod)}</td>
                 </tr>
@@ -2851,9 +2851,9 @@ const SalesReport = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, padding: '16px 20px' }}>
               {[
-                { label: 'USD ($)', value: totals.usd,    color: '#16a34a', prefix: '$', dec: 2 },
+                { label: 'USD ($)', value: totals.usd,    color: '#15803d', prefix: '$', dec: 2 },
                 { label: 'FRA',     value: totals.fra,    color: '#7c3aed', prefix: '',  dec: 0, suffix: ' FRA' },
-                { label: 'K',       value: totals.k,      color: '#ea580c', prefix: '',  dec: 0, suffix: ' K' },
+                { label: 'K',       value: totals.k,      color: '#c2410c', prefix: '',  dec: 0, suffix: ' K' },
                 { label: 'Credit',  value: totals.credit, color: '#dc2626', prefix: '$', dec: 2 },
               ].map(b => (
                 <div key={b.label} style={{ padding: '14px 16px', borderRadius: 12, background: b.color + '15', border: `1.5px solid ${b.color}40` }}>
@@ -2875,26 +2875,26 @@ const SalesReport = () => {
                   <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Receipt #</th>
                   <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Customer</th>
                   <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Total ($)</th>
-                  <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#16a34a', textTransform: 'uppercase', borderBottom: '1px solid #bbf7d0', background: '#f0fdf4' }}>USD ($)</th>
+                  <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', borderBottom: '1px solid #bbf7d0', background: '#f0fdf4' }}>USD ($)</th>
                   <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', borderBottom: '1px solid #ddd6fe', background: '#faf5ff' }}>FRA</th>
-                  <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#ea580c', textTransform: 'uppercase', borderBottom: '1px solid #fed7aa', background: '#fff7ed' }}>K</th>
+                  <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#c2410c', textTransform: 'uppercase', borderBottom: '1px solid #fed7aa', background: '#fff7ed' }}>K</th>
                   <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Credit ($)</th>
                 </tr>
                 <tr style={{ background: '#f9fafb' }}>
                   {['Paid', 'Given', 'Net', '±'].map((h, i) => (
-                    <th key={`u${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#16a34a', borderBottom: '1px solid #e5e7eb', background: '#f0fdf4' }}>{h}</th>
+                    <th key={`u${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#15803d', borderBottom: '1px solid #e5e7eb', background: '#f0fdf4' }}>{h}</th>
                   ))}
                   {['Paid', 'Given', 'Net', '±'].map((h, i) => (
                     <th key={`f${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#7c3aed', borderBottom: '1px solid #e5e7eb', background: '#faf5ff' }}>{h}</th>
                   ))}
                   {['Paid', 'Given', 'Net', '±'].map((h, i) => (
-                    <th key={`k${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#ea580c', borderBottom: '1px solid #e5e7eb', background: '#fff7ed' }}>{h}</th>
+                    <th key={`k${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#c2410c', borderBottom: '1px solid #e5e7eb', background: '#fff7ed' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {activeOrders.length === 0 ? (
-                  <tr><td colSpan={17} style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>No sales for the selected period.</td></tr>
+                  <tr><td colSpan={17} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No sales for the selected period.</td></tr>
                 ) : activeOrders.map(o => {
                   const r = adjusted(o);
                   const usdCol = '#16a34a', fraCol = '#7c3aed', kCol = '#ea580c';
@@ -2935,7 +2935,7 @@ const SalesReport = () => {
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fff7ed1a' }}>{cell(r.kGiven, 0, '', kCol)}</td>
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fff7ed1a', fontWeight: 600 }}>{cell(r.kNet, 0, '', kCol)}</td>
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fffbeb' }}>{diffCell(r.kDiff, 0, '', '#92400e')}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: r.credit > 0 ? '#dc2626' : '#9ca3af', fontWeight: r.credit > 0 ? 700 : 400 }}>{r.credit > 0 ? `$${(parseFloat(r.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: r.credit > 0 ? '#dc2626' : '#6b7280', fontWeight: r.credit > 0 ? 700 : 400 }}>{r.credit > 0 ? `$${(parseFloat(r.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}</td>
                     </tr>
                   );
                 })}
@@ -2945,9 +2945,9 @@ const SalesReport = () => {
                   <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
                     <td colSpan={3} style={{ padding: '11px 12px' }}>TOTAL</td>
                     <td style={{ padding: '11px 12px', textAlign: 'right' }}>{curSym}{(parseFloat(totalRevenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#16a34a' }}>${totals.usdPaid.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#16a34a' }}>${totals.usdGiven.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#16a34a' }}>${totals.usdNet.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#15803d' }}>${totals.usdPaid.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#15803d' }}>${totals.usdGiven.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#15803d' }}>${totals.usdNet.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     {/* v1.8.88 — signed totals: positive (kept) amber, negative (absorbed) red.
                         sumCell renders the aggregate with the correct sign and colour
                         and folds to '—' when within rounding-dust tolerance. */}
@@ -2965,9 +2965,9 @@ const SalesReport = () => {
                         ? '—'
                         : `${totals.fraDiff < 0 ? '−' : '+'}${Math.abs(totals.fraDiff).toLocaleString(undefined,{maximumFractionDigits:0})}`}
                     </td>
-                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#ea580c' }}>{totals.kPaid.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
-                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#ea580c' }}>{totals.kGiven.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
-                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#ea580c' }}>{totals.kNet.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#c2410c' }}>{totals.kPaid.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#c2410c' }}>{totals.kGiven.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
+                    <td style={{ padding: '11px 8px', textAlign: 'right', color: '#c2410c' }}>{totals.kNet.toLocaleString(undefined,{maximumFractionDigits:0})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: totals.kDiff < -0.5 ? '#dc2626' : '#92400e', background: '#fffbeb' }}>
                       {Math.abs(totals.kDiff) < 0.5
                         ? '—'
@@ -3302,7 +3302,7 @@ const SalesReport = () => {
                             </>
                           );
                         })()}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: '#16a34a' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600, color: '#15803d' }}>
                           <span>Change at Till</span>
                           <span>{curSym}{(parseFloat(originalChange)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                         </div>
@@ -3546,10 +3546,10 @@ const SalesReport = () => {
                   <>
                     <div style={{ fontSize: 13, color: '#374151', marginBottom: 12, lineHeight: 1.7, background: '#f9fafb', borderRadius: 8, padding: '10px 12px' }}>
                       <div>Original sold: <strong>{orig} {it.unit || ''}</strong>
-                        {it.alt_unit && !isLineAlt && (<span style={{ color: '#9ca3af' }}> </span>)}
+                        {it.alt_unit && !isLineAlt && (<span style={{ color: '#6b7280' }}> </span>)}
                       </div>
                       {already > 0 && <div>Already reversed: <strong style={{ color: '#dc2626' }}>{already} {it.unit || ''}</strong></div>}
-                      <div>Remaining: <strong style={{ color: '#16a34a' }}>{remainingInLineUnit} {it.unit || ''}</strong>
+                      <div>Remaining: <strong style={{ color: '#15803d' }}>{remainingInLineUnit} {it.unit || ''}</strong>
                         {it.alt_unit && (
                           <span style={{ color: '#6b7280', fontSize: 12 }}> ({remainingBase} {baseUnit})</span>
                         )}
@@ -3580,7 +3580,7 @@ const SalesReport = () => {
                         <div style={{ padding: '10px 14px', color: '#6b7280', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#f9fafb', minWidth: 90, textAlign: 'center' }}>{it.unit || ''}</div>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 8 }}>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 8 }}>
                       Pre-filled to full remaining. You can change qty or switch unit (e.g. customer returns 2 pcs when they bought boxes).
                     </div>
                     <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
@@ -3674,12 +3674,12 @@ const SalesReport = () => {
                     <tbody>
                       {breakdown.items.map((row, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '8px 12px', color: '#9ca3af' }}>{i + 1}</td>
+                          <td style={{ padding: '8px 12px', color: '#6b7280' }}>{i + 1}</td>
                           <td style={{ padding: '8px 12px', color: '#374151' }}>{new Date(row.created_at + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                           <td style={{ padding: '8px 12px', fontWeight: 600, color: '#2563eb' }}>{fmtInvoiceNo(row.order_number)}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'right' }}>{(parseFloat(parseFloat(row.quantity))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'right' }}>{curSym}{(parseFloat(parseFloat(row.unit_price))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#16a34a' }}>{curSym}{(parseFloat(parseFloat(row.total_price))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#15803d' }}>{curSym}{(parseFloat(parseFloat(row.total_price))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -3688,7 +3688,7 @@ const SalesReport = () => {
                         <td colSpan={3} style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>Total</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right' }}>{(parseFloat(breakdown.items.reduce((s, r) => s + parseFloat(r.quantity), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         <td></td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', color: '#16a34a' }}>{curSym}{(parseFloat(breakdown.items.reduce((s, r) => s + parseFloat(r.total_price), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>{curSym}{(parseFloat(breakdown.items.reduce((s, r) => s + parseFloat(r.total_price), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                       </tr>
                     </tfoot>
                   </table>

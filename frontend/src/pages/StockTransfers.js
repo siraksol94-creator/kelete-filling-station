@@ -335,7 +335,7 @@ function TabButton({ active, onClick, children }) {
 
 function TransferTable({ rows, loading, direction, onReceive, onCancel, onView }) {
   if (loading && rows.length === 0) return <p style={{ color: '#64748b' }}>Loading…</p>;
-  if (rows.length === 0) return <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No transfers.</p>;
+  if (rows.length === 0) return <p style={{ color: '#64748b', fontStyle: 'italic' }}>No transfers.</p>;
 
   return (
     <div style={{ overflowX: 'auto' }}>
@@ -364,14 +364,14 @@ function TransferTable({ rows, loading, direction, onReceive, onCancel, onView }
               <td style={{ ...td, fontFamily: 'monospace', fontSize: 12 }}>{t.transfer_number}</td>
               <td style={td}>
                 <strong>{direction === 'out' ? t.to_name : t.from_name}</strong>{' '}
-                <span style={{ color: '#94a3b8', fontSize: 11 }}>({direction === 'out' ? t.to_slug : t.from_slug})</span>
+                <span style={{ color: '#64748b', fontSize: 11 }}>({direction === 'out' ? t.to_slug : t.from_slug})</span>
               </td>
               <td style={{ ...td, textAlign: 'right' }}>{t.total_items}</td>
               <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{fmtMoney(t.total_value)}</td>
               <td style={td}>{statusBadge(t.status)}</td>
               <td style={td}>{t.created_at ? new Date(t.created_at).toLocaleString() : '—'}</td>
               <td style={td}>{t.created_by_name || '—'}</td>
-              <td style={{ ...td, color: t.received_by_name ? '#0f172a' : '#94a3b8' }}>
+              <td style={{ ...td, color: t.received_by_name ? '#0f172a' : '#64748b' }}>
                 {t.received_by_name || '—'}
               </td>
               <td style={{ ...td, whiteSpace: 'nowrap' }}>
@@ -603,7 +603,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                       const dispUnit = getDisplayUnit(p);
                       return (
                       <tr key={p.sync_id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={tdS}>{p.name} <span style={{ color: '#94a3b8', fontSize: 10 }}>{p.unit}</span></td>
+                        <td style={tdS}>{p.name} <span style={{ color: '#64748b', fontSize: 10 }}>{p.unit}</span></td>
                         <td style={{ ...tdS, textAlign: 'right' }}>{displayQty}</td>
                         <td style={{ ...tdS, textAlign: 'right' }}>
                           <input type="number" min="0" step="any" placeholder={`0 ${dispUnit.name}`}
@@ -616,7 +616,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                       );
                     })}
                     {filtered.length === 0 && (
-                      <tr><td colSpan={3} style={{ ...tdS, color: '#94a3b8', fontStyle: 'italic', padding: 16 }}>No products match.</td></tr>
+                      <tr><td colSpan={3} style={{ ...tdS, color: '#64748b', fontStyle: 'italic', padding: 16 }}>No products match.</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -628,7 +628,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
               <label style={lbl}>Cart ({cartItems.length} line{cartItems.length === 1 ? '' : 's'})</label>
               <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 10, background: '#f8fafc', minHeight: 250 }}>
                 {cartItems.length === 0 ? (
-                  <p style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic', textAlign: 'center', margin: '40px 0' }}>Enter quantities in the table to build the transfer.</p>
+                  <p style={{ color: '#64748b', fontSize: 12, fontStyle: 'italic', textAlign: 'center', margin: '40px 0' }}>Enter quantities in the table to build the transfer.</p>
                 ) : (
                   <>
                     {cartItems.map(x => {
@@ -883,7 +883,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
 
         <div style={{ padding: 16, overflowY: 'auto', flex: 1 }}>
           {items.length === 0 && (
-            <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>This transfer has no items.</p>
+            <p style={{ color: '#64748b', fontStyle: 'italic' }}>This transfer has no items.</p>
           )}
           {items.length > 0 && (
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -911,7 +911,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                   const hasIssue = variance > 0.0001 || l.reason === 'Damaged' || l.reason === 'Lost';
                   return (
                     <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', background: hasIssue ? '#fffbeb' : '#fff' }}>
-                      <td style={td}><strong>{l.product_name}</strong> <span style={{ color: '#94a3b8', fontSize: 11 }}>{l.unit}</span></td>
+                      <td style={td}><strong>{l.product_name}</strong> <span style={{ color: '#64748b', fontSize: 11 }}>{l.unit}</span></td>
                       <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>{fmtQ(l.sent_qty)} {dispUnit}</td>
                       <td style={{ ...td, textAlign: 'right' }}>
                         {isReceive ? (
@@ -919,7 +919,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                             <input type="number" min="0" step="any" value={l.received_qty}
                               onChange={e => onReceivedChange(idx, e.target.value)}
                               style={{ width: 80, padding: '4px 6px', border: `1px solid ${hasIssue ? '#fbbf24' : '#d1d5db'}`, borderRadius: 4, fontSize: 13, textAlign: 'right' }} />
-                            <span style={{ fontSize: 11, color: '#94a3b8' }}>{dispUnit}</span>
+                            <span style={{ fontSize: 11, color: '#64748b' }}>{dispUnit}</span>
                           </div>
                         ) : (
                           <span style={{ fontWeight: 600 }}>{fmtQ(l.received_qty)} {dispUnit}</span>
@@ -932,7 +932,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                             {REASON_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                           </select>
                         ) : (
-                          <span style={{ fontSize: 12, color: hasIssue ? '#b45309' : '#16a34a' }}>{l.reason}</span>
+                          <span style={{ fontSize: 12, color: hasIssue ? '#b45309' : '#15803d' }}>{l.reason}</span>
                         )}
                       </td>
                       <td style={td}>

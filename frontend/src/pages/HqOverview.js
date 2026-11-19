@@ -121,7 +121,7 @@ export default function HqOverview() {
                         {b.error ? b.error : `${fmtInt(b.today.orders)} orders`}
                         {low > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 999, background: '#fdecec', color: '#9b0008' }}>{fmtInt(low)} low</span>}
                       </span>
-                      <span style={{ color: '#94a3b8', fontSize: 14 }}>{open ? '▾' : '›'}</span>
+                      <span style={{ color: '#64748b', fontSize: 14 }}>{open ? '▾' : '›'}</span>
                     </div>
                   </div>
                   {open && !b.error && (
@@ -193,7 +193,7 @@ export default function HqOverview() {
           </div>
 
           {data.as_of && (
-            <p style={{ marginTop: 18, fontSize: 11, color: '#94a3b8' }}>
+            <p style={{ marginTop: 18, fontSize: 11, color: '#64748b' }}>
               Snapshot taken {new Date(data.as_of).toLocaleString()} · auto-refresh every 30s
             </p>
           )}
@@ -227,7 +227,7 @@ function Metric({ label, value, sub, warn, fullRow, className }) {
     <div className={className} style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 8, padding: '8px 10px', gridColumn: fullRow ? '1 / -1' : 'auto' }}>
       <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: 14, fontWeight: 700, color: warn ? '#b91c1c' : '#0f172a', marginTop: 2 }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10, color: '#64748b', marginTop: 1 }}>{sub}</div>}
     </div>
   );
 }

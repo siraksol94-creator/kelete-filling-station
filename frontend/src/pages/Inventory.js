@@ -213,7 +213,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div className="search-input-container" style={{ flex: '2 1 200px', marginBottom: 0 }}>
-          <FiSearch style={{ color: '#9ca3af' }} />
+          <FiSearch style={{ color: '#6b7280' }} />
           <input type="text" placeholder={t('searchByProductOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="filter-select" value={filter} onChange={e => setFilter(e.target.value)}>
@@ -297,10 +297,10 @@ const Inventory = ({ viewLocation = 'store' }) => {
                   <td style={{ fontWeight: 500 }}>{item.name}</td>
                   <td><span className={`badge ${getCategoryClass(item.category_name)}`}>{item.category_name}</span></td>
                   <td>{openDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {openDisp.unit}</td>
-                  <td style={{ color: '#16a34a', fontWeight: 500 }}>{inDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {inDisp.unit}</td>
+                  <td style={{ color: '#15803d', fontWeight: 500 }}>{inDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {inDisp.unit}</td>
                   <td style={{ color: '#dc2626', fontWeight: 500 }}>{outDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {outDisp.unit}</td>
                   {isSalesView && (
-                    <td style={{ color: transitQty > 0 ? '#0e7490' : '#9ca3af', fontWeight: transitQty > 0 ? 600 : 400 }}
+                    <td style={{ color: transitQty > 0 ? '#0e7490' : '#6b7280', fontWeight: transitQty > 0 ? 600 : 400 }}
                         title={transitQty > 0 ? 'PENDING outgoing transfers awaiting receiver confirmation' : undefined}>
                       {transitQty > 0
                         ? `${transitDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${transitDisp.unit}`

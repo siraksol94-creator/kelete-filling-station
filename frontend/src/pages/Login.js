@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { isHqHost, setHqBranch } from '../services/api';
 import { isMobileApp } from '../utils/platform';
 import keleteLogo from '../assets/kelete-logo.png';
+import ForecourtArt from '../ux/ForecourtArt';
+import { FuelCar } from '../ux/FuelLoader';
 
 // v1.5.1: HQ login no longer forces a branch pick. On the bare HQ host
 // (keletezm.com) the user just types email + password — authenticated
@@ -18,6 +20,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [capsOn, setCapsOn] = useState(false);   // UX-2: warn when Caps Lock is on in the password box
   const { login } = useAuth();
   const navigate = useNavigate();
   const hq = isHqHost();
@@ -91,30 +94,53 @@ const Login = () => {
     );
   }
 
+  // UX-2 — the website sign-in: forecourt panel + form; one column on phones.
+  // Same fields, same login call and messages as before.
+  const station = businessName || (hq ? 'Kelete HQ' : 'Kelete');
+  const caps = (e) => setCapsOn(!!(e.getModifierState && e.getModifierState('CapsLock')));
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-header">
-          <img src={keleteLogo} alt="Red Sea"
-            style={{ display: 'block', width: 120, height: 120, objectFit: 'contain', margin: '0 auto 22px' }} />
-          <h1>{businessName || (hq ? 'Kelete HQ' : 'Kelete')}</h1>
-          <p>{hq ? 'Head Office' : 'Distribution Management'}</p>
+    <div className="k-login">
+      <section className="k-login-brand" aria-label="About Kelete">
+        <div className="k-login-brand-inner">
+          <div className="k-login-kicker">{hq ? 'Head Office' : 'Station management'}</div>
+          <h1 className="k-login-station">{station}</h1>
+          <p className="k-login-tag">Forecourt, shop and accounts — every shift, litre and kwacha in one place.</p>
+          <ForecourtArt />
+          <ul className="k-login-points">
+            <li><span aria-hidden="true">⛽</span> Shifts &amp; meter readings</li>
+            <li><span aria-hidden="true">💵</span> Cash reconciliation</li>
+            <li><span aria-hidden="true">🛢️</span> Tank dips &amp; deliveries</li>
+          </ul>
         </div>
-        {error && <div className="login-error">{error}</div>}
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Username</label>
-            <input type="text" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your username" required />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
-          </div>
-          <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+      </section>
+      <main className="k-login-main">
+        <form className="k-login-form" onSubmit={handleSubmit} noValidate={false}>
+          <div className="k-login-mobile-brand" aria-hidden="true"><FuelCar width={42} /> <span>{station}</span></div>
+          <h2>Sign in</h2>
+          <p className="k-login-sub">Welcome back. Use the username and password your administrator gave you.</p>
+          {error && <div className="login-error" role="alert">{error}</div>}
+          <label className="k-login-field">
+            <span>Username</span>
+            <input type="text" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your username"
+              autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck="false" autoFocus required />
+          </label>
+          <label className="k-login-field">
+            <span>Password</span>
+            <span className="k-login-pw">
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                onKeyUp={caps} onKeyDown={caps} placeholder="Your password" autoComplete="current-password" required
+                aria-describedby={capsOn ? 'k-caps' : undefined} />
+              <button type="button" onClick={() => setShowPassword(v => !v)} aria-pressed={showPassword}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
+            </span>
+            {capsOn && <span id="k-caps" className="k-login-caps" role="status">Caps Lock is on</span>}
+          </label>
+          <button type="submit" className="k-login-submit" disabled={loading}>
+            {loading ? <><FuelCar width={30} className="k-login-car" /> Signing in…</> : 'Sign in'}
           </button>
+          <p className="k-login-foot">Trouble signing in? Ask your station administrator to reset your password.</p>
         </form>
-      </div>
+      </main>
     </div>
   );
 };

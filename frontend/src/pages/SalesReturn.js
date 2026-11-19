@@ -334,7 +334,7 @@ const SalesReturn = () => {
           <div><div className="stat-label">{t('totalDamages')}</div><div className="stat-value">{hasPermission('SalesReturns:View') ? stats.total : 'N/A'}</div></div>
         </div>
         <div className="stat-card stat-card-green">
-          <div className="stat-icon" style={{ background: '#dcfce7', color: '#16a34a' }}><FiCornerDownLeft /></div>
+          <div className="stat-icon" style={{ background: '#dcfce7', color: '#15803d' }}><FiCornerDownLeft /></div>
           <div><div className="stat-label">{t('thisMonth')}</div><div className="stat-value">{hasPermission('SalesReturns:View') ? stats.thisMonth : 'N/A'}</div></div>
         </div>
       </div>
@@ -342,10 +342,10 @@ const SalesReturn = () => {
       {/* Date Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
-        <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+        <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
         <input type="date" value={filterFrom} max={filterTo || todayStr} onChange={e => setFilterFrom(e.target.value)}
           style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', cursor: 'pointer' }} />
-        <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+        <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
         <input type="date" value={filterTo} min={filterFrom || undefined} max={todayStr} onChange={e => setFilterTo(e.target.value)}
           style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', cursor: 'pointer' }} />
         {(filterFrom || filterTo) && (
@@ -354,7 +354,7 @@ const SalesReturn = () => {
             {t('clear')}
           </button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>{filteredEntries.length} return{filteredEntries.length !== 1 ? 's' : ''}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>{filteredEntries.length} return{filteredEntries.length !== 1 ? 's' : ''}</span>
       </div>
 
       {/* Table */}
@@ -374,9 +374,9 @@ const SalesReturn = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Loading...</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>Loading...</td></tr>
             ) : filteredEntries.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>{entries.length === 0 ? 'No damages recorded yet.' : 'No damages for selected date range.'}</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>{entries.length === 0 ? 'No damages recorded yet.' : 'No damages for selected date range.'}</td></tr>
             ) : filteredEntries.map(e => {
               const st = (e.status || 'PENDING').toUpperCase();
               const stColor  = st === 'CONFIRMED' ? '#166534' : st === 'REJECTED' ? '#b91c1c' : st === 'AUTO' ? '#1d4ed8' : st === 'WRITE_OFF' ? '#6d28d9' : '#b45309';
@@ -411,7 +411,7 @@ const SalesReturn = () => {
                     {st === 'CONFIRMED' ? 'Confirmed' : st === 'REJECTED' ? 'Rejected' : st === 'AUTO' ? 'Auto' : st === 'WRITE_OFF' ? 'Write-Off' : 'Pending HQ'}
                   </span>
                 </td>
-                <td style={{ color: '#9ca3af', fontSize: 13 }}>{e.notes || '—'}</td>
+                <td style={{ color: '#6b7280', fontSize: 13 }}>{e.notes || '—'}</td>
                 <td>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <button onClick={() => openView(e)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
@@ -488,7 +488,7 @@ const SalesReturn = () => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
                     <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#2563eb' }}>Items Returned</h4>
-                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#9ca3af' }}>Products moving from Sales floor → Store</p>
+                    <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Products moving from Sales floor → Store</p>
                   </div>
                   <button onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                     <FiPlus size={13} /> Add Item
@@ -527,7 +527,7 @@ const SalesReturn = () => {
                               {open[i] && (
                                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflowY: 'auto' }}>
                                   {filteredProducts(row.product_name).length === 0
-                                    ? <div style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 13 }}>No products with sales balance found.</div>
+                                    ? <div style={{ padding: '10px 14px', color: '#6b7280', fontSize: 13 }}>No products with sales balance found.</div>
                                     : filteredProducts(row.product_name).map(p => (
                                       <div key={p.id} onMouseDown={() => selectProduct(i, p)}
                                         style={{ padding: '8px 14px', cursor: 'pointer', fontSize: 13, borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -614,7 +614,7 @@ const SalesReturn = () => {
             </div>
             <div style={{ padding: '18px 22px' }}>
               {selected.notes && <div style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#374151', marginBottom: 16 }}>{selected.notes}</div>}
-              {!detail ? <div style={{ textAlign: 'center', padding: 20, color: '#9ca3af' }}>Loading...</div> : (
+              {!detail ? <div style={{ textAlign: 'center', padding: 20, color: '#6b7280' }}>Loading...</div> : (
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc' }}>
@@ -667,7 +667,7 @@ const SalesReturn = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — Sales Damages ({filteredEntries.length} records)
               </span>
             </div>
@@ -675,7 +675,7 @@ const SalesReturn = () => {
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowPrintPreview(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowPrintPreview(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -755,7 +755,7 @@ const SalesReturn = () => {
                       return (
                         <React.Fragment key={entry.id}>
                           <tr style={{ background: idx % 2 === 1 ? '#f0f9ff' : '#fff', borderTop: idx > 0 ? '2px solid #e2e8f0' : 'none' }}>
-                            <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8' }}>{entry.return_number}</td>
                             <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(entry.date)}</td>
                             <td style={{ padding: '8px 12px', color: '#374151' }}>{entry.item_count} item{entry.item_count !== 1 ? 's' : ''}</td>

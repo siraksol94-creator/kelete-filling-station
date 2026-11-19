@@ -1,5 +1,14 @@
 // Shared inline styles for the Kelete Fuel pages. Keeping them inline to
 // avoid needing a CSS build step for the first slice.
+// Mix a #rrggbb colour toward black by `amount` (0–1). Anything else passes through.
+export function shade(hex, amount) {
+  const m = /^#([0-9a-f]{6})$/i.exec(String(hex || ''));
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (v) => Math.round(v * (1 - amount)).toString(16).padStart(2, '0');
+  return `#${ch((n >> 16) & 255)}${ch((n >> 8) & 255)}${ch(n & 255)}`;
+}
+
 export const S = {
   // Shared container for every Fuel Station sub-page. height + overflow-y
   // ensure content taller than the viewport scrolls independently of the
@@ -15,7 +24,7 @@ export const S = {
   th: { textAlign: 'left', padding: '12px 16px', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', color: '#6b7280', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
   td: { padding: '12px 16px', fontSize: 14 },
   tdR: { padding: '12px 16px', fontSize: 14, textAlign: 'right' },
-  btnPrimary: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#2563eb', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
+  btnPrimary: { display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#1d4ed8', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer', fontWeight: 500 },
   btnSecondary: { padding: '10px 16px', background: '#f3f4f6', color: '#111', border: 0, borderRadius: 6, cursor: 'pointer' },
   btnDanger: { padding: '10px 16px', background: '#dc2626', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer' },
   iconBtn: { background: 'transparent', border: 0, padding: 6, cursor: 'pointer', color: '#374151', marginRight: 4 },
@@ -28,7 +37,9 @@ export const S = {
   lbl: { display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, fontWeight: 500, color: '#374151' },
   input: { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, marginTop: 2, minHeight: 38, boxSizing: 'border-box' },
   errBox: { margin: 20, padding: 12, background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: 6, fontSize: 14 },
-  pill: (color) => ({ display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: color + '22', color, fontSize: 12, fontWeight: 600 }),
+  // UX-2: the text is a darker shade of the pill colour, so it stays readable
+  // (≥ 4.5:1) on its own light tint — e.g. green "Open" was 3:1 before.
+  pill: (color) => ({ display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: color + '22', color: shade(color, 0.42), fontSize: 12, fontWeight: 600 }),
   statCard: { background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 },
   statLabel: { fontSize: 12, color: '#6b7280', textTransform: 'uppercase', fontWeight: 600 },
   statValue: { fontSize: 24, fontWeight: 700, marginTop: 4, color: '#111' },

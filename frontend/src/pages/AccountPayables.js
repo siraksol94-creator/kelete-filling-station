@@ -262,7 +262,7 @@ const AccountPayables = () => {
           <span style="font-weight:700;font-size:14px">${balance > 0.01 ? 'Over Paid:' : balance < -0.01 ? 'Outstanding:' : 'Outstanding Balance:'}</span>
           ${totalCredits > 0.01 ? `<div style="font-size:9.5px;margin-top:3px;color:#444">Purchases ${curSym}${fmt(totalPurchases)} − Paid ${curSym}${fmt(totalPaid)} − Credits ${curSym}${fmt(totalCredits)}</div>` : ''}
         </div>
-        <span style="font-weight:800;font-size:18px;color:${balance > 0.01 ? '#16a34a' : balance < -0.01 ? '#dc2626' : '#000'}">${balance < 0 ? '−' : ''}${curSym}${fmt(Math.abs(balance))}</span>
+        <span style="font-weight:800;font-size:18px;color:${balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#000'}">${balance < 0 ? '−' : ''}${curSym}${fmt(Math.abs(balance))}</span>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:32px;margin-bottom:16px">
@@ -302,7 +302,7 @@ const AccountPayables = () => {
         <td style="padding:8px 10px;text-align:center">${p.grn_count}</td>
         <td style="padding:8px 10px;text-align:right">${curSym}${fmt(p.total_purchases)}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:600">${curSym}${fmt(p.total_paid)}</td>
-        <td style="padding:8px 10px;text-align:right;color:${parseFloat(p.total_credits||0)>0?'#0369a1':'#9ca3af'}">${parseFloat(p.total_credits||0)>0?(curSym+fmt(p.total_credits)):'—'}</td>
+        <td style="padding:8px 10px;text-align:right;color:${parseFloat(p.total_credits||0)>0?'#0369a1':'#6b7280'}">${parseFloat(p.total_credits||0)>0?(curSym+fmt(p.total_credits)):'—'}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:700">${curSym}${fmt(Math.abs(parseFloat(p.balance) || 0))}${parseFloat(p.balance) > 0.01 ? ' (owed)' : parseFloat(p.balance) < -0.01 ? ' (advance)' : ''}</td>
         <td style="padding:8px 10px">${p.status}</td>
       </tr>`).join('');
@@ -427,13 +427,13 @@ const AccountPayables = () => {
       }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input type="date" value={filterFrom} max={filterTo || _todayStr}
             onChange={e => setFilterFrom(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input type="date" value={filterTo} min={filterFrom || undefined} max={_todayStr}
             onChange={e => setFilterTo(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }} />
@@ -447,7 +447,7 @@ const AccountPayables = () => {
           style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}>
           {t('allTime')}
         </button>
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280' }}>
           {filterFrom || filterTo
             ? `${filterFrom || '—'} ${t('to')} ${filterTo || '—'}`
             : t('showingAllTime')}
@@ -505,7 +505,7 @@ const AccountPayables = () => {
           </thead>
           <tbody>
             {payables.length === 0 ? (
-              <tr><td colSpan="10" style={{ textAlign: 'center', color: '#9ca3af', padding: 40 }}>{t('noSuppliersInLedger')}</td></tr>
+              <tr><td colSpan="10" style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>{t('noSuppliersInLedger')}</td></tr>
             ) : payables.map(p => (
               <tr key={p.id}>
                 <td>
@@ -529,11 +529,11 @@ const AccountPayables = () => {
                   return (
                     <>
                       <td>{fmtCcy(parseFloat(p.total_purchases))}</td>
-                      <td style={{ color: '#16a34a' }}>{fmtCcy(parseFloat(p.total_paid))}</td>
-                      <td style={{ color: parseFloat(p.total_credits || 0) > 0 ? '#0369a1' : '#9ca3af' }}>
+                      <td style={{ color: '#15803d' }}>{fmtCcy(parseFloat(p.total_paid))}</td>
+                      <td style={{ color: parseFloat(p.total_credits || 0) > 0 ? '#0369a1' : '#6b7280' }}>
                         {parseFloat(p.total_credits || 0) > 0 ? fmtCcy(parseFloat(p.total_credits)) : '—'}
                       </td>
-                      <td style={{ color: bal > 0.01 ? '#16a34a' : bal < -0.01 ? '#dc2626' : '#374151', fontWeight: 600 }}>
+                      <td style={{ color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#374151', fontWeight: 600 }}>
                         {bal < 0 ? '−' : ''}{fmtCcy(bal)}
                       </td>
                     </>
@@ -596,7 +596,7 @@ const AccountPayables = () => {
                     p.payment_number, p.description
                   ));
                   if (rows.length === 0) {
-                    return <tr><td colSpan="6" style={{ textAlign: 'center', color: '#9ca3af', padding: 40 }}>No payments recorded.</td></tr>;
+                    return <tr><td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>No payments recorded.</td></tr>;
                   }
                   const total = rows.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
                   return <>
@@ -607,12 +607,12 @@ const AccountPayables = () => {
                         <td style={{ fontWeight: 600 }}>{p.supplier_name_resolved || p.supplier_name || '—'}</td>
                         <td style={{ color: '#6b7280' }}>{p.paid_from || '—'}</td>
                         <td style={{ color: '#6b7280' }}>{p.description || '—'}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>K{parseFloat(p.amount).toLocaleString()}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 700, color: '#15803d' }}>K{parseFloat(p.amount).toLocaleString()}</td>
                       </tr>
                     ))}
                     <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
                       <td colSpan="5">TOTAL — {rows.length} payment(s)</td>
-                      <td style={{ textAlign: 'right', color: '#16a34a' }}>K{total.toLocaleString()}</td>
+                      <td style={{ textAlign: 'right', color: '#15803d' }}>K{total.toLocaleString()}</td>
                     </tr>
                   </>;
                 })()}
@@ -648,7 +648,7 @@ const AccountPayables = () => {
                   {/* GRNs */}
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Purchases (GRN)</h3>
                   {breakdown.grns?.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 18 }}>No purchases yet.</p>
+                    <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 18 }}>No purchases yet.</p>
                   ) : (
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
                       <thead>
@@ -677,7 +677,7 @@ const AccountPayables = () => {
                   {/* Payments */}
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Payments Made (AP)</h3>
                   {breakdown.payments?.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 18 }}>No payments yet.</p>
+                    <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 18 }}>No payments yet.</p>
                   ) : (
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
                       <thead>
@@ -720,7 +720,7 @@ const AccountPayables = () => {
                             <td style={{ padding: '7px 10px', color: '#6b7280' }}>{p.payment_number}</td>
                             <td style={{ padding: '7px 10px' }}>{formatDate(p.date)}</td>
                             <td style={{ padding: '7px 10px', color: '#6b7280' }}>{p.description || '—'}</td>
-                            <td style={{ padding: '7px 10px', textAlign: 'right', color: '#16a34a', fontWeight: 600 }}>K{parseFloat(p.amount).toLocaleString()}</td>
+                            <td style={{ padding: '7px 10px', textAlign: 'right', color: '#15803d', fontWeight: 600 }}>K{parseFloat(p.amount).toLocaleString()}</td>
                             <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>
                               {hasPermission('AccountPayables:Edit') && (
                               <button onClick={() => { setEditingPayment({ id: p.id, amount: p.amount, date: p.date, description: p.description || '', paid_from: p.paid_from || '' }); setEditError(''); }}
@@ -740,7 +740,7 @@ const AccountPayables = () => {
                         ))}
                         <tr style={{ background: '#f0fdf4', fontWeight: 700 }}>
                           <td colSpan="3" style={{ padding: '7px 10px', textAlign: 'right' }}>Total Paid:</td>
-                          <td style={{ padding: '7px 10px', textAlign: 'right', color: '#16a34a' }}>K{breakdown.payments.reduce((s, p) => s + parseFloat(p.amount), 0).toLocaleString()}</td>
+                          <td style={{ padding: '7px 10px', textAlign: 'right', color: '#15803d' }}>K{breakdown.payments.reduce((s, p) => s + parseFloat(p.amount), 0).toLocaleString()}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -817,7 +817,7 @@ const AccountPayables = () => {
                             </div>
                           )}
                         </div>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: balance > 0.01 ? '#16a34a' : balance < -0.01 ? '#dc2626' : '#374151' }}>{balance < 0 ? '−' : ''}{curSym}{Math.abs(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#374151' }}>{balance < 0 ? '−' : ''}{curSym}{Math.abs(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     );
                   })()}
@@ -842,11 +842,11 @@ const AccountPayables = () => {
           <div className="no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 52, background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 1001, borderBottom: '1px solid #1e293b' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview — Account Payables ({payables.length} suppliers)</span>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>Print Preview — Account Payables ({payables.length} suppliers)</span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}><FiPrinter size={14} /> Print</button>
-              <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}><FiX size={14} /> Close</button>
+              <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}><FiX size={14} /> Close</button>
             </div>
           </div>
 
@@ -871,7 +871,7 @@ const AccountPayables = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
                 {[
                   { label: 'Total Purchases', value: curSym + parseFloat(stats.totalPurchases).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
-                  { label: 'Total Paid',       value: curSym + parseFloat(stats.totalPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),      bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+                  { label: 'Total Paid',       value: curSym + parseFloat(stats.totalPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),      bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
                   { label: 'Outstanding',      value: curSym + parseFloat(stats.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),    bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
                   { label: 'Suppliers',        value: stats.suppliers,                                                                                  bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
                 ].map(chip => (
@@ -895,17 +895,17 @@ const AccountPayables = () => {
                   <tbody>
                     {payables.map((p, idx) => (
                       <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700 }}>{p.supplier_name}</td>
                         <td style={{ padding: '8px 12px', color: '#6b7280' }}>{p.phone || '—'}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'center' }}>{p.grn_count}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right' }}>{curSym}{parseFloat(p.total_purchases).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', color: '#16a34a', fontWeight: 600 }}>{curSym}{parseFloat(p.total_paid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', color: '#15803d', fontWeight: 600 }}>{curSym}{parseFloat(p.total_paid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         {/* Flip the sign for display: positive (paid more than owed) → green; negative (we still owe) → red. */}
                         {(() => {
                           const bal = -parseFloat(p.balance || 0);
                           return (
-                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: bal > 0.01 ? '#16a34a' : bal < -0.01 ? '#dc2626' : '#374151' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#374151' }}>
                               {bal < 0 ? '−' : ''}{curSym}{Math.abs(bal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                           );
@@ -918,7 +918,7 @@ const AccountPayables = () => {
                     <tr style={{ background: '#fef2f2', borderTop: '2px solid #fca5a5' }}>
                       <td colSpan={4} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#dc2626' }}>TOTAL — {payables.length} Supplier{payables.length !== 1 ? 's' : ''}</td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700 }}>{curSym}{parseFloat(stats.totalPurchases).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>K{parseFloat(stats.totalPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#15803d' }}>K{parseFloat(stats.totalPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, color: '#dc2626' }}>K{parseFloat(stats.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                       <td />
                     </tr>

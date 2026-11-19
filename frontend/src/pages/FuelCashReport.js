@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiDollarSign, FiCheckCircle, FiRefreshCw, FiShield, FiUnlock } from 'react-icons/fi';
-import { getDailyRollup, finalizeShift, getDaySummary, approveShift, unApproveShift } from '../services/fuelApi';
+import { getDailyRollup, finalizeShift, getDaySummary, approveShift, unApproveShift, getShifts } from '../services/fuelApi';
 import { useAuth } from '../context/AuthContext';
-import { S } from './fuelStyles';
+import { S, shade } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { useHotkeys } from '../ux/useHotkeys';
 import { dayProgress, shiftSteps } from '../ux/fuelProgress';
-import { Skeleton, ProgressBar, StepTrail, VarianceBadge, ShortcutHelp, ShortcutHint } from '../ux/components';
+import { ProgressBar, StepTrail, VarianceBadge, ShortcutHelp, ShortcutHint } from '../ux/components';
+import FuelLoader from '../ux/FuelLoader';
+import AttendantAvatar, { Celebration } from '../ux/AttendantAvatar';
+import { profileFor, milestones } from '../ux/attendantLevel';
 
 // "YYYY-MM-DD" ± n days, on the calendar (no time zone involved).
 function shiftDate(ymd, n) {
@@ -30,6 +33,12 @@ export default function FuelCashReport() {
   const [msg, setMsg] = useState('');
   const [loaded, setLoaded] = useState(false);     // UX-1: skeleton until the first answer
   const [helpOpen, setHelpOpen] = useState(false);
+  // UX-2 — shift history for attendant levels/badges (read-only; same list as Attendant Shifts)
+  const [history, setHistory] = useState([]);
+  const [celebrate, setCelebrate] = useState(null);
+  const loadHistory = async () => { try { const h = (await getShifts()).data || []; setHistory(h); return h; } catch (e) { return null; } };
+  useEffect(() => { loadHistory(); /* eslint-disable-next-line */ }, []);
+  const profileOf = (s, list = history) => profileFor(list, { id: s.attendant_user_id, name: s.attendant_name });
 
   const load = async () => {
     setMsg('');
@@ -120,6 +129,7 @@ export default function FuelCashReport() {
 
   const finalize = async (s) => {
     const ip = inputs[s.id] || {};
+    const before = profileOf(s);
     setSaving(s.id); setMsg('');
     try {
       await finalizeShift(s.id, {
@@ -131,6 +141,11 @@ export default function FuelCashReport() {
       });
       await load();
       setMsg(`Shift #${s.id} finalized.`);
+      const fresh = await loadHistory();
+      if (fresh) {
+        const items = milestones(before, profileOf(s, fresh));
+        if (items.length) setCelebrate({ who: s.attendant_name, items });
+      }
     } catch (ex) { setMsg('Finalize failed: ' + (ex.response?.data?.error || ex.message)); }
     finally { setSaving(null); }
   };
@@ -170,7 +185,7 @@ export default function FuelCashReport() {
       )}
 
       {!loaded ? (
-        <div style={S.card}><Skeleton rows={6} height={20} /></div>
+        <div style={S.card}><FuelLoader message="Loading the day's shifts…" /></div>
       ) : rows.length === 0 ? (
         <div style={{ ...S.card, padding: 40, textAlign: 'center', color: '#6b7280' }}>No shifts for this date.</div>
       ) : (
@@ -191,7 +206,7 @@ export default function FuelCashReport() {
                       <FiUnlock /> Un-approve {shiftType}
                     </button>
                   ) : (
-                    <button onClick={() => approve(shiftType)} disabled={approving === shiftType || windowShifts.some(r => r.status === 'Open')} style={{ ...S.btnPrimary, background: '#16a34a' }} title={windowShifts.some(r => r.status === 'Open') ? 'Close + finalize all ' + shiftType + ' shifts first' : ''}>
+                    <button onClick={() => approve(shiftType)} disabled={approving === shiftType || windowShifts.some(r => r.status === 'Open')} style={{ ...S.btnPrimary, background: '#15803d' }} title={windowShifts.some(r => r.status === 'Open') ? 'Close + finalize all ' + shiftType + ' shifts first' : ''}>
                       <FiShield /> {approving === shiftType ? 'Approving…' : `Approve ${shiftType}`}
                     </button>
                   )
@@ -218,7 +233,7 @@ export default function FuelCashReport() {
                     <div key={s.id} style={S.card} onKeyDown={e => cardKeyDown(e, s)}>
                       <div style={{ padding: 16, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
                         <div>
-                          <strong style={{ fontSize: 16 }}>{s.attendant_name}</strong>
+                          <AttendantAvatar profile={profileOf(s)} size={34} showName />
                           <div style={{ fontSize: 12, color: '#6b7280' }}>
                             Shift #{s.id} · opened {s.opened_at} ·{' '}
                             <span style={S.pill(closed ? '#6b7280' : '#16a34a')}>{s.status}</span>
@@ -250,7 +265,7 @@ export default function FuelCashReport() {
                         <StatCell label="Actual Cash *" input locked={!!s.approval} value={ip.payment_cash}
                           onChange={v => setInputs({ ...inputs, [s.id]: { ...ip, payment_cash: v } })} />
                         <StatCell label="Variance" value={`K ${variance.toFixed(2)}`}
-                          color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a')} />
+                          color={Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#b91c1c' : '#15803d')} />
                       </div>
                     </div>
                   );
@@ -264,6 +279,7 @@ export default function FuelCashReport() {
       {summary && (rows.length > 0 || (summary.pumpGrades || []).length > 0) && (
         <DaySummaryPanel summary={summary} liveOverride={liveTotals(rows, inputs)} />
       )}
+      {celebrate && <Celebration who={celebrate.who} items={celebrate.items} onDone={() => setCelebrate(null)} />}
       <ShortcutHelp bindings={helpList.map(b => ({ ...b, run: b.run || (() => {}) }))} open={helpOpen} onClose={() => setHelpOpen(false)} title="Fuel Cash Report — shortcuts" />
     </div>
   );
@@ -361,7 +377,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
         {/* Column 1: Fuel Sales per Pump × Grade */}
         <div style={col}>
           <div style={colTitle}>Fuel Sales</div>
-          {pumpList.length === 0 ? <div style={{ fontSize: 13, color: '#9ca3af' }}>No readings.</div> : pumpList.map(p => (
+          {pumpList.length === 0 ? <div style={{ fontSize: 13, color: '#6b7280' }}>No readings.</div> : pumpList.map(p => (
             <div key={p.pump_code} style={{ marginBottom: 8 }}>
               {p.items.map(it => (
                 <div key={it.grade_id} style={line}>
@@ -381,14 +397,14 @@ function DaySummaryPanel({ summary, liveOverride }) {
         {/* Column 2: Dip vs Read reconciliation per grade + per-tank levels */}
         <div style={col}>
           <div style={colTitle}>Dip vs Read (per grade)</div>
-          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 10 }}>No readings or dips.</div> : dips.map(d => {
+          {dips.length === 0 ? <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 10 }}>No readings or dips.</div> : dips.map(d => {
             const hasDip = d.dip_total != null;
-            const varColor = !hasDip ? '#9ca3af' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance >= 0 ? '#16a34a' : '#dc2626'));
+            const varColor = !hasDip ? '#6b7280' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance >= 0 ? '#15803d' : '#b91c1c'));
             return (
               <div key={d.grade_id} style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color || '#111', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color ? shade(d.grade_color, 0.42) : '#111', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
                 <div style={line}><span style={{ color: '#6b7280' }}>Read (meter)</span><span>{fmtL(d.read_total)}</span></div>
-                <div style={line}><span style={{ color: '#6b7280' }}>Dip (physical)</span><span>{hasDip ? fmtL(d.dip_total) : <span style={{ color: '#9ca3af', fontSize: 11 }}>needs 2+ dips</span>}</span></div>
+                <div style={line}><span style={{ color: '#6b7280' }}>Dip (physical)</span><span>{hasDip ? fmtL(d.dip_total) : <span style={{ color: '#6b7280', fontSize: 11 }}>needs 2+ dips</span>}</span></div>
                 <div style={line}><span style={{ color: '#6b7280' }}>Variance (R-D)</span><span style={{ color: varColor, fontWeight: 700 }}>{hasDip ? ((d.variance >= 0 ? '+' : '') + fmtL(d.variance)) : '—'}</span></div>
               </div>
             );
@@ -397,7 +413,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
           <div style={{ ...colTitle, marginTop: 4 }}>Tank Dips (per tank)</div>
           {(() => {
             const list = summary.tank_dips_detail || [];
-            if (list.length === 0) return <div style={{ fontSize: 13, color: '#9ca3af' }}>No tanks.</div>;
+            if (list.length === 0) return <div style={{ fontSize: 13, color: '#6b7280' }}>No tanks.</div>;
             // Collapse plumbed group members (same group_code) into one
             // visual line — code list, sum of measured levels, grade.
             const groups = [];
@@ -422,9 +438,9 @@ function DaySummaryPanel({ summary, liveOverride }) {
                 <div key={`g-${g.group_code}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
                   <span>
                     <strong>{codes}</strong>
-                    <span style={{ color: '#9ca3af', fontSize: 11, marginLeft: 4 }}>{first.grade_name || ''} · Group {g.group_code}</span>
+                    <span style={{ color: '#6b7280', fontSize: 11, marginLeft: 4 }}>{first.grade_name || ''} · Group {g.group_code}</span>
                   </span>
-                  <span style={{ color: total == null ? '#9ca3af' : '#111', fontWeight: total == null ? 400 : 600 }}>
+                  <span style={{ color: total == null ? '#6b7280' : '#111', fontWeight: total == null ? 400 : 600 }}>
                     {total != null ? fmtL(total) : <span style={{ fontSize: 11 }}>not dipped</span>}
                   </span>
                 </div>
@@ -435,9 +451,9 @@ function DaySummaryPanel({ summary, liveOverride }) {
                 <div key={`t-${t.tank_id}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
                   <span>
                     <strong>{t.tank_code}</strong>
-                    <span style={{ color: '#9ca3af', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
+                    <span style={{ color: '#6b7280', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
                   </span>
-                  <span style={{ color: t.closing_dip == null ? '#9ca3af' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
+                  <span style={{ color: t.closing_dip == null ? '#6b7280' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
                     {t.closing_dip != null ? fmtL(t.closing_dip) : <span style={{ fontSize: 11 }}>not dipped</span>}
                   </span>
                 </div>
@@ -487,7 +503,7 @@ function DaySummaryPanel({ summary, liveOverride }) {
             <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: '0.5px' }}>VARIANCE</span>
             <span style={{
               fontSize: 18, fontWeight: 800,
-              color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#dc2626' : '#16a34a'),
+              color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#b91c1c' : '#15803d'),
             }}>{fmtK(variance)}</span>
           </div>
         </div>

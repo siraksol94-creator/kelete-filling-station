@@ -144,7 +144,7 @@ const Suppliers = () => {
       </div>
 
       <div className="search-input-container">
-        <FiSearch style={{ color: '#9ca3af' }} />
+        <FiSearch style={{ color: '#6b7280' }} />
         <input type="text" placeholder={t('searchSuppliers')} value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 

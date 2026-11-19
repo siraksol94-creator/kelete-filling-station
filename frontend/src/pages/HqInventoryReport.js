@@ -66,7 +66,7 @@ export default function HqInventoryReport() {
         </Field>
         <Field label="Search product">
           <div style={{ position: 'relative' }}>
-            <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
             <input type="text" value={qInput}
               onChange={e => setQInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { setQ(qInput.trim()); }}}
@@ -137,7 +137,7 @@ export default function HqInventoryReport() {
                 <tbody>
                   {perBranch.map(b => (
                     <tr key={b.slug} style={{ borderTop: '1px solid #f1f5f9' }}>
-                      <td style={tdS}>{b.name} <span style={{ color: '#94a3b8', fontSize: 11 }}>({b.slug})</span></td>
+                      <td style={tdS}>{b.name} <span style={{ color: '#64748b', fontSize: 11 }}>({b.slug})</span></td>
                       <td style={{ ...tdS, textAlign: 'right' }}>{fmtInt(b.products)}</td>
                       <td style={{ ...tdS, textAlign: 'right', color: b.low > 0 ? '#b91c1c' : '#475569', fontWeight: b.low > 0 ? 700 : 400 }}>{fmtInt(b.low)}</td>
                       <td style={{ ...tdS, textAlign: 'right', fontWeight: 700 }}>{fmtMoney(b.stock_value)}</td>
@@ -158,7 +158,7 @@ export default function HqInventoryReport() {
           <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
             <h3 style={hd}>Stock Lines ({fmtInt(data.returned_rows)})</h3>
             {data.rows.length === 0 ? (
-              <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}><FiPackage /> No products match the filters.</p>
+              <p style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}><FiPackage /> No products match the filters.</p>
             ) : (
               <div style={{ overflowX: 'auto' }}>
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -183,7 +183,7 @@ export default function HqInventoryReport() {
                         </td>
                         <td style={td}><span style={tag('#e2e8f0', '#0f172a')}>{r.branch_slug}</span></td>
                         <td style={{ ...td, color: '#64748b' }}>{r.category}</td>
-                        <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{fmtQty(r.current_stock)} <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>{r.unit}</span></td>
+                        <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{fmtQty(r.current_stock)} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>{r.unit}</span></td>
                         <td style={{ ...td, textAlign: 'right' }}>{fmtQty(r.min_stock)}</td>
                         <td style={{ ...td, textAlign: 'right' }}>{fmtMoney(r.cost_price)}</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 700 }}>{fmtMoney(r.value)}</td>

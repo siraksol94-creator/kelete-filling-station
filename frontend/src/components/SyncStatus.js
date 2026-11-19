@@ -6,8 +6,8 @@ const STATE_CONFIG = {
   checking: { color: '#f59e0b', label: 'Checking...' },
   offline:  { color: '#ef4444', label: 'Offline' },
   error:    { color: '#ef4444', label: 'Sync Error' },
-  idle:     { color: '#9ca3af', label: 'Local Only' },
-  unknown:  { color: '#9ca3af', label: '...' },
+  idle:     { color: '#6b7280', label: 'Local Only' },
+  unknown:  { color: '#6b7280', label: '...' },
 };
 
 const POLL_INTERVAL = 5_000;

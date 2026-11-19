@@ -169,7 +169,7 @@ export default function IncomingStock() {
         {loading && items.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : items.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic' }}><FiInbox /> No pending incoming stock.</p>
+          <p style={{ color: '#64748b', fontStyle: 'italic' }}><FiInbox /> No pending incoming stock.</p>
         ) : (
           (() => {
             const groups = [];
@@ -301,8 +301,8 @@ export default function IncomingStock() {
                         const qty  = parseFloat(it.dispatched_qty) || 0;
                         return (
                           <tr key={it.id} style={{ borderTop: '1px solid #f1f5f9', background: isSubmitted ? '#fffbeb' : '#fff' }}>
-                            <td style={{ ...td, textAlign: 'right', color: '#94a3b8', fontSize: 12 }}>{idx + 1}</td>
-                            <td style={td}>{it.product_name} <span style={{ color: '#94a3b8', fontSize: 11 }}>{it.unit}</span></td>
+                            <td style={{ ...td, textAlign: 'right', color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
+                            <td style={td}>{it.product_name} <span style={{ color: '#64748b', fontSize: 11 }}>{it.unit}</span></td>
                             <td style={{ ...td, textAlign: 'right' }}>{fmtQty(it.dispatched_qty)}</td>
                             <td style={{ ...td, textAlign: 'right', color: '#475569' }}>{fmtMoney(cost)}</td>
                             <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>{fmtMoney(qty * cost)}</td>
@@ -390,7 +390,7 @@ function RejectModal({ state, setState, onCancel, onSubmit }) {
         {lines.length > 0 && (
           <ul style={{ margin: '8px 0 0', paddingLeft: 18, fontSize: 12, color: '#475569' }}>
             {lines.slice(0, 6).map(l => <li key={l.id}>{l.product_name}</li>)}
-            {lines.length > 6 && <li style={{ color: '#94a3b8' }}>+{lines.length - 6} more</li>}
+            {lines.length > 6 && <li style={{ color: '#64748b' }}>+{lines.length - 6} more</li>}
           </ul>
         )}
         <div style={{ marginTop: 10, padding: '8px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 6, fontSize: 12, color: '#991b1b' }}>

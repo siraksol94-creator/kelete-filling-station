@@ -100,7 +100,7 @@ const CategoryFilter = ({
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '5px 12px', borderRadius: 50,
         background: checked ? (color + '20') : '#f3f4f6',
-        color: checked ? color : '#9ca3af',
+        color: checked ? color : '#6b7280',
         border: `1.5px solid ${checked ? (color + '50') : '#e5e7eb'}`,
         fontWeight: 600, fontSize: 12, cursor: 'pointer',
         transition: 'all 0.12s',
@@ -126,7 +126,7 @@ const CategoryFilter = ({
           <FiLayers size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Main Category:
         </span>
         {effectiveMains.length === 0 ? (
-          <span style={{ fontSize: 12, color: '#9ca3af', fontStyle: 'italic' }}>(none configured)</span>
+          <span style={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>(none configured)</span>
         ) : effectiveMains.map(m =>
           chip(m.name, m.color || '#6b7280', isMainChecked(m.id), () => toggleMain(m.id), `m-${m.id}`)
         )}

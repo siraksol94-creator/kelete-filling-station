@@ -103,7 +103,7 @@ export default function Dispatch() {
           {loadingInbox && inbox.length === 0 ? (
             <p style={{ color: '#64748b', fontSize: 13 }}>Loading…</p>
           ) : inbox.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No orders to dispatch</p>
+            <p style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>No orders to dispatch</p>
           ) : (
             <div style={{ display: 'grid', gap: 8 }}>
               {inbox.map(o => {
@@ -139,7 +139,7 @@ export default function Dispatch() {
                     <span>{o.item_count} item{o.item_count === 1 ? '' : 's'}</span>
                   </div>
                   {whenAt && (
-                    <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>
+                    <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>
                       <FiClock size={10} style={{ verticalAlign: 'middle' }} /> {whenAt.toLocaleString()}
                       {o.cashier_name ? ` · ${o.cashier_name}` : ''}
                     </div>
@@ -154,7 +154,7 @@ export default function Dispatch() {
         {/* ── RIGHT: Order detail + confirm ──────────────────────────── */}
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
           {!selected ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', flexDirection: 'column' }}>
               <FiTruck size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
               <p style={{ fontStyle: 'italic' }}>Select a paid order to release the goods</p>
             </div>
@@ -171,7 +171,7 @@ export default function Dispatch() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 11, color: '#64748b' }}>Total Paid</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: '#16a34a' }}>{money(selected.total_amount)}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: '#15803d' }}>{money(selected.total_amount)}</div>
                 </div>
               </div>
 

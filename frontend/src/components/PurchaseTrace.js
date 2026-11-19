@@ -130,7 +130,7 @@ export function TraceSearchBox({ trace, style }) {
   const list = (trace.results || []).slice(0, 5);
   return (
     <div style={{ position: 'relative' }}>
-      <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+      <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
       <input
         value={trace.q}
         onChange={e => trace.setQ(e.target.value)}
@@ -142,7 +142,7 @@ export function TraceSearchBox({ trace, style }) {
       />
       {trace.q && (
         <button onClick={trace.clear} title="Clear"
-          style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex' }}>
+          style={{ position: 'absolute', right: 6, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex' }}>
           <FiX />
         </button>
       )}
@@ -180,7 +180,7 @@ export function TraceSearchBox({ trace, style }) {
                          : <span style={{ color: '#b45309' }}>no invoice #</span>}
                     <span style={{ fontWeight: 500, color: '#64748b' }}> · {r.supplier_name || 'Supplier —'}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', fontFamily: 'monospace' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>
                     {r.purchase_number}{r.grn_number ? ` · ${r.grn_number}` : ''}
                   </div>
                 </div>
@@ -229,7 +229,7 @@ function TraceResult({ r, onClose }) {
           {/* Closable from the panel as well as from the row's button — the
               row that opened it may be scrolled far out of sight. */}
           <button onClick={onClose} title="Hide"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', padding: 2 }}>
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', padding: 2 }}>
             <FiX size={18} />
           </button>
         </div>
@@ -258,7 +258,7 @@ function TraceResult({ r, onClose }) {
                 )}
               </div>
               <div style={{ paddingBottom: i < r.steps.length - 1 ? 8 : 0, fontSize: 12.5 }}>
-                <span style={{ fontWeight: s.done ? 700 : 500, color: s.warn ? '#991b1b' : s.done ? '#0f172a' : '#94a3b8' }}>
+                <span style={{ fontWeight: s.done ? 700 : 500, color: s.warn ? '#991b1b' : s.done ? '#0f172a' : '#64748b' }}>
                   {s.label}
                 </span>
                 <span style={{ color: s.done ? '#64748b' : '#b0bac6' }}>

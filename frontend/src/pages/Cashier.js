@@ -514,7 +514,7 @@ export default function Cashier() {
               {loadingInbox && inbox.length === 0 ? (
                 <p style={{ color: '#64748b', fontSize: 13 }}>Loading…</p>
               ) : inbox.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No pending payments</p>
+                <p style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>No pending payments</p>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {inbox.map(o => (
@@ -535,7 +535,7 @@ export default function Cashier() {
                         <span>{o.item_count} item{o.item_count === 1 ? '' : 's'}</span>
                       </div>
                       {o.sales_at && (
-                        <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>
+                        <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>
                           <FiClock size={10} style={{ verticalAlign: 'middle' }} /> {new Date(o.sales_at).toLocaleString()}
                           {o.sales_by_name ? ` · by ${o.sales_by_name}` : ''}
                         </div>
@@ -556,7 +556,7 @@ export default function Cashier() {
               {loadingHistory && history.length === 0 ? (
                 <p style={{ color: '#64748b', fontSize: 13 }}>Loading…</p>
               ) : history.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No past payments</p>
+                <p style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>No past payments</p>
               ) : (
                 <div style={{ display: 'grid', gap: 8 }}>
                   {history.map(o => (
@@ -577,7 +577,7 @@ export default function Cashier() {
                         <span>{o.item_count} item{o.item_count === 1 ? '' : 's'}</span>
                       </div>
                       {o.paid_at && (
-                        <div style={{ marginTop: 4, fontSize: 10, color: '#94a3b8' }}>
+                        <div style={{ marginTop: 4, fontSize: 10, color: '#64748b' }}>
                           <FiClock size={10} style={{ verticalAlign: 'middle' }} /> {new Date(o.paid_at).toLocaleString()}
                           {o.cashier_name ? ` · by ${o.cashier_name}` : ''}
                         </div>
@@ -593,7 +593,7 @@ export default function Cashier() {
         {/* ── RIGHT: Order detail + payment ──────────────────────────── */}
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
           {!selected ? (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', flexDirection: 'column' }}>
               <FiShoppingCart size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
               <p style={{ fontStyle: 'italic' }}>Select an order from the queue to collect payment</p>
             </div>
@@ -954,7 +954,7 @@ export default function Cashier() {
                   <div style={{ marginTop: 14 }}>
                     <label style={{ ...lblStyle, color: '#374151' }}>
                       Reason <span style={{ color: '#dc2626' }}>*</span>{' '}
-                      <span style={{ fontWeight: 400, color: '#9ca3af' }}>(min 3 chars)</span>
+                      <span style={{ fontWeight: 400, color: '#6b7280' }}>(min 3 chars)</span>
                     </label>
                     <input type="text" value={editReason}
                       placeholder="e.g. typo, wrong currency, wrong rate"
@@ -1178,8 +1178,8 @@ export default function Cashier() {
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Change returned (USD-eq)</span><strong>{fmtUSD(totalGivenUSDeq)}</strong></div>
                         {keptAmt > 0 && (
                           <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e5e7eb', paddingTop: 4, marginTop: 2 }}>
-                            <span style={{ fontWeight: 700, color: '#16a34a' }}>± Kept in drawer</span>
-                            <strong style={{ color: '#16a34a' }}>+{keptDisplay}</strong>
+                            <span style={{ fontWeight: 700, color: '#15803d' }}>± Kept in drawer</span>
+                            <strong style={{ color: '#15803d' }}>+{keptDisplay}</strong>
                           </div>
                         )}
                         {keptAmt < 0.005 && shortageUSD > 0.005 && (
@@ -1196,7 +1196,7 @@ export default function Cashier() {
                 {/* Editing: Reason field + Save / Cancel — replaces the Paid badge */}
                 {editing ? (
                   <div style={{ marginTop: 18 }}>
-                    <label style={{ ...lblStyle, color: '#374151' }}>Reason <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: 400, color: '#9ca3af' }}>(min 3 chars)</span></label>
+                    <label style={{ ...lblStyle, color: '#374151' }}>Reason <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: 400, color: '#6b7280' }}>(min 3 chars)</span></label>
                     <input type="text" value={editReason}
                       placeholder="e.g. typo, wrong currency, wrong rate"
                       onChange={e => setEditReason(e.target.value)}
@@ -1642,4 +1642,4 @@ const confirmRow = { display: 'flex', justifyContent: 'space-between', alignItem
 const hrStyle = { border: 'none', borderTop: '1px solid #e2e8f0', margin: '10px 0' };
 // v1.8.86 — read-only payment cells in the History tab.
 const roBox = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px', fontSize: 13, color: '#0f172a', display: 'flex', flexDirection: 'column', gap: 2 };
-const roLbl = { fontSize: 10, color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 };
+const roLbl = { fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 };

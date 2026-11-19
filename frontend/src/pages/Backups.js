@@ -104,19 +104,19 @@ const Backups = () => {
       {/* Summary tiles */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Backup Folder</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Backup Folder</div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all' }}>{root || '—'}</div>
         </div>
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Snapshots</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Snapshots</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#111827' }}>{rows.length}</div>
         </div>
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Storage Used</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Storage Used</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: '#111827' }}>{totalHuman}</div>
         </div>
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Schedule</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Schedule</div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Daily @ 02:00 CAT</div>
           <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>14-day retention</div>
         </div>
@@ -126,9 +126,9 @@ const Backups = () => {
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
         <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: '#111827' }}>Snapshots</h3>
         {loading ? (
-          <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
+          <div style={{ padding: 30, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
+          <div style={{ padding: 30, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
             {note ? note : 'No backups on disk yet. Click "Create Backup Now" to make the first one.'}
           </div>
         ) : (
@@ -157,7 +157,7 @@ const Backups = () => {
                       <button
                         onClick={() => runDownload(r.name)}
                         disabled={downloading === r.name}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, border: '1.5px solid #2563eb', background: downloading === r.name ? '#f3f4f6' : '#fff', color: downloading === r.name ? '#9ca3af' : '#2563eb', cursor: downloading === r.name ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, border: '1.5px solid #2563eb', background: downloading === r.name ? '#f3f4f6' : '#fff', color: downloading === r.name ? '#6b7280' : '#2563eb', cursor: downloading === r.name ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                         <FiDownload size={12} /> {downloading === r.name ? 'Downloading…' : 'Download'}
                       </button>
                     </td>

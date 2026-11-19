@@ -219,7 +219,7 @@ const ZraImports = () => {
                 <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Loading…</td></tr>
               )}
               {!loading && rows.length === 0 && (
-                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
                   Nothing here. Click <strong>Pull Imports</strong> to fetch from ZRA.
                   <div style={{ fontSize: 12, marginTop: 6 }}>
                     An empty queue is expected — Red Sea sources 100% locally, so ZRA holds no ASYCUDA declarations for this TPIN.

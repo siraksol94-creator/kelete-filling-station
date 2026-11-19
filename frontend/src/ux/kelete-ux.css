@@ -135,3 +135,129 @@
    On phones, fuel tables use the app's own table.phone-cards layout (one
    labelled card per row, labels filled in by Layout from the headers). */
 .k-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ════════════════════════ UX-2 ════════════════════════ */
+.k-tone-amber { background: #f59e0b; }
+
+/* ── Fuelling-car loader ───────────────────────────────── */
+.k-fuel-loader { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 28px 16px; text-align: center; }
+.k-fuel-loader-lg { min-height: 100vh; min-height: 100dvh; background: radial-gradient(ellipse at top, #f0f9ff, #f8fafc 60%); }
+.k-fuel-loader-sm { padding: 14px 8px; }
+.k-fuel-loader svg { max-width: 80vw; height: auto; }
+.k-fuel-loader-text { font-size: 14px; font-weight: 600; color: #334155; letter-spacing: .01em; }
+.k-fuel-loader-lg .k-fuel-loader-text { font-size: 16px; }
+.k-fuel-flow { animation: k-flow .7s linear infinite; }
+.k-gauge-fill { transform-box: fill-box; transform-origin: left center; animation: k-gauge 2.4s ease-in-out infinite; }
+.k-car-bob { animation: k-bob 1.2s ease-in-out infinite; }
+.k-pump-digits text { opacity: 0; animation: k-digits 2.4s steps(1) infinite; }
+.k-pump-digits .k-d2 { animation-delay: .8s; }
+.k-pump-digits .k-d3 { animation-delay: 1.6s; }
+@keyframes k-flow { to { stroke-dashoffset: -22; } }
+@keyframes k-gauge { 0% { transform: scaleX(.08); } 85%, 100% { transform: scaleX(1); } }
+@keyframes k-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+@keyframes k-digits { 0% { opacity: 1; } 33.33% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .k-fuel-flow, .k-gauge-fill, .k-car-bob { animation: none; }
+  .k-pump-digits text { animation: none; }
+  .k-pump-digits .k-d3 { opacity: 1; }
+}
+
+/* ── App-wide activity bar ─────────────────────────────── */
+.k-activity { position: fixed; top: 0; left: 0; right: 0; height: 18px; z-index: 5000; pointer-events: none; }
+.k-activity-track { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: rgba(14, 116, 144, .15); overflow: hidden; }
+.k-activity-fuel { height: 100%; width: 40%; background: linear-gradient(90deg, transparent, #f59e0b, #0e7490); animation: k-fuelrun 1.3s ease-in-out infinite; }
+.k-activity-car { position: absolute; top: 2px; left: 0; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); animation: k-drive 1.3s ease-in-out infinite; }
+@keyframes k-fuelrun { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+@keyframes k-drive { 0% { left: -40px; } 100% { left: calc(100% + 10px); } }
+@media (prefers-reduced-motion: reduce) {
+  .k-activity-fuel { animation: none; width: 100%; opacity: .6; }
+  .k-activity-car { animation: none; left: 8px; }
+}
+
+/* ── Attendant avatar ──────────────────────────────────── */
+.k-avatar { position: relative; display: inline-flex; vertical-align: middle; }
+.k-avatar-btn { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; padding: 2px; border-radius: 999px; cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.k-avatar-btn:hover .k-avatar-svg { transform: scale(1.06); }
+.k-avatar-svg { transition: transform .15s ease; flex: none; }
+.k-avatar-name { display: inline-flex; flex-direction: column; line-height: 1.2; font-weight: 600; color: #111827; }
+.k-avatar-name small { font-size: 11px; font-weight: 600; color: #92400e; }
+.k-avatar-card { position: absolute; z-index: 1500; top: calc(100% + 6px); left: 0; width: min(320px, 86vw); background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 18px 40px rgba(15, 23, 42, .22); padding: 14px; text-align: left; white-space: normal; }
+.k-avatar-card-head { display: flex; gap: 12px; align-items: center; }
+.k-avatar-card-name { font-size: 16px; font-weight: 800; color: #0f172a; }
+.k-avatar-card-title { font-size: 13px; font-weight: 700; color: #92400e; }
+.k-avatar-card-next { margin-top: 12px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; font-size: 13px; color: #451a03; }
+.k-avatar-card-sub { margin: 12px 0 6px; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #475569; }
+.k-badges { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.k-badges li { display: grid; grid-template-columns: 28px 1fr; grid-template-rows: auto auto; column-gap: 6px; padding: 6px 8px; border-radius: 10px; border: 1px solid #e2e8f0; }
+.k-badge-icon { grid-row: span 2; font-size: 20px; line-height: 28px; text-align: center; }
+.k-badge-title { font-size: 12px; font-weight: 700; color: #0f172a; }
+.k-badge-how { font-size: 11px; color: #475569; }
+.k-badge-earned { background: linear-gradient(135deg, #fffbeb, #fef3c7); border-color: #fcd34d !important; }
+.k-badge-earned .k-badge-how { color: #92400e; font-weight: 600; }
+.k-badge-todo .k-badge-icon { filter: grayscale(1); opacity: .45; }
+
+/* Crew strip on Attendant Shifts (alphabetical — not a ranking) */
+.k-crew { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; }
+.k-crew-label { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #475569; margin-right: 4px; }
+
+/* ── Celebration ───────────────────────────────────────── */
+.k-celebrate { position: fixed; right: 18px; bottom: 18px; z-index: 4000; display: flex; gap: 12px; align-items: center; background: #0f172a; color: #fff; border-radius: 16px; padding: 14px 18px 14px 14px; box-shadow: 0 20px 50px rgba(15, 23, 42, .4); max-width: min(380px, calc(100vw - 36px)); animation: k-pop .35s cubic-bezier(.2, 1.4, .4, 1); cursor: pointer; overflow: hidden; }
+.k-celebrate > :not(.k-confetti) { position: relative; z-index: 1; }
+.k-celebrate-title { font-weight: 800; font-size: 15px; color: #fde68a; }
+.k-celebrate-line { font-size: 13px; color: #f1f5f9; margin-top: 2px; }
+.k-celebrate-line strong { color: #fff; }
+.k-confetti { position: absolute; inset: 0; pointer-events: none; }
+.k-confetti i { position: absolute; top: -8px; left: calc(var(--i) * 7.2%); width: 6px; height: 10px; border-radius: 2px; background: hsl(calc(var(--i) * 47), 85%, 60%); animation: k-confetti 1.6s ease-in forwards; animation-delay: calc(var(--i) * 40ms); opacity: .9; }
+@keyframes k-pop { from { transform: translateY(16px) scale(.92); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes k-confetti { to { transform: translateY(120px) rotate(320deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .k-celebrate { animation: none; } .k-confetti { display: none; } }
+@media (max-width: 640px) { .k-celebrate { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
+
+/* ── Sign-in page (website) ────────────────────────────── */
+.k-login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 1fr); background: #f8fafc; }
+.k-login-brand { background: radial-gradient(ellipse 70% 60% at 0% 0%, rgba(220, 38, 38, .35), transparent 60%), linear-gradient(160deg, #0f172a 0%, #111827 55%, #1e293b 100%); color: #f8fafc; display: flex; align-items: center; justify-content: center; padding: 48px; }
+.k-login-brand-inner { width: 100%; max-width: 560px; }
+.k-login-kicker { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #fcd34d; }
+.k-login-station { font-size: clamp(28px, 3.4vw, 42px); font-weight: 800; letter-spacing: -.02em; margin: 8px 0 10px; color: #fff; line-height: 1.1; }
+.k-login-tag { font-size: 16px; color: #cbd5e1; margin: 0 0 22px; max-width: 46ch; line-height: 1.5; }
+.k-forecourt { width: 100%; height: auto; border-radius: 20px; box-shadow: 0 30px 60px rgba(0, 0, 0, .45); }
+.k-star { animation: k-twinkle 3s ease-in-out infinite; }
+@keyframes k-twinkle { 0%, 100% { opacity: .9; } 50% { opacity: .25; } }
+.k-login-points { list-style: none; padding: 0; margin: 22px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.k-login-points li { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); color: #f1f5f9; border-radius: 999px; padding: 8px 14px; font-size: 13px; font-weight: 600; }
+.k-login-main { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+.k-login-form { width: 100%; max-width: 400px; }
+.k-login-form h2 { font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 6px; letter-spacing: -.01em; }
+.k-login-sub { font-size: 14px; color: #475569; margin: 0 0 24px; line-height: 1.5; }
+.k-login-field { display: block; margin-bottom: 16px; }
+.k-login-field > span:first-child { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+.k-login-field input { width: 100%; min-height: 48px; padding: 12px 14px; font-size: 16px; /* 16px: no zoom-on-focus on phones */
+  color: #0f172a; background: #fff; border: 1.5px solid #64748b; border-radius: 12px; font-family: inherit; transition: border-color .15s, box-shadow .15s; }
+.k-login-field input::placeholder { color: #64748b; }
+.k-login-field input:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 4px rgba(29, 78, 216, .2); }
+.k-login-pw { position: relative; display: block; }
+.k-login-pw input { padding-right: 76px; }
+.k-login-pw button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: #e2e8f0; color: #0f172a; font-weight: 700; font-size: 13px; cursor: pointer; }
+.k-login-pw button:hover { background: #cbd5e1; }
+.k-login-caps { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7; border-radius: 6px; padding: 2px 8px; }
+.k-login-submit { width: 100%; min-height: 50px; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 12px; background: #b91c1c; color: #fff; font-size: 16px; font-weight: 800; letter-spacing: .01em; cursor: pointer; box-shadow: 0 12px 26px rgba(185, 28, 28, .32); transition: transform .12s, background .12s; }
+.k-login-submit:hover:not(:disabled) { background: #991b1b; transform: translateY(-1px); }
+.k-login-submit:disabled { cursor: progress; opacity: .92; }
+.k-login-car { --k-car: #fff; animation: k-bob .6s ease-in-out infinite; }
+.k-login-foot { font-size: 13px; color: #475569; margin: 18px 0 0; text-align: center; }
+.k-login-mobile-brand { display: none; }
+.k-login .login-error { margin-bottom: 16px; }
+@media (max-width: 900px) {
+  .k-login { grid-template-columns: 1fr; }
+  .k-login-brand { padding: 28px 20px 22px; }
+  .k-login-brand-inner { max-width: 520px; }
+  .k-login-points { display: none; }
+  .k-forecourt { max-height: 180px; object-fit: cover; }
+  .k-login-main { padding: 24px 20px 40px; align-items: flex-start; }
+}
+@media (max-width: 520px) {
+  .k-login-brand { display: none; }
+  .k-login-mobile-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: #0f172a; margin-bottom: 18px; }
+  .k-login-main { padding-top: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .k-star, .k-login-car { animation: none; } }

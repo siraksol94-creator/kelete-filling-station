@@ -431,7 +431,7 @@ const StockReconciliation = () => {
           style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5, fontWeight: 700, color: '#6b7280' }}>
           {showZero ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
           Zero stock — {zeroStockProducts.length} item{zeroStockProducts.length === 1 ? '' : 's'}
-          <span style={{ fontWeight: 500, color: '#9ca3af' }}>
+          <span style={{ fontWeight: 500, color: '#6b7280' }}>
             {showZero ? '· hide' : '· not printed, open to count anyway'}
           </span>
         </button>
@@ -536,7 +536,7 @@ const StockReconciliation = () => {
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>No products.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No products.</td></tr>
                 ) : visibleProducts.map((p, vi) => {
                   const c = counts[p.id] || {};
                   const variance = lineVariance(p, c);
@@ -547,7 +547,7 @@ const StockReconciliation = () => {
                     <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '8px 14px' }}>
                         <div style={{ fontWeight: 500, color: '#111827' }}>{p.name}</div>
-                        <div style={{ fontSize: 11, color: '#9ca3af' }}>{p.code || '—'}</div>
+                        <div style={{ fontSize: 11, color: '#6b7280' }}>{p.code || '—'}</div>
                       </td>
                       {(() => {
                         // v1.13.7 — System Qty column shows (system − transit)
@@ -565,7 +565,7 @@ const StockReconciliation = () => {
                                 title={hasTransit ? `Raw system ${formatStockForProduct(rawSys, p)} − Transit ${formatStockForProduct(transit, p)}` : undefined}>
                               {formatStockForProduct(netSys, p)}
                             </td>
-                            <td style={{ padding: '8px 14px', textAlign: 'right', color: hasTransit ? '#0e7490' : '#9ca3af', fontWeight: hasTransit ? 600 : 400 }}>
+                            <td style={{ padding: '8px 14px', textAlign: 'right', color: hasTransit ? '#0e7490' : '#6b7280', fontWeight: hasTransit ? 600 : 400 }}>
                               {hasTransit ? formatStockForProduct(transit, p) : '—'}
                             </td>
                           </>
@@ -676,18 +676,18 @@ const StockReconciliation = () => {
                 <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
                   <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Reconciliations</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginTop: 4 }}>{totals.count}</div>
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>{totals.itemsTotal} items counted</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{totals.itemsTotal} items counted</div>
                 </div>
                 <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
                   <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Net Variance Value</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: totals.total > 0 ? '#16a34a' : totals.total < 0 ? '#dc2626' : '#111827', marginTop: 4 }}>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: totals.total > 0 ? '#15803d' : totals.total < 0 ? '#dc2626' : '#111827', marginTop: 4 }}>
                     {totals.total > 0 ? '+' : ''}${(parseFloat(totals.total)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                   </div>
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>positive = found extra · negative = shrinkage</div>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>positive = found extra · negative = shrinkage</div>
                 </div>
                 <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Surplus</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: '#16a34a', marginTop: 4 }}>+{curSym}{(parseFloat(positiveTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                  <div style={{ fontSize: 11, color: '#15803d', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Surplus</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d', marginTop: 4 }}>+{curSym}{(parseFloat(positiveTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                 </div>
                 <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
                   <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Shrinkage</div>
@@ -699,7 +699,7 @@ const StockReconciliation = () => {
                     {Object.entries(totals.byLoc).map(([loc, val]) => (
                       <div key={loc} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
                         <span style={{ color: '#374151', textTransform: 'capitalize' }}>{loc} Floor</span>
-                        <span style={{ fontWeight: 600, color: val > 0 ? '#16a34a' : val < 0 ? '#dc2626' : '#6b7280' }}>
+                        <span style={{ fontWeight: 600, color: val > 0 ? '#15803d' : val < 0 ? '#dc2626' : '#6b7280' }}>
                           {val > 0 ? '+' : ''}{curSym}{(parseFloat(val)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                         </span>
                       </div>
@@ -712,7 +712,7 @@ const StockReconciliation = () => {
 
         <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
           {history.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>No past reconciliations for this filter.</div>
+            <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No past reconciliations for this filter.</div>
           ) : (
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
@@ -733,7 +733,7 @@ const StockReconciliation = () => {
                       <td style={{ padding: '10px 14px', textTransform: 'capitalize' }}>{h.location}</td>
                       <td style={{ padding: '10px 14px', color: '#6b7280' }}>{h.created_by_name || '—'}</td>
                       <td style={{ padding: '10px 14px', textAlign: 'right' }}>{h.item_count}</td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: parseFloat(h.variance_value || 0) > 0 ? '#16a34a' : parseFloat(h.variance_value || 0) < 0 ? '#dc2626' : '#6b7280' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: parseFloat(h.variance_value || 0) > 0 ? '#15803d' : parseFloat(h.variance_value || 0) < 0 ? '#dc2626' : '#6b7280' }}>
                         {(() => {
                           const v = parseFloat(h.variance_value || 0);
                           if (v < 0) return `−${curSym}${(parseFloat(Math.abs(v))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -753,7 +753,7 @@ const StockReconciliation = () => {
                       <tr>
                         <td colSpan={6} style={{ padding: '0 14px 12px', background: '#f9fafb' }}>
                           {!detail[h.id] ? (
-                            <div style={{ padding: 12, color: '#9ca3af', fontSize: 12 }}>Loading…</div>
+                            <div style={{ padding: 12, color: '#6b7280', fontSize: 12 }}>Loading…</div>
                           ) : (
                             <div style={{ paddingTop: 8 }}>
                               {detail[h.id].notes && (
@@ -778,7 +778,7 @@ const StockReconciliation = () => {
                                       <td style={{ padding: '6px 10px' }}>{it.product_name}</td>
                                       <td style={{ padding: '6px 10px', textAlign: 'right' }}>{formatStock(it.system_qty, it.product_unit, it.alt_unit, it.conversion_factor)}</td>
                                       <td style={{ padding: '6px 10px', textAlign: 'right' }}>{(parseFloat(parseFloat(it.physical_qty))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {it.unit}</td>
-                                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600, color: parseFloat(it.variance_base) > 0 ? '#16a34a' : parseFloat(it.variance_base) < 0 ? '#dc2626' : '#6b7280' }}>
+                                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600, color: parseFloat(it.variance_base) > 0 ? '#15803d' : parseFloat(it.variance_base) < 0 ? '#dc2626' : '#6b7280' }}>
                                         {parseFloat(it.variance_base) > 0 ? '+' : ''}{(parseFloat(parseFloat(it.variance_base))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {it.product_unit}
                                       </td>
                                       <td style={{ padding: '6px 10px', textAlign: 'right', color: '#6b7280' }}>{curSym}{(parseFloat(parseFloat(it.cost_at_count))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>

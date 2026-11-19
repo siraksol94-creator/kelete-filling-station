@@ -395,6 +395,7 @@
    "path": "/attendant-shifts",
    "any": true,
    "screens": [
+    "fuel/cash-report",
     "fuel/credit-sales",
     "fuel/onecard-sales",
     "fuel/shifts"

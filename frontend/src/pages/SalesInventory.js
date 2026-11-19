@@ -238,7 +238,7 @@ const SalesInventory = () => {
     },
     {
       label: 'Revenue', value: fmt(profitSummary.revenue), prefix: curSym,
-      icon: <FiDollarSign size={18} />, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0'
+      icon: <FiDollarSign size={18} />, color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0'
     },
     {
       label: 'Total Cost', value: fmt(summaryTotals.totalCost), prefix: curSym,
@@ -248,7 +248,7 @@ const SalesInventory = () => {
       label: 'Gross Profit',
       value: fmt(dailyGrossProfit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: dailyGrossProfit >= 0 ? '#16a34a' : '#dc2626',
+      color: dailyGrossProfit >= 0 ? '#15803d' : '#dc2626',
       bg: dailyGrossProfit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: dailyGrossProfit >= 0 ? '#bbf7d0' : '#fecaca'
     },
@@ -256,7 +256,7 @@ const SalesInventory = () => {
       label: 'Net Profit',
       value: fmt(dailyNetProfit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: dailyNetProfit >= 0 ? '#16a34a' : '#dc2626',
+      color: dailyNetProfit >= 0 ? '#15803d' : '#dc2626',
       bg: dailyNetProfit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: dailyNetProfit >= 0 ? '#bbf7d0' : '#fecaca'
     },
@@ -268,7 +268,7 @@ const SalesInventory = () => {
       label: 'Difference',
       value: fmt(summaryTotals.totalDiff), prefix: curSym,
       icon: <FiAlertTriangle size={18} />,
-      color: summaryTotals.totalDiff < 0 ? '#dc2626' : '#16a34a',
+      color: summaryTotals.totalDiff < 0 ? '#dc2626' : '#15803d',
       bg: summaryTotals.totalDiff < 0 ? '#fef2f2' : '#f0fdf4',
       border: summaryTotals.totalDiff < 0 ? '#fecaca' : '#bbf7d0'
     },
@@ -280,7 +280,7 @@ const SalesInventory = () => {
     {
       label: 'Monthly Gross Profit', value: fmt(monthlySummary.gross_profit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: monthlySummary.gross_profit >= 0 ? '#16a34a' : '#dc2626',
+      color: monthlySummary.gross_profit >= 0 ? '#15803d' : '#dc2626',
       bg: monthlySummary.gross_profit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: monthlySummary.gross_profit >= 0 ? '#bbf7d0' : '#fecaca',
       monthly: true
@@ -288,7 +288,7 @@ const SalesInventory = () => {
     {
       label: 'Monthly Net Profit', value: fmt(monthlySummary.net_profit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: monthlySummary.net_profit >= 0 ? '#16a34a' : '#dc2626',
+      color: monthlySummary.net_profit >= 0 ? '#15803d' : '#dc2626',
       bg: monthlySummary.net_profit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: monthlySummary.net_profit >= 0 ? '#bbf7d0' : '#fecaca',
       monthly: true
@@ -296,7 +296,7 @@ const SalesInventory = () => {
     {
       label: 'Monthly Difference', value: fmt(monthlySummary.total_difference), prefix: curSym,
       icon: <FiAlertTriangle size={18} />,
-      color: monthlySummary.total_difference < 0 ? '#dc2626' : '#16a34a',
+      color: monthlySummary.total_difference < 0 ? '#dc2626' : '#15803d',
       bg: monthlySummary.total_difference < 0 ? '#fef2f2' : '#f0fdf4',
       border: monthlySummary.total_difference < 0 ? '#fecaca' : '#bbf7d0',
       monthly: true
@@ -485,7 +485,7 @@ const SalesInventory = () => {
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="search-input-container" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
-            <FiSearch style={{ color: '#9ca3af' }} />
+            <FiSearch style={{ color: '#6b7280' }} />
             <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -600,7 +600,7 @@ const SalesInventory = () => {
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
                           title="Click to see SIV breakdown"
                         >
-                          <FiChevronDown size={13} style={{ color: '#9ca3af', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          <FiChevronDown size={13} style={{ color: '#6b7280', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                           <strong style={{ color: '#111827' }}>{product.name}</strong>
                         </div>
                       </td>
@@ -610,10 +610,10 @@ const SalesInventory = () => {
                           for over-issued stock instead of falling back to
                           base 'Bottle' which made the table inconsistent. */}
                       <td style={{ textAlign: 'right' }}>{formatStockForProduct(r.openingBalance, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
-                      <td style={{ textAlign: 'right', color: r.input > 0 ? '#2563eb' : '#9ca3af' }}>{formatStockForProduct(r.input, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
+                      <td style={{ textAlign: 'right', color: r.input > 0 ? '#2563eb' : '#6b7280' }}>{formatStockForProduct(r.input, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatStockForProduct(r.totalStock, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
-                      <td style={{ textAlign: 'right', color: r.totalSales > 0 ? '#dc2626' : '#9ca3af' }}>{formatStockForProduct(r.totalSales, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
-                      <td style={{ textAlign: 'right', color: r.salesReturns > 0 ? '#d97706' : '#9ca3af' }}>{r.salesReturns > 0 ? formatStockForProduct(r.salesReturns, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true }) : '—'}</td>
+                      <td style={{ textAlign: 'right', color: r.totalSales > 0 ? '#dc2626' : '#6b7280' }}>{formatStockForProduct(r.totalSales, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
+                      <td style={{ textAlign: 'right', color: r.salesReturns > 0 ? '#d97706' : '#6b7280' }}>{r.salesReturns > 0 ? formatStockForProduct(r.salesReturns, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true }) : '—'}</td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatStockForProduct(r.salesBalance, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
 
                       {/* v1.8.30 — Actual Balance / Difference / Reason
@@ -622,10 +622,10 @@ const SalesInventory = () => {
                       <td style={{ textAlign: 'right' }}>{curSym}{r.sellingPrice.toFixed(2)}</td>
                       <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.totalCostPrice)}</td>
                       <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.totalSellingPrice)}</td>
-                      <td style={{ textAlign: 'right', color: r.totalDifference < 0 ? '#dc2626' : '#16a34a' }}>
+                      <td style={{ textAlign: 'right', color: r.totalDifference < 0 ? '#dc2626' : '#15803d' }}>
                         ${fmt(r.totalDifference)}
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 600, color: r.profit >= 0 ? '#16a34a' : '#dc2626' }}>
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: r.profit >= 0 ? '#15803d' : '#dc2626' }}>
                         ${fmt(r.profit)}
                       </td>
                       <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.stockingPrice)}</td>
@@ -634,9 +634,9 @@ const SalesInventory = () => {
                       <tr style={{ background: '#f0f9ff' }}>
                         <td colSpan={13} style={{ padding: '6px 24px 10px 32px' }}>
                           {!sivBreakdowns[product.id] ? (
-                            <span style={{ fontSize: 12, color: '#9ca3af' }}>Loading...</span>
+                            <span style={{ fontSize: 12, color: '#6b7280' }}>Loading...</span>
                           ) : sivBreakdowns[product.id].length === 0 ? (
-                            <span style={{ fontSize: 12, color: '#9ca3af' }}>No SIV inputs found for this date.</span>
+                            <span style={{ fontSize: 12, color: '#6b7280' }}>No SIV inputs found for this date.</span>
                           ) : (
                             <table style={{ fontSize: 12, borderCollapse: 'collapse', width: 'auto' }}>
                               <thead>
@@ -653,7 +653,7 @@ const SalesInventory = () => {
                                     <td style={{ padding: '2px 14px 2px 0', color: '#2563eb', fontWeight: 600 }}>{row.siv_number}</td>
                                     <td style={{ padding: '2px 14px 2px 0', color: '#374151' }}>{row.department}</td>
                                     <td style={{ padding: '2px 14px 2px 0', color: '#6b7280' }}>{new Date(row.created_at + 'Z').toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                                    <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600, color: '#16a34a' }}>{parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                    <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600, color: '#15803d' }}>{parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -676,8 +676,8 @@ const SalesInventory = () => {
                   <td></td>
                   <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalCost)}</td>
                   <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalRevenue)}</td>
-                  <td style={{ textAlign: 'right', color: summaryTotals.totalDiff < 0 ? '#dc2626' : '#16a34a' }}>{curSym}{fmt(summaryTotals.totalDiff)}</td>
-                  <td style={{ textAlign: 'right', color: summaryTotals.totalProfit >= 0 ? '#16a34a' : '#dc2626' }}>{curSym}{fmt(summaryTotals.totalProfit)}</td>
+                  <td style={{ textAlign: 'right', color: summaryTotals.totalDiff < 0 ? '#dc2626' : '#15803d' }}>{curSym}{fmt(summaryTotals.totalDiff)}</td>
+                  <td style={{ textAlign: 'right', color: summaryTotals.totalProfit >= 0 ? '#15803d' : '#dc2626' }}>{curSym}{fmt(summaryTotals.totalProfit)}</td>
                   <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalStocking)}</td>
                 </tr>
               </tfoot>

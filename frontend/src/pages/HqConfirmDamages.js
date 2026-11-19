@@ -82,7 +82,7 @@ export default function HqConfirmDamages() {
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic' }}><FiInbox /> Nothing waiting.</p>
+          <p style={{ color: '#64748b', fontStyle: 'italic' }}><FiInbox /> Nothing waiting.</p>
         ) : (
           <div style={{ display: 'grid', gap: 12 }}>
             {rows.map(r => (
@@ -91,7 +91,7 @@ export default function HqConfirmDamages() {
                   <div>
                     <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#92400e' }}>{r.return_number}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
-                      {r.branch_name} <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>({r.branch_slug})</span>
+                      {r.branch_name} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>({r.branch_slug})</span>
                     </div>
                     <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
                       {r.date} · declared by {r.created_by_name || '—'}

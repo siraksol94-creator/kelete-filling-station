@@ -82,7 +82,7 @@ const Register = ({ onRegistered }) => {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 8, marginBottom: 0 }}>
+        <p style={{ textAlign: 'center', fontSize: 11, color: '#6b7280', marginTop: 8, marginBottom: 0 }}>
           You can set up cloud sync later from Settings → Cloud Sync
         </p>
       </div>

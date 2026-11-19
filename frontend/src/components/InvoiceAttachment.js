@@ -60,7 +60,7 @@ const InvoiceAttachment = ({ value, onChange, kind = 'invoice', disabled = false
         </div>
         <a href={fullUrl} target="_blank" rel="noopener noreferrer"
           title="View attachment"
-          style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 8px', background: '#fff', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 11, fontWeight: 600, textDecoration: 'none', gap: 4 }}>
+          style={{ display: 'inline-flex', alignItems: 'center', padding: '4px 8px', background: '#fff', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 6, fontSize: 11, fontWeight: 600, textDecoration: 'none', gap: 4 }}>
           <FiEye size={12} /> View
         </a>
         {!disabled && (

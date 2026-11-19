@@ -314,14 +314,14 @@ const Customers = () => {
               fontWeight: creditTab === tb.key ? 700 : 500, fontSize: 13.5,
               cursor: 'pointer', marginBottom: -2,
             }}>
-            {tb.label} <span style={{ color: '#9ca3af', fontWeight: 600 }}>({tb.n})</span>
+            {tb.label} <span style={{ color: '#6b7280', fontWeight: 600 }}>({tb.n})</span>
           </button>
         ))}
       </div>
 
       <div className="filter-bar" style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
         <div style={{ flex: 1, position: 'relative' }}>
-          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
           <input type="text" placeholder={t('searchByNameOrPhone')} value={search} onChange={e => setSearch(e.target.value)}
             style={{ width: '100%', padding: '10px 12px 10px 36px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
         </div>
@@ -348,7 +348,7 @@ const Customers = () => {
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>{t('noCustomersYet')}</td></tr>
+              <tr><td colSpan={8} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>{t('noCustomersYet')}</td></tr>
             ) : filtered.map((c, idx) => {
               const limit = parseFloat(c.credit_limit || 0);
               const outstanding = parseFloat(c.outstanding || 0);
@@ -362,7 +362,7 @@ const Customers = () => {
                       <div style={{ width: 32, height: 32, borderRadius: '50%', background: avatarColors[idx % avatarColors.length], color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{getInitials(c.name)}</div>
                       <div>
                         <div style={{ fontWeight: 600, color: '#111827' }}>{c.name}</div>
-                        {c.email && <div style={{ fontSize: 11, color: '#9ca3af' }}>{c.email}</div>}
+                        {c.email && <div style={{ fontSize: 11, color: '#6b7280' }}>{c.email}</div>}
                       </div>
                     </div>
                   </td>
@@ -370,10 +370,10 @@ const Customers = () => {
                     <span style={{ padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 600, background: `${typeColors[c.type] || '#6b7280'}22`, color: typeColors[c.type] || '#6b7280' }}>{c.type}</span>
                   </td>
                   <td style={{ padding: '10px 14px', color: '#6b7280' }}>{c.phone || '—'}</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>{limit > 0 ? fmt(limit) : <span style={{ color: '#9ca3af' }}>Cash only</span>}</td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: outstanding > 0 ? (overLimit ? '#dc2626' : '#b45309') : '#16a34a' }}>{fmt(outstanding)}</td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>{limit > 0 ? fmt(limit) : <span style={{ color: '#6b7280' }}>Cash only</span>}</td>
+                  <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: outstanding > 0 ? (overLimit ? '#dc2626' : '#b45309') : '#15803d' }}>{fmt(outstanding)}</td>
                   <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                    {usedPct == null ? <span style={{ color: '#9ca3af' }}>—</span> : (
+                    {usedPct == null ? <span style={{ color: '#6b7280' }}>—</span> : (
                       <span style={{
                         padding: '2px 10px', borderRadius: 10, fontSize: 11, fontWeight: 700,
                         background: usedPct >= 100 ? '#fee2e2' : usedPct >= 80 ? '#fef3c7' : '#dcfce7',
@@ -557,7 +557,7 @@ const Customers = () => {
               {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + (methodShown('bank') ? 1 : 0) + (methodShown('momo') ? 1 : 0)}, 1fr)`, gap: 10 }}>
                 {[
-                  { key: 'cash_amount', label: 'Cash', color: '#16a34a' },
+                  { key: 'cash_amount', label: 'Cash', color: '#15803d' },
                   { key: 'bank_amount', label: 'Bank', color: '#2563eb' },
                   { key: 'momo_amount', label: 'MoMo', color: '#f59e0b' },
                 ].filter(f => methodShown(f.label)).map((f, i) => (
@@ -607,7 +607,7 @@ const Customers = () => {
             <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0 }}>{statementModal.customer.name} — Statement</h3>
-                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Outstanding: <strong style={{ color: parseFloat(statementModal.outstanding) > 0 ? '#dc2626' : '#16a34a' }}>{fmt(statementModal.outstanding)}</strong></div>
+                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Outstanding: <strong style={{ color: parseFloat(statementModal.outstanding) > 0 ? '#dc2626' : '#15803d' }}>{fmt(statementModal.outstanding)}</strong></div>
               </div>
               <button onClick={() => setStatementModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={18} /></button>
             </div>
@@ -622,7 +622,7 @@ const Customers = () => {
                 </tr></thead>
                 <tbody>
                   {(statementModal.entries || []).length === 0 ? (
-                    <tr><td colSpan={5} style={{ padding: 30, textAlign: 'center', color: '#9ca3af' }}>No transactions.</td></tr>
+                    <tr><td colSpan={5} style={{ padding: 30, textAlign: 'center', color: '#6b7280' }}>No transactions.</td></tr>
                   ) : statementModal.entries.map((e, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
                       <td style={{ padding: '7px 10px' }}>{(e.date || '').slice(0, 10)}</td>
@@ -630,7 +630,7 @@ const Customers = () => {
                         <span style={{ padding: '1px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700, background: e.type === 'order' ? '#eff6ff' : '#dcfce7', color: e.type === 'order' ? '#2563eb' : '#15803d' }}>{e.type}</span>
                       </td>
                       <td style={{ padding: '7px 10px', color: '#6b7280' }}>{e.order_number ? fmtInvoiceNo(e.order_number) : (e.reference || '—')}</td>
-                      <td style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: parseFloat(e.amount) > 0 ? '#dc2626' : '#16a34a' }}>{fmt(e.amount)}</td>
+                      <td style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600, color: parseFloat(e.amount) > 0 ? '#dc2626' : '#15803d' }}>{fmt(e.amount)}</td>
                       <td style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 700 }}>{fmt(e.running_balance)}</td>
                     </tr>
                   ))}
@@ -655,7 +655,7 @@ const Customers = () => {
             </div>
             <div style={{ padding: 22 }}>
               {insightsModal.order_count === 0 ? (
-                <div style={{ padding: 32, textAlign: 'center', color: '#9ca3af' }}>No orders yet for this customer.</div>
+                <div style={{ padding: 32, textAlign: 'center', color: '#6b7280' }}>No orders yet for this customer.</div>
               ) : (
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
@@ -695,7 +695,7 @@ const Customers = () => {
 
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Top Products</div>
                   {insightsModal.top_products.length === 0 ? (
-                    <div style={{ color: '#9ca3af', fontSize: 13, padding: '12px 0' }}>No line-item data.</div>
+                    <div style={{ color: '#6b7280', fontSize: 13, padding: '12px 0' }}>No line-item data.</div>
                   ) : (
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                       <thead><tr style={{ background: '#f9fafb' }}>
@@ -734,7 +734,7 @@ const Customers = () => {
             </div>
             <div style={{ padding: 18 }}>
               {agingModal.rows.length === 0 ? (
-                <div style={{ padding: 32, textAlign: 'center', color: '#9ca3af' }}>No customers with outstanding balances.</div>
+                <div style={{ padding: 32, textAlign: 'center', color: '#6b7280' }}>No customers with outstanding balances.</div>
               ) : (
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
                   <thead><tr style={{ background: '#f9fafb' }}>

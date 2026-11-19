@@ -5,7 +5,8 @@ import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { dipProgress } from '../ux/fuelProgress';
-import { Skeleton, ProgressBar } from '../ux/components';
+import { ProgressBar } from '../ux/components';
+import FuelLoader from '../ux/FuelLoader';
 
 const today = () => businessToday();
 const fmtL = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L';
@@ -104,7 +105,7 @@ export default function TankDips({ embedded = false } = {}) {
       )}
 
       <div style={{ ...S.card, overflowX: 'auto' }}>
-        {!loaded ? <Skeleton rows={4} height={20} /> : (
+        {!loaded ? <FuelLoader message="Dipping the tanks…" /> : (
         <table style={{ ...S.table, minWidth: 820 }} className="phone-cards">
           <thead><tr>
             <th style={{ ...S.th, whiteSpace: 'nowrap' }}>Tank / Group</th>
@@ -122,13 +123,13 @@ export default function TankDips({ embedded = false } = {}) {
               const ip = edits[key] || {};
               const measured = Number(ip.measured);
               const liveVariance = isFinite(measured) && ip.measured !== '' ? (measured - Number(row.book_volume || 0)) : null;
-              const vColor = liveVariance == null ? '#9ca3af' : (Math.abs(liveVariance) < 0.5 ? '#111' : (liveVariance < 0 ? '#dc2626' : '#16a34a'));
+              const vColor = liveVariance == null ? '#6b7280' : (Math.abs(liveVariance) < 0.5 ? '#111' : (liveVariance < 0 ? '#b91c1c' : '#15803d'));
               const fullyPosted = row.posted_count === row.member_count && row.member_count > 0;
               return (
                 <tr key={key} style={{ borderBottom: '1px solid #f3f4f6', background: fullyPosted ? '#f9fafb' : '#fff' }}>
                   <td style={{ ...S.td, whiteSpace: 'nowrap' }}>
                     <strong>{row.tank_code}</strong>
-                    <div style={{ color: '#9ca3af', fontSize: 11, marginTop: 2 }}>{row.tank_name}</div>
+                    <div style={{ color: '#6b7280', fontSize: 11, marginTop: 2 }}>{row.tank_name}</div>
                   </td>
                   <td style={S.td}><span style={{ ...S.pill(row.grade_color || '#6b7280'), whiteSpace: 'nowrap' }}>{row.grade_name || '-'}</span></td>
                   <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{fmtL(row.book_volume)}</td>

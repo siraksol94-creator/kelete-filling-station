@@ -195,7 +195,7 @@ const BinCard = () => {
           </div>
 
           {displayRows.length === 0 && openBal === 0 ? (
-            <div style={{ padding: 48, textAlign: 'center', color: '#9ca3af', fontSize: 14 }}>
+            <div style={{ padding: 48, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
               No stock movements found for this product in the selected period.
             </div>
           ) : (
@@ -213,7 +213,7 @@ const BinCard = () => {
                   <tbody>
                     {/* Opening Balance row */}
                     <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                      <td style={{ padding: '10px 14px', color: '#9ca3af', fontFamily: 'monospace' }}>—</td>
+                      <td style={{ padding: '10px 14px', color: '#6b7280', fontFamily: 'monospace' }}>—</td>
                       <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(from)}</td>
                       <td style={{ padding: '10px 14px', color: '#6b7280' }}>—</td>
                       <td style={{ padding: '10px 14px' }}>
@@ -233,7 +233,7 @@ const BinCard = () => {
                       const isOut = qty < 0;
                       return (
                         <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '10px 14px', color: '#9ca3af', fontFamily: 'monospace' }}>{idx + 1}</td>
+                          <td style={{ padding: '10px 14px', color: '#6b7280', fontFamily: 'monospace' }}>{idx + 1}</td>
                           <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
                           <td style={{ padding: '10px 14px', color: '#111827', fontWeight: 600 }}>{fmtInvoiceNo(row.reference) || '—'}</td>
                           <td style={{ padding: '10px 14px' }}>
@@ -279,14 +279,14 @@ const BinCard = () => {
         <div className="print-preview-overlay" style={{ position: 'fixed', inset: 0, zIndex: 2000, background: '#0f172a', display: 'flex', flexDirection: 'column' }}>
           {/* Toolbar */}
           <div style={{ background: '#1e293b', padding: '12px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <div style={{ color: '#94a3b8', fontSize: 13 }}>
+            <div style={{ color: '#64748b', fontSize: 13 }}>
               Bin Card — <strong style={{ color: '#fff' }}>{selectedProduct?.name}</strong>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => window.print()} style={{ padding: '8px 20px', borderRadius: 7, border: 'none', background: '#166534', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
                 <FiPrinter size={13} style={{ marginRight: 6 }} />Print
               </button>
-              <button onClick={() => setShowPrint(false)} style={{ padding: '8px 18px', borderRadius: 7, border: '1px solid #475569', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowPrint(false)} style={{ padding: '8px 18px', borderRadius: 7, border: '1px solid #475569', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 Close
               </button>
             </div>
@@ -327,7 +327,7 @@ const BinCard = () => {
                   { label: 'Closing Bal.', value: `${(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unitLabel}` },
                 ].map((item, i) => (
                   <div key={i} style={{ flex: 1, padding: '14px 16px', borderRight: i < 3 ? '1px solid #e5e7eb' : 'none' }}>
-                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: '#9ca3af', marginBottom: 3 }}>{item.label}</div>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: '#6b7280', marginBottom: 3 }}>{item.label}</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{item.value}</div>
                   </div>
                 ))}
@@ -346,7 +346,7 @@ const BinCard = () => {
                   <tbody>
                     {/* Opening Balance row */}
                     <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                      <td style={{ padding: '8px 10px', color: '#9ca3af' }}>—</td>
+                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
                       <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(from)}</td>
                       <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
                       <td style={{ padding: '8px 10px', color: '#1d4ed8', fontWeight: 700 }}>Opening Balance</td>
@@ -360,7 +360,7 @@ const BinCard = () => {
                       const isOut = qty < 0;
                       return (
                         <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '8px 10px', color: '#9ca3af' }}>{idx + 1}</td>
+                          <td style={{ padding: '8px 10px', color: '#6b7280' }}>{idx + 1}</td>
                           <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(row.date)}</td>
                           <td style={{ padding: '8px 10px', fontWeight: 600, color: '#111827' }}>{fmtInvoiceNo(row.reference) || '—'}</td>
                           <td style={{ padding: '8px 10px', color: '#6b7280' }}>{movementLabel(row.movement_type)}</td>

@@ -925,7 +925,7 @@ const GRN = () => {
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
@@ -933,7 +933,7 @@ const GRN = () => {
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
@@ -950,9 +950,9 @@ const GRN = () => {
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
           {filteredGRNs.length} GRN{filteredGRNs.length !== 1 ? 's' : ''}
-          {hasFilter && <> &nbsp;·&nbsp; Total: <strong style={{ color: '#16a34a' }}>{filteredTotalDisplay}</strong></>}
+          {hasFilter && <> &nbsp;·&nbsp; Total: <strong style={{ color: '#15803d' }}>{filteredTotalDisplay}</strong></>}
         </span>
       </div>
 
@@ -1053,7 +1053,7 @@ const GRN = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <FiPackage size={16} style={{ color: '#16a34a' }} />
+            <FiPackage size={16} style={{ color: '#15803d' }} />
             <span style={{ fontWeight: 700, fontSize: 14, color: '#15803d' }}>Product Received Breakdown</span>
             <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>— How much of each product was received in a date range</span>
           </div>
@@ -1070,7 +1070,7 @@ const GRN = () => {
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 5 }}>Product</label>
                 <div style={{ position: 'relative' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid #d1d5db', borderRadius: 8, padding: '7px 12px', background: '#fff' }}>
-                    <FiSearch style={{ color: '#9ca3af', flexShrink: 0 }} size={14} />
+                    <FiSearch style={{ color: '#6b7280', flexShrink: 0 }} size={14} />
                     <input
                       ref={reportSearchRef}
                       type="text"
@@ -1103,7 +1103,7 @@ const GRN = () => {
                       placeholder="Search product..."
                       style={{ border: 'none', outline: 'none', fontSize: 13, width: '100%' }}
                     />
-                    {reportProduct && <FiCheckCircle style={{ color: '#16a34a', flexShrink: 0 }} size={14} />}
+                    {reportProduct && <FiCheckCircle style={{ color: '#15803d', flexShrink: 0 }} size={14} />}
                   </div>
                   {reportShowDropdown && reportFilteredDropdown.length > 0 && (
                     <div ref={reportDropdownRef} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 2 }}>
@@ -1121,7 +1121,7 @@ const GRN = () => {
                           style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, background: reportHighlightedIdx === idx ? '#f0fdf4' : '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}
                         >
                           <span style={{ fontWeight: 500 }}>{p.name}</span>
-                          {p.code && <span style={{ color: '#9ca3af', fontSize: 12 }}>{p.code}</span>}
+                          {p.code && <span style={{ color: '#6b7280', fontSize: 12 }}>{p.code}</span>}
                         </div>
                       ))}
                     </div>
@@ -1171,13 +1171,13 @@ const GRN = () => {
 
             {/* Results */}
             {!reportSearched && !reportLoading && (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '30px 0', color: '#6b7280', fontSize: 13 }}>
                 Set a date range and click Search to see product quantities received.
               </div>
             )}
 
             {reportSearched && !reportLoading && reportData.length === 0 && !reportError && (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: '#9ca3af', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '30px 0', color: '#6b7280', fontSize: 13 }}>
                 No GRN items found for the selected filters.
               </div>
             )}
@@ -1209,7 +1209,7 @@ const GRN = () => {
                     <tbody>
                       {reportData.map((row, idx) => (
                         <tr key={row.product_id} style={{ borderTop: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                          <td style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                          <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
                           <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>
                             {row.product_name}
                             {row.unit && <span style={{ marginLeft: 6, fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: 10 }}>{row.unit}</span>}
@@ -1260,7 +1260,7 @@ const GRN = () => {
                         <tbody>
                           {reportBreakdown.map((row, idx) => (
                             <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                              <td style={{ padding: '9px 14px', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                              <td style={{ padding: '9px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
                               <td style={{ padding: '9px 14px', fontWeight: 600, color: '#2563eb', fontFamily: 'monospace', fontSize: 12 }}>{row.grn_number}</td>
                               <td style={{ padding: '9px 14px', color: '#374151' }}>{formatDate(row.date)}</td>
                               <td style={{ padding: '9px 14px', color: '#374151' }}>{row.supplier_name || '—'}</td>
@@ -1383,13 +1383,13 @@ const GRN = () => {
                 return (
                   <div key={item.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>
-                      <span style={{ color: '#9ca3af', fontWeight: 500, marginRight: 6 }}>{idx + 1}.</span>
+                      <span style={{ color: '#6b7280', fontWeight: 500, marginRight: 6 }}>{idx + 1}.</span>
                       {item.product_name}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13, color: '#374151' }}>
                       <span>
                         {parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {item.unit || item.product_unit || ''}
-                        <span style={{ color: '#9ca3af', margin: '0 6px' }}>×</span>
+                        <span style={{ color: '#6b7280', margin: '0 6px' }}>×</span>
                         {viewMoney(item.unit_price)}
                       </span>
                       <span style={{ fontWeight: 800, color: '#15803d', fontFamily: 'monospace' }}>
@@ -1531,7 +1531,7 @@ const GRN = () => {
                   { label: 'Total Items', value: viewGRN.total_items },
                 ].map(info => (
                   <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10.5, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
+                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{info.value}</div>
                   </div>
                 ))}
@@ -1567,7 +1567,7 @@ const GRN = () => {
                       return (
                         <React.Fragment key={item.id}>
                           <tr style={{ borderBottom: hasContainer ? 'none' : '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                            <td style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                            <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
                             <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>{item.product_name}</td>
                             <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                             <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.unit || item.product_unit || '—'}</td>
@@ -1828,7 +1828,7 @@ const GRN = () => {
 
                 {/* Barcode scan message */}
                 {scanMsg && (
-                  <div style={{ marginBottom: 8, padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600, background: scanMsg.type === 'error' ? '#fee2e2' : '#dcfce7', color: scanMsg.type === 'error' ? '#dc2626' : '#16a34a', border: `1px solid ${scanMsg.type === 'error' ? '#fca5a5' : '#86efac'}` }}>
+                  <div style={{ marginBottom: 8, padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600, background: scanMsg.type === 'error' ? '#fee2e2' : '#dcfce7', color: scanMsg.type === 'error' ? '#dc2626' : '#15803d', border: `1px solid ${scanMsg.type === 'error' ? '#fca5a5' : '#86efac'}` }}>
                     {scanMsg.type === 'error' ? '⚠ ' : '✓ '}{scanMsg.text}
                   </div>
                 )}
@@ -1836,7 +1836,7 @@ const GRN = () => {
                 {/* Recent products quick-add chips */}
                 {recentProducts.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                    <span style={{ fontSize: 11, color: '#9ca3af', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
+                    <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
                     {recentProducts.map(p => (
                       <button key={p.product_id} type="button"
                         onClick={() => {
@@ -1985,13 +1985,13 @@ const GRN = () => {
                                       >
                                         <span style={{ fontWeight: 500 }}>{p.name}</span>
                                         {(p.cost_price || p.selling_price) && (
-                                          <span style={{ fontSize: 11, color: '#9ca3af' }}>${(parseFloat(parseFloat(p.cost_price || p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                                          <span style={{ fontSize: 11, color: '#6b7280' }}>${(parseFloat(parseFloat(p.cost_price || p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                         )}
                                       </div>
                                     ))
                                   }
                                   {products.filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode)).length === 0 && (
-                                    <div style={{ padding: '10px 12px', fontSize: 13, color: '#9ca3af' }}>No matching products</div>
+                                    <div style={{ padding: '10px 12px', fontSize: 13, color: '#6b7280' }}>No matching products</div>
                                   )}
                                 </div>
                               )}
@@ -2011,7 +2011,7 @@ const GRN = () => {
                               const prod = products.find(p => p.id === parseInt(item.product_id));
                               if (!prod) {
                                 return (
-                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#9ca3af', background: '#f9fafb' }}>—</div>
+                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#6b7280', background: '#f9fafb' }}>—</div>
                                 );
                               }
                               const units = unitsForProductFE(prod);
@@ -2068,7 +2068,7 @@ const GRN = () => {
                             <button
                               onClick={() => removeItemRow(idx)}
                               disabled={items.length === 1}
-                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f3f4f6' : '#fee2e2', color: items.length === 1 ? '#9ca3af' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f3f4f6' : '#fee2e2', color: items.length === 1 ? '#6b7280' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}
                             >
                               <FiTrash2 size={14} />
                             </button>
@@ -2127,7 +2127,7 @@ const GRN = () => {
                     </>
                   )}
                   <span style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>{t('amount')}:</span>
-                  <span style={{ fontWeight: 700, fontSize: 18, color: '#16a34a' }}>{curSym}{(parseFloat(totalAmount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                  <span style={{ fontWeight: 700, fontSize: 18, color: '#15803d' }}>{curSym}{(parseFloat(totalAmount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                 </div>
               </div>
             </div>
@@ -2418,7 +2418,7 @@ const GRN = () => {
                   })}
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 0', marginTop: 6, borderTop: '2px solid #e5e7eb', fontSize: 16, fontWeight: 700 }}>
                     <span>Final Payable to Supplier</span>
-                    <span style={{ color: '#16a34a' }}>{curSym}{Math.max(0, (parseFloat(totalAmount)||0) - cnTotal).toFixed(2)}</span>
+                    <span style={{ color: '#15803d' }}>{curSym}{Math.max(0, (parseFloat(totalAmount)||0) - cnTotal).toFixed(2)}</span>
                   </div>
                 </div>
                 <p style={{ marginTop: 14, fontSize: 12, color: '#92400e', background: '#fef3c7', border: '1px solid #fde68a', padding: '10px 14px', borderRadius: 8 }}>
@@ -2461,7 +2461,7 @@ const GRN = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — Goods Received Notes ({filteredGRNs.length} records)
               </span>
             </div>
@@ -2469,7 +2469,7 @@ const GRN = () => {
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowPrintPreview(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowPrintPreview(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -2555,7 +2555,7 @@ const GRN = () => {
                       return (
                         <React.Fragment key={grn.id}>
                           <tr style={{ background: idx % 2 === 1 ? '#f0fdf4' : '#fff', borderTop: idx > 0 ? '2px solid #e2e8f0' : 'none' }}>
-                            <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8' }}>{grn.grn_number}</td>
                             <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(grn.date || grn.created_at)}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 500 }}>{grn.supplier_name || '—'}</td>
@@ -2673,7 +2673,7 @@ const GRN = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={15} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — {viewGRN.grn_number}
               </span>
             </div>
@@ -2681,7 +2681,7 @@ const GRN = () => {
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowGRNPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowGRNPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -2754,7 +2754,7 @@ const GRN = () => {
                   <tbody>
                     {(viewGRN.items || []).map((item, idx) => (
                       <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>{item.product_name}</td>
                         <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
@@ -2788,7 +2788,7 @@ const GRN = () => {
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ height: 40, borderBottom: '1.5px solid #cbd5e1', marginBottom: 6 }} />
                     <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#6b7280' }}>{label}</div>
-                    <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>Name / Signature / Date</div>
+                    <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Name / Signature / Date</div>
                   </div>
                 ))}
               </div>
@@ -2796,8 +2796,8 @@ const GRN = () => {
 
             {/* Footer bar */}
             <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '10px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>
+              <span style={{ fontSize: 9, color: '#64748b' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
+              <span style={{ fontSize: 9, color: '#64748b' }}>
                 Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>

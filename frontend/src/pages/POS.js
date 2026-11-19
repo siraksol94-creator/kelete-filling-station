@@ -2814,7 +2814,7 @@ const POS = () => {
             <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.2, color: '#111827', textTransform: 'uppercase' }}>
               Fiscalising with ZRA
             </div>
-            <div style={{ fontSize: 30, fontWeight: 800, color: '#16a34a', margin: '10px 0 4px', fontVariantNumeric: 'tabular-nums' }}>
+            <div style={{ fontSize: 30, fontWeight: 800, color: '#15803d', margin: '10px 0 4px', fontVariantNumeric: 'tabular-nums' }}>
               {fiscalElapsed.toFixed(1)}s
             </div>
             <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.6 }}>
@@ -2855,7 +2855,7 @@ const POS = () => {
                   fontWeight: 600, fontSize: 13,
                   background: scannerActive ? '#dcfce7' : '#fee2e2',
                   border: `2px solid ${scannerActive ? '#16a34a' : '#dc2626'}`,
-                  color: scannerActive ? '#16a34a' : '#dc2626',
+                  color: scannerActive ? '#15803d' : '#dc2626',
                   transition: 'all 0.2s'
                 }}
               >
@@ -2875,7 +2875,7 @@ const POS = () => {
                   fontWeight: 600, fontSize: 13,
                   background: drawerMsg?.type === 'success' ? '#dcfce7' : drawerMsg?.type === 'error' ? '#fee2e2' : '#f3f4f6',
                   border: `2px solid ${drawerMsg?.type === 'success' ? '#16a34a' : drawerMsg?.type === 'error' ? '#dc2626' : '#d1d5db'}`,
-                  color: drawerMsg?.type === 'success' ? '#16a34a' : drawerMsg?.type === 'error' ? '#dc2626' : '#374151',
+                  color: drawerMsg?.type === 'success' ? '#15803d' : drawerMsg?.type === 'error' ? '#dc2626' : '#374151',
                   transition: 'all 0.2s'
                 }}
               >
@@ -2891,7 +2891,7 @@ const POS = () => {
               so it shares the same border/background. Hidden when the
               search is empty. */}
           <div className="search-input-container" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <FiSearch style={{ color: '#9ca3af' }} />
+            <FiSearch style={{ color: '#6b7280' }} />
             <input ref={searchInputRef} type="text" placeholder="Search products by name..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
             {search && (
               <button onClick={() => setSearch('')} title="Clear search"
@@ -2909,7 +2909,7 @@ const POS = () => {
               fontSize: 13,
               fontWeight: 600,
               background: barcodeMsg.type === 'error' ? '#fee2e2' : '#dcfce7',
-              color: barcodeMsg.type === 'error' ? '#dc2626' : '#16a34a',
+              color: barcodeMsg.type === 'error' ? '#dc2626' : '#15803d',
               border: `1px solid ${barcodeMsg.type === 'error' ? '#fca5a5' : '#86efac'}`,
             }}>
               {barcodeMsg.type === 'error' ? '⚠ ' : '✓ '}{barcodeMsg.text}
@@ -2919,7 +2919,7 @@ const POS = () => {
           {/* Quick Items */}
           {quickItems.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#9ca3af', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⭐ Quick Items</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⭐ Quick Items</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {quickItems.map(qi => {
                   const product = products.find(p => p.sync_id === qi.product_sync_id);
@@ -3058,7 +3058,7 @@ const POS = () => {
 
           <div className="cart-customer">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
-              <span style={{ color: '#9ca3af' }}>👤</span>
+              <span style={{ color: '#6b7280' }}>👤</span>
               <input
                 type="text"
                 placeholder="Customer name (optional)"
@@ -3078,7 +3078,7 @@ const POS = () => {
                   onClick={() => { setCustomerName(''); setCustOpen(false); }}
                   title="Clear customer"
                   style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)',
-                           background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af',
+                           background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280',
                            display: 'flex', padding: 2 }}>
                   <FiX size={15} />
                 </button>
@@ -3207,7 +3207,7 @@ const POS = () => {
               still redeem a voucher. */}
           <div className="cart-customer" style={{ marginTop: -8, position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: '#9ca3af' }}>🎫</span>
+              <span style={{ color: '#6b7280' }}>🎫</span>
               {voucherInfo ? (
                 // Attached voucher — show as a chip with an × to detach.
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8,
@@ -3234,7 +3234,7 @@ const POS = () => {
                   style={{ flex: 1 }}
                 />
               )}
-              {voucherLoading && <span style={{ fontSize: 11, color: '#9ca3af' }}>searching…</span>}
+              {voucherLoading && <span style={{ fontSize: 11, color: '#6b7280' }}>searching…</span>}
             </div>
             {/* Search dropdown — max 10 matches. Only shown while no
                 voucher is attached and there's at least one hit. */}
@@ -3254,7 +3254,7 @@ const POS = () => {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#0e7490' }}>{v.voucher_number}</div>
                       <div style={{ fontSize: 11, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {v.issued_to_name || <span style={{ color: '#9ca3af' }}>—</span>}
+                        {v.issued_to_name || <span style={{ color: '#6b7280' }}>—</span>}
                         {v.issued_to_phone ? ` · ${v.issued_to_phone}` : ''}
                       </div>
                     </div>
@@ -3734,7 +3734,7 @@ const POS = () => {
                         Payment methods shown. */}
                     <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + (hasMoMoBank && methodShown('momo') ? 1 : 0) + (hasMoMoBank && methodShown('bank') ? 1 : 0)}, 1fr)`, gap: 8, marginTop: 6 }}>
                       {[
-                        { key: 'cash', label: 'Cash', color: '#16a34a', show: true },
+                        { key: 'cash', label: 'Cash', color: '#15803d', show: true },
                         { key: 'momo', label: 'MoMo', color: '#f59e0b', show: hasMoMoBank && methodShown('momo') },
                         { key: 'bank', label: 'Bank', color: '#2563eb', show: hasMoMoBank && methodShown('bank') },
                       ].filter(f => f.show).map((f, i) => (
@@ -3786,7 +3786,7 @@ const POS = () => {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 13 }}>
                       <span style={{ color: '#6b7280' }}>Paying Now Total</span>
-                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#9ca3af' }}>{money(payNow)}</span>
+                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#6b7280' }}>{money(payNow)}</span>
                     </div>
                   </div>
                 </div>
@@ -3815,14 +3815,14 @@ const POS = () => {
                             : <span style={{ color: '#b45309' }}>No TPIN on file — the receipt will use ZRA's walk-in default</span>}
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, color: '#9ca3af', textAlign: 'right', maxWidth: 160 }}>
+                      <span style={{ fontSize: 11, color: '#6b7280', textAlign: 'right', maxWidth: 160 }}>
                         Change the buyer at the top of the order
                       </span>
                     </div>
                   ) : (
                   <>
                   <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                    Buyer TPIN <span style={{ fontWeight: 400, textTransform: 'none', color: '#9ca3af' }}>(optional — leave blank for walk-in)</span>
+                    Buyer TPIN <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280' }}>(optional — leave blank for walk-in)</span>
                   </label>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'stretch' }}>
                     <input
@@ -3919,7 +3919,7 @@ const POS = () => {
                   {payModal.buyerTpin && payModal.buyerTpin.length > 0 && (
                     <>
                       <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
-                        Buyer Name <span style={{ fontWeight: 400, textTransform: 'none', color: '#9ca3af' }}>(for B2B sale)</span>
+                        Buyer Name <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280' }}>(for B2B sale)</span>
                       </label>
                       <input
                         type="text"
@@ -3994,7 +3994,7 @@ const POS = () => {
                 <div style={{ background: enoughPaid ? '#f0fdf4' : '#fef2f2', borderRadius: 10, padding: 14, fontSize: 13, border: `1px solid ${enoughPaid ? '#bbf7d0' : '#fecaca'}` }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                     <span style={{ fontWeight: 700, color: enoughPaid ? '#166534' : '#991b1b' }}>{enoughPaid ? 'Change Due' : 'Balance Due'}</span>
-                    <span style={{ fontWeight: 800, fontSize: 16, color: enoughPaid ? '#16a34a' : '#dc2626' }}>
+                    <span style={{ fontWeight: 800, fontSize: 16, color: enoughPaid ? '#15803d' : '#dc2626' }}>
                       {money(enoughPaid ? changeNow : balanceDue)}
                     </span>
                   </div>
@@ -4013,13 +4013,13 @@ const POS = () => {
                       <div style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', marginBottom: 6 }}>Give back as</div>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                         <div>
-                          <div style={{ fontSize: 11, color: '#16a34a', fontWeight: 700, marginBottom: 3 }}>Change USD</div>
+                          <div style={{ fontSize: 11, color: '#15803d', fontWeight: 700, marginBottom: 3 }}>Change USD</div>
                           <input
                             type="number" inputMode="decimal" min="0" step="0.01"
                             value={payModal.changeUSDgiven}
                             onChange={e => setPayModal({ ...payModal, changeUSDgiven: e.target.value })}
                             placeholder="0.00"
-                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${changeUSDgiven > 0 ? '#16a34a' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: changeUSDgiven > 0 ? '#16a34a' : '#374151', boxSizing: 'border-box' }} />
+                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${changeUSDgiven > 0 ? '#16a34a' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: changeUSDgiven > 0 ? '#15803d' : '#374151', boxSizing: 'border-box' }} />
                         </div>
                         <div>
                           <div style={{ fontSize: 11, color: '#a16207', fontWeight: 700, marginBottom: 3 }}>Change FRA</div>
@@ -4034,7 +4034,7 @@ const POS = () => {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 12 }}>
                         <span style={{ color: '#6b7280' }}>Total given</span>
-                        <span style={{ fontWeight: 700, color: '#16a34a' }}>{money(totalChangeGiven)}</span>
+                        <span style={{ fontWeight: 700, color: '#15803d' }}>{money(totalChangeGiven)}</span>
                       </div>
                       {netRemaining > 0.001 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, padding: '6px 10px', background: '#fef2f2', borderRadius: 6, fontSize: 12, border: '1px solid #fecaca' }}>
@@ -4185,21 +4185,21 @@ const POS = () => {
                     style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #2563eb', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Phone <span style={{ color: '#9ca3af', fontWeight: 500 }}>(10 digits, optional)</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Phone <span style={{ color: '#6b7280', fontWeight: 500 }}>(10 digits, optional)</span></label>
                   <input type="text" value={newCustModal.phone}
                     onChange={e => setNewCustModal(m => ({ ...m, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
                     placeholder="e.g. 0977123456"
                     style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Address <span style={{ color: '#9ca3af', fontWeight: 500 }}>(optional)</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Address <span style={{ color: '#6b7280', fontWeight: 500 }}>(optional)</span></label>
                   <input type="text" value={newCustModal.address}
                     onChange={e => setNewCustModal(m => ({ ...m, address: e.target.value }))}
                     placeholder="e.g. Plot 123, Great East Rd, Lusaka"
                     style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Email <span style={{ color: '#9ca3af', fontWeight: 500 }}>(optional)</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Email <span style={{ color: '#6b7280', fontWeight: 500 }}>(optional)</span></label>
                   <input type="email" value={newCustModal.email}
                     onChange={e => setNewCustModal(m => ({ ...m, email: e.target.value }))}
                     placeholder="e.g. accounts@customer.com"
@@ -4320,8 +4320,8 @@ const POS = () => {
                   <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                     Buyer TPIN
                     {creditModal.buyerTpin
-                      ? <span style={{ fontWeight: 400, textTransform: 'none', color: '#16a34a', marginLeft: 6 }}>· from customer record</span>
-                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#9ca3af', marginLeft: 6 }}>· blank → walk-in default 1000000000</span>}
+                      ? <span style={{ fontWeight: 400, textTransform: 'none', color: '#15803d', marginLeft: 6 }}>· from customer record</span>
+                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280', marginLeft: 6 }}>· blank → walk-in default 1000000000</span>}
                   </label>
                   <input
                     type="text"
@@ -4340,8 +4340,8 @@ const POS = () => {
                   <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
                     Buyer Address
                     {creditModal.buyerAddress
-                      ? <span style={{ fontWeight: 400, textTransform: 'none', color: '#16a34a', marginLeft: 6 }}>· from customer record</span>
-                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#9ca3af', marginLeft: 6 }}>· optional</span>}
+                      ? <span style={{ fontWeight: 400, textTransform: 'none', color: '#15803d', marginLeft: 6 }}>· from customer record</span>
+                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280', marginLeft: 6 }}>· optional</span>}
                   </label>
                   <input
                     type="text"
@@ -4404,11 +4404,11 @@ const POS = () => {
                     </label>
                     {(() => {
                       const fields = hasMoMoBank ? [
-                        { key: 'cash', label: 'Cash', color: '#16a34a', step: '0.01', placeholder: '0.00', show: true },
+                        { key: 'cash', label: 'Cash', color: '#15803d', step: '0.01', placeholder: '0.00', show: true },
                         { key: 'momo', label: 'MoMo', color: '#f59e0b', step: '0.01', placeholder: '0.00', show: methodShown('momo') },
                         { key: 'bank', label: 'Bank', color: '#2563eb', step: '0.01', placeholder: '0.00', show: methodShown('bank') },
                       ] : [
-                        { key: 'usd', label: 'USD', color: '#16a34a', step: '0.01', placeholder: '0.00', show: true },
+                        { key: 'usd', label: 'USD', color: '#15803d', step: '0.01', placeholder: '0.00', show: true },
                         { key: 'fra', label: 'FRA', color: '#2563eb', step: '1',    placeholder: '0',    show: isDual },
                         { key: 'k',   label: 'K',   color: '#7c3aed', step: '1',    placeholder: '0',    show: hasK   },
                       ].filter(f => f.show);
@@ -4464,7 +4464,7 @@ const POS = () => {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 13 }}>
                       <span style={{ color: '#6b7280' }}>Paying Now Total</span>
-                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#9ca3af' }}>{money(payNow)}</span>
+                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#6b7280' }}>{money(payNow)}</span>
                     </div>
                   </div>
                 </div>
@@ -4511,7 +4511,7 @@ const POS = () => {
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                         <span style={{ color: '#6b7280' }}>Current Outstanding</span>
-                        <span style={{ fontWeight: 600, color: currentOutstanding > 0 ? '#dc2626' : '#16a34a' }}>{money(currentOutstanding)}</span>
+                        <span style={{ fontWeight: 600, color: currentOutstanding > 0 ? '#dc2626' : '#15803d' }}>{money(currentOutstanding)}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px dashed #e5e7eb', marginTop: 4, paddingTop: 8 }}>
                         <span style={{ fontWeight: 700, color: '#78350f' }}>Total Outstanding After</span>
@@ -4740,7 +4740,7 @@ const POS = () => {
                   );
                 })()}
                 {receiptData.amountReceived >= receiptData.total ? (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: 15, color: '#16a34a' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: 15, color: '#15803d' }}>
                     <span>Change</span>
                     <span>{money(receiptData.change)}</span>
                   </div>
@@ -4827,7 +4827,7 @@ const POS = () => {
                 {receiptData.amountReceived >= receiptData.total ? (
                   <>
                     <div style={{ fontSize: 14, color: '#374151', marginBottom: 6 }}>Change to give customer</div>
-                    <div style={{ fontSize: 52, fontWeight: 900, color: '#16a34a', lineHeight: 1, marginBottom: 24 }}>
+                    <div style={{ fontSize: 52, fontWeight: 900, color: '#15803d', lineHeight: 1, marginBottom: 24 }}>
                       {money(receiptData.change)}
                     </div>
                   </>
@@ -4886,7 +4886,7 @@ const POS = () => {
           onClick={e => e.stopPropagation()}
         >
           <div style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-            <div style={{ padding: '4px 14px', fontSize: 11, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            <div style={{ padding: '4px 14px', fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               {contextMenu.item.product_name}
             </div>
           </div>
@@ -5241,7 +5241,7 @@ const POS = () => {
                     {!isCart && !isAdmin && !lineZero && !lineUnchanged && (
                       <div style={{ marginTop: 12 }}>
                         <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
-                          Reason <span style={{ fontWeight: 400, color: '#9ca3af' }}>(optional)</span>
+                          Reason <span style={{ fontWeight: 400, color: '#6b7280' }}>(optional)</span>
                         </label>
                         <input
                           type="text" maxLength={200}

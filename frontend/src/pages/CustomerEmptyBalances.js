@@ -142,9 +142,9 @@ export default function CustomerEmptyBalances() {
       {/* Table */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
             No customer has an outstanding empty balance.
           </div>
         ) : (
@@ -264,7 +264,7 @@ export default function CustomerEmptyBalances() {
             </div>
             <div style={{ padding: '10px 22px', overflowY: 'auto', flex: 1 }}>
               {ledgerModal.ledger.length === 0 ? (
-                <div style={{ padding: 30, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No history yet.</div>
+                <div style={{ padding: 30, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No history yet.</div>
               ) : (
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
@@ -289,7 +289,7 @@ export default function CustomerEmptyBalances() {
                           </span>
                         </td>
                         <td style={{ padding: '8px 10px', color: '#6b7280', fontFamily: 'monospace' }}>{l.order_number ? fmtInvoiceNo(l.order_number) : '—'}</td>
-                        <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: l.qty > 0 ? '#16a34a' : l.qty < 0 ? '#dc2626' : '#374151' }}>
+                        <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: l.qty > 0 ? '#15803d' : l.qty < 0 ? '#dc2626' : '#374151' }}>
                           {l.qty > 0 ? `+${l.qty}` : l.qty}
                         </td>
                         <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#0e7490' }}>{l.balance_after}</td>

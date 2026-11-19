@@ -156,7 +156,7 @@ export default function HqSalesReport() {
             Depots · busiest first
           </div>
           {tiles.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontSize: 13, fontStyle: 'italic' }}>No depots in this selection.</p>
+            <p style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}>No depots in this selection.</p>
           ) : (
             // 2026-09-18 — one depot per row on a phone: the tiles-2up class is
             // gone, so a card is no longer squeezed into half a screen with its
@@ -183,7 +183,7 @@ export default function HqSalesReport() {
                         <span style={{ flexShrink: 0, fontSize: 10.5, fontWeight: 800, padding: '2px 8px', borderRadius: 999, background: RED, color: '#fff' }}>#{i + 1}</span>
                       )}
                     </div>
-                    <div className="tile-value" style={{ fontSize: 19, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: quiet ? '#94a3b8' : '#fff' }}>
+                    <div className="tile-value" style={{ fontSize: 19, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: quiet ? '#64748b' : '#fff' }}>
                       {fmtMoney(d.revenue)}
                     </div>
                     <div style={{ fontSize: 11.5, opacity: quiet ? 1 : 0.85 }}>

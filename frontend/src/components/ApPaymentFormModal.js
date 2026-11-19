@@ -90,7 +90,7 @@ export default function ApPaymentFormModal({ open, supplier, onClose, onSaved, d
   //
   // One question, one shape: which drawer did the money leave?
   const fields = [
-    { key: 'cash_amount', label: 'Cash',         color: '#16a34a', step: '0.01', placeholder: '0.00' },
+    { key: 'cash_amount', label: 'Cash',         color: '#15803d', step: '0.01', placeholder: '0.00' },
     { key: 'bank_amount', label: 'Bank',         color: '#2563eb', step: '0.01', placeholder: '0.00' },
     { key: 'momo_amount', label: 'Mobile Money', color: '#f59e0b', step: '0.01', placeholder: '0.00' },
   ];

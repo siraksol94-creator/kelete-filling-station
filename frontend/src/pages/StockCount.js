@@ -224,9 +224,9 @@ const StockCount = () => {
       const diffColor = !isCounted ? '#9ca3af' : diff > 0 ? '#16a34a' : diff < 0 ? '#dc2626' : '#374151';
       return `<tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#fafafa':'#fff'}">
         <td style="padding:9px 14px;color:#9ca3af;font-size:10px">${idx+1}</td>
-        <td style="padding:9px 14px;font-weight:500;color:${isCounted?'#111827':'#9ca3af'}">${item.product_name}</td>
+        <td style="padding:9px 14px;font-weight:500;color:${isCounted?'#111827':'#6b7280'}">${item.product_name}</td>
         <td style="padding:9px 14px;text-align:right;font-family:monospace;color:#374151">${fmt(item.opening_balance??0)}</td>
-        <td style="padding:9px 14px;text-align:right;font-weight:${isCounted?700:400};font-family:monospace;color:${isCounted?'#16a34a':'#9ca3af'}">${isCounted?fmt(item.counted_qty):'—'}</td>
+        <td style="padding:9px 14px;text-align:right;font-weight:${isCounted?700:400};font-family:monospace;color:${isCounted?'#15803d':'#6b7280'}">${isCounted?fmt(item.counted_qty):'—'}</td>
         <td style="padding:9px 14px;text-align:right;font-weight:700;font-family:monospace;color:${diffColor}">${isCounted?(diff>0?`+${fmt(diff)}`:fmt(diff)):'—'}</td>
       </tr>`;
     }).join('');
@@ -330,7 +330,7 @@ const StockCount = () => {
         <div className="card" style={{ marginBottom: 24 }}>
           <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 600 }}>Sessions</h3>
           {sessions.length === 0 ? (
-            <p style={{ color: '#9ca3af', textAlign: 'center', padding: 32 }}>No stock count sessions yet. Create one to get started.</p>
+            <p style={{ color: '#6b7280', textAlign: 'center', padding: 32 }}>No stock count sessions yet. Create one to get started.</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
@@ -353,7 +353,7 @@ const StockCount = () => {
                       <span style={{
                         padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600,
                         background: s.status === 'Active' ? '#dcfce7' : '#f3f4f6',
-                        color: s.status === 'Active' ? '#16a34a' : '#6b7280',
+                        color: s.status === 'Active' ? '#15803d' : '#6b7280',
                       }}>
                         {s.status === 'Active' ? <><FiClock size={11} /> Active</> : <><FiCheckCircle size={11} /> Applied</>}
                       </span>
@@ -375,7 +375,7 @@ const StockCount = () => {
           {/* Session info bar */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 18px', marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <FiPackage style={{ color: '#16a34a' }} />
+              <FiPackage style={{ color: '#15803d' }} />
               <div>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>{activeSession.name}</div>
                 <div style={{ fontSize: 12, color: '#6b7280' }}>{countedCount} of {totalCount} products counted</div>
@@ -402,7 +402,7 @@ const StockCount = () => {
                   title={scannerActive ? 'Scanner Active — click to disable' : 'Enable barcode scanner'}
                   style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: scannerActive ? '#fef3c7' : '#fff', border: `1px solid ${scannerActive ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 8, cursor: 'pointer', fontSize: 14, color: scannerActive ? '#b45309' : '#374151', fontWeight: scannerActive ? 600 : 400 }}
                 >
-                  <FiZap size={14} style={{ color: scannerActive ? '#f59e0b' : '#9ca3af' }} />
+                  <FiZap size={14} style={{ color: scannerActive ? '#f59e0b' : '#6b7280' }} />
                   {scannerActive ? 'Scanner Active' : 'Scanner'}
                   {scannerActive && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', marginLeft: 2 }} />}
                 </button>
@@ -423,7 +423,7 @@ const StockCount = () => {
           </div>
 
           {message && (
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '12px 16px', marginBottom: 16, color: '#16a34a', fontWeight: 500 }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '12px 16px', marginBottom: 16, color: '#15803d', fontWeight: 500 }}>
               {message}
             </div>
           )}
@@ -449,7 +449,7 @@ const StockCount = () => {
                 {/* Product search */}
                 <div style={{ flex: 1, position: 'relative' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid #e5e7eb', borderRadius: 8, padding: '9px 12px' }}>
-                    <FiSearch style={{ color: '#9ca3af' }} />
+                    <FiSearch style={{ color: '#6b7280' }} />
                     <input
                       ref={searchRef}
                       type="text"
@@ -494,7 +494,7 @@ const StockCount = () => {
                       placeholder="Search product..."
                       style={{ border: 'none', outline: 'none', fontSize: 14, width: '100%' }}
                     />
-                    {selectedProduct && <FiCheckCircle style={{ color: '#16a34a' }} />}
+                    {selectedProduct && <FiCheckCircle style={{ color: '#15803d' }} />}
                   </div>
                   {showDropdown && filteredDropdown.length > 0 && (
                     <div ref={dropdownRef} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 2 }}>
@@ -506,7 +506,7 @@ const StockCount = () => {
                           style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, background: highlightedIdx === idx ? '#f0fdf4' : '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}
                         >
                           <span style={{ fontWeight: 500 }}>{p.name}</span>
-                          <span style={{ color: '#9ca3af', fontSize: 12 }}>Stock: {p.current_stock ?? 0}</span>
+                          <span style={{ color: '#6b7280', fontSize: 12 }}>Stock: {p.current_stock ?? 0}</span>
                         </div>
                       ))}
                     </div>
@@ -529,7 +529,7 @@ const StockCount = () => {
                 <button
                   onClick={addItem}
                   disabled={!selectedProduct || !qty}
-                  style={{ padding: '10px 24px', background: (!selectedProduct || !qty) ? '#e5e7eb' : '#dc2626', color: (!selectedProduct || !qty) ? '#9ca3af' : '#fff', border: 'none', borderRadius: 8, cursor: (!selectedProduct || !qty) ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}
+                  style={{ padding: '10px 24px', background: (!selectedProduct || !qty) ? '#e5e7eb' : '#dc2626', color: (!selectedProduct || !qty) ? '#6b7280' : '#fff', border: 'none', borderRadius: 8, cursor: (!selectedProduct || !qty) ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}
                 >
                   Add
                 </button>
@@ -548,7 +548,7 @@ const StockCount = () => {
               </h3>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div style={{ position: 'relative' }}>
-                  <FiSearch style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} size={14} />
+                  <FiSearch style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} size={14} />
                   <input
                     value={tableSearch}
                     onChange={e => setTableSearch(e.target.value)}
@@ -584,21 +584,21 @@ const StockCount = () => {
               </thead>
               <tbody>
                 {filteredItems.length === 0 ? (
-                  <tr><td colSpan="4" style={{ textAlign: 'center', color: '#9ca3af', padding: 40 }}>No products found.</td></tr>
+                  <tr><td colSpan="4" style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>No products found.</td></tr>
                 ) : filteredItems.map(item => {
                   const isCounted = item.counted_qty !== null;
                   const diff = item.difference;
                   return (
                     <tr key={item.product_id} style={{ borderTop: '1px solid #f1f5f9', background: isCounted ? '#fff' : '#fafafa' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 500, color: isCounted ? '#111827' : '#9ca3af' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 500, color: isCounted ? '#111827' : '#6b7280' }}>
                         {item.product_name}
                         {!isCounted && <span style={{ marginLeft: 8, fontSize: 11, background: '#fee2e2', color: '#dc2626', borderRadius: 10, padding: '2px 8px' }}>Not counted</span>}
                       </td>
                       <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{item.opening_balance ?? 0}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: isCounted ? 600 : 400, color: isCounted ? '#16a34a' : '#9ca3af' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: isCounted ? 600 : 400, color: isCounted ? '#15803d' : '#6b7280' }}>
                         {isCounted ? item.counted_qty : '—'}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: !isCounted ? '#9ca3af' : diff > 0 ? '#16a34a' : diff < 0 ? '#dc2626' : '#374151' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: !isCounted ? '#6b7280' : diff > 0 ? '#15803d' : diff < 0 ? '#dc2626' : '#374151' }}>
                         {isCounted ? (diff > 0 ? `+${diff}` : diff) : '—'}
                       </td>
                     </tr>

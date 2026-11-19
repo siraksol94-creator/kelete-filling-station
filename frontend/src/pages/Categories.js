@@ -424,7 +424,7 @@ const Categories = () => {
       </div>
 
       {importMsg && (
-        <div style={{ marginBottom: 16, padding: '10px 16px', background: importMsg.includes('failed') || importMsg.includes('error') ? '#fef2f2' : '#f0fdf4', color: importMsg.includes('failed') || importMsg.includes('error') ? '#dc2626' : '#16a34a', borderRadius: 8, fontSize: 13, fontWeight: 500, border: `1px solid ${importMsg.includes('failed') || importMsg.includes('error') ? '#fecaca' : '#bbf7d0'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginBottom: 16, padding: '10px 16px', background: importMsg.includes('failed') || importMsg.includes('error') ? '#fef2f2' : '#f0fdf4', color: importMsg.includes('failed') || importMsg.includes('error') ? '#dc2626' : '#15803d', borderRadius: 8, fontSize: 13, fontWeight: 500, border: `1px solid ${importMsg.includes('failed') || importMsg.includes('error') ? '#fecaca' : '#bbf7d0'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{importMsg}</span>
           <button onClick={() => setImportMsg('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><FiX size={14} /></button>
         </div>
@@ -461,7 +461,7 @@ const Categories = () => {
                 {categories.length === 0 ? (
                   <tr>
                     <td colSpan={5} style={{ textAlign: 'center', padding: 48 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#9ca3af' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#6b7280' }}>
                         <FiTag size={32} style={{ opacity: 0.4 }} />
                         <span style={{ fontSize: 14 }}>No categories yet.</span>
                         <button className="cat-add-btn" onClick={openAdd} style={{ marginTop: 4, fontSize: 13, padding: '8px 18px' }}>
@@ -476,7 +476,7 @@ const Categories = () => {
                     const main = mainCategories.find(m => String(m.id) === String(cat.main_category_id));
                     return (
                       <tr key={cat.id} className="cat-row" style={{ transition: 'background 0.15s' }}>
-                        <td style={{ color: '#9ca3af', fontWeight: 500 }}>{i + 1}</td>
+                        <td style={{ color: '#6b7280', fontWeight: 500 }}>{i + 1}</td>
                         <td>
                           <span style={{
                             display: 'inline-block', width: 32, height: 32, borderRadius: 8,
@@ -517,7 +517,7 @@ const Categories = () => {
                               <FiLayers size={11} /> {main.name}
                             </span>
                           ) : (
-                            <span style={{ color: '#9ca3af', fontSize: 12, fontStyle: 'italic' }}>— unassigned —</span>
+                            <span style={{ color: '#6b7280', fontSize: 12, fontStyle: 'italic' }}>— unassigned —</span>
                           )}
                         </td>
                         <td>
@@ -575,7 +575,7 @@ const Categories = () => {
                 {mainCategories.length === 0 ? (
                   <tr>
                     <td colSpan={5} style={{ textAlign: 'center', padding: 48 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#9ca3af' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#6b7280' }}>
                         <FiLayers size={32} style={{ opacity: 0.4 }} />
                         <span style={{ fontSize: 14 }}>No main categories yet. Add one (e.g. "Whisky", "Wine", "Beer") then link your existing categories to it.</span>
                         <button className="cat-add-btn" onClick={openAddMain} style={{ marginTop: 4, fontSize: 13, padding: '8px 18px' }}>
@@ -590,7 +590,7 @@ const Categories = () => {
                     const linked = categories.filter(c => String(c.main_category_id) === String(m.id));
                     return (
                       <tr key={m.id} className="cat-row" style={{ transition: 'background 0.15s' }}>
-                        <td style={{ color: '#9ca3af', fontWeight: 500 }}>{i + 1}</td>
+                        <td style={{ color: '#6b7280', fontWeight: 500 }}>{i + 1}</td>
                         <td>
                           <span style={{
                             display: 'inline-block', width: 32, height: 32, borderRadius: 8,
@@ -614,7 +614,7 @@ const Categories = () => {
                         </td>
                         <td>
                           {linked.length === 0
-                            ? <span style={{ color: '#9ca3af', fontSize: 12, fontStyle: 'italic' }}>— none —</span>
+                            ? <span style={{ color: '#6b7280', fontSize: 12, fontStyle: 'italic' }}>— none —</span>
                             : (
                               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                                 {linked.map(c => (
@@ -682,7 +682,7 @@ const Categories = () => {
                 {units.length === 0 ? (
                   <tr>
                     <td colSpan={4} style={{ textAlign: 'center', padding: 48 }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#9ca3af' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#6b7280' }}>
                         <FiHash size={32} style={{ opacity: 0.4 }} />
                         <span style={{ fontSize: 14 }}>No units yet. Existing product units (kg, Pack, etc.) are auto-imported on first load.</span>
                         <button className="cat-add-btn" onClick={openAddUnit} style={{ marginTop: 4, fontSize: 13, padding: '8px 18px' }}>
@@ -695,7 +695,7 @@ const Categories = () => {
                 ) : (
                   units.map((u, i) => (
                     <tr key={u.id} className="cat-row" style={{ transition: 'background 0.15s' }}>
-                      <td style={{ color: '#9ca3af', fontWeight: 500 }}>{i + 1}</td>
+                      <td style={{ color: '#6b7280', fontWeight: 500 }}>{i + 1}</td>
                       <td>
                         <span style={{
                           display: 'inline-flex', alignItems: 'center', gap: 7,
@@ -802,7 +802,7 @@ const Categories = () => {
                   ))}
                 </select>
                 {mainCategories.length === 0 && (
-                  <div style={{ marginTop: 6, fontSize: 11, color: '#9ca3af' }}>
+                  <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
                     No main categories yet. Switch to the "Main Categories" tab to add one (e.g. Whisky, Wine, Beer).
                   </div>
                 )}
@@ -850,7 +850,7 @@ const Categories = () => {
                     }}
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Custom color</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>Custom color</div>
                     <div style={{ fontWeight: 600, fontSize: 13, color: '#374151', fontFamily: 'monospace' }}>{form.color}</div>
                   </div>
                   {/* Live preview badge */}
@@ -944,7 +944,7 @@ const Categories = () => {
                   <input type="color" value={mainForm.color} onChange={e => setMainForm(p => ({ ...p, color: e.target.value }))}
                     style={{ width: 38, height: 38, border: 'none', borderRadius: 8, cursor: 'pointer', padding: 0, background: 'none' }} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginBottom: 2 }}>Custom color</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 2 }}>Custom color</div>
                     <div style={{ fontWeight: 600, fontSize: 13, color: '#374151', fontFamily: 'monospace' }}>{mainForm.color}</div>
                   </div>
                   <span style={{
@@ -1017,7 +1017,7 @@ const Categories = () => {
                   placeholder="e.g. kg, pc, pkt..."
                   onKeyDown={e => e.key === 'Enter' && handleSaveUnit()}
                 />
-                <div style={{ marginTop: 4, fontSize: 11, color: '#9ca3af' }}>Short form shown in compact views (defaults to the full name).</div>
+                <div style={{ marginTop: 4, fontSize: 11, color: '#6b7280' }}>Short form shown in compact views (defaults to the full name).</div>
               </div>
             </div>
             <div className="modal-footer" style={{ padding: '16px 24px', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>

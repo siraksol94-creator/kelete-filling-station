@@ -88,7 +88,7 @@ const BarcodePreview = ({ form }) => {
             <span key={i} style={{
               padding: '3px 5px', borderRadius: 4, fontWeight: 700,
               background: isCode ? '#dbeafe' : isWeight ? '#dcfce7' : '#f1f5f9',
-              color:      isCode ? '#1d4ed8' : isWeight ? '#15803d' : '#94a3b8',
+              color:      isCode ? '#1d4ed8' : isWeight ? '#15803d' : '#64748b',
               border: `1px solid ${isCode ? '#93c5fd' : isWeight ? '#86efac' : '#e2e8f0'}`,
             }}>{char}</span>
           );
@@ -834,7 +834,7 @@ const ItemDetails = () => {
       {mirrorRes && <MirrorResultModal result={mirrorRes} onClose={() => setMirrorRes(null)} />}
 
       {importMsg && (
-        <div style={{ marginBottom: 16, padding: '10px 16px', background: importMsg.includes('failed') || importMsg.includes('error') ? '#fef2f2' : '#f0fdf4', color: importMsg.includes('failed') || importMsg.includes('error') ? '#dc2626' : '#16a34a', borderRadius: 8, fontSize: 13, fontWeight: 500, border: `1px solid ${importMsg.includes('failed') || importMsg.includes('error') ? '#fecaca' : '#bbf7d0'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginBottom: 16, padding: '10px 16px', background: importMsg.includes('failed') || importMsg.includes('error') ? '#fef2f2' : '#f0fdf4', color: importMsg.includes('failed') || importMsg.includes('error') ? '#dc2626' : '#15803d', borderRadius: 8, fontSize: 13, fontWeight: 500, border: `1px solid ${importMsg.includes('failed') || importMsg.includes('error') ? '#fecaca' : '#bbf7d0'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{importMsg}</span>
           <button onClick={() => { setImportMsg(''); setImportDetail(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}><FiX size={14} /></button>
         </div>
@@ -859,7 +859,7 @@ const ItemDetails = () => {
                   <tbody>
                     {importDetail.imported_rows.map((r, i) => (
                       <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '6px 10px', color: '#94a3b8' }}>{r.row}</td>
+                        <td style={{ padding: '6px 10px', color: '#64748b' }}>{r.row}</td>
                         <td style={{ padding: '6px 10px', fontWeight: 600 }}>{r.code}</td>
                         <td style={{ padding: '6px 10px' }}>{r.name}</td>
                       </tr>
@@ -887,7 +887,7 @@ const ItemDetails = () => {
                   <tbody>
                     {importDetail.skipped_rows.map((r, i) => (
                       <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '6px 10px', color: '#94a3b8' }}>{r.row}</td>
+                        <td style={{ padding: '6px 10px', color: '#64748b' }}>{r.row}</td>
                         <td style={{ padding: '6px 10px', fontWeight: 600 }}>{r.code || '—'}</td>
                         <td style={{ padding: '6px 10px' }}>{r.name || '—'}</td>
                         <td style={{ padding: '6px 10px', color: '#92400e' }}>{r.reason}</td>
@@ -908,7 +908,7 @@ const ItemDetails = () => {
       <div className="phone-only" style={{ marginBottom: 10 }}>
         <div className="nowrap-row" style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
           <div className="search-input-container" style={{ flex: 1, minWidth: 0, margin: 0 }}>
-            <FiSearch style={{ color: '#9ca3af' }} />
+            <FiSearch style={{ color: '#6b7280' }} />
             <input type="text" placeholder={t('searchByItemOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           {isHqHost() && (
@@ -984,7 +984,7 @@ const ItemDetails = () => {
       </div>
 
       <div className="search-input-container desk-only">
-        <FiSearch style={{ color: '#9ca3af' }} />
+        <FiSearch style={{ color: '#6b7280' }} />
         <input type="text" placeholder={t('searchByItemOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
@@ -1101,7 +1101,7 @@ const ItemDetails = () => {
                       <>
                         {disp.name}
                         {extras.length > 0 && (
-                          <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2, lineHeight: 1.4 }}>
+                          <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, lineHeight: 1.4 }}>
                             {extras.map(u => (
                               <div key={u.name}>1 {u.name} = {u.conv} {item.unit}</div>
                             ))}
@@ -1117,7 +1117,7 @@ const ItemDetails = () => {
                   {(() => {
                     const cost = parseFloat(item.avg_cost_price || item.cost_price || 0);
                     const sell = parseFloat(item.selling_price || 0);
-                    if (!(sell > 0)) return <span style={{ color: '#9ca3af' }}>—</span>;
+                    if (!(sell > 0)) return <span style={{ color: '#6b7280' }}>—</span>;
                     const margin = ((sell - cost) / sell) * 100;
                     const color = margin >= 50 ? '#16a34a' : margin >= 25 ? '#b45309' : '#dc2626';
                     const bg    = margin >= 50 ? '#dcfce7' : margin >= 25 ? '#fef3c7' : '#fee2e2';
@@ -1247,7 +1247,7 @@ const ItemDetails = () => {
                 <div className="form-group">
                   <label>
                     Code <span style={{ color: '#dc2626' }}>*</span>
-                    {!editItem && <span style={{ fontSize: 10.5, fontWeight: 400, color: '#9ca3af', marginLeft: 6 }}>or click ⚡ to generate</span>}
+                    {!editItem && <span style={{ fontSize: 10.5, fontWeight: 400, color: '#6b7280', marginLeft: 6 }}>or click ⚡ to generate</span>}
                   </label>
                   {/* v1.13.174 — assigned, never typed, on new AND on edit.
                       An existing code is also the ZRA fallback identifier
@@ -1286,7 +1286,7 @@ const ItemDetails = () => {
                     ))}
                   </select>
                   {dbUnits.length === 0 && (
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
                       Add units in <strong>Categories and Units → Units</strong> tab.
                     </div>
                   )}
@@ -1491,7 +1491,7 @@ const ItemDetails = () => {
                 </div>
 
                 {(form.packagings || []).length === 0 ? (
-                  <div style={{ padding: '12px 14px', background: '#fff', border: '1px dashed #d1d5db', borderRadius: 8, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
+                  <div style={{ padding: '12px 14px', background: '#fff', border: '1px dashed #d1d5db', borderRadius: 8, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
                     No extra packagings yet — this product is only sold in <strong>{form.unit || 'pcs'}</strong>.
                   </div>
                 ) : (
@@ -1587,7 +1587,7 @@ const ItemDetails = () => {
                             disabled={lockConv}
                             onClick={() => setForm(f => ({ ...f, packagings: f.packagings.filter((_, i) => i !== idx) }))}
                             title={lockConv ? 'Saved packagings cannot be removed (history depends on them) — click the 🔒 to unlock' : 'Remove this packaging'}
-                            style={{ height: 36, width: 36, background: lockConv ? '#f3f4f6' : '#fee2e2', color: lockConv ? '#9ca3af' : '#dc2626', border: 'none', borderRadius: 6, cursor: lockConv ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
+                            style={{ height: 36, width: 36, background: lockConv ? '#f3f4f6' : '#fee2e2', color: lockConv ? '#6b7280' : '#dc2626', border: 'none', borderRadius: 6, cursor: lockConv ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
                             ×
                           </button>
                         </div>
@@ -1870,7 +1870,7 @@ const ItemDetails = () => {
                       </button>
                     </div>
                   ) : (
-                    <div style={{ width: 80, height: 80, borderRadius: 10, border: '2px dashed #d1d5db', background: '#f9fafb', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', flexShrink: 0 }}>
+                    <div style={{ width: 80, height: 80, borderRadius: 10, border: '2px dashed #d1d5db', background: '#f9fafb', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6b7280', flexShrink: 0 }}>
                       <FiCamera size={22} />
                       <span style={{ fontSize: 10, marginTop: 4 }}>No photo</span>
                     </div>
@@ -1884,7 +1884,7 @@ const ItemDetails = () => {
                           <FiCamera size={14} /> {imagePreview ? 'Change Photo' : 'Upload Photo'}
                         </label>
                         <input id="product-image-input" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-                        <p style={{ margin: '6px 0 0', fontSize: 11, color: '#9ca3af' }}>JPG, PNG, WEBP · Max 5MB</p>
+                        <p style={{ margin: '6px 0 0', fontSize: 11, color: '#6b7280' }}>JPG, PNG, WEBP · Max 5MB</p>
                       </>
                     )}
                   </div>
@@ -1929,12 +1929,12 @@ const ItemDetails = () => {
                   <div>
                     <label style={labelSt}>Start Position (0-indexed)</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_number_start} onChange={setBF('ub_number_start')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 1 → skip first digit</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 1 → skip first digit</div>
                   </div>
                   <div>
                     <label style={labelSt}>Code Length (digits)</label>
                     <input style={inputSt} type="number" min="1" value={barcodeForm.ub_number_length} onChange={setBF('ub_number_length')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 6 → read 6 digits</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 6 → read 6 digits</div>
                   </div>
                 </div>
               </div>
@@ -1946,17 +1946,17 @@ const ItemDetails = () => {
                   <div>
                     <label style={labelSt}>Start Position</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_quantity_start} onChange={setBF('ub_quantity_start')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 7</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 7</div>
                   </div>
                   <div>
                     <label style={labelSt}>Length (0 = none)</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_quantity_length} onChange={setBF('ub_quantity_length')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 5 digits</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 5 digits</div>
                   </div>
                   <div>
                     <label style={labelSt}>Decimal At</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_decimal_start} onChange={setBF('ub_decimal_start')} />
-                    <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 3 }}>e.g. 2 → XX.XXX</div>
+                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 2 → XX.XXX</div>
                   </div>
                 </div>
               </div>
@@ -1986,7 +1986,7 @@ const ItemDetails = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — Items List ({items.length} items)
               </span>
             </div>
@@ -1999,7 +1999,7 @@ const ItemDetails = () => {
               </button>
               <button
                 onClick={() => setShowPrintPreview(false)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}
               >
                 <FiX size={14} /> Close
               </button>
@@ -2072,7 +2072,7 @@ const ItemDetails = () => {
                       const isLow = parseFloat(item.store_balance || 0) <= parseFloat(item.min_stock || 0);
                       return (
                         <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: isLow ? '#fff5f5' : idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                          <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                          <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                           <td style={{ padding: '8px 12px', fontWeight: 700, color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>{item.code}</td>
                           <td style={{ padding: '8px 12px', fontWeight: 500, color: '#1e293b' }}>{item.name}</td>
                           <td style={{ padding: '8px 12px' }}>
@@ -2088,7 +2088,7 @@ const ItemDetails = () => {
                           <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>
                             {(parseFloat(parseFloat(item.min_stock || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: isLow ? '#dc2626' : '#16a34a' }}>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: isLow ? '#dc2626' : '#15803d' }}>
                             {isLow ? '⚠ ' : ''}{(parseFloat(parseFloat(item.store_balance || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {item.unit}
                           </td>
                         </tr>
@@ -2106,7 +2106,7 @@ const ItemDetails = () => {
                       <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#1d4ed8', fontSize: 11 }}>
                         Avg ${items.length > 0 ? (items.reduce((s, i) => s + parseFloat(i.selling_price || 0), 0) / items.length).toFixed(2) : '0.00'}
                       </td>
-                      <td colSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, color: lowStockItems.length > 0 ? '#dc2626' : '#16a34a', fontWeight: 600 }}>
+                      <td colSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, color: lowStockItems.length > 0 ? '#dc2626' : '#15803d', fontWeight: 600 }}>
                         {lowStockItems.length > 0 ? `⚠ ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} low on stock` : '✓ All stock levels OK'}
                       </td>
                     </tr>
@@ -2376,7 +2376,7 @@ function UnspscPicker({ value, onChange, disabled = false }) {
           {loading ? (
             <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Searching…</div>
           ) : results.length === 0 ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
+            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
               {query ? 'No matches.' : 'Type to search 158,000+ UNSPSC codes.'}
             </div>
           ) : (
@@ -2388,7 +2388,7 @@ function UnspscPicker({ value, onChange, disabled = false }) {
                 onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                 <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#0e7490', minWidth: 74 }}>{r.item_cls_cd}</span>
                 <span style={{ fontSize: 12, color: '#111827' }}>{r.item_cls_nm}</span>
-                <span style={{ fontSize: 10, color: '#9ca3af', marginLeft: 'auto' }}>
+                <span style={{ fontSize: 10, color: '#6b7280', marginLeft: 'auto' }}>
                   L{r.item_cls_lvl}
                 </span>
               </div>
@@ -2475,7 +2475,7 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
           {loading ? (
             <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Loading…</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#9ca3af', textAlign: 'center' }}>
+            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
               {options.length === 0 ? 'No codes cached. Sync from ZRA Smart Invoice page first.' : 'No matches.'}
             </div>
           ) : (

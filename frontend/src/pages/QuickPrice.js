@@ -250,7 +250,7 @@ const QuickPrice = () => {
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0 18px' }}>
         <div style={{ position: 'relative', flex: '0 0 360px' }}>
-          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={15} />
+          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product name or code…"
             style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
@@ -258,9 +258,9 @@ const QuickPrice = () => {
       </div>
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>Loading products…</div>
+        <div style={{ padding: 60, textAlign: 'center', color: '#64748b' }}>Loading products…</div>
       ) : filteredProducts.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', background: '#fff', borderRadius: 12 }}>No products match.</div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: 12 }}>No products match.</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
           {filteredProducts.map(p => {
@@ -276,7 +276,7 @@ const QuickPrice = () => {
               }}>
                 <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
                   <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 14, lineHeight: 1.2 }}>{p.name}</div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3 }}>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>
                     {p.code}
                     {isDirty && <span style={{ marginLeft: 8, color: '#d97706', fontWeight: 700 }}>● unsaved</span>}
                   </div>
@@ -304,7 +304,7 @@ const QuickPrice = () => {
                             )}
                           </label>
                           <div style={{ position: 'relative' }}>
-                            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#94a3b8', pointerEvents: 'none', fontWeight: 600 }}>{curSym}</span>
+                            <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#64748b', pointerEvents: 'none', fontWeight: 600 }}>{curSym}</span>
                             <input
                               type="text" inputMode="decimal"
                               value={displayValue}

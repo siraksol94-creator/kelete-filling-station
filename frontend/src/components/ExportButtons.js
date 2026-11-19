@@ -29,7 +29,7 @@ const btnStyle = (color, disabled) => ({
   borderRadius: 6,
   border: `1.5px solid ${color}`,
   background: disabled ? '#f3f4f6' : '#fff',
-  color: disabled ? '#9ca3af' : color,
+  color: disabled ? '#6b7280' : color,
   cursor: disabled ? 'not-allowed' : 'pointer',
   fontSize: 12,
   fontWeight: 700,
