@@ -196,6 +196,13 @@
    "covers": "Go-Live Pack",
    "what": "Documents and read-only tools only (no runtime effect)",
    "migrations": []
+  },
+  {
+   "n": 26,
+   "subject": "Security fix: /api/auth/register needs an Administrator's login (anyone could create an Administrator)",
+   "covers": "Security defect",
+   "what": "Anonymous Administrator sign-up closed; /register now Administrator-only",
+   "migrations": []
   }
  ],
  "migrations": [

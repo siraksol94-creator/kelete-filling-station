@@ -125,6 +125,27 @@ describe('S2 — inline admin-password check', () => {
   });
 });
 
+describe('Security fix — /api/auth/register needs an Administrator', () => {
+  const body = (email, role) => ({ firstName: 'X', lastName: 'Y', email, password: 'Intruder-Pass-1', phone: '', role });
+  test('without a login: refused, no account created, nothing to log in with', async () => {
+    const r = await app.request('POST', '/api/auth/register', { body: body('anon-admin', 'Administrator') });
+    assert.equal(r.status, 401);
+    assert.equal(app.db.prepare("SELECT COUNT(*) AS n FROM users WHERE email = 'anon-admin'").get().n, 0);
+    assert.equal((await app.request('POST', '/api/auth/login', { body: { email: 'anon-admin', password: 'Intruder-Pass-1' } })).status, 401);
+  });
+  test('a cashier or supervisor cannot use it either', async () => {
+    for (const who of ['cashier', 'supervisor']) {
+      const r = await app.request('POST', '/api/auth/register', { token: staff.tokens[who], body: body(`via-${who}`, 'Administrator') });
+      assert.equal(r.status, 403, who);
+    }
+    assert.equal(app.db.prepare("SELECT COUNT(*) AS n FROM users WHERE email LIKE 'via-%'").get().n, 0);
+  });
+  test('an Administrator still can', async () => {
+    const r = await app.request('POST', '/api/auth/register', { token: staff.tokens.owner, body: body('added-by-admin', 'Cashier') });
+    assert.equal(r.status, 201, r.text);
+  });
+});
+
 describe('S2 — first-time registration', () => {
   test('refused when accounts exist, and deletes nothing', async () => {
     app.db.prepare(`INSERT INTO users (first_name,last_name,email,password,role) VALUES ('d','a','admin','x','Administrator')`).run();

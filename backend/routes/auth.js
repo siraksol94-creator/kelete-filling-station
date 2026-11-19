@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 const { masterDb } = require('../config/masterDb');
-const { auth } = require('../middleware/auth');
+const { auth, adminOnly } = require('../middleware/auth');
 const { getJwtSecret } = require('../config/secrets');
 const throttle = require('../middleware/loginThrottle');
 
@@ -175,8 +175,13 @@ router.post('/register-first', async (req, res) => {
   }
 });
 
-// Register
-router.post('/register', async (req, res) => {
+// Register — Administrators only (security fix, 2026-11-19).
+// This route used to need no login at all: anyone who could reach the server
+// could create an account with any role, including Administrator, and log in
+// with it. No screen calls it (staff are added through /api/users, which is
+// Administrator-only), so requiring an Administrator's login changes nothing
+// for legitimate use. The fresh-install path is /register-first (unchanged).
+router.post('/register', auth, adminOnly, async (req, res) => {
   try {
     const { firstName, lastName, email, password, phone, role } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
