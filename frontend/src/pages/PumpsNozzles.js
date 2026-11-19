@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiZap } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiZap, FiUser } from 'react-icons/fi';
+// UX-8 — the forecourt view: pump drawings, meter displays, who's on shift.
+import { PageHero, EmptyState, useDialog } from '../ux/ForecourtKit';
+import PumpArt, { MeterDigits } from '../ux/PumpArt';
+import { fmtK } from '../ux/forecourt';
+import { businessToday } from '../utils/businessDate';
 import { getPumpsWithNozzles, createPump, updatePump, deletePump, createNozzle, updateNozzle, deleteNozzle, getTanks } from '../services/fuelApi';
 import { S } from './fuelStyles';
 import { useAuth } from '../context/AuthContext';
@@ -56,6 +61,7 @@ export default function PumpsNozzles() {
   const [pumpForm, setPumpForm] = useState(null);
   const [nozForm, setNozForm] = useState(null);
   const [err, setErr] = useState('');
+  const [dialog, ui] = useDialog();   // UX-8: in-app confirm / alert
 
   const load = async () => {
     try {
@@ -84,68 +90,72 @@ export default function PumpsNozzles() {
   };
 
   const removePump = async (p) => {
-    if (!window.confirm(`Delete pump "${p.name}" and all its nozzles?`)) return;
-    try { await deletePump(p.id); await load(); } catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    if (!(await ui.confirm({ title: 'Delete pump', text: `Delete pump "${p.name}" and all its nozzles?`, okLabel: 'Delete', danger: true }))) return;
+    try { await deletePump(p.id); await load(); } catch (ex) { await ui.alert({ title: 'Delete failed', text: ex.response?.data?.error || 'Delete failed' }); }
   };
   const removeNoz = async (n) => {
-    if (!window.confirm(`Delete nozzle "${n.code}"?`)) return;
-    try { await deleteNozzle(n.id); await load(); } catch (ex) { alert(ex.response?.data?.error || 'Delete failed'); }
+    if (!(await ui.confirm({ title: 'Delete nozzle', text: `Delete nozzle "${n.code}"?`, okLabel: 'Delete', danger: true }))) return;
+    try { await deleteNozzle(n.id); await load(); } catch (ex) { await ui.alert({ title: 'Delete failed', text: ex.response?.data?.error || 'Delete failed' }); }
   };
 
   return (
     <div style={S.page} className="k-page">
-      <div style={S.header} className="k-page-header">
-        <h2 style={S.h2}><FiZap /> Pumps & Nozzles</h2>
-        {isAdmin
-          ? <button onClick={() => setPumpForm({ code: '', name: '' })} style={S.btnPrimary}><FiPlus /> New Pump</button>
-          : <span style={{ fontSize: 13, color: '#6b7280' }}>Meter corrections only — pumps and nozzles are set up by an Administrator.</span>}
-      </div>
+      <PageHero icon={<FiZap />} title="Pumps & Nozzles" date={businessToday()}
+        subtitle={isAdmin ? 'The forecourt: every pump, its nozzles, meters and tanks' : 'Meter corrections only — pumps and nozzles are set up by an Administrator'}
+        actions={isAdmin ? <button type="button" onClick={() => setPumpForm({ code: '', name: '' })} className="k-fc-btn-hero"><FiPlus /> New Pump</button> : null} />
 
       {pumps.length === 0 && (
-        <div style={{ ...S.card, padding: 40, textAlign: 'center', color: '#6b7280' }}>No pumps yet. Create a pump, then add nozzles under it.</div>
+        <div style={{ ...S.card, padding: 0 }}>
+          <EmptyState art={<PumpArt code="P1" width={90} />} title="No pumps yet"
+            text="Create a pump, then add its nozzles and say which tank each one draws from."
+            action={isAdmin ? <button type="button" onClick={() => setPumpForm({ code: '', name: '' })} style={S.btnPrimary}><FiPlus /> New Pump</button> : null} />
+        </div>
       )}
-
-      <div style={{ display: 'grid', gap: 16 }}>
-        {pumps.map(p => (
-          <div key={p.id} style={S.card}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: 16, borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
-              <div><strong style={{ fontSize: 16 }}>{p.code}</strong> &nbsp; <span style={{ color: '#374151' }}>{p.name}</span></div>
-              <div>
-                {isAdmin && <><button onClick={() => setNozForm({ pump_id: p.id, tank_id: '', code: '', current_meter_reading: 0 })} style={S.btnSecondary}><FiPlus /> Nozzle</button>
-                &nbsp;<button onClick={() => setPumpForm(p)} style={S.iconBtn}><FiEdit2 /></button>
-                <button onClick={() => removePump(p)} style={S.iconBtnDanger}><FiTrash2 /></button></>}
-              </div>
-            </div>
-            <table style={S.table}>
-              <thead>
-                <tr>
-                  <th style={S.th}>Nozzle</th><th style={S.th}>Tank</th><th style={S.th}>Grade</th>
-                  <th style={{ ...S.th, textAlign: 'right' }}>Meter Reading</th>
-                  <th style={{ ...S.th, textAlign: 'right' }}>Price/L</th>
-                  <th style={S.th}></th>
-                </tr>
-              </thead>
-              <tbody>
-                {(p.nozzles || []).map(n => (
-                  <tr key={n.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={S.td}><strong>{n.code}</strong></td>
-                    <td style={S.td}>{tankLabelForNozzle(n, tanks)}</td>
-                    <td style={S.td}><span style={S.pill(n.grade_color || '#6b7280')}>{n.grade_name || '-'}</span></td>
-                    <td style={S.tdR}>{Number(n.current_meter_reading).toFixed(2)} L</td>
-                    <td style={S.tdR}>K {Number(n.price_per_litre || 0).toFixed(2)}</td>
-                    <td style={S.td}>
-                      <button onClick={() => setNozForm(n)} style={S.iconBtn}><FiEdit2 /></button>
-                      {isAdmin && <button onClick={() => removeNoz(n)} style={S.iconBtnDanger}><FiTrash2 /></button>}
-                    </td>
-                  </tr>
-                ))}
-                {(p.nozzles || []).length === 0 && (
-                  <tr><td colSpan={6} style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No nozzles on this pump</td></tr>
+      <div className="k-pumps">
+        {pumps.map(p => {
+          const crew = p.on_shift || [];
+          return (
+          <section key={p.id} className="k-pump-card" aria-label={`Pump ${p.code}`}>
+            <div className="k-pump-art"><PumpArt code={p.code} nozzles={p.nozzles || []} width={136} live={crew.length > 0} /></div>
+            <div className="k-pump-main">
+              <header className="k-pump-head">
+                <div>
+                  <h3>{p.code} <span>{p.name}</span></h3>
+                  <div className={`k-pump-crew${crew.length ? ' is-on' : ''}`}>
+                    {crew.length
+                      ? <><span className="k-pump-dot" aria-hidden="true" />On shift: {crew.map((c) => <span key={c.shift_id} className="k-pump-who"><FiUser aria-hidden="true" />{c.attendant_name || 'Attendant'}</span>)}</>
+                      : 'No open shift on this pump'}
+                  </div>
+                </div>
+                {isAdmin && (
+                  <div className="k-pump-tools">
+                    <button type="button" onClick={() => setNozForm({ pump_id: p.id, tank_id: '', code: '', current_meter_reading: 0 })} style={S.btnSecondary}><FiPlus /> Nozzle</button>
+                    <button type="button" onClick={() => setPumpForm(p)} style={S.iconBtn} aria-label={`Edit pump ${p.code}`} title="Edit pump"><FiEdit2 /></button>
+                    <button type="button" onClick={() => removePump(p)} style={S.iconBtnDanger} aria-label={`Delete pump ${p.code}`} title="Delete pump"><FiTrash2 /></button>
+                  </div>
                 )}
-              </tbody>
-            </table>
-          </div>
-        ))}
+              </header>
+              <ul className="k-noz-list">
+                {(p.nozzles || []).map(n => (
+                  <li key={n.id} className="k-noz" style={{ '--k-noz': n.grade_color || '#64748b' }}>
+                    <span className="k-noz-code">{n.code}</span>
+                    <div className="k-noz-info">
+                      <div><span style={S.pill(n.grade_color || '#64748b')}>{n.grade_name || '-'}</span> <span className="k-noz-tank">from {tankLabelForNozzle(n, tanks)}</span></div>
+                      <MeterDigits value={n.current_meter_reading} label={`Nozzle ${n.code} meter`} />
+                    </div>
+                    <div className="k-noz-price"><span>Price</span><b className="k-fc-num">{fmtK(n.price_per_litre || 0)}</b><span>per litre</span></div>
+                    <div className="k-noz-tools">
+                      <button type="button" onClick={() => setNozForm(n)} style={S.iconBtn} aria-label={isAdmin ? `Edit nozzle ${n.code}` : `Correct meter for nozzle ${n.code}`} title={isAdmin ? 'Edit nozzle' : 'Correct the meter'}><FiEdit2 /></button>
+                      {isAdmin && <button type="button" onClick={() => removeNoz(n)} style={S.iconBtnDanger} aria-label={`Delete nozzle ${n.code}`} title="Delete nozzle"><FiTrash2 /></button>}
+                    </div>
+                  </li>
+                ))}
+                {(p.nozzles || []).length === 0 && <li className="k-noz-empty">No nozzles on this pump{isAdmin ? ' — add one with “+ Nozzle”.' : '.'}</li>}
+              </ul>
+            </div>
+          </section>
+          );
+        })}
       </div>
 
       {pumpForm && (
@@ -191,6 +201,7 @@ export default function PumpsNozzles() {
           </div>
         </div>
       )}
+      {dialog}
     </div>
   );
 }

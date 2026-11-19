@@ -62,3 +62,21 @@ test('ledger axis uses round steps', () => {
   assert.deepEqual(niceTicks(30000), [0, 10000, 20000, 30000]);
   assert.deepEqual(niceTicks(900), [0, 250, 500, 750, 1000]);
 });
+
+import { deliveryCheck, fitCheck } from '../../src/ux/forecourt';
+test('delivery check: ordered vs delivered vs dipped, in full, banded like the dips', () => {
+  const c = deliveryCheck({ litres_ordered: 15000, litres_delivered: 14950, dip_before: 3200, dip_after: 18080 });
+  assert.equal(c.vsOrdered, -50);
+  assert.equal(c.dipped, 14880);
+  assert.equal(c.vsDipped, -70);
+  assert.equal(c.band.level, 'ok', '70 L of 14,950 is under 0.5%');
+  const n = deliveryCheck({ litres_delivered: 5000, dip_before: '', dip_after: 5100 });
+  assert.equal(n.dipped, null); assert.equal(n.band, null); assert.equal(n.vsOrdered, null);
+  assert.equal(deliveryCheck({ litres_delivered: 10000, dip_before: 0, dip_after: 9850 }).band.level, 'high');
+});
+test('will it fit?', () => {
+  assert.deepEqual(fitCheck(30000, 3200, 20000), { after: 23200, over: 0, fits: true, space: 26800, pctAfter: 23200 / 30000 });
+  const f = fitCheck(30000, 18452, 15000);
+  assert.equal(f.fits, false); assert.equal(f.over, 3452); assert.equal(f.pctAfter, 1);
+  assert.equal(fitCheck(0, 0, 100).fits, true, 'unknown capacity: no warning');
+});

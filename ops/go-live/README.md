@@ -249,6 +249,7 @@ automatically at start-up, once, each in its own transaction.
 | 33 | UX-6 | Side menu: Find a screen (Ctrl K), recently used, follows the page, full icon menu, keyboard and phone polish | — |
 | 34 | UX-6 fix | Build fix: eslint comments that stopped `npm start`; the screen check catches them | — |
 | 35 | UX-7 | Forecourt kit for the fuel screens; Tanks: 3D cards, dip ring and ±0.5%/1% bands, ledger chart (read-only `/api/tanks/insights`) | — |
+| 36 | UX-8 | Deliveries: timeline, three-way check, will-it-fit; Pumps: forecourt view, meters, who is on shift (read-only extras on two GETs) | — |
 
 Before tagging, on the test machine:
 
