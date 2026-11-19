@@ -473,7 +473,7 @@ const PaymentVoucher = () => {
               <div style={{ flex: 1, minWidth: 260, padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>By depot</div>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12.5 }}>
-                  {allTotals.by_depot.length === 0 ? <span style={{ color: '#9ca3af' }}>—</span>
+                  {allTotals.by_depot.length === 0 ? <span style={{ color: '#6b7280' }}>—</span>
                     : allTotals.by_depot.map(d => (
                       <span key={d.slug}>{d.name} <strong style={{ color: '#dc2626' }}>{money(d.total)}</strong></span>
                     ))}
@@ -482,7 +482,7 @@ const PaymentVoucher = () => {
               <div style={{ flex: 1, minWidth: 220, padding: '10px 14px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 6 }}>By type</div>
                 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', fontSize: 12.5 }}>
-                  {allTotals.by_type.length === 0 ? <span style={{ color: '#9ca3af' }}>—</span>
+                  {allTotals.by_type.length === 0 ? <span style={{ color: '#6b7280' }}>—</span>
                     : allTotals.by_type.map(t2 => (
                       <span key={t2.type}>{t2.type} <strong style={{ color: '#374151' }}>{money(t2.total)}</strong></span>
                     ))}
@@ -586,7 +586,7 @@ const PaymentVoucher = () => {
             </tr></thead>
             <tbody>
               {pvTypes.length === 0 ? (
-                <tr><td colSpan={3} style={{ padding: 30, textAlign: 'center', color: '#9ca3af' }}>No types yet.</td></tr>
+                <tr><td colSpan={3} style={{ padding: 30, textAlign: 'center', color: '#6b7280' }}>No types yet.</td></tr>
               ) : pvTypes.map(t => editingType?.id === t.id ? (
                 <tr key={t.id} style={{ background: '#fffbeb', borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: 8 }}>
@@ -639,7 +639,7 @@ const PaymentVoucher = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10 }}>
               {limits.length === 0 ? (
-                <span style={{ color: '#9ca3af', fontSize: 13 }}>Loading depots…</span>
+                <span style={{ color: '#6b7280', fontSize: 13 }}>Loading depots…</span>
               ) : limits.map(l => {
                 const typed = limitEdits[l.slug];
                 const shown = typed === undefined ? (l.limit == null ? '' : String(l.limit)) : typed;
@@ -659,7 +659,7 @@ const PaymentVoucher = () => {
                         style={{ flex: 1, minWidth: 0, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
                       <button onClick={() => saveLimit(l)} disabled={!changed || savingLimit === l.slug}
                         style={{ padding: '6px 12px', borderRadius: 6, border: 'none', fontSize: 12, fontWeight: 700,
-                                 background: changed ? '#1d4ed8' : '#e5e7eb', color: changed ? '#fff' : '#9ca3af',
+                                 background: changed ? '#1d4ed8' : '#e5e7eb', color: changed ? '#fff' : '#6b7280',
                                  cursor: changed ? 'pointer' : 'not-allowed' }}>
                         {savingLimit === l.slug ? 'Saving…' : 'Save'}
                       </button>
@@ -841,9 +841,9 @@ const PaymentVoucher = () => {
                   <thead>
                     <tr>
                       <th>Date</th><th>Depot</th><th>Voucher #</th><th>Paid To</th><th>Type</th><th>Description</th>
-                      <th style={{ textAlign: 'right', color: '#16a34a' }}>CASH</th>
+                      <th style={{ textAlign: 'right', color: '#15803d' }}>CASH</th>
                       <th style={{ textAlign: 'right', color: '#7c3aed' }}>MOBILE MONEY</th>
-                      <th style={{ textAlign: 'right', color: '#ea580c' }}>BANK</th>
+                      <th style={{ textAlign: 'right', color: '#c2410c' }}>BANK</th>
                       <th style={{ textAlign: 'right' }}>TOTAL</th>
                       <th>By</th>
                       {canDeleteAll && <th></th>}
@@ -864,9 +864,9 @@ const PaymentVoucher = () => {
                           <td style={cell}>{r.paid_to}</td>
                           <td style={cell}><span className={`badge ${getCategoryColor(r.category)}`}>{r.category}</span></td>
                           <td style={{ ...cell, color: '#6b7280' }}>{r.description || '—'}</td>
-                          <td style={{ ...cell, textAlign: 'right', color: r.cash > 0 ? '#16a34a' : '', fontWeight: r.cash > 0 ? 700 : 400 }}>{r.cash > 0 ? money(r.cash) : dash}</td>
+                          <td style={{ ...cell, textAlign: 'right', color: r.cash > 0 ? '#15803d' : '', fontWeight: r.cash > 0 ? 700 : 400 }}>{r.cash > 0 ? money(r.cash) : dash}</td>
                           <td style={{ ...cell, textAlign: 'right', color: r.momo > 0 ? '#7c3aed' : '', fontWeight: r.momo > 0 ? 700 : 400 }}>{r.momo > 0 ? money(r.momo) : dash}</td>
-                          <td style={{ ...cell, textAlign: 'right', color: r.bank > 0 ? '#ea580c' : '', fontWeight: r.bank > 0 ? 700 : 400 }}>{r.bank > 0 ? money(r.bank) : dash}</td>
+                          <td style={{ ...cell, textAlign: 'right', color: r.bank > 0 ? '#c2410c' : '', fontWeight: r.bank > 0 ? 700 : 400 }}>{r.bank > 0 ? money(r.bank) : dash}</td>
                           <td style={{ ...cell, textAlign: 'right', fontWeight: 700 }}>{money(r.total)}</td>
                           <td style={{ ...cell, color: '#6b7280', fontSize: 12 }}>{r.created_by_name || '—'}</td>
                           {canDeleteAll && (
@@ -903,7 +903,7 @@ const PaymentVoucher = () => {
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
@@ -911,7 +911,7 @@ const PaymentVoucher = () => {
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
@@ -920,7 +920,7 @@ const PaymentVoucher = () => {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 12 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>Type</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>Type</span>
           <select value={filterType} onChange={e => setFilterType(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }}>
             <option value="All">All</option>
@@ -937,7 +937,7 @@ const PaymentVoucher = () => {
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
           {filteredVouchers.length} voucher{filteredVouchers.length !== 1 ? 's' : ''}
           {hasFilter && (
             <> &nbsp;·&nbsp; Total: <strong style={{ color: '#dc2626' }}>{curSym}{fmt2(filteredTotal)}</strong></>
@@ -966,15 +966,15 @@ const PaymentVoucher = () => {
                     "$200 USD"). */}
                 {isLiquorStyle ? (
                   <>
-                    <th style={{ textAlign: 'right', color: '#16a34a' }}>CASH</th>
+                    <th style={{ textAlign: 'right', color: '#15803d' }}>CASH</th>
                     <th style={{ textAlign: 'right', color: '#7c3aed' }}>MOBILE MONEY</th>
-                    <th style={{ textAlign: 'right', color: '#ea580c' }}>BANK</th>
+                    <th style={{ textAlign: 'right', color: '#c2410c' }}>BANK</th>
                   </>
                 ) : (
                   <>
-                    <th style={{ textAlign: 'right', color: '#16a34a' }}>USD ($)</th>
+                    <th style={{ textAlign: 'right', color: '#15803d' }}>USD ($)</th>
                     <th style={{ textAlign: 'right', color: '#7c3aed' }}>FRA</th>
-                    <th style={{ textAlign: 'right', color: '#ea580c' }}>K</th>
+                    <th style={{ textAlign: 'right', color: '#c2410c' }}>K</th>
                   </>
                 )}
                 <th>{t('actions')}</th>
@@ -1007,7 +1007,7 @@ const PaymentVoucher = () => {
                     <span style={{
                       fontSize: 11, fontWeight: 500, padding: '2px 8px', borderRadius: 20,
                       background: v.paid_from === 'Cash Drawer' ? '#eff6ff' : '#f0fdf4',
-                      color: v.paid_from === 'Cash Drawer' ? '#2563eb' : '#16a34a',
+                      color: v.paid_from === 'Cash Drawer' ? '#2563eb' : '#15803d',
                       border: `1px solid ${v.paid_from === 'Cash Drawer' ? '#bfdbfe' : '#bbf7d0'}`,
                     }}>
                       {v.paid_from || 'Main cashier'}
@@ -1016,15 +1016,15 @@ const PaymentVoucher = () => {
                   <td>{v.paid_to}</td>
                   <td style={{ color: '#6b7280' }}>{v.description || '—'}</td>
                   <td><span className={`badge ${getCategoryColor(v.category)}`}>{v.category}</span></td>
-                  <td style={{ textAlign: 'right', color: va > 0 ? '#16a34a' : '', fontWeight: va > 0 ? 700 : 400 }}>{va > 0 ? fmtA(va) : dash}</td>
+                  <td style={{ textAlign: 'right', color: va > 0 ? '#15803d' : '', fontWeight: va > 0 ? 700 : 400 }}>{va > 0 ? fmtA(va) : dash}</td>
                   <td style={{ textAlign: 'right', color: vb > 0 ? '#7c3aed' : '', fontWeight: vb > 0 ? 700 : 400 }}>{vb > 0 ? fmtB(vb) : dash}</td>
-                  <td style={{ textAlign: 'right', color: vc > 0 ? '#ea580c' : '', fontWeight: vc > 0 ? 700 : 400 }}>{vc > 0 ? fmtC(vc) : dash}</td>
+                  <td style={{ textAlign: 'right', color: vc > 0 ? '#c2410c' : '', fontWeight: vc > 0 ? 700 : 400 }}>{vc > 0 ? fmtC(vc) : dash}</td>
                   <td style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                     <button
                       onClick={() => setViewVoucher(v)}
                       style={{
                         background: '#f0fdf4', border: '1px solid #bbf7d0', cursor: 'pointer',
-                        color: '#16a34a', padding: '4px 10px', borderRadius: 6,
+                        color: '#15803d', padding: '4px 10px', borderRadius: 6,
                         display: 'inline-flex', alignItems: 'center', gap: 5,
                         fontSize: 12, fontWeight: 600, transition: 'background 0.15s',
                       }}
@@ -1089,9 +1089,9 @@ const PaymentVoucher = () => {
                   const fmtB = (n) => isLiquorStyle ? `K${fmt2(n)}` : Math.round(n).toLocaleString('en-US');
                   const fmtC = (n) => isLiquorStyle ? `K${fmt2(n)}` : Math.round(n).toLocaleString('en-US');
                   return (<>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#16a34a', fontWeight: 700, fontSize: 13 }}>{fmtA(ta)}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#15803d', fontWeight: 700, fontSize: 13 }}>{fmtA(ta)}</td>
                     <td style={{ padding: '10px 14px', textAlign: 'right', color: '#7c3aed', fontWeight: 700, fontSize: 13 }}>{fmtB(tb)}</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#ea580c', fontWeight: 700, fontSize: 13 }}>{fmtC(tc)}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#c2410c', fontWeight: 700, fontSize: 13 }}>{fmtC(tc)}</td>
                     <td></td>
                   </>);
                 })()}
@@ -1138,14 +1138,14 @@ const PaymentVoucher = () => {
                 { label: 'Category',    value: viewVoucher.category },
               ].map(({ label, value }) => (
                 <div key={label} style={{ background: '#f8fafc', borderRadius: 8, padding: '10px 14px', border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{value}</div>
                 </div>
               ))}
 
               {viewVoucher.description && (
                 <div style={{ gridColumn: '1 / -1', background: '#f8fafc', borderRadius: 8, padding: '10px 14px', border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Description</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>Description</div>
                   <div style={{ fontSize: 14, color: '#374151' }}>{viewVoucher.description}</div>
                 </div>
               )}
@@ -1159,7 +1159,7 @@ const PaymentVoucher = () => {
               {/* Invoice attachment */}
               {viewVoucher.invoice_attachment && (
                 <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Invoice Attachment</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Invoice Attachment</div>
                   <InvoiceAttachment value={viewVoucher.invoice_attachment} onChange={() => {}} kind="pv" disabled />
                 </div>
               )}
@@ -1212,7 +1212,7 @@ const PaymentVoucher = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — Payment Vouchers ({filteredVouchers.length} records)
               </span>
             </div>
@@ -1220,7 +1220,7 @@ const PaymentVoucher = () => {
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -1283,7 +1283,7 @@ const PaymentVoucher = () => {
                   <tbody>
                     {filteredVouchers.map((v, idx) => (
                       <tr key={v.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#dc2626' }}>{v.voucher_number}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(v.date)}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{v.paid_from || 'Main cashier'}</td>
@@ -1400,7 +1400,7 @@ const PaymentVoucher = () => {
                   border: '1px solid #e5e7eb', borderRadius: 8,
                   padding: '12px 16px', background: '#f9fafb',
                 }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>{label}</div>
                   <div style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>{value}</div>
                 </div>
               ))}
@@ -1409,7 +1409,7 @@ const PaymentVoucher = () => {
             {/* Description */}
             {viewVoucher.description && (
               <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '12px 16px', background: '#f9fafb', marginBottom: 24 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Description</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Description</div>
                 <div style={{ fontSize: 14, color: '#374151' }}>{viewVoucher.description}</div>
               </div>
             )}

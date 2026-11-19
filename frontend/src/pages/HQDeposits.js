@@ -490,7 +490,7 @@ Reason (required, kept on record):`
       {/* Deposits table */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
         {liveDeposits.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
             <FiInbox size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
             <p style={{ fontStyle: 'italic' }}>{loading ? 'Loading...' : 'No deposits to show.'}</p>
           </div>
@@ -671,8 +671,8 @@ Reason (required, kept on record):`
                   <label>From Drawer</label>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {[
-                      { value: 'Cash',         label: 'Cash on Hand',  color: '#16a34a' },
-                      { value: 'Mobile Money', label: 'Mobile Money',  color: '#ea580c' },
+                      { value: 'Cash',         label: 'Cash on Hand',  color: '#15803d' },
+                      { value: 'Mobile Money', label: 'Mobile Money',  color: '#c2410c' },
                       { value: 'Bank',         label: 'Bank',          color: '#2563eb' },
                     // 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown.
                     ].filter(opt => methodShown(opt.value) || sendForm.from_method === opt.value).map(opt => {
@@ -747,10 +747,10 @@ Reason (required, kept on record):`
                       <FiPaperclip size={12} /> {uploadingAtt ? 'Uploading…' : 'Choose files'}
                     </button>
                     <button type="button" onClick={() => camInputRef.current?.click()} disabled={uploadingAtt}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 6, cursor: uploadingAtt ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 6, cursor: uploadingAtt ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
                       <FiCamera size={12} /> Camera
                     </button>
-                    <span style={{ fontSize: 11, color: '#9ca3af', alignSelf: 'center' }}>
+                    <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>
                       {(sendForm.attachments || []).length} attached
                     </span>
                   </div>

@@ -97,7 +97,7 @@ export default function HqProducts() {
       {/* Filters */}
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: '1 1 240px' }}>
-          <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+          <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
           <input type="text" value={q}
             onChange={e => setQ(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') refresh(); }}
@@ -125,7 +125,7 @@ export default function HqProducts() {
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic' }}><FiPackage /> No products yet. Click <strong>New Product</strong> to seed the catalogue.</p>
+          <p style={{ color: '#64748b', fontStyle: 'italic' }}><FiPackage /> No products yet. Click <strong>New Product</strong> to seed the catalogue.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -151,7 +151,7 @@ export default function HqProducts() {
                       <td style={{ ...td, fontWeight: 600 }}>{r.name}</td>
                       <td style={td}>{r.category_name || '—'}</td>
                       <td style={td}>{r.unit}</td>
-                      <td style={td}>{r.default_unit || <span style={{ color: '#94a3b8' }}>—</span>}</td>
+                      <td style={td}>{r.default_unit || <span style={{ color: '#64748b' }}>—</span>}</td>
                       <td style={{ ...td, textAlign: 'right' }}>{packCount}</td>
                       <td style={td}>{statusBadge(r.status)}</td>
                       <td style={{ ...td, whiteSpace: 'nowrap' }}>
@@ -314,7 +314,7 @@ function ProductForm({ existing, onClose, onSaved, onError }) {
             </div>
             <div style={{ fontSize: 11, color: '#64748b', marginBottom: 8 }}>Base unit is <b>{form.unit || 'pcs'}</b>. Add packs/boxes that contain multiple base units (e.g. 1 Crate = 24 Bottle).</div>
             {packagings.length === 0 ? (
-              <div style={{ color: '#94a3b8', fontSize: 12, fontStyle: 'italic' }}>No extra packagings yet.</div>
+              <div style={{ color: '#64748b', fontSize: 12, fontStyle: 'italic' }}>No extra packagings yet.</div>
             ) : (
               <div style={{ display: 'grid', gap: 6 }}>
                 {packagings.map((p, i) => (
@@ -404,7 +404,7 @@ function DetailModal({ data, onClose }) {
           </div>
           <h4 style={{ margin: '14px 0 8px 0', fontSize: 13, color: '#0f172a' }}>Per-branch snapshot (branch-owned values)</h4>
           {data.branches?.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontSize: 12 }}>No branches registered.</p>
+            <p style={{ color: '#64748b', fontSize: 12 }}>No branches registered.</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead style={{ background: '#f8fafc' }}>
@@ -419,11 +419,11 @@ function DetailModal({ data, onClose }) {
               <tbody>
                 {data.branches?.map(b => (
                   <tr key={b.slug} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={td}>{b.name} <span style={{ color: '#94a3b8', fontSize: 11 }}>({b.slug})</span></td>
+                    <td style={td}>{b.name} <span style={{ color: '#64748b', fontSize: 11 }}>({b.slug})</span></td>
                     <td style={td}>
                       {b.error ? <span style={{ color: '#dc2626', fontSize: 11 }}><FiAlertTriangle size={11} /> {b.error}</span>
                                : b.found ? <span style={{ color: '#166534' }}>Yes</span>
-                                          : <span style={{ color: '#94a3b8' }}>Missing</span>}
+                                          : <span style={{ color: '#64748b' }}>Missing</span>}
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>{b.found ? fmtMoney(b.cost_price) : '—'}</td>
                     <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: b.found && (b.selling_price || 0) <= 0 ? '#dc2626' : '#0f172a' }}>

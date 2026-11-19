@@ -131,8 +131,8 @@ export function TicketsPage({ method }) {
             {rows.map(r => (
               <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                 <td style={S.td}>{r.date || (r.created_at || '').slice(0, 10)}</td>
-                <td style={S.td}>{r.attendant_name || '-'} <span style={{ color: '#9ca3af', fontSize: 12 }}>(shift #{r.shift_id})</span></td>
-                <td style={S.td}><strong>{r.customer_name}</strong>{r.card_number ? <span style={{ color: '#9ca3af' }}> · {r.card_number}</span> : null}</td>
+                <td style={S.td}>{r.attendant_name || '-'} <span style={{ color: '#6b7280', fontSize: 12 }}>(shift #{r.shift_id})</span></td>
+                <td style={S.td}><strong>{r.customer_name}</strong>{r.card_number ? <span style={{ color: '#6b7280' }}> · {r.card_number}</span> : null}</td>
                 <td style={S.td}>{r.vehicle_registration || '-'}</td>
                 <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name || '-'}</span></td>
                 <td style={S.tdR}>{Number(r.litres).toFixed(2)}</td>

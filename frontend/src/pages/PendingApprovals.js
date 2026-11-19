@@ -229,7 +229,7 @@ const PendingApprovals = () => {
                     ) : (
                       <>
                         {row('Discount',  `−${curSym}${perUnitD.toFixed(2)} / ${r.unit || ''}`, { color: '#dc2626' })}
-                        {row('Net price', `${curSym}${netUnitPx.toFixed(2)} / ${r.unit || ''}`, { color: '#16a34a', bold: true, divider: true })}
+                        {row('Net price', `${curSym}${netUnitPx.toFixed(2)} / ${r.unit || ''}`, { color: '#15803d', bold: true, divider: true })}
                       </>
                     )}
                   </div>
@@ -254,13 +254,13 @@ const PendingApprovals = () => {
                     row('Total discount', `−${money(discount)}`, { color: '#dc2626' })
                   )}
                   {row(isCart ? 'Cart total (net)' : 'Line total (net)', money(net),
-                    { color: isPriceChange && isMarkup ? '#15803d' : '#16a34a', bold: true, big: true, divider: true })}
+                    { color: isPriceChange && isMarkup ? '#15803d' : '#15803d', bold: true, big: true, divider: true })}
                 </div>
 
                 {/* Requester */}
                 <div style={{ marginTop: 12, fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', gap: 6 }}>
                   <FiUser size={12} color="#6b7280" /> Requested by <strong>{r.requester_name}</strong>
-                  <span style={{ color: '#9ca3af', marginLeft: 'auto', fontSize: 11 }}>{(r.created_at || '').replace('T', ' ').slice(0, 16)}</span>
+                  <span style={{ color: '#6b7280', marginLeft: 'auto', fontSize: 11 }}>{(r.created_at || '').replace('T', ' ').slice(0, 16)}</span>
                 </div>
 
                 {/* Actions / verdict */}

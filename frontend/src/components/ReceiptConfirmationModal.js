@@ -190,7 +190,7 @@ export default function ReceiptConfirmationModal({
                       return (
                         <tr key={l.sync_id} style={{ borderTop: '1px solid #f1f5f9' }}>
                           <td style={{ padding: '8px 10px' }}>
-                            {l.product_name} <span style={{ color: '#9ca3af', fontSize: 11 }}>{l.unit}</span>
+                            {l.product_name} <span style={{ color: '#6b7280', fontSize: 11 }}>{l.unit}</span>
                           </td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#475569' }}>{l.expected}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#475569' }}>{fmtMoney(l.base_price)}</td>
@@ -224,7 +224,7 @@ export default function ReceiptConfirmationModal({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div>
               <h4 style={{ margin: 0, fontSize: 14 }}>Additional items received</h4>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#9ca3af' }}>
+              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#6b7280' }}>
                 For products the supplier delivered that weren't on this PO. Pick from existing HQ items only.
               </p>
             </div>
@@ -318,7 +318,7 @@ export default function ReceiptConfirmationModal({
             </div>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                Invoice Attachment <span style={{ color: '#94a3b8', fontWeight: 500 }}>· optional</span>
+                Invoice Attachment <span style={{ color: '#64748b', fontWeight: 500 }}>· optional</span>
               </label>
               <InvoiceAttachment value={invoiceAttachment} onChange={setInvoiceAttachment} />
             </div>

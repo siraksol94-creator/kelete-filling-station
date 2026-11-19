@@ -230,7 +230,7 @@ export default function HqPurchases() {
         {loading && purchases.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : visible.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+          <p style={{ color: '#64748b', fontStyle: 'italic' }}>
             <FiPackage /> {traceTerm.length >= 2
               ? `No purchases on this page match “${trace.q.trim()}”.`
               : destFilter
@@ -881,7 +881,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                   type="button"
                   onClick={() => { setShowAddSupplier(v => !v); setAddSupplierError(''); }}
                   title="Add new HQ supplier"
-                  style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: showAddSupplier ? '#dcfce7' : '#f9fafb', color: showAddSupplier ? '#16a34a' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: showAddSupplier ? '#dcfce7' : '#f9fafb', color: showAddSupplier ? '#15803d' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
                   + New
                 </button>
               </div>
@@ -1174,7 +1174,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                           onFocus={() => it.rrp_mode === 'sp' && updateItem(i, 'rrp_mode', 'rrp')}
                           style={{ ...cellInp, textAlign: 'right',
                                    background: it.rrp_mode === 'sp' ? '#f8fafc' : (it.rrp ? '#f0f9ff' : '#fff'),
-                                   color: it.rrp_mode === 'sp' ? '#64748b' : (it.vat_cat === 'B' ? '#0f172a' : '#94a3b8'),
+                                   color: it.rrp_mode === 'sp' ? '#64748b' : (it.vat_cat === 'B' ? '#0f172a' : '#64748b'),
                                    cursor: it.rrp_mode === 'sp' ? 'pointer' : 'text' }} />
                       </td>
                       {/* The supplier's selling price — base + VAT. Coca-Cola
@@ -1554,12 +1554,12 @@ function DetailModal({ data, onClose, onChanged, flash }) {
                       {fmtMoney((parseFloat(it.dispatched_qty) || 0) * (parseFloat(it.base_price) || 0))}
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>{fmtMoney(it.vat_amount)}</td>
-                    <td style={{ ...td, textAlign: 'right', color: parseFloat(it.discount_amount) > 0 ? '#b91c1c' : '#94a3b8' }}>
+                    <td style={{ ...td, textAlign: 'right', color: parseFloat(it.discount_amount) > 0 ? '#b91c1c' : '#64748b' }}>
                       {parseFloat(it.dispatched_qty) > 0 && parseFloat(it.discount_amount) > 0
                         ? fmtMoney(parseFloat(it.discount_amount) / parseFloat(it.dispatched_qty))
                         : fmtMoney(0)}
                     </td>
-                    <td style={{ ...td, textAlign: 'right', color: parseFloat(it.discount_amount) > 0 ? '#b91c1c' : '#94a3b8' }}>
+                    <td style={{ ...td, textAlign: 'right', color: parseFloat(it.discount_amount) > 0 ? '#b91c1c' : '#64748b' }}>
                       {parseFloat(it.discount_amount) > 0 ? `−${fmtMoney(it.discount_amount)}` : fmtMoney(0)}
                     </td>
                     <td style={{ ...td, textAlign: 'right', color: '#475569' }}>
@@ -1620,7 +1620,7 @@ function DetailModal({ data, onClose, onChanged, flash }) {
             );
           })()}
           {anyPending && (
-            <p style={{ fontSize: 11, color: '#94a3b8', marginTop: 10 }}>
+            <p style={{ fontSize: 11, color: '#64748b', marginTop: 10 }}>
               <FiTrash2 size={10} style={{ verticalAlign: 'middle' }} /> Cancel only removes pending lines; received lines stay in branch stock.
             </p>
           )}

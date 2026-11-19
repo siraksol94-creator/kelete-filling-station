@@ -180,7 +180,7 @@ export default function TankLedger({ embedded = false } = {}) {
                       <td style={S.td}>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 10, background: t.bg, color: t.fg, letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{t.label}</span>
                       </td>
-                      <td style={{ ...S.tdR, whiteSpace: 'nowrap', color: positive ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
+                      <td style={{ ...S.tdR, whiteSpace: 'nowrap', color: positive ? '#15803d' : '#dc2626', fontWeight: 600 }}>
                         {positive ? '+' : ''}{fmtL(r.litres)}
                       </td>
                       <td style={{ ...S.tdR, whiteSpace: 'nowrap', fontWeight: 700 }}>{fmtL(r.balance_after)}</td>
@@ -198,7 +198,7 @@ export default function TankLedger({ embedded = false } = {}) {
         </>
       )}
 
-      {!data && !loading && <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af' }}>Pick a tank to view its ledger.</div>}
+      {!data && !loading && <div style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>Pick a tank to view its ledger.</div>}
     </>
   );
   return embedded ? body : <div style={S.page} className="k-page">{body}</div>;

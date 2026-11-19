@@ -284,7 +284,7 @@ const DividendAccount = () => {
           </thead>
           <tbody>
             {entries.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>No dividend entries.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No dividend entries.</td></tr>
             ) : entries.map(r => (
               <tr key={r.id}>
                 <td style={{ fontWeight: 600 }}>{r.entry_number}</td>
@@ -342,7 +342,7 @@ const DividendAccount = () => {
                   {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + ((methodShown('bank') || parseFloat(form.bank_amount || 0) > 0) ? 1 : 0) + ((methodShown('momo') || parseFloat(form.momo_amount || 0) > 0) ? 1 : 0)}, 1fr)`, gap: 10 }}>
                     {[
-                      { key: 'cash_amount', label: 'Cash', color: '#16a34a' },
+                      { key: 'cash_amount', label: 'Cash', color: '#15803d' },
                       { key: 'bank_amount', label: 'Bank', color: '#2563eb' },
                       { key: 'momo_amount', label: 'MoMo', color: '#f59e0b' },
                     ].filter(f => methodShown(f.label) || parseFloat(form[f.key] || 0) > 0).map((f) => (
@@ -409,7 +409,7 @@ const DividendAccount = () => {
                   </div>
                 </div>
                 {viewEntry.description && <div style={{ marginBottom: 12, padding: '10px 12px', background: '#f9fafb', borderLeft: '3px solid #9ca3af', fontSize: 13 }}>{viewEntry.description}</div>}
-                <div style={{ fontSize: 11, color: '#9ca3af' }}>Created by {viewEntry.created_by_name || '—'} on {formatDate(viewEntry.created_at?.split(' ')[0])}</div>
+                <div style={{ fontSize: 11, color: '#6b7280' }}>Created by {viewEntry.created_by_name || '—'} on {formatDate(viewEntry.created_at?.split(' ')[0])}</div>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setViewEntry(null)}>Close</button>

@@ -163,7 +163,7 @@ export default function HqSuppliers() {
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No suppliers yet. Click <strong>New Supplier</strong> to add one.</p>
+          <p style={{ color: '#64748b', fontStyle: 'italic' }}>No suppliers yet. Click <strong>New Supplier</strong> to add one.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -198,11 +198,11 @@ export default function HqSuppliers() {
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <div>{fmtMoney(s.purchases_total)}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{fmtInt(s.purchase_count)} purchase{s.purchase_count === 1 ? '' : 's'}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{fmtInt(s.purchase_count)} purchase{s.purchase_count === 1 ? '' : 's'}</div>
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <div>{fmtMoney(s.payments_total)}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{fmtInt(s.payment_count)} payment{s.payment_count === 1 ? '' : 's'}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{fmtInt(s.payment_count)} payment{s.payment_count === 1 ? '' : 's'}</div>
                     </td>
                     <td style={{ ...td, textAlign: 'right', fontWeight: 800, fontSize: 14,
                                  color: s.balance > 0.01 ? '#b91c1c' : s.balance < -0.01 ? '#047857' : '#0f172a' }}>
@@ -397,7 +397,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
 
           <h4 style={{ margin: '14px 0 8px 0', fontSize: 13, color: '#0f172a' }}>Purchases</h4>
           {data.purchases.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 12 }}>No purchases yet.</p>
+            <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: 12 }}>No purchases yet.</p>
           ) : (
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, marginBottom: 16 }}>
               <thead style={{ background: '#f8fafc' }}>
@@ -419,7 +419,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
 
           <h4 style={{ margin: '14px 0 8px 0', fontSize: 13, color: '#0f172a' }}>Payments</h4>
           {data.payments.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 12 }}>No payments recorded.</p>
+            <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: 12 }}>No payments recorded.</p>
           ) : (
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead style={{ background: '#f8fafc' }}>
@@ -452,7 +452,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
               apart. */}
           <h4 style={{ margin: '14px 0 8px 0', fontSize: 13, color: '#0f172a' }}>Credit Notes</h4>
           {(!data.credits || data.credits.length === 0) ? (
-            <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 12 }}>No credit notes.</p>
+            <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: 12 }}>No credit notes.</p>
           ) : (
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
               <thead style={{ background: '#f8fafc' }}>
@@ -579,7 +579,7 @@ function Stat({ label, value, sub, highlight }) {
     <div style={{ background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 8, padding: 10 }}>
       <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
       <div style={{ fontSize: 16, fontWeight: 800, color: highlight ? '#b91c1c' : '#0f172a', marginTop: 2 }}>{value}</div>
-      {sub && <div style={{ fontSize: 10, color: '#94a3b8' }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 10, color: '#64748b' }}>{sub}</div>}
     </div>
   );
 }

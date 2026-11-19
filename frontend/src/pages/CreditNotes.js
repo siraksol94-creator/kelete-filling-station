@@ -1010,13 +1010,13 @@ const CreditNotes = () => {
                     padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
@@ -1032,7 +1032,7 @@ const CreditNotes = () => {
             {t('clear')}
           </button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
           {list.length} credit note{list.length !== 1 ? 's' : ''}
           {list.length > 0 && (
             <> &nbsp;·&nbsp; Total: <strong style={{ color: '#0369a1' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>
@@ -1086,16 +1086,16 @@ const CreditNotes = () => {
                     </button>
                   </td>
                   <td style={{ textAlign: 'center' }}>{s.count}</td>
-                  <td style={{ textAlign: 'right', color: s.discount > 0 ? '#16a34a' : '#9ca3af' }}>
+                  <td style={{ textAlign: 'right', color: s.discount > 0 ? '#15803d' : '#6b7280' }}>
                     {s.discount > 0 ? `${curSym}${s.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', color: s.crate_return > 0 ? '#1d4ed8' : '#9ca3af' }}>
+                  <td style={{ textAlign: 'right', color: s.crate_return > 0 ? '#1d4ed8' : '#6b7280' }}>
                     {s.crate_return > 0 ? `${curSym}${s.crate_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', color: s.goods_return > 0 ? '#9a3412' : '#9ca3af' }}>
+                  <td style={{ textAlign: 'right', color: s.goods_return > 0 ? '#9a3412' : '#6b7280' }}>
                     {s.goods_return > 0 ? `${curSym}${s.goods_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', color: s.other > 0 ? '#374151' : '#9ca3af' }}>
+                  <td style={{ textAlign: 'right', color: s.other > 0 ? '#374151' : '#6b7280' }}>
                     {s.other > 0 ? `${curSym}${s.other.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: '#0369a1' }}>
@@ -1106,7 +1106,7 @@ const CreditNotes = () => {
               <tr style={{ background: '#f0f9ff', fontWeight: 700 }}>
                 <td>TOTAL — {bySupplier.length} supplier{bySupplier.length !== 1 ? 's' : ''}</td>
                 <td style={{ textAlign: 'center' }}>{list.length}</td>
-                <td style={{ textAlign: 'right', color: '#16a34a' }}>
+                <td style={{ textAlign: 'right', color: '#15803d' }}>
                   {curSym}{bySupplier.reduce((s, x) => s + x.discount, 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>
                 <td style={{ textAlign: 'right', color: '#1d4ed8' }}>
@@ -1155,7 +1155,7 @@ const CreditNotes = () => {
                         {cn.reason}
                       </span>
                       {!reasonAffectsProfit(cn.reason) && (
-                        <span title="Deposit refund — does not affect Profit Report" style={{ marginLeft: 6, fontSize: 10, color: '#9ca3af' }}>
+                        <span title="Deposit refund — does not affect Profit Report" style={{ marginLeft: 6, fontSize: 10, color: '#6b7280' }}>
                           (deposit refund)
                         </span>
                       )}
@@ -1314,7 +1314,7 @@ const CreditNotes = () => {
                   GRN is what makes it reduce THAT invoice's payable. */}
               <div style={{ marginBottom: 12 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>
-                  Invoice number <span style={{ textTransform: 'none', fontWeight: 500, color: '#9ca3af' }}>
+                  Invoice number <span style={{ textTransform: 'none', fontWeight: 500, color: '#6b7280' }}>
                     {editMode && grnSyncId ? '— already attached' : '— optional'}
                   </span>
                 </label>
@@ -1334,7 +1334,7 @@ const CreditNotes = () => {
                     {editInvoice?.proposed && (
                       <span style={{ color: '#b45309', fontSize: 11, fontWeight: 700 }}>· WAITING FOR HQ</span>
                     )}
-                    <span style={{ marginLeft: 'auto', color: '#9ca3af', fontSize: 11 }}>locked</span>
+                    <span style={{ marginLeft: 'auto', color: '#6b7280', fontSize: 11 }}>locked</span>
                   </div>
                 ) : (
                 <select value={grnSyncId} onChange={e => {
@@ -1385,7 +1385,7 @@ const CreditNotes = () => {
                   </div>
                 )}
                 {supplierId && linkable.length === 0 && (
-                  <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
                     No unpaid GRNs for this supplier — a paid invoice cannot take a credit.
                   </div>
                 )}
@@ -1737,7 +1737,7 @@ const CreditNotes = () => {
                 </div>
               )}
 
-              <div style={{ marginTop: 14, fontSize: 11, color: '#9ca3af' }}>
+              <div style={{ marginTop: 14, fontSize: 11, color: '#6b7280' }}>
                 Prepared by {viewCN.created_by_name || '—'} on {formatDate(viewCN.created_at?.split(' ')[0])}
               </div>
             </div>
@@ -1792,7 +1792,7 @@ const CreditNotes = () => {
 
                 <div style={{ padding: 22 }}>
                   {groups.length === 0 ? (
-                    <div style={{ padding: 24, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>No credit notes for this supplier in the current filter.</div>
+                    <div style={{ padding: 24, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No credit notes for this supplier in the current filter.</div>
                   ) : groups.map(g => {
                     const sub = g.rows.reduce((s, c) => s + parseFloat(c.amount || 0), 0);
                     const rs = reasonStyle(g.reason);
@@ -1878,7 +1878,7 @@ const CreditNotes = () => {
                                             <b>Notes:</b> {cache.notes}
                                           </div>
                                         ) : (
-                                          <div style={{ padding: 10, fontSize: 11, color: '#9ca3af' }}>
+                                          <div style={{ padding: 10, fontSize: 11, color: '#6b7280' }}>
                                             {reasonHasStock ? 'No items recorded.' : 'No notes.'}
                                           </div>
                                         )}

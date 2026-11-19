@@ -240,7 +240,7 @@ const BranchPrices = () => {
         </select>
 
         <div style={{ position: 'relative', flex: '0 0 320px' }}>
-          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={15} />
+          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or code…"
             style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
@@ -263,9 +263,9 @@ const BranchPrices = () => {
           button ever comes back. */}
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>Loading prices…</div>
+        <div style={{ padding: 60, textAlign: 'center', color: '#64748b' }}>Loading prices…</div>
       ) : visible.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', background: '#fff', borderRadius: 12 }}>
+        <div style={{ padding: 40, textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: 12 }}>
           {rows.length === 0 ? 'This branch has no items.' : 'Nothing matches.'}
         </div>
       ) : (
@@ -305,7 +305,7 @@ const BranchPrices = () => {
                     <td style={{ ...td, fontFamily: 'monospace', fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap' }}>{r.code}</td>
                     <td style={{ ...td, fontWeight: 600, color: '#0f172a' }}>
                       {r.name}
-                      {r.unit && <span style={{ color: '#94a3b8', fontWeight: 400, fontSize: 11.5 }}> / {r.unit}</span>}
+                      {r.unit && <span style={{ color: '#64748b', fontWeight: 400, fontSize: 11.5 }}> / {r.unit}</span>}
                     </td>
                     <td style={{ ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#6b7280' }}>
                       {hq === null ? '—' : `${curSym}${money(hq)}`}
@@ -328,7 +328,7 @@ const BranchPrices = () => {
                                  background: isDirty ? '#fff' : '#fafafa', color: '#0f172a', outline: 'none' }} />
                     </td>
                     <td style={{ ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700,
-                                 color: d === null ? '#94a3b8' : (Math.abs(d) < 0.005 ? '#94a3b8' : (d > 0 ? '#15803d' : '#b91c1c')) }}>
+                                 color: d === null ? '#64748b' : (Math.abs(d) < 0.005 ? '#64748b' : (d > 0 ? '#15803d' : '#b91c1c')) }}>
                       {d === null ? '—' : (Math.abs(d) < 0.005 ? '—' : `${d > 0 ? '+' : '−'}${money(Math.abs(d))}`)}
                     </td>
                   </tr>
@@ -360,7 +360,7 @@ const BranchPrices = () => {
                 </div>
               </div>
               <button onClick={() => setPushOpen(false)} disabled={pushing}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 4 }}>
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}>
                 <FiX size={20} />
               </button>
             </div>
@@ -369,7 +369,7 @@ const BranchPrices = () => {
               <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', marginBottom: 14, maxHeight: 132, overflowY: 'auto' }}>
                 {pushable.map(p => (
                   <div key={p.sync_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '3px 0', color: '#334155' }}>
-                    <span><span style={{ fontFamily: 'monospace', color: '#94a3b8' }}>{p.code}</span> {p.name}</span>
+                    <span><span style={{ fontFamily: 'monospace', color: '#64748b' }}>{p.code}</span> {p.name}</span>
                     <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{curSym}{money(p.base_price)}</strong>
                   </div>
                 ))}

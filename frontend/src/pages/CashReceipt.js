@@ -229,7 +229,7 @@ const CashReceipt = () => {
     const chips = [
       { label: 'Period From',  value: filterFrom ? formatDate(filterFrom) : 'All', bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
       { label: 'Period To',    value: filterTo   ? formatDate(filterTo)   : 'All', bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
-      { label: 'Receipts',     value: String(filteredReceipts.length),              bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+      { label: 'Receipts',     value: String(filteredReceipts.length),              bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
       { label: 'Total Amount', value: '$' + fmt2(filteredTotal),                   bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
     ].map(c => `<div style="padding:12px 16px;border-radius:10px;background:${c.bg};border:1.5px solid ${c.border};text-align:center"><div style="font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px">${c.label}</div><div style="font-size:16px;font-weight:800;color:${c.color}">${c.value}</div></div>`).join('');
     const rows = filteredReceipts.map((r, idx) => `<tr style="border-bottom:1px solid #f1f5f9;background:${idx % 2 === 1 ? '#fafafa' : '#fff'}"><td style="padding:8px 12px;color:#9ca3af;font-size:10.5px">${idx + 1}</td><td style="padding:8px 12px;font-weight:700;font-family:monospace;font-size:11px;color:#16a34a">${r.receipt_number}</td><td style="padding:8px 12px;color:#374151">${formatDate(r.date)}</td><td style="padding:8px 12px;font-weight:500">${r.received_from}</td><td style="padding:8px 12px;color:#6b7280">${r.description || '—'}</td><td style="padding:8px 12px;color:#374151">${r.payment_method}</td><td style="padding:8px 12px;text-align:right;font-weight:700;font-family:monospace;color:#16a34a">$${fmt2(r.amount)}</td></tr>`).join('');
@@ -340,7 +340,7 @@ const CashReceipt = () => {
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
@@ -348,7 +348,7 @@ const CashReceipt = () => {
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
@@ -365,9 +365,9 @@ const CashReceipt = () => {
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
           {filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''}
-          <> &nbsp;·&nbsp; Total: <strong style={{ color: '#16a34a' }}>{curSym}{fmt2(filteredTotal)}</strong></>
+          <> &nbsp;·&nbsp; Total: <strong style={{ color: '#15803d' }}>{curSym}{fmt2(filteredTotal)}</strong></>
         </span>
       </div>
 
@@ -388,12 +388,12 @@ const CashReceipt = () => {
                     column that reads the receipt total. Matches the old
                     Liquor system (Alaskal) layout the user shared. */}
                 {isLiquorStyle ? (
-                  <th style={{ textAlign: 'right', color: '#16a34a' }}>Amount</th>
+                  <th style={{ textAlign: 'right', color: '#15803d' }}>Amount</th>
                 ) : (
                   <>
-                    <th style={{ textAlign: 'right', color: '#16a34a' }}>USD ($)</th>
+                    <th style={{ textAlign: 'right', color: '#15803d' }}>USD ($)</th>
                     <th style={{ textAlign: 'right', color: '#7c3aed' }}>FRA</th>
-                    <th style={{ textAlign: 'right', color: '#ea580c' }}>K</th>
+                    <th style={{ textAlign: 'right', color: '#c2410c' }}>K</th>
                   </>
                 )}
                 <th></th>
@@ -431,14 +431,14 @@ const CashReceipt = () => {
                   <td style={{ color: '#6b7280' }}>{r.description || '—'}</td>
                   <td><span className={`badge ${getPaymentColor(r.payment_method)}`}>{r.payment_method}</span></td>
                   {isLiquorStyle ? (
-                    <td style={{ textAlign: 'right', color: liquorTotal > 0 ? '#16a34a' : '', fontWeight: liquorTotal > 0 ? 700 : 400 }}>
+                    <td style={{ textAlign: 'right', color: liquorTotal > 0 ? '#15803d' : '', fontWeight: liquorTotal > 0 ? 700 : 400 }}>
                       {liquorTotal > 0 ? `${curSym}${fmt2(liquorTotal)}` : dash}
                     </td>
                   ) : (
                     <>
-                      <td style={{ textAlign: 'right', color: ru > 0 ? '#16a34a' : '', fontWeight: ru > 0 ? 700 : 400 }}>{ru > 0 ? `$${fmt2(ru)}` : dash}</td>
+                      <td style={{ textAlign: 'right', color: ru > 0 ? '#15803d' : '', fontWeight: ru > 0 ? 700 : 400 }}>{ru > 0 ? `$${fmt2(ru)}` : dash}</td>
                       <td style={{ textAlign: 'right', color: rf > 0 ? '#7c3aed' : '', fontWeight: rf > 0 ? 700 : 400 }}>{rf > 0 ? Math.round(rf).toLocaleString('en-US') : dash}</td>
-                      <td style={{ textAlign: 'right', color: rk > 0 ? '#ea580c' : '', fontWeight: rk > 0 ? 700 : 400 }}>{rk > 0 ? Math.round(rk).toLocaleString('en-US') : dash}</td>
+                      <td style={{ textAlign: 'right', color: rk > 0 ? '#c2410c' : '', fontWeight: rk > 0 ? 700 : 400 }}>{rk > 0 ? Math.round(rk).toLocaleString('en-US') : dash}</td>
                     </>
                   )}
                   <td>
@@ -500,14 +500,14 @@ const CashReceipt = () => {
                   // v1.10.45 — Liquor total = sum across all three slots.
                   if (isLiquorStyle) {
                     return (<>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#16a34a', fontWeight: 700, fontSize: 13 }}>{curSym}{fmt2(tu + tf + tk)}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#15803d', fontWeight: 700, fontSize: 13 }}>{curSym}{fmt2(tu + tf + tk)}</td>
                       <td></td>
                     </>);
                   }
                   return (<>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#16a34a', fontWeight: 700, fontSize: 13 }}>${fmt2(tu)}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#15803d', fontWeight: 700, fontSize: 13 }}>${fmt2(tu)}</td>
                     <td style={{ padding: '10px 14px', textAlign: 'right', color: '#7c3aed', fontWeight: 700, fontSize: 13 }}>{Math.round(tf).toLocaleString('en-US')}</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#ea580c', fontWeight: 700, fontSize: 13 }}>{Math.round(tk).toLocaleString('en-US')}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#c2410c', fontWeight: 700, fontSize: 13 }}>{Math.round(tk).toLocaleString('en-US')}</td>
                     <td></td>
                   </>);
                 })()}
@@ -555,7 +555,7 @@ const CashReceipt = () => {
                   { label: 'Amount',         value: `$${fmt2(viewReceipt.amount)}` },
                 ].map(info => (
                   <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10.5, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
+                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{info.value}</div>
                   </div>
                 ))}
@@ -587,10 +587,10 @@ const CashReceipt = () => {
                       borderRight: '1px solid #e5e7eb',
                       opacity: dim ? 0.4 : 1,
                     }}>
-                      <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                         {icon} {label}
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: dim ? '#9ca3af' : accent, fontFamily: 'monospace' }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: dim ? '#6b7280' : accent, fontFamily: 'monospace' }}>
                         ${fmt2(value)}
                       </div>
                     </div>
@@ -607,10 +607,10 @@ const CashReceipt = () => {
                       {(methodShown('bank') || bank > 0.001) && cell('Bank', '🏦', bank, '#2563eb')}
                       {(methodShown('momo') || momo > 0.001) && (
                       <div style={{ flex: 1, padding: '10px 12px', background: momo > 0.001 ? '#fff' : '#fafafa', opacity: momo > 0.001 ? 1 : 0.4 }}>
-                        <div style={{ fontSize: 10, color: '#9ca3af', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                           📱 MoMo
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: momo > 0.001 ? '#f59e0b' : '#9ca3af', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: momo > 0.001 ? '#f59e0b' : '#6b7280', fontFamily: 'monospace' }}>
                           ${fmt2(momo)}
                         </div>
                       </div>
@@ -622,7 +622,7 @@ const CashReceipt = () => {
                           ⚠ Splits don't match amount
                         </span>
                       )}
-                      <span style={{ color: '#6b7280' }}>Total: <strong style={{ color: '#111827' }}>${fmt2(splitSum)}</strong> {!splitMismatch && <span style={{ color: '#16a34a' }}>✓</span>}</span>
+                      <span style={{ color: '#6b7280' }}>Total: <strong style={{ color: '#111827' }}>${fmt2(splitSum)}</strong> {!splitMismatch && <span style={{ color: '#15803d' }}>✓</span>}</span>
                     </div>
                   </div>
                 );
@@ -718,21 +718,21 @@ const CashReceipt = () => {
                     : '1fr 1fr 1fr', gap: 10 }}>
                   {(isLiquorStyle
                     ? [
-                        { key: 'usd_amount', label: 'Cash',         color: '#16a34a', step: '0.01', placeholder: '0.00', prefix: curSym },
-                        { key: 'fra_amount', label: 'Mobile Money', color: '#ea580c', step: '0.01', placeholder: '0.00', prefix: curSym },
+                        { key: 'usd_amount', label: 'Cash',         color: '#15803d', step: '0.01', placeholder: '0.00', prefix: curSym },
+                        { key: 'fra_amount', label: 'Mobile Money', color: '#c2410c', step: '0.01', placeholder: '0.00', prefix: curSym },
                         { key: 'k_amount',   label: 'Bank',         color: '#2563eb', step: '0.01', placeholder: '0.00', prefix: curSym },
                       ]
                     : onHq
                       /* v1.10.68 — HQ order: K default (leftmost), then USD, then FRA. */
                       ? [
-                          { key: 'k_amount',   label: 'K',       color: '#ea580c', step: '1',    placeholder: '0',    prefix: ''  },
-                          { key: 'usd_amount', label: 'USD ($)', color: '#16a34a', step: '0.01', placeholder: '0.00', prefix: '$' },
+                          { key: 'k_amount',   label: 'K',       color: '#c2410c', step: '1',    placeholder: '0',    prefix: ''  },
+                          { key: 'usd_amount', label: 'USD ($)', color: '#15803d', step: '0.01', placeholder: '0.00', prefix: '$' },
                           { key: 'fra_amount', label: 'FRA',     color: '#7c3aed', step: '1',    placeholder: '0',    prefix: ''  },
                         ]
                       : [
-                          { key: 'usd_amount', label: 'USD ($)', color: '#16a34a', step: '0.01', placeholder: '0.00', prefix: '$' },
+                          { key: 'usd_amount', label: 'USD ($)', color: '#15803d', step: '0.01', placeholder: '0.00', prefix: '$' },
                           { key: 'fra_amount', label: 'FRA',     color: '#7c3aed', step: '1',    placeholder: '0',    prefix: ''  },
-                          { key: 'k_amount',   label: 'K',       color: '#ea580c', step: '1',    placeholder: '0',    prefix: ''  },
+                          { key: 'k_amount',   label: 'K',       color: '#c2410c', step: '1',    placeholder: '0',    prefix: ''  },
                         ]
                   ).filter(f => !isLiquorStyle || methodShown(f.label) || parseFloat(form[f.key] || 0) > 0).map((f) => {
                     const otherKeys = ['usd_amount', 'fra_amount', 'k_amount'].filter(k => k !== f.key);
@@ -811,7 +811,7 @@ const CashReceipt = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={15} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — {viewReceipt.receipt_number}
               </span>
             </div>
@@ -819,7 +819,7 @@ const CashReceipt = () => {
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowCRPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowCRPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -894,7 +894,7 @@ const CashReceipt = () => {
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ height: 36, borderBottom: '1.5px solid #cbd5e1', marginBottom: 6 }} />
                     <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#6b7280' }}>{label}</div>
-                    <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>Name / Signature / Date</div>
+                    <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Name / Signature / Date</div>
                   </div>
                 ))}
               </div>
@@ -902,8 +902,8 @@ const CashReceipt = () => {
 
             {/* Footer bar */}
             <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '10px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>
+              <span style={{ fontSize: 9, color: '#64748b' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
+              <span style={{ fontSize: 9, color: '#64748b' }}>
                 Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -917,11 +917,11 @@ const CashReceipt = () => {
           <div className="no-print" style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 52, background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 1001, borderBottom: '1px solid #1e293b' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview — Cash Receipts ({filteredReceipts.length} records)</span>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>Print Preview — Cash Receipts ({filteredReceipts.length} records)</span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}><FiPrinter size={14} /> Print</button>
-              <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}><FiX size={14} /> Close</button>
+              <button onClick={() => setShowListPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}><FiX size={14} /> Close</button>
             </div>
           </div>
 
@@ -947,7 +947,7 @@ const CashReceipt = () => {
                 {[
                   { label: 'Period From',    value: filterFrom ? formatDate(filterFrom) : 'All',                                              bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
                   { label: 'Period To',      value: filterTo   ? formatDate(filterTo)   : 'All',                                              bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
-                  { label: 'Receipts',       value: filteredReceipts.length,                                                                   bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0' },
+                  { label: 'Receipts',       value: filteredReceipts.length,                                                                   bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
                   { label: 'Total Amount',   value: '$' + fmt2(filteredTotal),                                                                 bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
                 ].map(chip => (
                   <div key={chip.label} style={{ padding: '12px 16px', borderRadius: 10, background: chip.bg, border: `1.5px solid ${chip.border}`, textAlign: 'center' }}>
@@ -963,27 +963,27 @@ const CashReceipt = () => {
                   <thead>
                     <tr style={{ background: '#f0fdf4' }}>
                       {['#', 'Receipt No.', 'Date', 'Received From', 'Description', 'Method', 'Amount'].map((h, i) => (
-                        <th key={h} style={{ padding: '8px 12px', textAlign: i === 6 ? 'right' : 'left', fontWeight: 600, color: '#16a34a', borderBottom: '1px solid #bbf7d0', fontSize: 10.5, whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '8px 12px', textAlign: i === 6 ? 'right' : 'left', fontWeight: 600, color: '#15803d', borderBottom: '1px solid #bbf7d0', fontSize: 10.5, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredReceipts.map((r, idx) => (
                       <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
-                        <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#16a34a' }}>{r.receipt_number}</td>
+                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#15803d' }}>{r.receipt_number}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(r.date)}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 500 }}>{r.received_from}</td>
                         <td style={{ padding: '8px 12px', color: '#6b7280' }}>{r.description || '—'}</td>
                         <td style={{ padding: '8px 12px', color: '#374151' }}>{r.payment_method}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#16a34a' }}>{curSym}{fmt2(r.amount)}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#15803d' }}>{curSym}{fmt2(r.amount)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
-                      <td colSpan={6} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#16a34a' }}>TOTAL — {filteredReceipts.length} Receipt{filteredReceipts.length !== 1 ? 's' : ''}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#16a34a' }}>{curSym}{fmt2(filteredTotal)}</td>
+                      <td colSpan={6} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#15803d' }}>TOTAL — {filteredReceipts.length} Receipt{filteredReceipts.length !== 1 ? 's' : ''}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#15803d' }}>{curSym}{fmt2(filteredTotal)}</td>
                     </tr>
                   </tfoot>
                 </table>

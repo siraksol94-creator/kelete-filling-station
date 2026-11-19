@@ -214,7 +214,7 @@ export default function HqGrnArchive() {
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : visible.length === 0 ? (
-          <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+          <p style={{ color: '#64748b', fontStyle: 'italic' }}>
             <FiInbox /> {traceTerm.length >= 2
               ? `No GRNs on this page match “${trace.q.trim()}”. It may be outside the branch or date filters below.`
               : 'No GRNs match those filters.'}
@@ -253,8 +253,8 @@ export default function HqGrnArchive() {
                     <td style={td}>{g.supplier_name || '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{g.items_count}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{fmtMoney(g.items_subtotal)}</td>
-                    <td style={{ ...td, textAlign: 'right', color: g.cn_total > 0 ? '#dc2626' : '#94a3b8' }}>{g.cn_total > 0 ? `−${fmtMoney(g.cn_total)}` : '—'}</td>
-                    <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>{fmtMoney(g.final_payable)}</td>
+                    <td style={{ ...td, textAlign: 'right', color: g.cn_total > 0 ? '#dc2626' : '#64748b' }}>{g.cn_total > 0 ? `−${fmtMoney(g.cn_total)}` : '—'}</td>
+                    <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#15803d' }}>{fmtMoney(g.final_payable)}</td>
                     {/* 2026-08-30 — payment state. The Archive showed nothing
                         about whether a GRN had been paid, so there was no way
                         to tell a settled delivery from an unpaid one without
@@ -282,7 +282,7 @@ export default function HqGrnArchive() {
                               {meta.label}
                             </span>
                             {st === 'PARTIAL' && (
-                              <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+                              <div style={{ fontSize: 10, color: '#64748b', marginTop: 3 }}>
                                 {fmtMoney(g.remaining_amount)} left
                               </div>
                             )}
@@ -292,7 +292,7 @@ export default function HqGrnArchive() {
                     </td>
                     <td style={{ ...td, fontSize: 11, color: '#64748b' }}>
                       {g.confirmed_at ? new Date(g.confirmed_at).toLocaleString() : '—'}
-                      {g.confirmed_by_name ? <div style={{ color: '#94a3b8' }}>{g.confirmed_by_name}</div> : null}
+                      {g.confirmed_by_name ? <div style={{ color: '#64748b' }}>{g.confirmed_by_name}</div> : null}
                     </td>
                     <td style={td}>
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -444,7 +444,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
 
               <h4 style={{ margin: '0 0 8px', fontSize: 13, color: '#374151' }}>Line Items</h4>
               {items.length === 0 ? (
-                <p style={{ color: '#9ca3af', fontStyle: 'italic' }}>No line items.</p>
+                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No line items.</p>
               ) : (
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead style={{ background: '#f8fafc' }}>
@@ -466,7 +466,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
                   <tbody>
                     {items.map(it => (
                       <tr key={it.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={td}><strong>{it.product_name || `#${it.product_id}`}</strong>{it.product_code && <span style={{ color: '#94a3b8', fontSize: 11 }}> ({it.product_code})</span>}</td>
+                        <td style={td}><strong>{it.product_name || `#${it.product_id}`}</strong>{it.product_code && <span style={{ color: '#64748b', fontSize: 11 }}> ({it.product_code})</span>}</td>
                         <td style={td}>{it.unit || it.product_base_unit}</td>
                         <td style={{ ...td, textAlign: 'right' }}>{parseFloat(it.quantity || 0).toLocaleString()}</td>
                         <td style={{ ...td, textAlign: 'right', color: '#64748b' }}>{fmtMoney(it.base_price)}</td>
@@ -560,10 +560,10 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
 
               <div style={{ marginTop: 18, padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span>Items subtotal</span><strong>{fmtMoney(grn.items_subtotal || itemsSubtotal)}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: grn.cn_total > 0 ? '#dc2626' : '#9ca3af' }}><span>Credit Notes</span><strong>{grn.cn_total > 0 ? '−' : ''}{fmtMoney(grn.cn_total)}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: grn.cn_total > 0 ? '#dc2626' : '#6b7280' }}><span>Credit Notes</span><strong>{grn.cn_total > 0 ? '−' : ''}{fmtMoney(grn.cn_total)}</strong></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', marginTop: 6, borderTop: '2px solid #e5e7eb', fontWeight: 700, fontSize: 15 }}>
                   <span>Final Payable</span>
-                  <span style={{ color: '#16a34a' }}>{fmtMoney(grn.final_payable || (itemsSubtotal - (grn.cn_total || 0)))}</span>
+                  <span style={{ color: '#15803d' }}>{fmtMoney(grn.final_payable || (itemsSubtotal - (grn.cn_total || 0)))}</span>
                 </div>
               </div>
             </>
@@ -701,7 +701,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
           {error && <p style={{ color: '#dc2626', fontSize: 13, fontWeight: 600 }}>{error}</p>}
 
           {searched && !loading && rows.length === 0 && !error && (
-            <p style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: 13 }}>
+            <p style={{ color: '#64748b', fontStyle: 'italic', fontSize: 13 }}>
               Nothing was received {q.trim() ? `matching “${q.trim()}” ` : ''}in that range.
             </p>
           )}
@@ -728,7 +728,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
                       return (
                         <tr key={r.product_sync_id || i} onClick={() => openProduct(on ? null : r.product_sync_id)}
                           style={{ borderTop: '1px solid #f1f5f9', cursor: 'pointer', background: on ? '#f0fdf4' : undefined }}>
-                          <td style={{ ...td, color: '#94a3b8' }}>{i + 1}</td>
+                          <td style={{ ...td, color: '#64748b' }}>{i + 1}</td>
                           <td style={{ ...td, fontWeight: 700 }}>
                             {r.product_name}
                             {r.unit ? <span style={{ marginLeft: 6, fontSize: 11, color: '#64748b', fontWeight: 600 }}>{r.unit}</span> : null}
@@ -736,7 +736,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
                           <td style={{ ...td, ...num, fontWeight: 700 }}>{fmtQty(r.qty_received)}</td>
                           <td style={{ ...td, ...num, color: '#b45309' }}>{r.grn_count}</td>
                           <td style={{ ...td, ...num, fontWeight: 700 }}>{fmtMoney(r.total_cost)}</td>
-                          <td style={{ ...td, ...num, color: parseFloat(r.total_discount) > 0 ? '#dc2626' : '#94a3b8' }}>
+                          <td style={{ ...td, ...num, color: parseFloat(r.total_discount) > 0 ? '#dc2626' : '#64748b' }}>
                             {parseFloat(r.total_discount) > 0 ? fmtMoney(r.total_discount) : '—'}
                           </td>
                           <td style={td}>{r.first_received || '—'}</td>
@@ -747,7 +747,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
                     <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0' }}>
                       <td style={{ ...td, fontWeight: 800, color: '#15803d' }} colSpan={4}>TOTAL</td>
                       <td style={{ ...td, ...num, fontWeight: 800, color: '#15803d' }}>{fmtMoney(totCost)}</td>
-                      <td style={{ ...td, ...num, fontWeight: 800, color: totDisc > 0 ? '#dc2626' : '#94a3b8' }}>
+                      <td style={{ ...td, ...num, fontWeight: 800, color: totDisc > 0 ? '#dc2626' : '#64748b' }}>
                         {totDisc > 0 ? fmtMoney(totDisc) : '—'}
                       </td>
                       <td style={td} colSpan={2} />
@@ -785,7 +785,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
                   <tbody>
                     {lines.map((l, i) => (
                       <tr key={`${l.grn_sync_id}-${i}`} style={{ borderTop: '1px solid #f1f5f9' }}>
-                        <td style={{ ...td, color: '#94a3b8' }}>{i + 1}</td>
+                        <td style={{ ...td, color: '#64748b' }}>{i + 1}</td>
                         <td style={{ ...td, fontWeight: 600, color: '#0ea5e9' }}>{l.grn_number}</td>
                         <td style={td}>{l.supplier_invoice_number || '—'}</td>
                         <td style={{ ...td, whiteSpace: 'nowrap' }}>{l.date}</td>
@@ -793,7 +793,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
                         <td style={td}>{l.branch_name || l.branch_slug}</td>
                         <td style={{ ...td, ...num, fontWeight: 700 }}>{fmtQty(l.quantity)}</td>
                         <td style={{ ...td, ...num }}>{fmtMoney(l.unit_price)}</td>
-                        <td style={{ ...td, ...num, color: parseFloat(l.discount_amount) > 0 ? '#dc2626' : '#94a3b8' }}>
+                        <td style={{ ...td, ...num, color: parseFloat(l.discount_amount) > 0 ? '#dc2626' : '#64748b' }}>
                           {parseFloat(l.discount_amount) > 0 ? fmtMoney(l.discount_amount) : '—'}
                         </td>
                         <td style={{ ...td, ...num, fontWeight: 700 }}>{fmtMoney(l.total_price)}</td>

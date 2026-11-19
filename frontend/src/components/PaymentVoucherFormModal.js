@@ -46,14 +46,14 @@ const PaymentVoucherFormModal = ({
   // migration. Backend paymentVouchers.js already accepts both shapes.
   const fieldConfigs = effectiveLiquorStyle
     ? [
-        { key: 'usd_amount', ccy: 'CASH', label: 'Cash',         color: '#16a34a', step: '0.01', placeholder: '0.00', prefix: curSym },
-        { key: 'fra_amount', ccy: 'MOMO', label: 'Mobile Money', color: '#ea580c', step: '0.01', placeholder: '0.00', prefix: curSym },
+        { key: 'usd_amount', ccy: 'CASH', label: 'Cash',         color: '#15803d', step: '0.01', placeholder: '0.00', prefix: curSym },
+        { key: 'fra_amount', ccy: 'MOMO', label: 'Mobile Money', color: '#c2410c', step: '0.01', placeholder: '0.00', prefix: curSym },
         { key: 'k_amount',   ccy: 'BANK', label: 'Bank',         color: '#2563eb', step: '0.01', placeholder: '0.00', prefix: curSym },
       ]
     : [
-        { key: 'usd_amount', ccy: 'USD',  label: 'USD ($)',      color: '#16a34a', step: '0.01', placeholder: '0.00', prefix: '$' },
+        { key: 'usd_amount', ccy: 'USD',  label: 'USD ($)',      color: '#15803d', step: '0.01', placeholder: '0.00', prefix: '$' },
         { key: 'fra_amount', ccy: 'FRA',  label: 'FRA',          color: '#7c3aed', step: '1',    placeholder: '0',    prefix: ''  },
-        { key: 'k_amount',   ccy: 'K',    label: 'K',            color: '#ea580c', step: '1',    placeholder: '0',    prefix: ''  },
+        { key: 'k_amount',   ccy: 'K',    label: 'K',            color: '#c2410c', step: '1',    placeholder: '0',    prefix: ''  },
       ];
 
   const [pvTypes, setPvTypes] = useState([]);

@@ -583,9 +583,9 @@ const HqApApprovals = () => {
       <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflowY: 'auto', flex: 1, minHeight: 0,
                     paddingBottom: (batchSelectable && batchRows.length > 0) ? 84 : 0 }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>Nothing to show for {STATUS_META[tab].label}.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Nothing to show for {STATUS_META[tab].label}.</div>
         ) : displayItems.map(item => {
           // ── Batch header: one line standing for several invoices ──────────
           if (item.type === 'batch') {
@@ -635,7 +635,7 @@ const HqApApprovals = () => {
                 <div style={{ padding: '0 18px 12px 48px', fontSize: 11, color: '#6b7280' }}>
                   Approved: <strong>{first.approved_by_name || '—'}</strong> · {fmtDate(first.approved_at)}
                   {!open && (
-                    <> · <span style={{ color: '#9ca3af' }}>
+                    <> · <span style={{ color: '#6b7280' }}>
                       {members.map(m => m.invoice_number ? `${m.grn_number} (Inv ${m.invoice_number})` : m.grn_number).join(', ')}
                     </span></>
                   )}
@@ -792,7 +792,7 @@ const HqApApprovals = () => {
                 agreed yet. They change what is payable, so the delivery
                 cannot be released past them. */}
             {confirmModal.credits === null ? (
-              <div style={{ fontSize: 12, color: '#94a3b8', marginBottom: 12 }}>Checking for credit notes…</div>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 12 }}>Checking for credit notes…</div>
             ) : confirmModal.credits.length > 0 && (
               <div style={{ marginBottom: 14, border: '1px solid #fed7aa', background: '#fff7ed', borderRadius: 8, padding: '10px 12px' }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#9a3412', marginBottom: 6 }}>
@@ -1049,7 +1049,7 @@ const HqApApprovals = () => {
                     </div>
                   ))}
                   {preview.length < batchGrns.length && (
-                    <div style={{ padding: '8px 12px', borderTop: '1px solid #f3f4f6', fontSize: 11, color: '#9ca3af' }}>
+                    <div style={{ padding: '8px 12px', borderTop: '1px solid #f3f4f6', fontSize: 11, color: '#6b7280' }}>
                       {batchGrns.length - preview.length} selected GRN{batchGrns.length - preview.length === 1 ? '' : 's'} receive nothing — the amount runs out first.
                     </div>
                   )}
@@ -1223,7 +1223,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                     </thead>
                     <tbody>
                       {items.length === 0 ? (
-                        <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#9ca3af' }}>No items on this GRN.</td></tr>
+                        <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>No items on this GRN.</td></tr>
                       ) : items.map((it, idx) => {
                         const qty = parseFloat(it.quantity) || 0;
                         const price = parseFloat(it.unit_price) || 0;

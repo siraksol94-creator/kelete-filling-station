@@ -101,10 +101,10 @@ const ProfitReport = () => {
       { label: t('revenue'), value: revenue, color: '#0369a1' },
       { label: `− ${t('cogs')}`, value: -cogs, color: '#d97706' },
       { label: `− ${t('damaged')}`, value: -damages, color: '#dc2626' },
-      { label: `+ ${t('supplierRebates')}`, value: supplierRebates, color: '#16a34a' },
-      { label: `${stockVariance < 0 ? '−' : '+'} ${t('stockVariance')}`, value: Math.abs(stockVariance), color: stockVariance < 0 ? '#dc2626' : '#16a34a' },
-      { label: `${cashVariance  < 0 ? '−' : '+'} ${t('cashVariance')}`,  value: Math.abs(cashVariance),  color: cashVariance  < 0 ? '#dc2626' : '#16a34a' },
-      { label: `= ${t('grossProfit')}`, value: grossProfit, color: grossProfit >= 0 ? '#16a34a' : '#dc2626', bold: true },
+      { label: `+ ${t('supplierRebates')}`, value: supplierRebates, color: '#15803d' },
+      { label: `${stockVariance < 0 ? '−' : '+'} ${t('stockVariance')}`, value: Math.abs(stockVariance), color: stockVariance < 0 ? '#dc2626' : '#15803d' },
+      { label: `${cashVariance  < 0 ? '−' : '+'} ${t('cashVariance')}`,  value: Math.abs(cashVariance),  color: cashVariance  < 0 ? '#dc2626' : '#15803d' },
+      { label: `= ${t('grossProfit')}`, value: grossProfit, color: grossProfit >= 0 ? '#15803d' : '#dc2626', bold: true },
       { label: `− ${t('expensesPV')}`, value: pvTotal, color: '#dc2626' },
       { label: `= ${t('netProfit')}`, value: netProfit, color: netProfit >= 0 ? '#7c3aed' : '#dc2626', bold: true },
     ].map(r => `<tr style="border-bottom:1px solid #ddd">
@@ -233,7 +233,7 @@ const ProfitReport = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>{t('loading')}</div>
+        <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>{t('loading')}</div>
       ) : (
         <>
           {/* Range Section (Daily when from == to) */}
@@ -267,10 +267,10 @@ const ProfitReport = () => {
                   { label: t('revenue'), value: revenue, color: '#0369a1' },
                   { label: `− ${t('cogs')}`, value: -cogs, color: '#d97706' },
                   { label: `− ${t('damaged')}`, value: -damages, color: '#dc2626' },
-                  { label: `+ ${t('supplierRebates')}`, value: supplierRebates, color: '#16a34a' },
-                  { label: `${stockVariance < 0 ? '−' : '+'} ${t('stockVariance')}`, value: Math.abs(stockVariance), color: stockVariance < 0 ? '#dc2626' : '#16a34a' },
-                  { label: `${cashVariance  < 0 ? '−' : '+'} ${t('cashVariance')}`,  value: Math.abs(cashVariance),  color: cashVariance  < 0 ? '#dc2626' : '#16a34a' },
-                  { label: `= ${t('grossProfit')}`, value: grossProfit, color: grossProfit >= 0 ? '#16a34a' : '#dc2626', bold: true },
+                  { label: `+ ${t('supplierRebates')}`, value: supplierRebates, color: '#15803d' },
+                  { label: `${stockVariance < 0 ? '−' : '+'} ${t('stockVariance')}`, value: Math.abs(stockVariance), color: stockVariance < 0 ? '#dc2626' : '#15803d' },
+                  { label: `${cashVariance  < 0 ? '−' : '+'} ${t('cashVariance')}`,  value: Math.abs(cashVariance),  color: cashVariance  < 0 ? '#dc2626' : '#15803d' },
+                  { label: `= ${t('grossProfit')}`, value: grossProfit, color: grossProfit >= 0 ? '#15803d' : '#dc2626', bold: true },
                   { label: `− ${t('expensesPV')}`, value: pvTotal, color: '#dc2626' },
                   { label: `= ${t('netProfit')}`, value: netProfit, color: netProfit >= 0 ? '#7c3aed' : '#dc2626', bold: true },
                 ].map((row, i) => (

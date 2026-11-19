@@ -383,7 +383,7 @@ const OpeningBalance = () => {
   const numInput = (value, onChange, opts = {}) => (
     <div style={{ position: 'relative' }}>
       {opts.prefix && (
-        <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#94a3b8', pointerEvents: 'none', fontWeight: 600 }}>{opts.prefix}</span>
+        <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: '#64748b', pointerEvents: 'none', fontWeight: 600 }}>{opts.prefix}</span>
       )}
       <input
         type="text" inputMode="decimal" value={value} onChange={e => onChange(e.target.value)}
@@ -443,7 +443,7 @@ const OpeningBalance = () => {
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '12px 0 18px', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: '0 0 360px' }}>
-          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={15} />
+          <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product name or code…"
             style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
@@ -457,9 +457,9 @@ const OpeningBalance = () => {
       </div>
 
       {loading ? (
-        <div style={{ padding: 60, textAlign: 'center', color: '#94a3b8' }}>Loading items and balances…</div>
+        <div style={{ padding: 60, textAlign: 'center', color: '#64748b' }}>Loading items and balances…</div>
       ) : filteredProducts.length === 0 ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8', background: '#fff', borderRadius: 12 }}>No products match.</div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#64748b', background: '#fff', borderRadius: 12 }}>No products match.</div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 14 }}>
           {filteredProducts.map(p => {
@@ -476,7 +476,7 @@ const OpeningBalance = () => {
               }}>
                 <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
                   <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 14, lineHeight: 1.2 }}>{p.name}</div>
-                  <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span>{p.code}</span>
                     {hadBalance && (
                       <span style={{ background: '#dcfce7', color: '#15803d', padding: '1px 6px', borderRadius: 4, fontSize: 9, letterSpacing: 0.4, fontWeight: 700 }}>
@@ -495,7 +495,7 @@ const OpeningBalance = () => {
                 <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                   <div style={{ flex: 1 }}>
                     {label(`Qty (${baseUnitName || 'base'})`,
-                      <FiPackage size={11} style={{ color: '#94a3b8' }} />)}
+                      <FiPackage size={11} style={{ color: '#64748b' }} />)}
                     {numInput(
                       editingKey === qKey ? editingRaw : (num(qty[p.id]) === 0 ? '' : String(num(qty[p.id]))),
                       (raw) => { setEditingKey(qKey); setEditingRaw(raw); setQty(prev => ({ ...prev, [p.id]: num(raw) })); },

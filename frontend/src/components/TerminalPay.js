@@ -339,7 +339,7 @@ function BuyerSheet({ payModal, setPayModal, zraEnabled, selectedCustomer, tpinL
                 <span style={{ letterSpacing: 1, color: tpin ? '#0f172a' : '#9aa3b5' }}>{tpin || '10 digits'}</span>
                 <button type="button" disabled={!tpinReady || tpinLookup?.status === 'loading'}
                   onClick={(e) => { e.stopPropagation(); lookupTpin(tpin); }}
-                  style={{ padding: '4px 10px', border: 'none', borderRadius: 7, background: tpinReady ? NAVY : '#e5e7eb', color: tpinReady ? '#fff' : '#9ca3af', fontSize: 11, fontWeight: 700, cursor: tpinReady ? 'pointer' : 'not-allowed' }}>
+                  style={{ padding: '4px 10px', border: 'none', borderRadius: 7, background: tpinReady ? NAVY : '#e5e7eb', color: tpinReady ? '#fff' : '#6b7280', fontSize: 11, fontWeight: 700, cursor: tpinReady ? 'pointer' : 'not-allowed' }}>
                   {tpinLookup?.status === 'loading' ? '…' : 'Verify'}
                 </button>
               </div>

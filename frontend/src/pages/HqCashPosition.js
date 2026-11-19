@@ -210,7 +210,7 @@ export default function HqCashPosition() {
             })}
           </div>
 
-          <p style={{ marginTop: 16, fontSize: 12, color: '#94a3b8' }}>
+          <p style={{ marginTop: 16, fontSize: 12, color: '#64748b' }}>
             Balance = Opening + In − Out − Deposited. Deposited counts every deposit sent, to HQ or to another depot, confirmed or not,
             so a depot's own Cash Book shows more until it is confirmed. Deposited to HQ above counts only what was sent to HQ. Updated {new Date(data.as_of).toLocaleTimeString()}.
           </p>

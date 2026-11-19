@@ -177,7 +177,7 @@ const ZraPurchases = () => {
   const renderReceiveCell = (it) => {
     if (!it.itemCd) return null;
     const d = lineMap[it.itemCd] || {};
-    if (d.action === 'IGNORE') return <span style={{ color: '#9ca3af', fontSize: 11 }}>—</span>;
+    if (d.action === 'IGNORE') return <span style={{ color: '#6b7280', fontSize: 11 }}>—</span>;
     const units = unitsForLine(it);
     const qty = d.receive_qty ?? it.qty ?? '';
     const unit = d.receive_unit || units[0] || '';
@@ -207,7 +207,7 @@ const ZraPurchases = () => {
   };
 
   const renderMapCell = (it) => {
-    if (!it.itemCd) return <span style={{ color: '#9ca3af', fontSize: 11 }}>no item code</span>;
+    if (!it.itemCd) return <span style={{ color: '#6b7280', fontSize: 11 }}>no item code</span>;
     const d = lineMap[it.itemCd] || {};
     const value = d.action === 'CREATE' ? '__CREATE__'
                 : d.action === 'IGNORE' ? '__IGNORE__'
@@ -392,7 +392,7 @@ const ZraPurchases = () => {
                 <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Loading…</td></tr>
               )}
               {!loading && rows.length === 0 && (
-                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#9ca3af' }}>
+                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
                   Nothing here. Click <strong>Pull New</strong> to fetch from VSDC.
                 </td></tr>
               )}
@@ -545,7 +545,7 @@ const ZraPurchases = () => {
                           </tr>
                         ))}
                         {(!detail.item_list || detail.item_list.length === 0) && (
-                          <tr><td colSpan={11} style={{ padding: 16, textAlign: 'center', color: '#9ca3af' }}>No line items in raw payload.</td></tr>
+                          <tr><td colSpan={11} style={{ padding: 16, textAlign: 'center', color: '#6b7280' }}>No line items in raw payload.</td></tr>
                         )}
                       </tbody>
                     </table>

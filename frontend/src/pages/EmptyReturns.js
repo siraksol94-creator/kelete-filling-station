@@ -281,13 +281,13 @@ const EmptyReturns = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
             style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
@@ -296,9 +296,9 @@ const EmptyReturns = () => {
           <button onClick={() => { setFilterFrom(''); setFilterTo(''); }}
             style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}>{t('clear')}</button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
           {filteredReturns.length} return{filteredReturns.length !== 1 ? 's' : ''}
-          {hasFilter && <> &nbsp;·&nbsp; Total credit: <strong style={{ color: '#16a34a' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>}
+          {hasFilter && <> &nbsp;·&nbsp; Total credit: <strong style={{ color: '#15803d' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>}
         </span>
       </div>
 
@@ -319,7 +319,7 @@ const EmptyReturns = () => {
                   <td>{formatDate(r.date)}</td>
                   <td>{r.supplier_name || '—'}</td>
                   <td style={{ textAlign: 'center' }}>{r.total_items}</td>
-                  <td style={{ color: '#16a34a', fontWeight: 600 }}>{curSym}{parseFloat(r.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                  <td style={{ color: '#15803d', fontWeight: 600 }}>{curSym}{parseFloat(r.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => openView(r)} disabled={viewLoading}
@@ -433,7 +433,7 @@ const EmptyReturns = () => {
                             <>
                               <div style={{ fontWeight: 600, color: '#374151' }}>{inYard.toFixed(0)}</div>
                               {qty > 0 && (
-                                <div style={{ fontSize: 10, marginTop: 2, color: overshoot ? '#dc2626' : '#16a34a' }}>
+                                <div style={{ fontSize: 10, marginTop: 2, color: overshoot ? '#dc2626' : '#15803d' }}>
                                   after: {remaining.toFixed(0)}
                                 </div>
                               )}
@@ -459,7 +459,7 @@ const EmptyReturns = () => {
                         </td>
                         <td style={{ padding: '8px 4px', textAlign: 'center' }}>
                           <button onClick={() => removeItemRow(idx)} disabled={items.length === 1}
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f3f4f6' : '#fee2e2', color: items.length === 1 ? '#9ca3af' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}>
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f3f4f6' : '#fee2e2', color: items.length === 1 ? '#6b7280' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}>
                             <FiTrash2 size={14} />
                           </button>
                         </td>
@@ -471,12 +471,12 @@ const EmptyReturns = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
                 <button onClick={addItemRow}
-                  style={{ padding: '7px 14px', background: '#f0fdf4', color: '#16a34a', border: '1px dashed #86efac', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
+                  style={{ padding: '7px 14px', background: '#f0fdf4', color: '#15803d', border: '1px dashed #86efac', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
                   <FiPlus size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Add Line
                 </button>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 12, borderTop: '2px solid #e5e7eb' }}>
                   <span style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>Supplier Credit:</span>
-                  <span style={{ fontWeight: 700, fontSize: 18, color: '#16a34a' }}>{curSym}{(parseFloat(totalAmount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                  <span style={{ fontWeight: 700, fontSize: 18, color: '#15803d' }}>{curSym}{(parseFloat(totalAmount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                 </div>
               </div>
 
@@ -517,7 +517,7 @@ const EmptyReturns = () => {
                 <div><strong style={{ color: '#6b7280' }}>Supplier:</strong> {viewER.supplier_name || '—'}</div>
                 <div><strong style={{ color: '#6b7280' }}>Date:</strong> {formatDate(viewER.date)}</div>
                 <div><strong style={{ color: '#6b7280' }}>Items:</strong> {viewER.total_items}</div>
-                <div><strong style={{ color: '#6b7280' }}>Total Credit:</strong> <span style={{ color: '#16a34a', fontWeight: 700 }}>{curSym}{(parseFloat(parseFloat(viewER.total_amount))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+                <div><strong style={{ color: '#6b7280' }}>Total Credit:</strong> <span style={{ color: '#15803d', fontWeight: 700 }}>{curSym}{(parseFloat(parseFloat(viewER.total_amount))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
                 {viewER.created_by_name && <div><strong style={{ color: '#6b7280' }}>Created by:</strong> {viewER.created_by_name}</div>}
               </div>
               {viewER.notes && (

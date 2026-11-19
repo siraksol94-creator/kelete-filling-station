@@ -80,7 +80,7 @@ const Profile = () => {
       style={{
         padding: '10px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
         background: tab === id ? '#fff' : 'transparent',
-        color: tab === id ? '#16a34a' : '#6b7280',
+        color: tab === id ? '#15803d' : '#6b7280',
         border: 'none', borderBottom: `3px solid ${tab === id ? '#16a34a' : 'transparent'}`,
         display: 'inline-flex', alignItems: 'center', gap: 8,
       }}>
@@ -146,7 +146,7 @@ const Profile = () => {
                     <input type="email" name="businessEmail" value={form.businessEmail} onChange={handleChange} />
                   </div>
                   <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label>Physical Address <small style={{ color: '#9ca3af', fontWeight: 400 }}>(this branch)</small></label>
+                    <label>Physical Address <small style={{ color: '#6b7280', fontWeight: 400 }}>(this branch)</small></label>
                     <input type="text" name="businessAddress" value={form.businessAddress} onChange={handleChange} placeholder="e.g. Ben Bella Road, Lusaka" />
                   </div>
                 </div>
@@ -190,7 +190,7 @@ const Profile = () => {
                   <div className="form-group">
                     <label>Role</label>
                     <input type="text" value={form.role} disabled style={{ background: '#f9fafb', color: '#6b7280' }} />
-                    <small style={{ color: '#9ca3af', fontSize: 11 }}>Role is managed by an Administrator from the Users page.</small>
+                    <small style={{ color: '#6b7280', fontSize: 11 }}>Role is managed by an Administrator from the Users page.</small>
                   </div>
                 </div>
               </div>

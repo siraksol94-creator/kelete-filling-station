@@ -78,6 +78,7 @@ import Users from './pages/Users';
 import SalesReport from './pages/SalesReport';
 import SalesInventory from './pages/SalesInventory';
 import CashReport from './pages/CashReport';
+import FuelLoader from './ux/FuelLoader';
 import StockAdjustment from './pages/StockAdjustment';
 import StockReconciliation from './pages/StockReconciliation';
 import Categories from './pages/Categories';
@@ -293,9 +294,7 @@ function AppRoutes() {
 
   if (!syncChecked) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f9fafb' }}>
-        <div style={{ fontSize: 32 }}>🍷</div>
-      </div>
+      <FuelLoader size="lg" message="Starting Kelete…" />
     );
   }
 
@@ -337,7 +336,7 @@ function AppRoutes() {
           Your Kelete license expired on <strong>{licenseStatus.expiresAt?.substring(0,10)}</strong>.
           Please contact your software provider to renew your license.
         </p>
-        <p style={{ color: '#9ca3af', fontSize: 12, marginTop: 24 }}>
+        <p style={{ color: '#6b7280', fontSize: 12, marginTop: 24 }}>
           Your data is safe and will be available once the license is renewed.
         </p>
       </div>

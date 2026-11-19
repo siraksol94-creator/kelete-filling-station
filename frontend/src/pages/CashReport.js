@@ -968,7 +968,7 @@ const CashReport = () => {
         </div>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px' }}>
-            <FiCalendar style={{ color: '#9ca3af' }} />
+            <FiCalendar style={{ color: '#6b7280' }} />
             <input type="date" value={date} onChange={async e => {
               const d = e.target.value;
               const firstId = await fetchSalesCashiers(d);
@@ -1047,9 +1047,9 @@ const CashReport = () => {
           ));
         })() : (
           [
-            { ccy: 'USD',  symbol: '$',    dec: 2, label: 'USD',  color: '#16a34a', bg: 'linear-gradient(135deg,#16a34a,#15803d)', show: showUSDccy },
+            { ccy: 'USD',  symbol: '$',    dec: 2, label: 'USD',  color: '#15803d', bg: 'linear-gradient(135deg,#16a34a,#15803d)', show: showUSDccy },
             { ccy: 'FRA',  symbol: '',     dec: 0, label: 'FRA',  color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', show: showFRAccy },
-            { ccy: 'K',    symbol: '',     dec: 0, label: 'K',    color: '#ea580c', bg: 'linear-gradient(135deg,#ea580c,#c2410c)', show: showKccy },
+            { ccy: 'K',    symbol: '',     dec: 0, label: 'K',    color: '#c2410c', bg: 'linear-gradient(135deg,#ea580c,#c2410c)', show: showKccy },
           ].filter(c => c.show).map(c => {
             const key      = c.ccy.toLowerCase();
             const expected = parseFloat(daySummaryByCcy[key]?.expected || 0) || 0;
@@ -1111,7 +1111,7 @@ const CashReport = () => {
                 borderRight: i < arr.length - 1 ? '1px solid #e5e7eb' : 'none',
                 background: item.bg,
               }}>
-                <div style={{ fontSize: 11, color: '#9ca3af', fontWeight: 500, marginBottom: 2 }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 500, marginBottom: 2 }}>{item.label}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.value}</div>
               </div>
             ))}
@@ -1154,7 +1154,7 @@ const CashReport = () => {
         </div>
 
         {message && (
-          <div style={{ color: message.includes('success') ? '#16a34a' : '#dc2626', marginBottom: 12, fontSize: 13 }}>
+          <div style={{ color: message.includes('success') ? '#15803d' : '#dc2626', marginBottom: 12, fontSize: 13 }}>
             {message}
           </div>
         )}
@@ -1211,17 +1211,17 @@ const CashReport = () => {
               re-use the legacy *_received columns — backend repurposes
               them as method buckets on Liquor branches. */}
           {[
-            { key: 'usd_received', label: 'USD Cash ($)',  ccy: 'USD',  symbol: '$',     dec: 2, posExp: expectedByCcy.usd,    exp: expensesByCcy.usd, exch: exchangeNet.usd_net, step: '0.01', color: '#16a34a', bg: '#f0fdf4', show: showUSDccy },
+            { key: 'usd_received', label: 'USD Cash ($)',  ccy: 'USD',  symbol: '$',     dec: 2, posExp: expectedByCcy.usd,    exp: expensesByCcy.usd, exch: exchangeNet.usd_net, step: '0.01', color: '#15803d', bg: '#f0fdf4', show: showUSDccy },
             { key: 'fra_received', label: 'FRA Cash',      ccy: 'FRA',  symbol: '',      dec: 0, posExp: expectedByCcy.fra,    exp: expensesByCcy.fra, exch: exchangeNet.fra_net, step: '1',    color: '#7c3aed', bg: '#faf5ff', show: showFRAccy },
-            { key: 'k_received',   label: 'K Cash',        ccy: 'K',    symbol: '',      dec: 0, posExp: expectedByCcy.k,      exp: expensesByCcy.k,   exch: exchangeNet.k_net,   step: '1',    color: '#ea580c', bg: '#fff7ed', show: showKccy   },
+            { key: 'k_received',   label: 'K Cash',        ccy: 'K',    symbol: '',      dec: 0, posExp: expectedByCcy.k,      exp: expensesByCcy.k,   exch: exchangeNet.k_net,   step: '1',    color: '#c2410c', bg: '#fff7ed', show: showKccy   },
             // v1.10.31 — Liquor cards now surface expenses. Storage mapping
             // (matches PaymentVoucherFormModal): Cash → usd_amount, MoMo →
             // fra_amount, Bank → k_amount. Previously `exp: 0` hid every PV
             // saved from this page from the "+ Expenses paid" line, so a
             // cashier who registered a K5,000 expense saw nothing move.
-            { key: 'usd_received', label: 'Cash',          ccy: 'CASH', symbol: curSym,  dec: 2, posExp: expectedByMethod.cash, exp: expensesByCcy.usd, exch: 0, step: '0.01', color: '#16a34a', bg: '#f0fdf4', show: isLiquorStyle },
+            { key: 'usd_received', label: 'Cash',          ccy: 'CASH', symbol: curSym,  dec: 2, posExp: expectedByMethod.cash, exp: expensesByCcy.usd, exch: 0, step: '0.01', color: '#15803d', bg: '#f0fdf4', show: isLiquorStyle },
             // 2026-09-11 — a hidden method's card shows only if money sits on it.
-            { key: 'fra_received', label: 'Mobile Money',  ccy: 'MOMO', symbol: curSym,  dec: 2, posExp: expectedByMethod.momo, exp: expensesByCcy.fra, exch: 0, step: '0.01', color: '#ea580c', bg: '#fff7ed', show: isLiquorStyle && (methodShown('momo') || hasMoney(expectedByMethod.momo, expensesByCcy.fra, form.fra_received)) },
+            { key: 'fra_received', label: 'Mobile Money',  ccy: 'MOMO', symbol: curSym,  dec: 2, posExp: expectedByMethod.momo, exp: expensesByCcy.fra, exch: 0, step: '0.01', color: '#c2410c', bg: '#fff7ed', show: isLiquorStyle && (methodShown('momo') || hasMoney(expectedByMethod.momo, expensesByCcy.fra, form.fra_received)) },
             { key: 'k_received',   label: 'Bank',          ccy: 'BANK', symbol: curSym,  dec: 2, posExp: expectedByMethod.bank, exp: expensesByCcy.k,   exch: 0, step: '0.01', color: '#2563eb', bg: '#eff6ff', show: isLiquorStyle && (methodShown('bank') || hasMoney(expectedByMethod.bank, expensesByCcy.k, form.k_received)) },
           ].filter(c => c.show).map(c => {
             const counted     = parseFloat(form[c.key] || 0) || 0;
@@ -1301,10 +1301,10 @@ const CashReport = () => {
                     maxWidth: 260,
                   }}>
                     <span>+ Expenses paid</span>
-                    <span style={{ color: c.exp > 0 ? '#374151' : '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(c.exp)}</span>
+                    <span style={{ color: c.exp > 0 ? '#374151' : '#6b7280', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(c.exp)}</span>
 
                     <span>± Drawer exchanges</span>
-                    <span style={{ color: exch !== 0 ? '#7c3aed' : '#9ca3af', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>
+                    <span style={{ color: exch !== 0 ? '#7c3aed' : '#6b7280', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>
                       {exchAdj > 0 ? '+' : ''}{fmt(exchAdj)}
                     </span>
 
@@ -1313,8 +1313,8 @@ const CashReport = () => {
                     <span style={{ fontWeight: 700, fontSize: 13, color: '#111827', paddingTop: 4 }}>= Total cash in</span>
                     <span style={{ fontWeight: 800, fontSize: 17, color: c.color, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 4 }}>{fmt(totalCashIn)}</span>
 
-                    <span style={{ color: '#9ca3af', fontSize: 11, paddingTop: 2 }}>Expected sales (POS)</span>
-                    <span style={{ color: '#9ca3af', fontWeight: 500, fontSize: 12, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 2 }}>{fmt(c.posExp)}</span>
+                    <span style={{ color: '#6b7280', fontSize: 11, paddingTop: 2 }}>Expected sales (POS)</span>
+                    <span style={{ color: '#6b7280', fontWeight: 500, fontSize: 12, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 2 }}>{fmt(c.posExp)}</span>
                   </div>
                 </div>
 
@@ -1407,7 +1407,7 @@ const CashReport = () => {
                       <span style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>= Becomes receivable</span>
                       <span style={{ fontWeight: 800, fontSize: 17, color: '#dc2626', whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(counted)}</span>
                     </div>
-                    <div style={{ marginTop: 10, fontSize: 11, color: '#9ca3af', lineHeight: 1.45 }}>
+                    <div style={{ marginTop: 10, fontSize: 11, color: '#6b7280', lineHeight: 1.45 }}>
                       Credit owed by customers from today's sales. Not cash — does not affect any drawer.
                     </div>
                   </div>
@@ -1581,15 +1581,15 @@ const CashReport = () => {
       {(exchangeNet.usd_net || exchangeNet.fra_net || exchangeNet.k_net) && (
         <div style={{ marginTop: 10, padding: '10px 14px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, fontSize: 12, color: '#5b21b6' }}>
           <strong>Net drawer impact:</strong>{' '}
-          USD <span style={{ fontWeight: 700, color: exchangeNet.usd_net >= 0 ? '#16a34a' : '#dc2626' }}>
+          USD <span style={{ fontWeight: 700, color: exchangeNet.usd_net >= 0 ? '#15803d' : '#dc2626' }}>
             {exchangeNet.usd_net >= 0 ? '+' : ''}${parseFloat(exchangeNet.usd_net).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
           {' · '}
-          FRA <span style={{ fontWeight: 700, color: exchangeNet.fra_net >= 0 ? '#16a34a' : '#dc2626' }}>
+          FRA <span style={{ fontWeight: 700, color: exchangeNet.fra_net >= 0 ? '#15803d' : '#dc2626' }}>
             {exchangeNet.fra_net >= 0 ? '+' : ''}{parseFloat(exchangeNet.fra_net).toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </span>
           {' · '}
-          K <span style={{ fontWeight: 700, color: exchangeNet.k_net >= 0 ? '#16a34a' : '#dc2626' }}>
+          K <span style={{ fontWeight: 700, color: exchangeNet.k_net >= 0 ? '#15803d' : '#dc2626' }}>
             {exchangeNet.k_net >= 0 ? '+' : ''}{parseFloat(exchangeNet.k_net).toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </span>
           <span style={{ color: '#7c3aed', marginLeft: 8 }}>
@@ -1663,7 +1663,7 @@ const CashReport = () => {
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#9ca3af' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
           {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
           {(filterMonth !== 0 || filterYear !== 0) && (
             <> — {filterMonth !== 0 ? MONTHS[filterMonth - 1] : ''}{filterMonth !== 0 && filterYear !== 0 ? ' ' : ''}{filterYear !== 0 ? filterYear : ''}</>
@@ -1694,9 +1694,9 @@ const CashReport = () => {
         const diffStatus = getStatus(totalDifference);
         const summaryCards = [
           { label: 'Total Expected Cash', value: totalExpected,    color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
-          { label: 'Total Cash on Hand',  value: totalAfterChange, color: '#16a34a', bg: '#f0fdf4', border: '#bbf7d0' },
+          { label: 'Total Cash on Hand',  value: totalAfterChange, color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
           { label: 'Total Difference',    value: totalDifference,
-            color: totalDifference < 0 ? '#dc2626' : totalDifference > 0 ? '#16a34a' : '#6b7280',
+            color: totalDifference < 0 ? '#dc2626' : totalDifference > 0 ? '#15803d' : '#6b7280',
             bg:    totalDifference < 0 ? '#fef2f2' : totalDifference > 0 ? '#f0fdf4' : '#f9fafb',
             border:totalDifference < 0 ? '#fecaca' : totalDifference > 0 ? '#bbf7d0' : '#e5e7eb',
             badge: diffStatus },
@@ -1790,8 +1790,8 @@ const CashReport = () => {
                 <>
                   {/* 2026-09-11 — a hidden method's column shows only if a row has money on it. */}
                   {(methodShown('bank') || filteredReports.some(x => hasMoney(x.k_received || x.bank))) && <th style={{ color: '#2563eb' }}>Bank ({curSym})</th>}
-                  {(methodShown('momo') || filteredReports.some(x => hasMoney(x.fra_received || x.mobile_money))) && <th style={{ color: '#ea580c' }}>MoMo ({curSym})</th>}
-                  <th style={{ color: '#16a34a' }}>Cash ({curSym})</th>
+                  {(methodShown('momo') || filteredReports.some(x => hasMoney(x.fra_received || x.mobile_money))) && <th style={{ color: '#c2410c' }}>MoMo ({curSym})</th>}
+                  <th style={{ color: '#15803d' }}>Cash ({curSym})</th>
                   <th style={{ color: '#dc2626' }}>Expenses ({curSym})</th>
                   <th>Credit Sales</th>
                   <th>Total ({curSym})</th>
@@ -1802,12 +1802,12 @@ const CashReport = () => {
                 </>
               ) : (
                 <>
-                  <th style={{ color: '#16a34a' }}>USD ($)</th><th>Diff $</th>
+                  <th style={{ color: '#15803d' }}>USD ($)</th><th>Diff $</th>
                   <th style={{ color: '#7c3aed' }}>FRA</th><th>Diff FRA</th>
-                  <th style={{ color: '#ea580c' }}>K</th><th>Diff K</th>
-                  <th style={{ color: '#16a34a' }}>Exp $</th>
+                  <th style={{ color: '#c2410c' }}>K</th><th>Diff K</th>
+                  <th style={{ color: '#15803d' }}>Exp $</th>
                   <th style={{ color: '#7c3aed' }}>Exp FRA</th>
-                  <th style={{ color: '#ea580c' }}>Exp K</th>
+                  <th style={{ color: '#c2410c' }}>Exp K</th>
                   <th>Credit Sales</th>
                   <th>Comment</th>
                 </>
@@ -1816,7 +1816,7 @@ const CashReport = () => {
           </thead>
           <tbody>
             {filteredReports.length === 0 ? (
-              <tr><td colSpan={isLiquorStyle ? 12 : 13} style={{ textAlign: 'center', color: '#9ca3af', padding: 40 }}>No reports found for the selected period.</td></tr>
+              <tr><td colSpan={isLiquorStyle ? 12 : 13} style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>No reports found for the selected period.</td></tr>
             ) : filteredReports.map(r => {
               const usdR = parseFloat(r.usd_received || r.cash || 0);
               const fraR = parseFloat(r.fra_received || r.mobile_money || 0);
@@ -1951,7 +1951,7 @@ const CashReport = () => {
             </div>
             <div className="modal-body" style={{ padding: 0 }}>
               {filtered.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#9ca3af', padding: '32px 0' }}>
+                <p style={{ textAlign: 'center', color: '#6b7280', padding: '32px 0' }}>
                   No {expensesFilterCcy ? expensesFilterCcy + ' ' : ''}expenses recorded for this date.
                 </p>
               ) : (
@@ -2018,7 +2018,7 @@ const CashReport = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — Cash Report for {formatDateLong(date)}
               </span>
             </div>
@@ -2040,7 +2040,7 @@ const CashReport = () => {
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '7px 16px', borderRadius: 8,
                   border: '1px solid #334155',
-                  background: 'transparent', color: '#94a3b8',
+                  background: 'transparent', color: '#64748b',
                   cursor: 'pointer', fontSize: 13,
                 }}
               >
@@ -2229,7 +2229,7 @@ const CashReport = () => {
                         <strong>{curSym}{fmt(Math.abs(computedDiff))}</strong>
                       </div>
                     ) : (
-                      <div style={{ fontSize: 11.5, color: '#16a34a', fontWeight: 500 }}>
+                      <div style={{ fontSize: 11.5, color: '#15803d', fontWeight: 500 }}>
                         Fully balanced
                       </div>
                     )}
@@ -2273,7 +2273,7 @@ const CashReport = () => {
                           <td style={{ padding: '8px 18px', fontWeight: 600, color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>{v.voucher_number}</td>
                           <td style={{ padding: '8px 18px', color: '#374151' }}>{v.category}</td>
                           <td style={{ padding: '8px 18px', fontWeight: 500 }}>{v.paid_to}</td>
-                          <td style={{ padding: '8px 18px', color: '#9ca3af' }}>{v.description || '—'}</td>
+                          <td style={{ padding: '8px 18px', color: '#6b7280' }}>{v.description || '—'}</td>
                           <td style={{ padding: '8px 18px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>
                             ${fmt(v.amount)}
                           </td>
@@ -2300,14 +2300,14 @@ const CashReport = () => {
                   border: '1px solid #e2e8f0', borderRadius: 10,
                   padding: '14px 18px', marginBottom: 26, background: '#f8fafc',
                 }}>
-                  <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, marginBottom: 6 }}>
+                  <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', fontWeight: 700, marginBottom: 6 }}>
                     Comments / Notes
                   </div>
                   <div style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6 }}>{form.comment}</div>
                 </div>
               ) : (
                 <div style={{ marginBottom: 26 }}>
-                  <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', fontWeight: 700, marginBottom: 8 }}>
                     Comments / Notes
                   </div>
                   <div style={{ borderBottom: '1px solid #cbd5e1', height: 24 }} />
@@ -2327,7 +2327,7 @@ const CashReport = () => {
                     {['Name', 'Signature', 'Date'].map(field => (
                       <div key={field} style={{ marginBottom: 20 }}>
                         <div style={{ borderBottom: '1px solid #94a3b8', paddingBottom: 2, marginBottom: 4, minHeight: 20 }}>&nbsp;</div>
-                        <div style={{ fontSize: 9.5, color: '#94a3b8', letterSpacing: 0.3 }}>{field}</div>
+                        <div style={{ fontSize: 9.5, color: '#64748b', letterSpacing: 0.3 }}>{field}</div>
                       </div>
                     ))}
                   </div>

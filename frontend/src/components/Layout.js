@@ -1274,7 +1274,7 @@ const Layout = () => {
           <div className="top-header-right">
             <div ref={searchRef} style={{ position: 'relative' }}>
               <div className="search-bar">
-                <FiSearch style={{ color: '#9ca3af' }} />
+                <FiSearch style={{ color: '#6b7280' }} />
                 <input
                   type="text"
                   placeholder={t('search')}
@@ -1300,7 +1300,7 @@ const Layout = () => {
                         <div style={{ fontSize: 14, fontWeight: 500, color: '#111827',
                                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                                       overflow: 'hidden' }}>{r.label}</div>
-                        {r.sub && <div style={{ fontSize: 12, color: '#9ca3af' }}>{r.sub}</div>}
+                        {r.sub && <div style={{ fontSize: 12, color: '#6b7280' }}>{r.sub}</div>}
                       </div>
                     </div>
                   ))}
@@ -1335,7 +1335,7 @@ const Layout = () => {
                 <FiGlobe size={15} style={{ color: '#6b7280' }} />
                 <span>{currentLang.flag}</span>
                 <span>{currentLang.label}</span>
-                <FiChevronDown size={13} style={{ color: '#9ca3af' }} />
+                <FiChevronDown size={13} style={{ color: '#6b7280' }} />
               </button>
               {showLangMenu && (
                 <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 999, minWidth: 160, overflow: 'hidden' }}>
@@ -1400,7 +1400,7 @@ const Layout = () => {
             </div>
           </div>
           <button type="button" aria-label="Dismiss" onClick={(e) => { e.stopPropagation(); setChatToast(null); }}
-            style={{ border: 0, background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
+            style={{ border: 0, background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
             ×
           </button>
         </div>
@@ -1450,7 +1450,7 @@ const Layout = () => {
               </div>
               {st !== 'approved' && (
                 <button type="button" aria-label="Dismiss" onClick={clear}
-                  style={{ border: 0, background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                  style={{ border: 0, background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
                   ×
                 </button>
               )}
@@ -1503,7 +1503,7 @@ const Layout = () => {
                 <img src={keleteLogo} alt="Red Sea"
                   style={{ display: 'block', width: 64, height: 64, objectFit: 'contain', margin: '0 auto 10px' }} />
                 <div style={{ fontSize: 13, color: '#6b7280', letterSpacing: 1, textTransform: 'uppercase' }}>{title}</div>
-                <div style={{ fontSize: 44, fontWeight: 800, color: '#16a34a', lineHeight: 1.1, margin: '4px 0 2px' }}>{rows.length}</div>
+                <div style={{ fontSize: 44, fontWeight: 800, color: '#15803d', lineHeight: 1.1, margin: '4px 0 2px' }}>{rows.length}</div>
                 <div style={{ fontSize: 14, color: '#374151', marginBottom: 16 }}>
                   {hq ? 'confirmed by depots, waiting for a GRN' : 'waiting to be received at this depot'}
                 </div>
@@ -1593,7 +1593,7 @@ const Layout = () => {
                   <div style={{ fontSize: 13, color: '#334155', marginTop: 2 }}>{a.text}</div>
                 </div>
                 <button type="button" aria-label="Dismiss" onClick={(e) => { e.stopPropagation(); setCornerClosed(true); }}
-                  style={{ border: 0, background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
+                  style={{ border: 0, background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>
                   ×
                 </button>
               </div>

@@ -402,7 +402,7 @@ const Users = () => {
       {/* Filters */}
       <div className="filter-bar">
         <div className="search-input-container">
-          <FiSearch style={{ color: '#9ca3af' }} />
+          <FiSearch style={{ color: '#6b7280' }} />
           <input type="text" placeholder="Search by name or email..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="filter-dropdown">
@@ -425,9 +425,9 @@ const Users = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>Loading...</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>Loading...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#9ca3af' }}>No users found.</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>No users found.</td></tr>
             ) : filtered.map((user, idx) => (
               <tr key={user.id}>
                 <td>
@@ -437,7 +437,7 @@ const Users = () => {
                     </div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{user.first_name} {user.last_name}</div>
-                      {user.phone && <div style={{ fontSize: 12, color: '#9ca3af' }}>{user.phone}</div>}
+                      {user.phone && <div style={{ fontSize: 12, color: '#6b7280' }}>{user.phone}</div>}
                     </div>
                   </div>
                 </td>
@@ -467,7 +467,7 @@ const Users = () => {
                     </button>
                     <button
                       onClick={() => openPermModal(user)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 7, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
                     >
                       <FiShield size={13} /> Permissions
                     </button>
@@ -547,7 +547,7 @@ const Users = () => {
                 <div style={inputWrap}>
                   <FiLock size={14} style={iconStyle} />
                   <input style={{ ...inputStyle, paddingRight: 36 }} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder={modal === 'add' ? 'Set password' : 'Leave blank to keep current'} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
-                  <button type="button" onClick={() => setShowPassword(s => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: 0 }}>
+                  <button type="button" onClick={() => setShowPassword(s => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}>
                     {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                   </button>
                 </div>
@@ -582,7 +582,7 @@ const Users = () => {
               </label>
 
               {modal === 'add' && (
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#16a34a' }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '10px 14px', fontSize: 13, color: '#15803d' }}>
                   After creating the user, use the <strong>Permissions</strong> button to configure their page access.
                   {form.role === 'Administrator' && <span> Administrators get <strong>full access</strong> by default.</span>}
                 </div>
@@ -614,7 +614,7 @@ const Users = () => {
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid #f1f5f9' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#15803d' }}>
                   <FiShield size={18} />
                 </div>
                 <div>
@@ -626,7 +626,7 @@ const Users = () => {
                   </h3>
                   <div style={{ fontSize: 13, color: '#6b7280' }}>
                     {permUser.first_name} {permUser.last_name}
-                    <span style={{ marginLeft: 6, color: '#9ca3af' }}>·</span>
+                    <span style={{ marginLeft: 6, color: '#6b7280' }}>·</span>
                     <span style={{ marginLeft: 6, fontSize: 12 }}>Only pages available on this host are shown.</span>
                   </div>
                 </div>
@@ -643,7 +643,7 @@ const Users = () => {
                 <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Access Level</div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   {['All', 'Custom'].map(level => (
-                    <label key={level} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '10px 18px', borderRadius: 10, border: `2px solid ${accessLevel === level ? (level === 'All' ? '#16a34a' : '#2563eb') : '#e5e7eb'}`, background: accessLevel === level ? (level === 'All' ? '#f0fdf4' : '#eff6ff') : '#fafafa', fontWeight: accessLevel === level ? 700 : 400, fontSize: 14, color: accessLevel === level ? (level === 'All' ? '#16a34a' : '#2563eb') : '#6b7280' }}>
+                    <label key={level} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '10px 18px', borderRadius: 10, border: `2px solid ${accessLevel === level ? (level === 'All' ? '#16a34a' : '#2563eb') : '#e5e7eb'}`, background: accessLevel === level ? (level === 'All' ? '#f0fdf4' : '#eff6ff') : '#fafafa', fontWeight: accessLevel === level ? 700 : 400, fontSize: 14, color: accessLevel === level ? (level === 'All' ? '#15803d' : '#2563eb') : '#6b7280' }}>
                       <input
                         type="radio"
                         name="accessLevel"
@@ -660,7 +660,7 @@ const Users = () => {
 
               {/* All Access Message */}
               {accessLevel === 'All' && (
-                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '16px 20px', color: '#16a34a', fontSize: 14, fontWeight: 500 }}>
+                <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '16px 20px', color: '#15803d', fontSize: 14, fontWeight: 500 }}>
                   This user has <strong>full access</strong> to all pages and all actions. No restrictions applied.
                 </div>
               )}
@@ -670,9 +670,9 @@ const Users = () => {
                 <div>
                   {/* Column headers */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 60px 70px', gap: 4, padding: '0 8px 8px', borderBottom: '2px solid #f1f5f9', marginBottom: 4 }}>
-                    <div style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Page</div>
+                    <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Page</div>
                     {ACTIONS.map(a => (
-                      <div key={a} style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>{a}</div>
+                      <div key={a} style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>{a}</div>
                     ))}
                   </div>
 
@@ -746,7 +746,7 @@ const Users = () => {
 
 const labelStyle = { fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6, display: 'block' };
 const inputWrap = { position: 'relative', display: 'flex', alignItems: 'center' };
-const iconStyle = { position: 'absolute', left: 10, color: '#9ca3af', pointerEvents: 'none' };
+const iconStyle = { position: 'absolute', left: 10, color: '#6b7280', pointerEvents: 'none' };
 const inputStyle = { width: '100%', padding: '9px 10px 9px 32px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#fafafa' };
 const selectStyle = { width: '100%', padding: '9px 10px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', background: '#fafafa', cursor: 'pointer' };
 

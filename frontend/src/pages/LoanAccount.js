@@ -318,7 +318,7 @@ const LoanAccount = () => {
           </thead>
           <tbody>
             {loans.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#9ca3af' }}>No loans recorded.</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No loans recorded.</td></tr>
             ) : loans.map(l => {
               const ss = STATUS_STYLE[l.status] || STATUS_STYLE.Active;
               return (
@@ -327,7 +327,7 @@ const LoanAccount = () => {
                   <td>{l.lender_name || '—'}</td>
                   <td>{formatDate(l.start_date)}</td>
                   <td style={{ textAlign: 'right' }}>{curSym}{parseFloat(l.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                  <td style={{ textAlign: 'right', fontWeight: 700, color: l.outstanding > 0 ? '#dc2626' : '#16a34a' }}>{curSym}{parseFloat(l.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 700, color: l.outstanding > 0 ? '#dc2626' : '#15803d' }}>{curSym}{parseFloat(l.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                   <td style={{ textAlign: 'right' }}>{l.interest_rate > 0 ? `${l.interest_rate}%` : '—'}</td>
                   <td><span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>{l.status}</span></td>
                   <td style={{ textAlign: 'center' }}>
@@ -413,7 +413,7 @@ const LoanAccount = () => {
                       {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
                       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + ((methodShown('bank') || parseFloat(loanForm.disb_bank || 0) > 0) ? 1 : 0) + ((methodShown('momo') || parseFloat(loanForm.disb_momo || 0) > 0) ? 1 : 0)}, 1fr)`, gap: 10 }}>
                         {[
-                          { key: 'disb_cash', label: 'Cash', color: '#16a34a' },
+                          { key: 'disb_cash', label: 'Cash', color: '#15803d' },
                           { key: 'disb_bank', label: 'Bank', color: '#2563eb' },
                           { key: 'disb_momo', label: 'MoMo', color: '#f59e0b' },
                         ].filter(f => methodShown(f.label) || parseFloat(loanForm[f.key] || 0) > 0).map(f => (
@@ -466,7 +466,7 @@ const LoanAccount = () => {
               <div className="modal-body">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
                   <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Principal</div><div style={{ fontWeight: 700, marginTop: 3 }}>{curSym}{parseFloat(detailLoan.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
-                  <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Outstanding</div><div style={{ fontWeight: 700, marginTop: 3, color: detailLoan.outstanding > 0 ? '#dc2626' : '#16a34a' }}>{curSym}{parseFloat(detailLoan.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
+                  <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Outstanding</div><div style={{ fontWeight: 700, marginTop: 3, color: detailLoan.outstanding > 0 ? '#dc2626' : '#15803d' }}>{curSym}{parseFloat(detailLoan.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
                   <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Interest Rate</div><div style={{ fontWeight: 700, marginTop: 3 }}>{detailLoan.interest_rate > 0 ? `${detailLoan.interest_rate}%` : '—'}</div></div>
                 </div>
 
@@ -492,7 +492,7 @@ const LoanAccount = () => {
                     </thead>
                     <tbody>
                       {(detailLoan.transactions || []).length === 0 ? (
-                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30, color: '#9ca3af' }}>No transactions yet. Click + Disbursement to record the loan being received.</td></tr>
+                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30, color: '#6b7280' }}>No transactions yet. Click + Disbursement to record the loan being received.</td></tr>
                       ) : detailLoan.transactions.map(tx => {
                         const ts = TX_TYPE_STYLE[tx.type] || TX_TYPE_STYLE.Disbursement;
                         const sign = tx.type === 'Disbursement' ? '+' : '−';
@@ -552,7 +552,7 @@ const LoanAccount = () => {
                   {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + ((methodShown('bank') || parseFloat(txForm.bank_amount || 0) > 0) ? 1 : 0) + ((methodShown('momo') || parseFloat(txForm.momo_amount || 0) > 0) ? 1 : 0)}, 1fr)`, gap: 10 }}>
                     {[
-                      { key: 'cash_amount', label: 'Cash', color: '#16a34a' },
+                      { key: 'cash_amount', label: 'Cash', color: '#15803d' },
                       { key: 'bank_amount', label: 'Bank', color: '#2563eb' },
                       { key: 'momo_amount', label: 'MoMo', color: '#f59e0b' },
                     ].filter(f => methodShown(f.label) || parseFloat(txForm[f.key] || 0) > 0).map(f => (

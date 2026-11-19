@@ -104,7 +104,7 @@ export default function HqConfirmGrn() {
       {loading && purchases.length === 0 ? (
         <p style={{ color: '#64748b' }}>Loading…</p>
       ) : purchases.length === 0 ? (
-        <p style={{ color: '#94a3b8', fontStyle: 'italic' }}><FiInbox /> Nothing waiting for generation.</p>
+        <p style={{ color: '#64748b', fontStyle: 'italic' }}><FiInbox /> Nothing waiting for generation.</p>
       ) : (
         <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
           <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -137,7 +137,7 @@ export default function HqConfirmGrn() {
                   <td style={td}>
                     {p.confirmed_by_branch_name || '—'}
                     {p.confirmed_at_branch && (
-                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{new Date(p.confirmed_at_branch).toLocaleString()}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>{new Date(p.confirmed_at_branch).toLocaleString()}</div>
                     )}
                   </td>
                   <td style={{ ...td, textAlign: 'right' }}>
@@ -297,7 +297,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                 <> · <a href={branchUploadUrl(purchase.confirmed_branch_slug, purchase.invoice_attachment)} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>view invoice</a></>
               )}
             </p>
-            <p style={{ margin: '2px 0 0', fontSize: 11, color: '#94a3b8' }}>
+            <p style={{ margin: '2px 0 0', fontSize: 11, color: '#64748b' }}>
               Confirmed by {purchase.confirmed_by_branch_name || '—'} · {purchase.confirmed_at_branch ? new Date(purchase.confirmed_at_branch).toLocaleString() : ''}
             </p>
           </div>
@@ -325,7 +325,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                       {r.product_name}
                       {r.is_extra && <span style={{ marginLeft: 6, padding: '1px 6px', borderRadius: 4, background: '#fef3c7', color: '#92400e', fontSize: 10, fontWeight: 700 }}>EXTRA</span>}
                     </td>
-                    <td style={{ ...td, textAlign: 'right', color: '#94a3b8' }}>{r.po_expected_qty != null ? fmtQty(r.po_expected_qty) : '—'}</td>
+                    <td style={{ ...td, textAlign: 'right', color: '#64748b' }}>{r.po_expected_qty != null ? fmtQty(r.po_expected_qty) : '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <input type="number" min="0" step="any" value={r.quantity}
                         onChange={e => updateLine(idx, 'quantity', e.target.value)}
@@ -337,7 +337,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                         onChange={e => updateLine(idx, 'unit_price', e.target.value)}
                         style={{ width: 90, padding: '5px 8px', border: '1px solid #d1d5db', borderRadius: 5, fontSize: 12, textAlign: 'right' }} />
                     </td>
-                    <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#16a34a' }}>{fmtMoney(line)}</td>
+                    <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#15803d' }}>{fmtMoney(line)}</td>
                   </tr>
                 );
               })}
@@ -345,7 +345,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
             <tfoot>
               <tr style={{ borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
                 <td colSpan={5} style={{ ...td, textAlign: 'right', fontWeight: 700 }}>Items subtotal</td>
-                <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: '#16a34a' }}>{fmtMoney(total)}</td>
+                <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: '#15803d' }}>{fmtMoney(total)}</td>
               </tr>
             </tfoot>
           </table>
@@ -375,7 +375,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
               )}
             </div>
             {cnList.length === 0 ? (
-              <div style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic', padding: '6px 0' }}>
+              <div style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic', padding: '6px 0' }}>
                 No credit notes attached by the branch.
               </div>
             ) : cnList.map((c, ci) => {
@@ -388,7 +388,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline' }}>
                       <span style={{ padding: '2px 10px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8', fontSize: 11, fontWeight: 700 }}>{c.reason}</span>
                       {c.notes && <span style={{ fontSize: 12, color: '#475569' }}>{c.notes}</span>}
-                      {c.created_by_name && <span style={{ fontSize: 11, color: '#94a3b8' }}>· by {c.created_by_name}</span>}
+                      {c.created_by_name && <span style={{ fontSize: 11, color: '#64748b' }}>· by {c.created_by_name}</span>}
                     </div>
                     <strong style={{ color: '#b45309', fontSize: 13 }}>−{fmtMoney(derivedAmt)}</strong>
                   </div>
@@ -396,7 +396,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                     <div style={{ marginTop: 8, padding: '6px 8px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12 }}>
                       {cnItems.map((it, ii) => (
                         <div key={ii} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
-                          <span>{it.product_name} <span style={{ color: '#94a3b8' }}>· {it.unit || '—'}</span></span>
+                          <span>{it.product_name} <span style={{ color: '#64748b' }}>· {it.unit || '—'}</span></span>
                           <span>
                             {parseFloat(it.quantity).toLocaleString()} × {fmtMoney(it.unit_value)}
                             {parseFloat(it.discount) > 0 && <> − {fmtMoney(it.discount)}</>} =

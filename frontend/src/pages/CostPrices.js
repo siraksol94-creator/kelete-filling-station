@@ -154,12 +154,12 @@ const CostPrices = ({ readOnly = false }) => {
             <FiRefreshCw size={14} /> Reload
           </button>
           {!readOnly && <button onClick={handleSave} disabled={saving || dirty.size === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: dirty.size ? '#C8102E' : '#e5e7eb', color: dirty.size ? '#fff' : '#9ca3af', border: 'none', borderRadius: 8, cursor: dirty.size ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: dirty.size ? '#C8102E' : '#e5e7eb', color: dirty.size ? '#fff' : '#6b7280', border: 'none', borderRadius: 8, cursor: dirty.size ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
             <FiSave size={14} /> {saving ? 'Saving…' : `Save${dirty.size ? ` (${dirty.size})` : ''}`}
           </button>}
           {!readOnly && <button onClick={() => setPushOpen(true)} disabled={pushable.length === 0}
             title={pushable.length === 0 ? 'Set at least one cost first' : 'Send these costs to depots'}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: pushable.length ? '#0f172a' : '#e5e7eb', color: pushable.length ? '#fff' : '#9ca3af', border: 'none', borderRadius: 8, cursor: pushable.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: pushable.length ? '#0f172a' : '#e5e7eb', color: pushable.length ? '#fff' : '#6b7280', border: 'none', borderRadius: 8, cursor: pushable.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
             <FiUploadCloud size={14} /> Sync C.P. to depots
           </button>}
         </div>
@@ -173,7 +173,7 @@ const CostPrices = ({ readOnly = false }) => {
 
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 12 }}>
         <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 380 }}>
-          <FiSearch size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#94a3b8' }} />
+          <FiSearch size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#64748b' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or code…"
             style={{ width: '100%', padding: '8px 10px 8px 30px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
         </div>
@@ -197,9 +197,9 @@ const CostPrices = ({ readOnly = false }) => {
             </tr>
           </thead>
           <tbody>
-            {loading && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#94a3b8' }}>Loading…</td></tr>}
+            {loading && <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#64748b' }}>Loading…</td></tr>}
             {!loading && visible.length === 0 && (
-              <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#94a3b8' }}>
+              <tr><td colSpan={4} style={{ ...td, textAlign: 'center', color: '#64748b' }}>
                 {rows.length === 0 ? 'No items.' : 'Nothing matches.'}
               </td></tr>
             )}
@@ -210,7 +210,7 @@ const CostPrices = ({ readOnly = false }) => {
                 <tr key={r.sync_id} style={{ borderTop: '1px solid #f1f5f9', background: changed ? '#fffbeb' : '#fff' }}>
                   <td style={{ ...td, color: '#64748b', fontSize: 12 }}>{r.code}</td>
                   <td style={td}>
-                    {r.name} <span style={{ color: '#94a3b8', fontSize: 11 }}>/ {r.unit}</span>
+                    {r.name} <span style={{ color: '#64748b', fontSize: 11 }}>/ {r.unit}</span>
                   </td>
                   <td style={{ ...td, textAlign: 'right' }}>
                     {readOnly
@@ -273,7 +273,7 @@ const CostPrices = ({ readOnly = false }) => {
               <button onClick={() => setPushOpen(false)}
                 style={{ padding: '10px 16px', borderRadius: 9, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
               <button onClick={doPush} disabled={pushing || pushTo.length === 0}
-                style={{ padding: '10px 18px', borderRadius: 9, border: 'none', background: pushTo.length ? '#0f172a' : '#e5e7eb', color: pushTo.length ? '#fff' : '#9ca3af', cursor: pushTo.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '10px 18px', borderRadius: 9, border: 'none', background: pushTo.length ? '#0f172a' : '#e5e7eb', color: pushTo.length ? '#fff' : '#6b7280', cursor: pushTo.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
                 {pushing ? 'Sending…' : `Send to ${pushTo.length || 'no'} depot${pushTo.length === 1 ? '' : 's'}`}
               </button>
             </div>

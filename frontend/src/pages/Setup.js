@@ -295,7 +295,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               setTimeout(() => { setUpdateStatus(s => s === 'checking' ? 'idle' : s); window.electronAPI.removeUpdateNotAvailableListener(handler); }, 15000);
             }}
             disabled={updateStatus === 'checking'}
-            style={{ width: '100%', padding: '10px', background: 'transparent', color: updateStatus === 'latest' ? '#16a34a' : '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, cursor: updateStatus === 'checking' ? 'not-allowed' : 'pointer' }}
+            style={{ width: '100%', padding: '10px', background: 'transparent', color: updateStatus === 'latest' ? '#15803d' : '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, cursor: updateStatus === 'checking' ? 'not-allowed' : 'pointer' }}
           >
             {updateStatus === 'checking' ? 'Checking for updates...' : updateStatus === 'latest' ? '✓ You are on the latest version' : 'Check for Updates'}
           </button>
@@ -322,10 +322,10 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             <button onClick={() => setMode('joinBranch')} style={{ flex: 1, padding: '20px 16px', border: '2px solid #bbf7d0', borderRadius: 12, background: '#f0fdf4', cursor: 'pointer', textAlign: 'center' }}>
               <div style={{ fontSize: 28, marginBottom: 8 }}>🔗</div>
               <div style={{ fontWeight: 700, color: '#15803d', fontSize: 15 }}>Join Branch</div>
-              <div style={{ fontSize: 12, color: '#16a34a', marginTop: 4 }}>Add this PC to an existing branch</div>
+              <div style={{ fontSize: 12, color: '#15803d', marginTop: 4 }}>Add this PC to an existing branch</div>
             </button>
           </div>
-          <p style={{ textAlign: 'center', fontSize: 11, color: '#9ca3af', marginTop: 16, marginBottom: 0 }}>
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#6b7280', marginTop: 16, marginBottom: 0 }}>
             You can update sync settings later from Settings → Cloud Sync
           </p>
         </div>
@@ -346,7 +346,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Your Subdomain</label>
               <input type="text" required value={slug} onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="kelete" style={inputStyle} />
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Lowercase letters, numbers and hyphens only</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Lowercase letters, numbers and hyphens only</div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Branch Name</label>
@@ -435,12 +435,12 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
                   <span key={p} style={chipStyle(adminPermissions.includes(p))} onClick={() => togglePermission(p)}>{p}</span>
                 ))}
               </div>
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Click to toggle. Leave empty for no module restrictions.</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Click to toggle. Leave empty for no module restrictions.</div>
             </div>
             {/* Status — read-only */}
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>Status</label>
-              <input type="text" value="Active" readOnly style={{ ...readonlyStyle, color: '#16a34a' }} />
+              <input type="text" value="Active" readOnly style={{ ...readonlyStyle, color: '#15803d' }} />
             </div>
             {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626' }}>{error}</div>}
             <button type="submit" disabled={loading} style={primaryBtn(loading)}>
@@ -467,12 +467,12 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                 <input type="text" required value={joinSlug} onChange={e => setJoinSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="mybusiness" style={{ ...inputStyle, borderRadius: '8px 0 0 8px', flex: 1 }} />
               </div>
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>Same subdomain as the other PC in this branch</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Same subdomain as the other PC in this branch</div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Branch Code</label>
               <input type="text" required value={branchCode} onChange={e => setBranchCode(e.target.value.toUpperCase())} placeholder="e.g. A1B2C3D4" maxLength={8} style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '4px', fontSize: 18, textAlign: 'center' }} />
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 4 }}>8-character code — find it on the other PC under Settings → Cloud Sync</div>
+              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>8-character code — find it on the other PC under Settings → Cloud Sync</div>
             </div>
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>License Key</label>

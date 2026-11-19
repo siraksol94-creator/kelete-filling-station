@@ -97,7 +97,7 @@ export default function CurrencyExchangePanel({
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <FiRepeat color="#7c3aed" />
           <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{title || 'Currency Exchanges'}</h3>
-          <span style={{ fontSize: 11, color: '#94a3b8' }}>· {rows.length} entr{rows.length === 1 ? 'y' : 'ies'}</span>
+          <span style={{ fontSize: 11, color: '#64748b' }}>· {rows.length} entr{rows.length === 1 ? 'y' : 'ies'}</span>
         </div>
         {canRecord && (
           <button onClick={() => { setShowAdd(true); setError(''); }}
@@ -111,9 +111,9 @@ export default function CurrencyExchangePanel({
 
       <div style={{ padding: '0 8px 8px' }}>
         {loading ? (
-          <div style={{ padding: 18, color: '#94a3b8', fontSize: 13 }}>Loading…</div>
+          <div style={{ padding: 18, color: '#64748b', fontSize: 13 }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 18, color: '#94a3b8', fontSize: 13 }}>No exchanges yet.</div>
+          <div style={{ padding: 18, color: '#64748b', fontSize: 13 }}>No exchanges yet.</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
@@ -134,7 +134,7 @@ export default function CurrencyExchangePanel({
                   <td style={{ ...td, textAlign: 'right', color: '#dc2626', fontWeight: 600 }}>
                     −{symFor(r.from_currency)}{fmt(r.from_amount, decFor(r.from_currency))} {r.from_currency}
                   </td>
-                  <td style={{ ...td, textAlign: 'right', color: '#16a34a', fontWeight: 600 }}>
+                  <td style={{ ...td, textAlign: 'right', color: '#15803d', fontWeight: 600 }}>
                     +{symFor(r.to_currency)}{fmt(r.to_amount, decFor(r.to_currency))} {r.to_currency}
                   </td>
                   <td style={{ ...td, textAlign: 'right', color: '#64748b', fontFamily: 'monospace' }}>
@@ -160,13 +160,13 @@ export default function CurrencyExchangePanel({
                       }
                       return (<>
                         {val.toLocaleString(undefined, { maximumFractionDigits: val < 1 ? 6 : 2 })}
-                        <div style={{ fontSize: 10, color: '#94a3b8', fontFamily: 'inherit' }}>{label}</div>
+                        <div style={{ fontSize: 10, color: '#64748b', fontFamily: 'inherit' }}>{label}</div>
                       </>);
                     })()}
                   </td>
                   {scope === 'drawer' && <td style={{ ...td, color: '#475569' }}>{r.cashier_name || '—'}</td>}
                   <td style={{ ...td, color: '#475569' }}>{r.notes || '—'}</td>
-                  <td style={{ ...td, color: '#94a3b8', fontSize: 11 }}>{r.created_by_name || '—'}</td>
+                  <td style={{ ...td, color: '#64748b', fontSize: 11 }}>{r.created_by_name || '—'}</td>
                 </tr>
               ))}
             </tbody>

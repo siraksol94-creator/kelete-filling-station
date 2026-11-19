@@ -702,7 +702,7 @@ const SIV = () => {
       }}>
         <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
@@ -710,7 +710,7 @@ const SIV = () => {
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
@@ -733,7 +733,7 @@ const SIV = () => {
               }}>{label}</button>
             ))}
           </div>
-          <span style={{ fontSize: 12, color: '#9ca3af' }}>
+          <span style={{ fontSize: 12, color: '#6b7280' }}>
             {viewMode === 'by-siv'
               ? <>{filteredSIVs.length} SIV{filteredSIVs.length !== 1 ? 's' : ''}{hasFilter && <> &nbsp;·&nbsp; Total: <strong style={{ color: '#2563eb' }}>${filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>}</>
               : (() => {
@@ -884,9 +884,9 @@ const SIV = () => {
                         onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
                         onMouseLeave={e => e.currentTarget.style.background = ''}
                       >
-                        <td style={{ color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                        <td style={{ color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
                         <td style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {isExpanded ? <FiChevronDown size={13} style={{ color: '#2563eb' }} /> : <FiChevronRight size={13} style={{ color: '#9ca3af' }} />}
+                          {isExpanded ? <FiChevronDown size={13} style={{ color: '#2563eb' }} /> : <FiChevronRight size={13} style={{ color: '#6b7280' }} />}
                           {row.product_name}
                         </td>
                         <td style={{ color: '#6b7280' }}>{row.unit}</td>
@@ -898,7 +898,7 @@ const SIV = () => {
                           <td colSpan={5} style={{ padding: 0, background: '#f8fafc' }}>
                             <div style={{ padding: '8px 24px 12px 40px' }}>
                               {breakdown.length === 0 ? (
-                                <div style={{ fontSize: 12, color: '#9ca3af', padding: '4px 0' }}>No SIV records found.</div>
+                                <div style={{ fontSize: 12, color: '#6b7280', padding: '4px 0' }}>No SIV records found.</div>
                               ) : (
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                   <thead>
@@ -987,7 +987,7 @@ const SIV = () => {
                   { label: 'Total Items', value: viewSIV.total_items },
                 ].map(info => (
                   <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10.5, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
+                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{info.value}</div>
                   </div>
                 ))}
@@ -1011,7 +1011,7 @@ const SIV = () => {
                   <tbody>
                     {(viewSIV.items || []).map((item, idx) => (
                       <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 12 }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>
                           {item.product_name}
                           {item.unit && <span style={{ marginLeft: 6, fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: 10 }}>{item.unit}</span>}
@@ -1115,7 +1115,7 @@ const SIV = () => {
                 <button
                   type="button"
                   onClick={() => csvInputRef.current && csvInputRef.current.click()}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, cursor: 'pointer', fontSize: 13, color: '#16a34a', fontWeight: 600 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8, cursor: 'pointer', fontSize: 13, color: '#15803d', fontWeight: 600 }}
                 >
                   <FiUpload size={14} /> Import CSV
                 </button>
@@ -1144,7 +1144,7 @@ const SIV = () => {
                     <button
                       type="button"
                       onClick={() => { setShowAddDept(v => !v); setNewDeptName(''); }}
-                      style={{ padding: '0 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: showAddDept ? '#dcfce7' : '#f9fafb', color: showAddDept ? '#16a34a' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
+                      style={{ padding: '0 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: showAddDept ? '#dcfce7' : '#f9fafb', color: showAddDept ? '#15803d' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
                     >
                       <FiPlus size={13} /> New
                     </button>
@@ -1223,14 +1223,14 @@ const SIV = () => {
               <div style={{ marginBottom: 12 }}>
                 {/* Barcode scan message */}
                 {scanMsg && (
-                  <div style={{ marginBottom: 8, padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600, background: scanMsg.type === 'error' ? '#fee2e2' : '#dcfce7', color: scanMsg.type === 'error' ? '#dc2626' : '#16a34a', border: `1px solid ${scanMsg.type === 'error' ? '#fca5a5' : '#86efac'}` }}>
+                  <div style={{ marginBottom: 8, padding: '7px 14px', borderRadius: 8, fontSize: 13, fontWeight: 600, background: scanMsg.type === 'error' ? '#fee2e2' : '#dcfce7', color: scanMsg.type === 'error' ? '#dc2626' : '#15803d', border: `1px solid ${scanMsg.type === 'error' ? '#fca5a5' : '#86efac'}` }}>
                     {scanMsg.type === 'error' ? '⚠ ' : '✓ '}{scanMsg.text}
                   </div>
                 )}
 
                 {recentProducts.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                    <span style={{ fontSize: 11, color: '#9ca3af', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
+                    <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
                     {recentProducts.map(p => (
                       <button key={p.product_id} type="button"
                         onClick={() => {
@@ -1352,13 +1352,13 @@ const SIV = () => {
                                           onMouseLeave={() => setHighlightedIdx(-1)}
                                           style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 14, borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: highlightedIdx === pi ? '#eff6ff' : '#fff' }}
                                         >
-                                          <span style={{ fontWeight: 500 }}>{p.name} <span style={{ fontSize: 12, color: '#9ca3af' }}>({p.unit})</span></span>
+                                          <span style={{ fontWeight: 500 }}>{p.name} <span style={{ fontSize: 12, color: '#6b7280' }}>({p.unit})</span></span>
                                           <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>${(parseFloat(parseFloat(p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                         </div>
                                       ))
                                     }
                                     {products.filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode)).length === 0 && (
-                                      <div style={{ padding: '10px 12px', fontSize: 13, color: '#9ca3af' }}>No matching products</div>
+                                      <div style={{ padding: '10px 12px', fontSize: 13, color: '#6b7280' }}>No matching products</div>
                                     )}
                                   </div>
                                 )}
@@ -1371,7 +1371,7 @@ const SIV = () => {
                               )}
                             </div>
                           </td>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600, color: remaining !== null && remaining <= 0 ? '#dc2626' : '#16a34a' }}>
+                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600, color: remaining !== null && remaining <= 0 ? '#dc2626' : '#15803d' }}>
                             {remaining !== null ? `${remaining.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${displayUnit}` : '—'}
                           </td>
                           <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>
@@ -1466,7 +1466,7 @@ const SIV = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={16} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>
                 Print Preview — Store Issue Vouchers ({filteredSIVs.length} records)
               </span>
             </div>
@@ -1474,7 +1474,7 @@ const SIV = () => {
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowPrintPreview(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowPrintPreview(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -1536,7 +1536,7 @@ const SIV = () => {
                       return (
                         <React.Fragment key={siv.id}>
                           <tr style={{ background: idx % 2 === 1 ? '#eff6ff' : '#fff', borderTop: idx > 0 ? '2px solid #e2e8f0' : 'none' }}>
-                            <td style={{ padding: '8px 12px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#2563eb' }}>{siv.siv_number}</td>
                             <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(siv.date)}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 500 }}>{siv.department}</td>
@@ -1619,13 +1619,13 @@ const SIV = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <FiPrinter size={15} style={{ color: '#64748b' }} />
-              <span style={{ color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Print Preview — {viewSIV.siv_number}</span>
+              <span style={{ color: '#64748b', fontSize: 13, fontWeight: 500 }}>Print Preview — {viewSIV.siv_number}</span>
             </div>
             <div style={{ display: 'flex', gap: 10 }}>
               <button onClick={() => window.print()} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 20px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiPrinter size={14} /> Print
               </button>
-              <button onClick={() => setShowSIVPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#94a3b8', cursor: 'pointer', fontSize: 13 }}>
+              <button onClick={() => setShowSIVPrint(false)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 16px', borderRadius: 8, border: '1px solid #334155', background: 'transparent', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
                 <FiX size={14} /> Close
               </button>
             </div>
@@ -1689,7 +1689,7 @@ const SIV = () => {
                   <tbody>
                     {(viewSIV.items || []).map((item, idx) => (
                       <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '10px 14px', color: '#9ca3af', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
                         <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>
                           {item.product_name}
                           {item.unit && <span style={{ marginLeft: 6, fontSize: 10, color: '#6b7280' }}>({item.unit})</span>}
@@ -1723,15 +1723,15 @@ const SIV = () => {
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ height: 40, borderBottom: '1.5px solid #cbd5e1', marginBottom: 6 }} />
                     <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#6b7280' }}>{label}</div>
-                    <div style={{ fontSize: 9, color: '#9ca3af', marginTop: 2 }}>Name / Signature / Date</div>
+                    <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Name / Signature / Date</div>
                   </div>
                 ))}
               </div>
             </div>
 
             <div style={{ background: '#f8fafc', borderTop: '1px solid #e2e8f0', padding: '10px 44px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
-              <span style={{ fontSize: 9, color: '#94a3b8' }}>Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              <span style={{ fontSize: 9, color: '#64748b' }}>{businessInfo.business_name || 'Business'} — Confidential Document</span>
+              <span style={{ fontSize: 9, color: '#64748b' }}>Printed: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
         </div>
