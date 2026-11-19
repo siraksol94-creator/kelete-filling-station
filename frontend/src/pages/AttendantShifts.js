@@ -10,6 +10,7 @@ import { Checklist, ProgressBar, ShortcutHelp, ShortcutHint, SummaryStrip, Kbd }
 import FuelLoader from '../ux/FuelLoader';
 import AttendantAvatar, { Celebration } from '../ux/AttendantAvatar';
 import { profileFor, milestones } from '../ux/attendantLevel';
+import { usePasswordDialog } from '../ux/PasswordDialog';
 
 // Thousands separator for display (handles partial typing like "384343."
 // so the user can still key a decimal point without the formatter eating it).
@@ -56,6 +57,7 @@ export default function AttendantShifts() {
   const [loaded, setLoaded] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(null);   // { who, items } after a milestone
+  const [passwordDialog, askPassword] = usePasswordDialog();   // UX-3: masked, replaces window.prompt
   const closeFormRef = useRef(null);
   const openFormRef = useRef(null);
 
@@ -376,7 +378,10 @@ export default function AttendantShifts() {
                           `  • Cash reconciliation for this shift\n\n` +
                           `This cannot be undone.`
                         )) return;
-                        const pwd = window.prompt('Enter your admin password to confirm:');
+                        const pwd = await askPassword({
+                          title: 'Confirm with your password', label: 'Your password', danger: true,
+                          subject: `Delete shift #${s.id} (${s.attendant_name}) and everything connected to it`,
+                          note: 'Only an Administrator can delete a shift. This cannot be undone.', actionLabel: 'Delete shift' });
                         if (!pwd) return;
                         try { await deleteShift(s.id, pwd); await load(); }
                         catch (e) { alert('Delete failed: ' + (e.response?.data?.error || e.message)); }
@@ -392,6 +397,7 @@ export default function AttendantShifts() {
         </table>
         )}
       </div>
+      {passwordDialog}
       {celebrate && <Celebration who={celebrate.who} items={celebrate.items} onDone={() => setCelebrate(null)} />}
       <ShortcutHelp open={helpOpen} onClose={() => setHelpOpen(false)} title="Attendant Shifts — shortcuts" bindings={[
         { combo: 'alt+n', label: 'Open a new shift' },

@@ -88,6 +88,11 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     }
     const salesTrendAll = [...trend.values()].sort((a, b) => a.date.localeCompare(b.date));
 
+    // UX-3 — the station's day for the Dashboard cockpit (null on a shop-only branch).
+    let station = null;
+    try { station = require('../services/stationOverview').stationToday(db, today); }
+    catch (_) { station = null; }
+
     res.json({
       todaySales: parseFloat(todaySales.total) + fuelToday,
       todayFuelSales: fuelToday,
@@ -105,7 +110,9 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
       topProducts,
       lowStock,
       salesByCategory,
-      salesTrend: salesTrendAll
+      salesTrend: salesTrendAll,
+      station,
+      fuelStockLitres: fuelStock.litres || 0,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
