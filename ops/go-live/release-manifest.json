@@ -254,6 +254,13 @@
    "covers": "UX-6",
    "what": "Side menu: Find a screen (Ctrl K), recently used screens, opens the current page's group, icon menu shows every group, keyboard use, phone close button; page titles for fuel screens",
    "migrations": []
+  },
+  {
+   "n": 34,
+   "subject": "UX-6 fix: eslint comments that stopped npm start; screen check now catches them (for review)",
+   "covers": "UX-6 fix",
+   "what": "Build fix: eslint comments naming the unloaded react-hooks rule; CI screen check catches them",
+   "migrations": []
   }
  ],
  "migrations": [

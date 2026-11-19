@@ -476,7 +476,7 @@ const Layout = () => {
     const g = groupForPath(location.pathname);
     if (g && !menuSearching) setOpenGroups(prev => (prev[g] ? prev : Object.keys(prev).reduce((a, k) => ({ ...a, [k]: k === g }), {})));
     return undefined;
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]); // eslint-disable-line
   // Show the current page's row whenever the menu appears or the page changes.
   useEffect(() => {
     const id = setTimeout(() => {
@@ -490,7 +490,7 @@ const Layout = () => {
   // screens they can see), newest first, kept on this device per user.
   const [recentScreens, setRecentScreens] = useState(() => loadRecent(window.localStorage, user && user.id));
   const pendingMenuClick = useRef(null);
-  useEffect(() => { setRecentScreens(loadRecent(window.localStorage, user && user.id)); }, [user && user.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setRecentScreens(loadRecent(window.localStorage, user && user.id)); }, [user && user.id]); // eslint-disable-line
   useEffect(() => {
     const nav = navRef.current;
     if (!nav) return undefined;
@@ -507,7 +507,7 @@ const Layout = () => {
     pendingMenuClick.current = null;
     if (!p || Date.now() - p.at > 1500 || p.from === location.pathname) return;
     setRecentScreens(prev => { const next = pushRecent(prev, { path: location.pathname, label: p.label }); saveRecent(window.localStorage, user && user.id, next); return next; });
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname]); // eslint-disable-line
   useMenuKeyboard(navRef, [collapsed, mobileOpen]);
 
   // Ctrl+K and the collapsed menu's search button open the menu first.

@@ -74,7 +74,7 @@ export function useMenuKeyboard(navRef, deps) {
     };
     nav.addEventListener('keydown', onKey);
     return () => nav.removeEventListener('keydown', onKey);
-  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+  }, deps); // eslint-disable-line
 }
 
 export default function MenuFinder({ navRef, onSearching, recent = [], onOpenRecent, currentPath }) {
@@ -83,11 +83,11 @@ export default function MenuFinder({ navRef, onSearching, recent = [], onOpenRec
   const inputRef = useRef(null);
   const searching = q.trim().length > 0;
 
-  useEffect(() => { onSearching(searching); }, [searching]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { onSearching(searching); }, [searching]); // eslint-disable-line
   // Opening a screen (by click, keyboard or a link) ends the search.
   useEffect(() => { setQ(''); }, [currentPath]);
   // Leaving (menu collapsed to icons): put every row back.
-  useEffect(() => () => { if (navRef.current) applyFilter(navRef.current, ''); onSearching(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => () => { if (navRef.current) applyFilter(navRef.current, ''); onSearching(false); }, []); // eslint-disable-line
   // Re-filter after every render while searching (groups open, rows appear).
   useEffect(() => {
     const nav = navRef.current;
