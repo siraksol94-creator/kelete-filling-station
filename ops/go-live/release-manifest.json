@@ -275,6 +275,13 @@
    "covers": "UX-8",
    "what": "Deliveries: timeline, ordered vs invoice vs dips (±0.5%/1% bands), will-it-fit preview; Pumps: dispenser drawings, meter displays, who is on shift. Read-only extras on GET /pumps and GET /fuel-deliveries",
    "migrations": []
+  },
+  {
+   "n": 37,
+   "subject": "UX-9: Fuel Grades price board and margin per litre; Credit and 1Card tickets with summary, live calculator and credit limit (for review)",
+   "covers": "UX-9",
+   "what": "Fuel Grades: price board, margin per litre, named colours; Credit/1Card: summary, litres by grade, live calculator, credit limit warning, in-app dialogs. Frontend only",
+   "migrations": []
   }
  ],
  "migrations": [
