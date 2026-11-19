@@ -44,4 +44,20 @@ const parse = run([...files, '--loader:.js=jsx', '--log-level=error', '--outdir=
 if (parse.status !== 0) { failed = true; process.stderr.write(parse.stderr || parse.stdout || 'esbuild failed\n'); }
 else console.log(`✓ all ${files.length} files under src/ parse`);
 
+// 3. ESLint rule names the project doesn't load. The react-hooks plugin is not
+//    registered in this app's ESLint config, so a comment naming one of its
+//    rules is itself an error and stops `npm start` / `npm run build`.
+//    Use the bare form: // eslint-disable-line   or   // eslint-disable-next-line
+{
+  const fs = require('fs');
+  const bad = [];
+  for (const f of files) {
+    fs.readFileSync(f, 'utf8').split('\n').forEach((line, i) => {
+      if (/eslint-(disable|enable)[\w-]*\s+react-hooks\//.test(line)) bad.push(`${path.relative(process.cwd(), f)}:${i + 1}`);
+    });
+  }
+  if (bad.length) { failed = true; process.stderr.write(`✗ eslint comments name a rule this project doesn't load (use the bare form):\n  ${bad.join('\n  ')}\n`); }
+  else console.log('✓ no eslint comments name unknown react-hooks rules');
+}
+
 process.exit(failed ? 1 : 0);

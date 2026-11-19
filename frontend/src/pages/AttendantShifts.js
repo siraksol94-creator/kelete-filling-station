@@ -186,7 +186,7 @@ export default function AttendantShifts() {
     const ids = Array.from(new Set(shifts.map(s => s.attendant_user_id).filter(Boolean)));
     return ids.map(id => profileFor(shifts, { id, name: nameOf(id, shifts.find(s => s.attendant_user_id === id)?.attendant_name) }))
       .sort((a, b) => a.who.name.localeCompare(b.who.name));   // alphabetical: not a ranking
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [shifts, users]);
   const today = businessToday();
   const summary = useMemo(() => shiftSummary(shifts, today), [shifts, today]);
