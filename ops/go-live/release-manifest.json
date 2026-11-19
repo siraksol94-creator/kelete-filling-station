@@ -247,6 +247,13 @@
    "covers": "UX-5 fix",
    "what": "Saving the weather location starts the business settings record if there is none; the weather card asks for the business email when it's missing",
    "migrations": []
+  },
+  {
+   "n": 33,
+   "subject": "UX-6: side menu — find a screen, recently used, follows the page, full icon menu, keyboard and phone polish (for review)",
+   "covers": "UX-6",
+   "what": "Side menu: Find a screen (Ctrl K), recently used screens, opens the current page's group, icon menu shows every group, keyboard use, phone close button; page titles for fuel screens",
+   "migrations": []
   }
  ],
  "migrations": [

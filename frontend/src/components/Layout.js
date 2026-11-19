@@ -14,8 +14,11 @@ import { isTerminal58 } from '../utils/receipt58';
 import { FiGrid, FiShoppingCart, FiPackage, FiFileText, FiDollarSign, FiUsers, FiSettings,
          FiChevronDown, FiLogOut, FiSearch, FiBell, FiMenu, FiDownload, FiUpload, FiList,
          FiBook, FiCreditCard, FiClipboard, FiUser, FiUserPlus, FiSliders, FiGlobe, FiCloud, FiTool,
-         FiCornerDownLeft, FiCornerUpLeft, FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiCheckCircle, FiTag, FiRefreshCw, FiTruck, FiInbox, FiSend, FiDownloadCloud, FiHardDrive, FiLock, FiMessageSquare, FiActivity } from 'react-icons/fi';
+         FiCornerDownLeft, FiCornerUpLeft, FiTrendingUp, FiTrendingDown, FiAlertTriangle, FiCheckCircle, FiTag, FiRefreshCw, FiTruck, FiInbox, FiSend, FiDownloadCloud, FiHardDrive, FiLock, FiMessageSquare, FiActivity, FiX } from 'react-icons/fi';
 import ChangePasswordModal from './ChangePasswordModal';
+// UX-6 — Find a screen, recently used screens, keyboard use of the menu.
+import MenuFinder, { useMenuKeyboard } from '../ux/MenuFinder';
+import { groupForPath, pushRecent, loadRecent, saveRecent } from '../ux/navModel';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', flag: '🇬🇧' },
@@ -453,6 +456,79 @@ const Layout = () => {
     });
   };
 
+  // UX-6 — the menu follows the page: arriving anywhere (a link, a
+  // dashboard card, the back button) opens that page's group and shows its
+  // row. While "Find a screen" is searching, every group is open.
+  const navRef = useRef(null);
+  const [menuSearching, setMenuSearching] = useState(false);
+  const groupsBeforeSearch = useRef(null);
+  const onMenuSearching = (on) => {
+    setMenuSearching(on);
+    if (on) {
+      setOpenGroups(prev => { groupsBeforeSearch.current = prev; return Object.keys(prev).reduce((a, k) => ({ ...a, [k]: true }), {}); });
+    } else if (groupsBeforeSearch.current) {
+      const g = groupForPath(location.pathname);
+      setOpenGroups(prev => Object.keys(prev).reduce((a, k) => ({ ...a, [k]: g ? k === g : !!groupsBeforeSearch.current[k] }), {}));
+      groupsBeforeSearch.current = null;
+    }
+  };
+  useEffect(() => {
+    const g = groupForPath(location.pathname);
+    if (g && !menuSearching) setOpenGroups(prev => (prev[g] ? prev : Object.keys(prev).reduce((a, k) => ({ ...a, [k]: k === g }), {})));
+    return undefined;
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Show the current page's row whenever the menu appears or the page changes.
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const act = navRef.current && navRef.current.querySelector('.nav-item.active');
+      if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest' });
+    }, 260);
+    return () => clearTimeout(id);
+  }, [location.pathname, mobileOpen, collapsed]);
+
+  // UX-6 — recently used screens: the menu rows this person opened (so only
+  // screens they can see), newest first, kept on this device per user.
+  const [recentScreens, setRecentScreens] = useState(() => loadRecent(window.localStorage, user && user.id));
+  const pendingMenuClick = useRef(null);
+  useEffect(() => { setRecentScreens(loadRecent(window.localStorage, user && user.id)); }, [user && user.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return undefined;
+    const onClick = (e) => {
+      const item = e.target.closest && e.target.closest('.nav-item');
+      const span = item && item.querySelector('span');
+      if (item && span) pendingMenuClick.current = { label: span.textContent.trim(), at: Date.now(), from: window.location.pathname };
+    };
+    nav.addEventListener('click', onClick, true);
+    return () => nav.removeEventListener('click', onClick, true);
+  });
+  useEffect(() => {
+    const p = pendingMenuClick.current;
+    pendingMenuClick.current = null;
+    if (!p || Date.now() - p.at > 1500 || p.from === location.pathname) return;
+    setRecentScreens(prev => { const next = pushRecent(prev, { path: location.pathname, label: p.label }); saveRecent(window.localStorage, user && user.id, next); return next; });
+  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  useMenuKeyboard(navRef, [collapsed, mobileOpen]);
+
+  // Ctrl+K and the collapsed menu's search button open the menu first.
+  useEffect(() => {
+    const open = () => { if (isPhoneViewport()) setMobileOpen(true); else setCollapsed(false); };
+    window.addEventListener('kelete:menu-open', open);
+    return () => window.removeEventListener('kelete:menu-open', open);
+  }, []);
+  // Esc closes the phone menu.
+  useEffect(() => {
+    if (!mobileOpen) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape') setMobileOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [mobileOpen]);
+  // From the collapsed icon menu: widen it and open that group.
+  const openFromRail = (group) => {
+    setCollapsed(false);
+    setOpenGroups(prev => Object.keys(prev).reduce((a, k) => ({ ...a, [k]: k === group }), {}));
+  };
+
   const isActive = (path) => location.pathname === path;
   const isGroupActive = (paths) => paths.some(p => location.pathname.startsWith(p));
 
@@ -601,6 +677,15 @@ const Layout = () => {
       '/hq/zra-purchases': 'HQ ZRA Purchase Queue',
       '/hq/zra-imports': 'HQ ZRA Import Queue',
       '/messages': 'Messages',
+      // UX-6 — pages that showed "Dashboard" as their title.
+      '/fuel/shifts': 'Attendant Shifts', '/fuel/credit-sales': 'Credit Sales', '/fuel/onecard-sales': '1Card Sales',
+      '/fuel/cash-report': 'Fuel Cash Report', '/fuel/deliveries': 'Fuel Deliveries', '/fuel/tanks': 'Tanks',
+      '/fuel/tank-dips': 'Tanks', '/fuel/tank-ledger': 'Tanks', '/fuel/pumps': 'Pumps & Nozzles', '/fuel/grades': 'Fuel Grades',
+      '/fuel/fleet': 'Fleet Customers',
+      '/stock/quick-price': 'Quick Price', '/stock/opening-balance': 'Opening Balance', '/stock/branch-prices': 'Branch Prices',
+      '/stock/empty-returns': 'Empty Vouchers', '/stock/reconciliation': 'Stock Reconciliation', '/stock/bin-card': t('binCard'),
+      '/accounting/hq-deposits': 'HQ Deposits', '/accounting/fx-rates': 'Currency Rates', '/accounting/ap-approvals': 'AP Approvals',
+      '/accounting/profit-report': 'Profit Report', '/approvals/discounts': 'Approvals', '/setup': 'Cloud Sync',
     };
     return titles[path] || t('dashboard');
   };
@@ -623,18 +708,30 @@ const Layout = () => {
               <p>{hq ? 'Head Office' : 'Management System'}</p>
             </div>
           )}
+          {/* UX-6 — phones: a clear way out of the menu */}
+          <button type="button" className="k-drawer-close" onClick={() => setMobileOpen(false)} aria-label="Close menu"><FiX aria-hidden="true" /></button>
         </div>
+        {!collapsed && (
+          <MenuFinder navRef={navRef} onSearching={onMenuSearching} recent={recentScreens}
+            currentPath={location.pathname} onOpenRecent={(path) => navigate(path)} />
+        )}
 
         {/* v1.13.29 — HQ "Pick a branch" dropdown removed. HQ users
             reach a branch by visiting its subdomain directly
             (buseko.keletezm.com, etc.) — cleaner separation. */}
 
-        <nav className="sidebar-nav">
+        <nav className={`sidebar-nav${menuSearching ? ' is-searching' : ''}`} ref={navRef} aria-label="Main menu">
+          {collapsed && (
+            <div className="nav-item k-rail-search" data-k-label="Find a screen (Ctrl K)" title="Find a screen (Ctrl K)"
+              onClick={() => { setCollapsed(false); setTimeout(() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true })), 40); }}>
+              <FiSearch className="nav-icon" />
+            </div>
+          )}
           {/* HQ Overview — only when serving from bare keletezm.com.
               Sits above Dashboard because it's the natural landing page
               for an HQ operator (cross-branch snapshot, jump-to-branch). */}
           {hq && hasPageAccess('HQOverview') && (
-            <div className={`nav-item ${isActive('/hq/overview') ? 'active' : ''}`} onClick={() => navigate('/hq/overview')}>
+            <div className={`nav-item ${isActive('/hq/overview') ? 'active' : ''}`} onClick={() => navigate('/hq/overview')} title={collapsed ? 'HQ Overview' : undefined} data-k-label="HQ Overview">
               <FiGlobe className="nav-icon" />
               {!collapsed && <span>HQ Overview</span>}
             </div>
@@ -648,14 +745,14 @@ const Layout = () => {
 
           {/* Dashboard — only for All access users */}
           {isAllAccess() && (
-            <div className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`} onClick={() => navigate('/dashboard')}>
+            <div className={`nav-item ${isActive('/dashboard') ? 'active' : ''}`} onClick={() => navigate('/dashboard')} title={collapsed ? t('dashboard') : undefined} data-k-label={t('dashboard')}>
               <FiGrid className="nav-icon" />
               {!collapsed && <span>{t('dashboard')}</span>}
             </div>
           )}
 
           {/* 2026-09-14 — Messages: in-app chat for every signed-in user. */}
-          <div className={`nav-item ${isActive('/messages') ? 'active' : ''}`} onClick={() => navigate('/messages')}>
+          <div className={`nav-item ${isActive('/messages') ? 'active' : ''}`} onClick={() => navigate('/messages')} title={collapsed ? 'Messages' : undefined} data-k-label="Messages">
             <FiMessageSquare className="nav-icon" />
             {!collapsed && <span>Messages</span>}
             {!collapsed && chatUnread > 0 && <SidebarBadge n={chatUnread} />}
@@ -665,7 +762,7 @@ const Layout = () => {
               Managers / Supervisors / Administrators; pumps and fuel grades (prices) for
               Administrators; Tanks shows tank set-up to Administrators, dips/ledger to all. */}
           {collapsed ? (
-            <div className={`nav-item ${isGroupActive(['/fuel']) ? 'active' : ''}`} onClick={() => navigate('/fuel/pos')}>
+            <div className={`nav-item ${isGroupActive(['/fuel']) ? 'active' : ''}`} onClick={() => openFromRail('fuel')} title="Fuel Station" data-k-label="Fuel Station">
               <FiDownloadCloud className="nav-icon" />
             </div>
           ) : (
@@ -720,7 +817,7 @@ const Layout = () => {
               existing branch-only children stay gated with !hq; the HQ
               Sales Report child is gated with hq. */}
           {((hq && hasPageAccess('HQSalesReport')) || (!hq && hasPageAccess('POS', 'Cashier', 'Dispatch', 'SalesReport', 'SalesInventory', 'CashReport', 'SalesBinCard', 'VATReport', 'SalesStockCard'))) && (collapsed ? (
-            <div className={`nav-item ${isGroupActive(['/pos', '/hq/sales-report', '/hq/route-sales', '/hq/vat-report']) ? 'active' : ''}`} onClick={() => navigate(hq ? '/hq/sales-report' : '/pos')}>
+            <div className={`nav-item ${isGroupActive(['/pos', '/hq/sales-report', '/hq/route-sales', '/hq/vat-report']) ? 'active' : ''}`} onClick={() => openFromRail('pos')} title={t('sales')} data-k-label={t('sales')}>
               <FiShoppingCart className="nav-icon" />
             </div>
           ) : (
@@ -809,6 +906,11 @@ const Layout = () => {
           ))}
 
           {/* Stock Group */}
+          {collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
+            <div className={`nav-item ${isGroupActive(['/stock', '/hq/inventory-report', '/hq/purchases', '/hq/confirm-grn', '/hq/grn-archive', '/hq/variances', '/hq/confirm-damages']) ? 'active' : ''}`} onClick={() => openFromRail('stock')} title={t('store')} data-k-label={t('store')}>
+              <FiPackage className="nav-icon" />
+            </div>
+          )}
           {!collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/stock']) ? 'active' : ''}`} onClick={() => toggleGroup('stock')}>
@@ -993,6 +1095,11 @@ const Layout = () => {
               group renders on HQ too. Per-item visibility flags below keep
               HQ from seeing branch-only entries (Cash Receipt / PV /
               Receivables / Profit Report). */}
+          {collapsed && hasPageAccess('CashReceipt', 'PaymentVoucher', 'PvTypes', 'CashBook', 'AccountPayables', 'AccountReceivables', 'ProfitReport', 'HQCashPosition', 'HQConsolidatedProfit', 'APConfirm', 'APCheck', 'APApprove', 'APPay', 'APPaid', 'APAll', 'HQDeposits', 'CreditNotes', 'CapitalAccount', 'DividendAccount', 'Shareholders', 'LoanAccount') && (
+            <div className={`nav-item ${isGroupActive(['/accounting', '/hq/cash-position', '/hq/consolidated-profit']) ? 'active' : ''}`} onClick={() => openFromRail('accounting')} title={t('accounting')} data-k-label={t('accounting')}>
+              <FiDollarSign className="nav-icon" />
+            </div>
+          )}
           {!collapsed && hasPageAccess('CashReceipt', 'PaymentVoucher', 'PvTypes', 'CashBook', 'AccountPayables', 'AccountReceivables', 'ProfitReport', 'HQCashPosition', 'HQConsolidatedProfit', 'APConfirm', 'APCheck', 'APApprove', 'APPay', 'APPaid', 'APAll', 'HQDeposits', 'CreditNotes', 'CapitalAccount', 'DividendAccount', 'Shareholders', 'LoanAccount') && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/accounting']) ? 'active' : ''}`} onClick={() => toggleGroup('accounting')}>
@@ -1123,6 +1230,11 @@ const Layout = () => {
               inside it instead of as a flat top-level entry. Branch shows
               Customers (and legacy Suppliers when enabled); HQ shows HQ
               Suppliers. */}
+          {collapsed && ((hq && hasPageAccess('HQSuppliers')) || (!hq && hasPageAccess('Suppliers', 'Customers'))) && (
+            <div className={`nav-item ${isGroupActive(['/suppliers-customers', '/hq/suppliers']) ? 'active' : ''}`} onClick={() => openFromRail('suppliersCustomers')} title={t('suppliersCustomers')} data-k-label={t('suppliersCustomers')}>
+              <FiUsers className="nav-icon" />
+            </div>
+          )}
           {!collapsed && ((hq && hasPageAccess('HQSuppliers')) || (!hq && hasPageAccess('Suppliers', 'Customers'))) && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/suppliers-customers', '/hq/suppliers']) ? 'active' : ''}`} onClick={() => toggleGroup('suppliersCustomers')}>
@@ -1182,6 +1294,11 @@ const Layout = () => {
           )}
 
           {/* Settings Group — All Access users only */}
+          {collapsed && isAllAccess() && (
+            <div className={`nav-item ${isGroupActive(['/settings', '/setup']) ? 'active' : ''}`} onClick={() => openFromRail('settings')} title={t('settings')} data-k-label={t('settings')}>
+              <FiSettings className="nav-icon" />
+            </div>
+          )}
           {!collapsed && isAllAccess() && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/settings']) ? 'active' : ''}`} onClick={() => toggleGroup('settings')}>
@@ -1245,7 +1362,7 @@ const Layout = () => {
             <button className="logout-btn" onClick={() => { logout(); navigate('/login'); }}>
               <FiLogOut /> {t('logout')}
             </button>
-            <p style={{ fontSize: 10, color: '#475569', textAlign: 'center', marginTop: 4 }}>v{version}</p>
+            <p style={{ fontSize: 10, color: '#94a3b8', textAlign: 'center', marginTop: 4 }}>v{version}</p>
           </div>
         )}
         {showChangePassword && <ChangePasswordModal onClose={() => setShowChangePassword(false)} />}
@@ -1266,8 +1383,11 @@ const Layout = () => {
         {/* Top Header */}
         <div className="top-header">
           <div className="top-header-left">
-            <button className="sidebar-toggle" onClick={() => isPhoneViewport() ? setMobileOpen(o => !o) : setCollapsed(!collapsed)} style={{ marginRight: 8, color: '#374151' }}>
-              <FiMenu />
+            <button className="sidebar-toggle k-burger" onClick={() => isPhoneViewport() ? setMobileOpen(o => !o) : setCollapsed(!collapsed)} style={{ marginRight: 8, color: '#374151' }}
+              aria-label={mobileOpen ? 'Close menu' : (collapsed ? 'Show the full menu' : 'Menu: show icons only')}
+              aria-expanded={isPhoneViewport() ? mobileOpen : !collapsed}
+              title={collapsed ? 'Show the full menu' : 'Icons only'}>
+              {mobileOpen ? <FiX /> : <FiMenu />}
             </button>
             <h2>{pageTitle()}</h2>
           </div>
