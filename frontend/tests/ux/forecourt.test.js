@@ -1,0 +1,64 @@
+// UX-7 — Forecourt kit: numbers, dates and the dip band read the same everywhere.
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { fmtK, fmtL, fmtSignedL, fmtDay, daysAgo, dipBand, spaceLeft } from '../../src/ux/forecourt';
+
+test('money and litres', () => {
+  assert.equal(fmtK(12345), 'K 12,345.00');
+  assert.equal(fmtK(-50.5), 'K -50.50');
+  assert.equal(fmtK('x'), 'K 0.00');
+  assert.equal(fmtL(30000), '30,000 L');
+  assert.equal(fmtL(1234.567, 2), '1,234.57 L');
+  assert.equal(fmtSignedL(-60), '−60.00 L');
+  assert.equal(fmtSignedL(12.5), '+12.50 L');
+  assert.equal(fmtSignedL(0), '0.00 L');
+});
+
+test('dates', () => {
+  assert.equal(fmtDay('2026-11-19', 2026), 'Thu 19 Nov');
+  assert.equal(fmtDay('2025-11-19', 2026), 'Wed 19 Nov 2025');
+  assert.equal(fmtDay(''), '—');
+  assert.equal(daysAgo('2026-11-19', '2026-11-19'), 'today');
+  assert.equal(daysAgo('2026-11-18', '2026-11-19'), 'yesterday');
+  assert.equal(daysAgo('2026-11-12', '2026-11-19'), '7 days ago');
+  assert.equal(daysAgo('bad', '2026-11-19'), '');
+});
+
+test('dip band: ±0.5% ok, to ±1% watch, beyond high — both directions', () => {
+  assert.equal(dipBand(-50, 10000).level, 'ok');      // 0.5%
+  assert.equal(dipBand(50.01, 10000).level, 'watch');
+  assert.equal(dipBand(-100, 10000).level, 'watch');  // 1%
+  assert.equal(dipBand(-100.5, 10000).level, 'high');
+  assert.equal(dipBand(0, 0).level, 'ok');
+  assert.equal(dipBand(5, 0).level, 'high', 'any litres against an empty book is out');
+  assert.equal(dipBand('', 100), null);
+  assert.equal(dipBand(-60, 10000).label, '0.5–1% out');
+});
+
+test('space left never negative', () => {
+  assert.equal(spaceLeft(30000, 18452), 11548);
+  assert.equal(spaceLeft(1000, 1200), 0);
+});
+
+import { ledgerSeries, ledgerTotals, ledgerTop } from '../../src/ux/ledgerSeries';
+test('ledger chart: starts at the opening, one point per movement; totals by kind', () => {
+  const rows = [
+    { movement_date: '2026-11-18 08:00', type: 'sale', litres: -1200, balance_after: 8800 },
+    { movement_date: '2026-11-18 14:00', type: 'delivery', litres: 15000, balance_after: 23800 },
+    { movement_date: '2026-11-19', type: 'dip_adjustment', litres: -60, balance_after: 23740 },
+  ];
+  const s = ledgerSeries(10000, rows, '2026-11-18');
+  assert.deepEqual(s.map((p) => p.balance), [10000, 8800, 23800, 23740]);
+  assert.equal(s[0].type, 'start');
+  assert.equal(s[3].date, '2026-11-19');
+  assert.deepEqual(ledgerTotals(rows), { delivered: 15000, sold: 1200, corrected: -60 });
+  assert.equal(ledgerTop(s, 30000), 30000);
+  assert.ok(Math.abs(ledgerTop(s, 0) - 26180) < 1e-6);
+});
+
+import { niceTicks } from '../../src/ux/ledgerSeries';
+test('ledger axis uses round steps', () => {
+  assert.deepEqual(niceTicks(50000), [0, 20000, 40000, 60000]);
+  assert.deepEqual(niceTicks(30000), [0, 10000, 20000, 30000]);
+  assert.deepEqual(niceTicks(900), [0, 250, 500, 750, 1000]);
+});

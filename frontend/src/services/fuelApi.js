@@ -8,6 +8,7 @@ export const deleteFuelGrade    = (id)      => api.delete(`/fuel-grades/${id}`);
 
 // Tanks
 export const getTanks           = (params)  => api.get('/tanks', { params: params || {} });
+export const getTankInsights    = ()        => api.get('/tanks/insights');   // UX-7
 export const getTank            = (id)      => api.get(`/tanks/${id}`);
 export const createTank         = (d)       => api.post('/tanks', d);
 export const updateTank         = (id, d)   => api.put(`/tanks/${id}`, d);

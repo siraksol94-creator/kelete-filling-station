@@ -248,6 +248,7 @@ automatically at start-up, once, each in its own transaction.
 | 32 | UX-5 fix | Weather location saves on a fresh install; asks for the business email when it's missing | — |
 | 33 | UX-6 | Side menu: Find a screen (Ctrl K), recently used, follows the page, full icon menu, keyboard and phone polish | — |
 | 34 | UX-6 fix | Build fix: eslint comments that stopped `npm start`; the screen check catches them | — |
+| 35 | UX-7 | Forecourt kit for the fuel screens; Tanks: 3D cards, dip ring and ±0.5%/1% bands, ledger chart (read-only `/api/tanks/insights`) | — |
 
 Before tagging, on the test machine:
 

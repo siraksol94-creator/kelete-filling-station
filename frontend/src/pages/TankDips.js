@@ -5,7 +5,9 @@ import { useAuth } from '../context/AuthContext';
 import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { dipProgress } from '../ux/fuelProgress';
-import { ProgressBar } from '../ux/components';
+// UX-7 — dip ring and the ±0.5% / ±1% variance band (variance always in full).
+import { Ring } from '../ux/ForecourtKit';
+import { dipBand, fmtSignedL } from '../ux/forecourt';
 import FuelLoader from '../ux/FuelLoader';
 
 const today = () => businessToday();
@@ -81,7 +83,7 @@ export default function TankDips({ embedded = false } = {}) {
         </div>
       </div>
 
-      <div style={{ padding: 10, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, marginBottom: 12, fontSize: 12, color: '#1e3a8a' }}>
+      <div className="k-dip-note">
         One dip per tank (or per plumbed group) per <strong>SHIFT</strong> (DAY and NIGHT reconcile independently). Plumbed groups' measured value is the shared fluid level — split proportionally into each member tank's ledger.
         Dips auto-post when an <strong>Administrator approves the SHIFT</strong> on Fuel Cash Report. Until then they sit as pending checks and do not change the book volume.
       </div>
@@ -89,7 +91,9 @@ export default function TankDips({ embedded = false } = {}) {
       {msg && <div role="status" style={{ padding: 10, background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 6, marginBottom: 12, fontSize: 13, color: '#166534' }}>{msg}</div>}
 
       {loaded && rows.length > 0 && (
-        <div className="k-panel" style={{ marginBottom: 12 }}>
+        <div className="k-panel k-dip-round" style={{ marginBottom: 12 }}>
+          <Ring value={progress.saved} max={progress.total} label={`Tanks dipped for the ${shiftType} shift`} sub="dipped" size={84} />
+          <div style={{ flex: 1, minWidth: 0 }}>
           <div className="k-panel-row" style={{ marginBottom: 8 }}>
             <span className="k-panel-title">
               {progress.complete ? <span className="k-ok-text">✓ Every tank dipped for the {shiftType} shift</span> : `Tanks dipped for the ${shiftType} shift`}
@@ -100,7 +104,13 @@ export default function TankDips({ embedded = false } = {}) {
               <span className="k-hide-sm"> · Enter in a box saves that row</span>
             </span>
           </div>
-          <ProgressBar value={progress.saved} max={progress.total} tone={progress.complete ? 'ok' : 'accent'} label="Tanks dipped" />
+          <div className="k-dip-legend" aria-label="What the variance colours mean">
+            <span className="k-fc-band k-fc-band-ok">Within 0.5%</span>
+            <span className="k-fc-band k-fc-band-watch">0.5–1% out</span>
+            <span className="k-fc-band k-fc-band-high">Over 1% out</span>
+            <span className="k-muted">of the book litres · the variance is always shown in full</span>
+          </div>
+          </div>
         </div>
       )}
 
@@ -123,7 +133,7 @@ export default function TankDips({ embedded = false } = {}) {
               const ip = edits[key] || {};
               const measured = Number(ip.measured);
               const liveVariance = isFinite(measured) && ip.measured !== '' ? (measured - Number(row.book_volume || 0)) : null;
-              const vColor = liveVariance == null ? '#6b7280' : (Math.abs(liveVariance) < 0.5 ? '#111' : (liveVariance < 0 ? '#b91c1c' : '#15803d'));
+              const band = liveVariance == null ? null : dipBand(liveVariance, row.book_volume);
               const fullyPosted = row.posted_count === row.member_count && row.member_count > 0;
               return (
                 <tr key={key} style={{ borderBottom: '1px solid #f3f4f6', background: fullyPosted ? '#f9fafb' : '#fff' }}>
@@ -149,8 +159,13 @@ export default function TankDips({ embedded = false } = {}) {
                       style={{ ...S.input, width: 140, textAlign: 'right', background: fullyPosted ? '#f3f4f6' : '#fff', borderColor: fieldError(ip.measured) ? '#b91c1c' : undefined }} />
                     {fieldError(ip.measured) && <div className="k-field-error" role="alert">{fieldError(ip.measured)}</div>}
                   </td>
-                  <td style={{ ...S.tdR, color: vColor, fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {liveVariance != null ? (liveVariance >= 0 ? '+' : '') + liveVariance.toFixed(2) + ' L' : '—'}
+                  <td style={{ ...S.tdR, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {liveVariance != null ? (
+                      <div className="k-dip-var">
+                        <span>{fmtSignedL(liveVariance)}</span>
+                        {band && <span className={`k-fc-band k-fc-band-${band.level}`}>{band.label}</span>}
+                      </div>
+                    ) : <span className="k-muted">—</span>}
                   </td>
                   <td style={S.td}>
                     <input value={ip.notes || ''}
