@@ -317,13 +317,6 @@
    "covers": "UX fix",
    "what": "window.prompt (blocked on Electron tills) replaced with in-app boxes: deposit confirm/edit date, deposit delete reason, GRN void reason + confirm, voucher reject and HQ delete reasons; reasons need 3+ characters",
    "migrations": []
-  },
-  {
-   "n": 43,
-   "subject": "UX-12: Pay box on the shop till in the till's red — To pay in the header, customer-gave quick cash, large change due; Empty Vouchers shortcut on the Dashboard (for review)",
-   "covers": "UX",
-   "what": "Shop till keeps its original red look. Pay box: red header matching Current Order with To pay; 'This sale' panel in the same red family (was blue); 'Customer gave' Exact/round-note buttons that fill Cash; large Change due / Balance due; TPIN Verify and Register buttons red. No sale rules changed. Dashboard: Shortcuts tray with an Empty Vouchers tile and its open-slip count (branch users who can open Empty Vouchers only)",
-   "migrations": []
   }
  ],
  "migrations": [

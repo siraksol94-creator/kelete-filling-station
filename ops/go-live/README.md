@@ -256,7 +256,6 @@ automatically at start-up, once, each in its own transaction.
 | 40 | UX-11b | Account Receivables rebuilt; Fuel Cash Report cards as a money flow (frontend only) | — |
 | 41 | Fix | Account Receivables in the menu at head office; `{{count}}` in translated texts filled in | — |
 | 42 | Fix | Reason and date boxes on HQ Deposits, GRN Archive and Payment Voucher work on the tills (no `window.prompt`) | — |
-| 43 | UX-12 | Pay box on the shop till in the till's red; "Customer gave" quick cash; large change due; Empty Vouchers shortcut on the Dashboard | — |
 
 Before tagging, on the test machine:
 
