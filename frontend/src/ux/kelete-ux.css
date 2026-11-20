@@ -1549,3 +1549,11 @@
   .k-sr-cust { max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) { .k-sr-bar > span { transition: none; } }
+
+/* Cash Report (pages/CashReport.js) — blind count hint and toolbar. */
+.k-crp-blind { margin: 0; padding: 8px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; font-size: 13px; font-weight: 600; }
+.k-pr-dates label svg { color: #475569; }
+.k-crp-count { display: block !important; width: 100% !important; box-sizing: border-box; min-height: 46px; padding: 8px 12px !important; border-radius: 10px !important; border: 1.5px solid #cbd5e1 !important; }
+.k-crp-count.is-blind { border-color: #f59e0b !important; background: #fffdf5 !important; }
+.k-crp-count::placeholder { font-size: 14px; font-weight: 600; color: #92400e; }
+.k-crp-count:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }

@@ -11,6 +11,7 @@ import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { getPaymentVouchers, getSettings, createCashReceipt, updateCashReceipt, checkSalesCashReceipt, getSalesCashiers, getCurrencyExchangesNet, getCurrentFxRate, deleteCashReport, getExpenseRequests } from '../services/api';
 import CurrencyExchangePanel from '../components/CurrencyExchangePanel';
 import useDepositTarget from '../utils/useDepositTarget';
+import { PageHero, useDialog } from '../ux/ForecourtKit';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5300/api';
 
@@ -53,6 +54,12 @@ const CashReport = () => {
   // 2026-09-11 — "Cash + MoMo + Bank", less what this branch hides.
   const methodsLabel = ['Cash', methodShown('momo') && 'MoMo', methodShown('bank') && 'Bank'].filter(Boolean).join(' + ');
   const hasMoney = (...vals) => vals.some(v => Math.abs(parseFloat(v) || 0) > 0.004);
+  // Decision 2026-11-20 — blind count on the Kwacha Cash / MoMo / Bank book:
+  // a new report's counted boxes start empty, and the expected figure and
+  // the difference for a method appear only once its box has been typed.
+  const blindCount = isLiquorStyle;
+  const notCounted = (v) => String(v ?? '').trim() === '';
+  const [dialog, ui] = useDialog();
   const isMobile = useIsMobile();
   // v1.9.26 — currency_mode gates per-currency panels.
   // v1.9.30 — Cash Report method-axis lands: Liquor branches render
@@ -367,9 +374,11 @@ const CashReport = () => {
         // v1.8.1: prefer new triple-currency fields, fall back to legacy
         // cash/mobile_money/bank columns (where the same values were stored
         // before the rename).
-        usd_received: saved.usd_received || saved.cash || '',
-        fra_received: saved.fra_received || saved.mobile_money || '',
-        k_received:   saved.k_received   || saved.bank || '',
+        // A saved report was counted: a method saved as 0 shows 0, not an
+        // empty "not counted yet" box (matters for blind count on Edit).
+        usd_received: saved.usd_received || saved.cash || '0',
+        fra_received: saved.fra_received || saved.mobile_money || '0',
+        k_received:   saved.k_received   || saved.bank || '0',
         expenses: saved.expenses || '',
         pending: saved.pending || '',
         total: saved.total || '',
@@ -411,9 +420,12 @@ const CashReport = () => {
           : ((parseFloat(daily.k_received || 0) || 0) - (parseFloat(daily.k_expenses || 0) || 0) + (parseFloat(exNet.k_net || 0) || 0));
         setForm(prev => ({
           ...prev,
-          usd_received: usdDrawer ? usdDrawer.toFixed(2) : '',
-          fra_received: fraDrawer ? fraDrawer.toFixed(isLiquorStyle ? 2 : 0) : '',
-          k_received:   kDrawer   ? kDrawer.toFixed(isLiquorStyle ? 2 : 0)   : '',
+          // Blind count (2026-11-20): on the Kwacha book the boxes start empty —
+          // pre-filling them with the expected amounts let a report be saved
+          // without counting, always "balanced". Other books keep the fill.
+          usd_received: blindCount ? '' : (usdDrawer ? usdDrawer.toFixed(2) : ''),
+          fra_received: blindCount ? '' : (fraDrawer ? fraDrawer.toFixed(isLiquorStyle ? 2 : 0) : ''),
+          k_received:   blindCount ? '' : (kDrawer   ? kDrawer.toFixed(isLiquorStyle ? 2 : 0)   : ''),
           expenses:     daily.expenses     ? parseFloat(daily.expenses).toFixed(2)     : '',
           pending:      issuedToday ? issuedToday.toFixed(2) : '',
           initial_change: '0',
@@ -520,6 +532,17 @@ const CashReport = () => {
 
   const handleSave = async () => {
     if (!selectedCashier) { setMessage('Please select a cashier before saving.'); return; }
+    if (blindCount) {
+      const shown = [
+        ['usd_received', 'Cash', true],
+        ['fra_received', 'Mobile Money', methodShown('momo') || hasMoney(expectedByMethod.momo, expensesByCcy.fra, form.fra_received)],
+        ['k_received', 'Bank', methodShown('bank') || hasMoney(expectedByMethod.bank, expensesByCcy.k, form.k_received)],
+      ].filter(x => x[2] && notCounted(form[x[0]]));
+      if (shown.length) {
+        setMessage(`Count and type ${shown.map(x => x[1]).join(', ')} first — type 0 if there is nothing.`);
+        return;
+      }
+    }
     // 2026-09-11 — with Auto deposit on, saving is not only saving: say what
     // goes to HQ (or how this report's deposits change) and let them stop.
     if (autoDepositOn) {
@@ -533,7 +556,7 @@ const CashReport = () => {
         const msg = isUpdate
           ? `Auto deposit is on for this depot.\n\nSaving will also UPDATE this report's deposits to ${to} to:\n${body}\n\nA method with nothing counted has its deposit removed. ${to} still has to confirm them.\n\nSave and update the deposits?`
           : `Auto deposit is on for this depot.\n\nSaving this Cash Report will also SEND this money to ${to} as deposits:\n${body}\n\n${to} has to confirm them in ${to} Deposits.\n\nSave and send?`;
-        if (!window.confirm(msg)) return;
+        if (!(await ui.confirm({ title: isUpdate ? `Update the deposits to ${to}?` : `Send this money to ${to}?`, text: msg, okLabel: isUpdate ? 'Save and update' : 'Save and send' }))) return;
       }
     }
     setSaving(true);
@@ -906,7 +929,7 @@ const CashReport = () => {
   const computedStatus = getStatus(computedDiff);
 
   const statusColor = (s) => {
-    if (s === 'OK') return '#16a34a';
+    if (s === 'OK') return '#15803d';
     if (s === 'Surplus') return '#2563eb';
     if (s === 'Slight Surplus') return '#0891b2';
     if (s === 'Slight Short') return '#d97706';
@@ -960,44 +983,35 @@ const CashReport = () => {
 
   return (
     <div className="page-content">
+      {dialog}
       {/* ── Page Header ─────────────────────────────────────────── */}
-      <div className="page-header no-print">
-        <div>
-          <h1>{t('cashReport')}</h1>
-          <p>{t('cashReportSubtitle')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 12px' }}>
-            <FiCalendar style={{ color: '#6b7280' }} />
-            <input type="date" value={date} onChange={async e => {
-              const d = e.target.value;
-              const firstId = await fetchSalesCashiers(d);
-              loadDate(d, firstId);
-            }} style={{ border: 'none', outline: 'none', fontSize: 14 }} />
+      <div className="no-print">
+        <PageHero icon={<FiSave />} title={t('cashReport')} subtitle={t('cashReportSubtitle')}
+          actions={<button type="button" className="k-fc-btn-hero" onClick={openPrintPreview}><FiPrinter size={15} /> {t('print')}</button>} />
+        <div className="k-pr-toolbar">
+          <div className="k-pr-dates">
+            <label><FiCalendar aria-hidden="true" /> Day
+              <input type="date" value={date} onChange={async e => {
+                const d = e.target.value;
+                const firstId = await fetchSalesCashiers(d);
+                loadDate(d, firstId);
+              }} />
+            </label>
+            <label>Cashier
+              <select
+                value={selectedCashier}
+                onChange={e => { setSelectedCashier(e.target.value); loadDate(date, e.target.value); }}
+              >
+                {salesCashiers.length === 0 && <option value="">{t('noSalesToday')}</option>}
+                {salesCashiers.map(u => (
+                  <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
+                ))}
+              </select>
+            </label>
           </div>
-          <select
-            value={selectedCashier}
-            onChange={e => { setSelectedCashier(e.target.value); loadDate(date, e.target.value); }}
-            style={{ padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#fff', color: '#374151' }}
-          >
-            {salesCashiers.length === 0 && <option value="">{t('noSalesToday')}</option>}
-            {salesCashiers.map(u => (
-              <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
-            ))}
-          </select>
-          <button
-            onClick={openPrintPreview}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e5e7eb',
-              background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#374151',
-              transition: 'all 0.15s',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b7280'; e.currentTarget.style.background = '#f9fafb'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
-          >
-            <FiPrinter size={16} /> {t('print')}
-          </button>
+          {blindCount && editMode && !savedReportId && (
+            <p className="k-crp-blind" role="note">Count the drawer, then type what is there. Expected amounts show once a box is filled.</p>
+          )}
         </div>
       </div>
 
@@ -1025,14 +1039,19 @@ const CashReport = () => {
           const fmt           = (n) => `${curSym}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           // Difference tile colour swaps with sign so the state reads at a glance.
           const diffBg = isOk
-            ? 'linear-gradient(135deg,#16a34a,#15803d)'
+            ? 'linear-gradient(135deg,#15803d,#166534)'
             : diff > 0
-              ? 'linear-gradient(135deg,#16a34a,#15803d)'
+              ? 'linear-gradient(135deg,#15803d,#166534)'
               : 'linear-gradient(135deg,#dc2626,#b91c1c)';
           const diffShadow = isOk || diff > 0 ? '#16a34a40' : '#dc262640';
-          const tiles = [
+          const hideExpected = blindCount && editMode && !savedReportId;
+          const tiles = hideExpected ? [
+            { key: 'expected', label: 'Total Expected', big: '—', sub: 'shown once the count is saved', bg: 'linear-gradient(135deg,#334155,#1e293b)', shadow: '#0f172a30' },
+            { key: 'received', label: 'Total Cash Received', big: fmt(totalReceived), sub: methodsLabel, bg: 'linear-gradient(135deg,#15803d,#166534)', shadow: '#16a34a40' },
+            { key: 'diff', label: 'Difference', big: '—', sub: 'shown once the count is saved', bg: 'linear-gradient(135deg,#334155,#1e293b)', shadow: '#0f172a30' },
+          ] : [
             { key: 'expected', label: 'Total Expected',       big: fmt(totalExpected), sub: methodsLabel,                 bg: 'linear-gradient(135deg,#2563eb,#1d4ed8)', shadow: '#2563eb40' },
-            { key: 'received', label: 'Total Cash Received',  big: fmt(totalReceived), sub: methodsLabel,                 bg: 'linear-gradient(135deg,#16a34a,#15803d)', shadow: '#16a34a40' },
+            { key: 'received', label: 'Total Cash Received',  big: fmt(totalReceived), sub: methodsLabel,                 bg: 'linear-gradient(135deg,#15803d,#166534)', shadow: '#16a34a40' },
             { key: 'diff',     label: 'Difference',           big: `${diff > 0 ? '+' : diff < 0 ? '-' : ''}${fmt(Math.abs(diff))}`, sub: status, bg: diffBg, shadow: diffShadow },
           ];
           return tiles.map(t => (
@@ -1047,7 +1066,7 @@ const CashReport = () => {
           ));
         })() : (
           [
-            { ccy: 'USD',  symbol: '$',    dec: 2, label: 'USD',  color: '#15803d', bg: 'linear-gradient(135deg,#16a34a,#15803d)', show: showUSDccy },
+            { ccy: 'USD',  symbol: '$',    dec: 2, label: 'USD',  color: '#15803d', bg: 'linear-gradient(135deg,#15803d,#166534)', show: showUSDccy },
             { ccy: 'FRA',  symbol: '',     dec: 0, label: 'FRA',  color: '#7c3aed', bg: 'linear-gradient(135deg,#7c3aed,#6d28d9)', show: showFRAccy },
             { ccy: 'K',    symbol: '',     dec: 0, label: 'K',    color: '#c2410c', bg: 'linear-gradient(135deg,#ea580c,#c2410c)', show: showKccy },
           ].filter(c => c.show).map(c => {
@@ -1093,7 +1112,7 @@ const CashReport = () => {
       {/* v1.8.11 — old single-currency Top bar disabled. */}
       {false && (() => {
         const diff = daySummary.totalCash - daySummary.totalExpected;
-        const diffColor = diff === 0 ? '#6b7280' : diff > 0 ? '#16a34a' : '#dc2626';
+        const diffColor = diff === 0 ? '#6b7280' : diff > 0 ? '#15803d' : '#dc2626';
         const fmtS = (v) => Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         return (
           <div className="no-print" style={{
@@ -1238,9 +1257,10 @@ const CashReport = () => {
             const status      = isOk ? 'OK' : diff > 0 ? 'Over' : 'Short';
             const fmt         = (n) => `${c.symbol}${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: c.dec, maximumFractionDigits: c.dec })}`;
             const exchAdj     = -exch; // sign flipped for display: drawer +exch → −exchAdj on sales side
-            const footerBg    = isOk ? '#dcfce7' : diff > 0 ? '#fef3c7' : '#fee2e2';
-            const footerBorder= isOk ? '#86efac' : diff > 0 ? '#fde68a' : '#fecaca';
-            const footerColor = isOk ? '#15803d' : diff > 0 ? '#a16207' : '#991b1b';
+            const blind       = blindCount && editMode && notCounted(form[c.key]);
+            const footerBg    = blind ? '#f1f5f9' : isOk ? '#dcfce7' : diff > 0 ? '#fef3c7' : '#fee2e2';
+            const footerBorder= blind ? '#e2e8f0' : isOk ? '#86efac' : diff > 0 ? '#fde68a' : '#fecaca';
+            const footerColor = blind ? '#475569' : isOk ? '#15803d' : diff > 0 ? '#a16207' : '#991b1b';
             return (
               <div key={c.key} style={{
                 background: '#fff',
@@ -1281,10 +1301,11 @@ const CashReport = () => {
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {/* Counted input — the only editable field */}
                   <div>
-                    <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Cashier counted</label>
-                    <input type="number" value={form[c.key]}
+                    <label htmlFor={`crp-${c.key}`} style={{ fontSize: 11, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{blindCount ? 'Counted' : 'Cashier counted'}</label>
+                    <input id={`crp-${c.key}`} type="number" inputMode="decimal" value={form[c.key]}
                       onChange={e => setForm({ ...form, [c.key]: e.target.value })}
-                      disabled={!editMode} placeholder={c.dec === 2 ? '0.00' : '0'} step={c.step}
+                      disabled={!editMode} placeholder={blind ? 'Type what you counted' : (c.dec === 2 ? '0.00' : '0')} step={c.step}
+                      className={`k-crp-count${blind ? ' is-blind' : ''}`}
                       style={{ ...inputStyle(editMode), marginTop: 4, fontSize: 18, fontWeight: 700, color: '#111827' }} />
                   </div>
 
@@ -1313,8 +1334,8 @@ const CashReport = () => {
                     <span style={{ fontWeight: 700, fontSize: 13, color: '#111827', paddingTop: 4 }}>= Total cash in</span>
                     <span style={{ fontWeight: 800, fontSize: 17, color: c.color, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 4 }}>{fmt(totalCashIn)}</span>
 
-                    <span style={{ color: '#6b7280', fontSize: 11, paddingTop: 2 }}>Expected sales (POS)</span>
-                    <span style={{ color: '#6b7280', fontWeight: 500, fontSize: 12, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 2 }}>{fmt(c.posExp)}</span>
+                    <span style={{ color: '#475569', fontSize: 11, paddingTop: 2 }}>Expected sales (POS)</span>
+                    <span style={{ color: '#475569', fontWeight: 500, fontSize: 12, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 2 }}>{blind ? 'after counting' : fmt(c.posExp)}</span>
                   </div>
                 </div>
 
@@ -1328,11 +1349,13 @@ const CashReport = () => {
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: 260 }}>
                     <span style={{ fontSize: 11, color: footerColor, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                      {isOk ? '✓ Balanced' : status}
+                      {blind ? 'Not counted yet' : isOk ? '✓ Balanced' : status}
                     </span>
-                    <span style={{ color: footerColor, fontWeight: 800, fontSize: 14, whiteSpace: 'nowrap' }}>
-                      {diff > 0 ? '+' : ''}{fmt(diff)}
-                    </span>
+                    {!blind && (
+                      <span style={{ color: footerColor, fontWeight: 800, fontSize: 14, whiteSpace: 'nowrap' }}>
+                        {diff > 0 ? '+' : diff < 0 ? '−' : ''}{fmt(Math.abs(diff))}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1372,7 +1395,7 @@ const CashReport = () => {
                   <span style={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                     Credit Sales ({curSym})
                   </span>
-                  <span style={{ fontSize: 9, opacity: 0.95, background: 'rgba(255,255,255,0.2)', padding: '3px 8px', borderRadius: 4, fontWeight: 700, letterSpacing: 0.4 }}>
+                  <span style={{ fontSize: 9, opacity: 0.95, background: 'rgba(0,0,0,0.25)', padding: '3px 8px', borderRadius: 4, fontWeight: 700, letterSpacing: 0.4 }}>
                     AUTO · READ-ONLY
                   </span>
                 </div>
@@ -1481,7 +1504,7 @@ const CashReport = () => {
           const a = Math.abs(n);
           return `${s}${sym}${a.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
         };
-        const colorFor = (n) => Math.abs(n) < 0.005 ? '#6b7280' : (n > 0 ? '#16a34a' : '#dc2626');
+        const colorFor = (n) => Math.abs(n) < 0.005 ? '#6b7280' : (n > 0 ? '#15803d' : '#dc2626');
         return (
           <div style={{ marginTop: 16, padding: '14px 18px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e', marginBottom: 8 }}>
@@ -1541,7 +1564,7 @@ const CashReport = () => {
                       const isOver = r.direction === 'OVER';
                       const sign  = isOver ? '+' : '−';
                       const arrow = isOver ? '↑' : '↓';
-                      const colour = isOver ? '#16a34a' : '#dc2626';
+                      const colour = isOver ? '#15803d' : '#dc2626';
                       return (
                         <tr key={`${r.direction}-${r.id}`} style={{ borderTop: '1px solid #fde68a' }}>
                           <td style={{ padding: '6px 8px', color: '#374151' }}>{fmtInvoiceNo(r.order_number)}</td>
@@ -1709,7 +1732,7 @@ const CashReport = () => {
                 background: card.bg, border: `1.5px solid ${card.border}`,
                 boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
               }}>
-                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
+                <div style={{ fontSize: 11, color: '#475569', fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 6 }}>
                   {card.label}
                 </div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: card.color, letterSpacing: -0.5 }}>
@@ -1718,7 +1741,7 @@ const CashReport = () => {
                     <span style={{
                       marginLeft: 10, fontSize: 11, fontWeight: 600,
                       padding: '2px 10px', borderRadius: 20,
-                      background: card.color + '1a', color: card.color, verticalAlign: 'middle'
+                      background: '#fff', border: `1px solid ${card.color}55`, color: card.color, verticalAlign: 'middle'
                     }}>{card.badge}</span>
                   )}
                 </div>
@@ -1832,9 +1855,9 @@ const CashReport = () => {
               const usdEx = parseFloat(r.usd_expenses || r.expenses || 0) || 0;
               const fraEx = parseFloat(r.fra_expenses || 0) || 0;
               const kEx   = parseFloat(r.k_expenses   || 0) || 0;
-              const diffColor = (d, eps) => Math.abs(d) < eps ? '#16a34a' : d > 0 ? '#d97706' : '#dc2626';
+              const diffColor = (d, eps) => Math.abs(d) < eps ? '#15803d' : d > 0 ? '#d97706' : '#dc2626';
               const sign = (d) => d > 0 ? '+' : '';
-              const dash = <span style={{ color: '#cbd5e1' }}>—</span>;
+              const dash = <span style={{ color: '#64748b' }}>—</span>;
               const fmtK = (n) => `${curSym}${parseFloat(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
               const totalExp = usdEx + fraEx + kEx;
               // v1.13.20 — compute rowTotal live using the reference Liquor

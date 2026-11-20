@@ -375,6 +375,13 @@
    "covers": "Fix",
    "what": "Payment vouchers with amounts in their Cash/MoMo/Bank slots are read from the slots only. The old per-column fallback fired for empty slots on new vouchers and, because on a Kwacha book the method columns mirror the slots, counted a MoMo voucher under Bank too and a Bank voucher under MoMo — false 'Over' on the Cash Report's MoMo/Bank cards and wrong per-method voucher totals. Vouchers saved before the slots existed still use the old columns. Cash receipt totals not changed (written differently; to review separately). No data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 51,
+   "subject": "UX-15: Cash Report — blind count (counted boxes start empty, expected shown after counting), in-app confirm, kit header, readable colours (for review)",
+   "covers": "UX",
+   "what": "Decision 2026-11-20: blind cash count on the Kwacha Cash/MoMo/Bank book. A new report's counted boxes start empty (were pre-filled with the expected amounts, so a report could be saved without counting and always balanced); each card shows its expected figure and Balanced/Over/Short only once its box is typed; the day's Total Expected and Difference tiles wait until the count is saved; Save asks for every shown method (0 allowed). Saved reports open as counted (a method saved as 0 shows 0). Auto-deposit confirmation is an in-app box. Kit header with day and cashier; differences shown as −K50.00; inherited contrast failures fixed. Other currency setups keep the pre-fill. No backend, data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [
