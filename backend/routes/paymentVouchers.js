@@ -133,9 +133,13 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
     // fall back to legacy cash/bank/momo only when the new ones are 0
     // (mirrors the cashReport.js v1.8.17 fix to avoid double-counting
     // transition rows where both columns happen to be populated).
-    const usdExpr = `COALESCE(SUM(CASE WHEN COALESCE(usd_amount,0) > 0 THEN usd_amount ELSE COALESCE(cash_amount,0) END), 0)`;
-    const fraExpr = `COALESCE(SUM(CASE WHEN COALESCE(fra_amount,0) > 0 THEN fra_amount ELSE COALESCE(bank_amount,0) END), 0)`;
-    const kExpr   = `COALESCE(SUM(CASE WHEN COALESCE(k_amount,  0) > 0 THEN k_amount   ELSE COALESCE(momo_amount,0) END), 0)`;
+    // 2026-11-20 — slots first for any voucher that has slot amounts (see
+    // routes/cashReport.js /daily): the per-column fallback double-counted
+    // MoMo and Bank vouchers on a Kwacha book.
+    const HAS_SLOTS = `(COALESCE(usd_amount,0) + COALESCE(fra_amount,0) + COALESCE(k_amount,0) > 0)`;
+    const usdExpr = `COALESCE(SUM(CASE WHEN ${HAS_SLOTS} THEN COALESCE(usd_amount,0) ELSE COALESCE(cash_amount,0) END), 0)`;
+    const fraExpr = `COALESCE(SUM(CASE WHEN ${HAS_SLOTS} THEN COALESCE(fra_amount,0) ELSE COALESCE(bank_amount,0) END), 0)`;
+    const kExpr   = `COALESCE(SUM(CASE WHEN ${HAS_SLOTS} THEN COALESCE(k_amount,0)   ELSE COALESCE(momo_amount,0) END), 0)`;
     const totalsRow = (whereExtra, params) => db.prepare(
       `SELECT ${usdExpr} AS usd, ${fraExpr} AS fra, ${kExpr} AS k
        FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?${whereExtra}`
