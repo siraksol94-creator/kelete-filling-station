@@ -354,6 +354,13 @@
    "covers": "UX",
    "what": "Cash Book on Kelete's K-only Cash/MoMo/Bank setup gets a new ledger view (ux/CashLedger.js): cash & cash equivalent with the Cash/MoMo/Bank split, each account opening → now; period strip money in (fuel takings shown), money out, moved between accounts, net; ledger grouped by day (in, out, closing) with plain names and icons; transfers shown once as 'moved', not in and out; filters (in, out, fuel, transfers, deposits) and search; quick periods load at once. Export now carries In/Out/Balance (the old export asked for usd_amount/fra_amount/k_amount, which rows don't have). Opening-balance confirm and error are in-app boxes (password step unchanged). Other currency setups keep the old view. No backend, data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 48,
+   "subject": "UX-14: Sales Report — calm headline, how customers paid, sales through the day, clearer rows with a quiet Reverse; fix Reset-to-today error (for review)",
+   "covers": "UX",
+   "what": "Sales Report: kit header with the same exports and prints; quick periods with dates and cashier; invoice search on its own row; headline sales card (sales, reversed, average sale), How they paid (cash/MoMo/bank/on account bar), credit sales, discounts; new Through the day hourly chart with the busiest hour; transactions table Invoice | Date | Customer | Paid by | Total (discount under it) | Received (change under it) | Status, with quiet View/Reverse buttons; credit-note rows to match. Fixes the inherited Reset-to-today button, which called an undefined setDeviceFilter and threw before clearing the search. Reversals, credit notes, ZRA, duplicates, By item / By payment tabs, exports and prints unchanged. No backend, data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [
