@@ -309,9 +309,16 @@ router.get('/daily', auth, readOnlyGuard, (req, res) => {
     // during the v1.8.5 transition).
     const expensesByCcy = db.prepare(
       `SELECT
-         COALESCE(SUM(CASE WHEN COALESCE(usd_amount, 0) > 0 THEN usd_amount ELSE COALESCE(cash_amount, 0) END), 0) AS usd,
-         COALESCE(SUM(CASE WHEN COALESCE(fra_amount, 0) > 0 THEN fra_amount ELSE COALESCE(bank_amount, 0) END), 0) AS fra,
-         COALESCE(SUM(CASE WHEN COALESCE(k_amount,   0) > 0 THEN k_amount   ELSE COALESCE(momo_amount, 0) END), 0) AS k
+         -- 2026-11-20 — a voucher that has any amount in its three slots is
+         -- read from the slots only. The old per-column fallback also fired
+         -- for an EMPTY slot on a new voucher, and on a Kwacha book the
+         -- method columns mirror the slots (cash=usd, bank=k, momo=fra —
+         -- paymentVouchers.methodColumns), so a MoMo voucher was counted
+         -- under Bank too and a Bank voucher under MoMo. The fallback still
+         -- serves vouchers saved before the slots existed (no slot amounts).
+         COALESCE(SUM(CASE WHEN (COALESCE(usd_amount,0) + COALESCE(fra_amount,0) + COALESCE(k_amount,0) > 0) THEN COALESCE(usd_amount, 0) ELSE COALESCE(cash_amount, 0) END), 0) AS usd,
+         COALESCE(SUM(CASE WHEN (COALESCE(usd_amount,0) + COALESCE(fra_amount,0) + COALESCE(k_amount,0) > 0) THEN COALESCE(fra_amount, 0) ELSE COALESCE(bank_amount, 0) END), 0) AS fra,
+         COALESCE(SUM(CASE WHEN (COALESCE(usd_amount,0) + COALESCE(fra_amount,0) + COALESCE(k_amount,0) > 0) THEN COALESCE(k_amount, 0)   ELSE COALESCE(momo_amount, 0) END), 0) AS k
        FROM payment_vouchers
        WHERE deleted_at IS NULL AND tenant_id = ? AND date = ? AND ${DRAWER}${expensesCashierClause}`
     ).get(...expensesParams);

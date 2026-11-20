@@ -368,6 +368,13 @@
    "covers": "Performance",
    "what": "GET /api/orders accepts optional from/to (a day wider each side; the screen still picks exact local days) and q (invoice search across all dates: our number, ZRA INV<sdc>/<rcpt>, CRN<sdc>/<rcpt>, raw receipt numbers; % and _ literal; max 500). Cost and partial-refund sums computed only for the selected orders. No parameters = every order, unchanged. Sales Report sends the dates on screen or the search, newest request wins. Measured on 20,000 sales: one day 132 KB / 27 ms instead of 37 MB / 940 ms. No data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 50,
+   "subject": "Fix: MoMo and Bank drawer expenses counted once, under their own method (Cash Report and voucher totals) (for review)",
+   "covers": "Fix",
+   "what": "Payment vouchers with amounts in their Cash/MoMo/Bank slots are read from the slots only. The old per-column fallback fired for empty slots on new vouchers and, because on a Kwacha book the method columns mirror the slots, counted a MoMo voucher under Bank too and a Bank voucher under MoMo — false 'Over' on the Cash Report's MoMo/Bank cards and wrong per-method voucher totals. Vouchers saved before the slots existed still use the old columns. Cash receipt totals not changed (written differently; to review separately). No data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [
