@@ -347,6 +347,13 @@
    "covers": "HQ Consolidated Profit",
    "what": "GET /api/hq/consolidated-profit adds each branch's fuel (services/fuelProfit with a day-by-day split; null where a branch has no forecourt) alongside the unchanged stored shop figures. Screen rebuilt: Group net profit (branches − HQ overhead once), group sales split shop/fuel, gross profit %, fuel margin per litre; by-branch table Shop sales | Fuel sales | Gross | Expenses | Net | Fuel/L with day drill-down; credit-ticket fuel counted once; shop-only branches marked; fuel by grade across branches. Money shown in full (was rounded to whole kwacha). No new endpoints, permissions, data or migrations.",
    "migrations": []
+  },
+  {
+   "n": 47,
+   "subject": "UX-13: Cash Book — where the money is (Cash / MoMo / Bank), money in and out by day, transfers counted once, plain names, working export (for review)",
+   "covers": "UX",
+   "what": "Cash Book on Kelete's K-only Cash/MoMo/Bank setup gets a new ledger view (ux/CashLedger.js): cash & cash equivalent with the Cash/MoMo/Bank split, each account opening → now; period strip money in (fuel takings shown), money out, moved between accounts, net; ledger grouped by day (in, out, closing) with plain names and icons; transfers shown once as 'moved', not in and out; filters (in, out, fuel, transfers, deposits) and search; quick periods load at once. Export now carries In/Out/Balance (the old export asked for usd_amount/fra_amount/k_amount, which rows don't have). Opening-balance confirm and error are in-app boxes (password step unchanged). Other currency setups keep the old view. No backend, data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [

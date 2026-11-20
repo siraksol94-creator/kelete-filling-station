@@ -260,6 +260,7 @@ automatically at start-up, once, each in its own transaction.
 | 44 | UX-12b | Point of Sale shortcut on the Dashboard (also at head office) | — |
 | 45 | Profit | Profit Report Shop \| Fuel \| Station; fuel margin per litre by grade; credit-ticket fuel counted once; fuel cost frozen at shift close | 13 fuel_cost_at_close |
 | 46 | HQ Profit | HQ Consolidated Profit Shop \| Fuel \| Station per branch and group; fuel margin per litre across branches; money in full | — |
+| 47 | UX-13 | Cash Book: balances by account, money in/out by day, transfers once, plain names, working export | — |
 
 Before tagging, on the test machine:
 

@@ -6,14 +6,17 @@ import { useAuth } from '../context/AuthContext';
 import CurrencyExchangePanel from '../components/CurrencyExchangePanel';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
-import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiEdit2, FiSave, FiX, FiPrinter, FiFilter, FiRefreshCw } from 'react-icons/fi';
+import { FiTrendingUp, FiTrendingDown, FiDollarSign, FiEdit2, FiSave, FiX, FiPrinter, FiFilter, FiRefreshCw, FiBookOpen } from 'react-icons/fi';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import HQDeposits from './HQDeposits';
 import useDepositTarget from '../utils/useDepositTarget';
 import { businessToday } from '../utils/businessDate';
+import { PageHero, useDialog } from '../ux/ForecourtKit';
+import CashLedger from '../ux/CashLedger';
 const CashBook = () => {
   const { hasPermission, user: authUser } = useAuth();
+  const [dialog, ui] = useDialog();
   // v1.8.6 — tab toggle between the ledger view and the Exchanges ledger.
   const [activeTab, setActiveTab] = useState('ledger');
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown } = useCurrency();
@@ -117,6 +120,8 @@ const CashBook = () => {
   }, []); // eslint-disable-line
 
   const handleFilter = () => fetchData(from, to);
+  // Kelete view: choosing a period loads it straight away.
+  const handleRange = (f, t) => { setFrom(f); setTo(t); fetchData(f, t); };
   const handleClearFilter = () => { setFrom(''); setTo(''); fetchData('', ''); };
 
   const handleSaveTransfer = async () => {
@@ -173,13 +178,13 @@ const CashBook = () => {
       setEditingOB(false);
       await fetchData(from, to);
     } catch (err) {
-      window.alert(err?.response?.data?.error || 'Could not save the opening balance.');
+      await ui.alert({ title: 'Opening balance not saved', text: err?.response?.data?.error || 'Could not save the opening balance.' });
     }
     setSavingOB(false);
   };
 
-  const openEditOB = () => {
-    if (!window.confirm('Editing opening balances will affect all running balances in the Cash Book. Do you want to continue?')) return;
+  const openEditOB = async () => {
+    if (!(await ui.confirm({ title: 'Edit opening balances?', text: 'Editing opening balances changes every running balance in the Cash Book. An Administrator password is needed to save.', okLabel: 'Continue' }))) return;
     setObInput({
       usd:  String(stats.openingByCcy?.usd     || 0),
       fra:  String(stats.openingByCcy?.fra     || 0),
@@ -527,33 +532,22 @@ const CashBook = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <div>
-          <h1>{t('cashBookTitle')}</h1>
-          <p>{t('cashBookSubtitle')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button
-            onClick={() => { setTransferError(''); setTransferForm(f => ({ ...f, amount: '', description: '', date: todayStr })); setShowTransfer(true); }}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-          >
-            <FiRefreshCw size={15} /> {t('transfer')}
+      {dialog}
+      <PageHero icon={<FiBookOpen />} title={t('cashBookTitle')} subtitle={t('cashBookSubtitle')}
+        actions={<>
+          <button type="button" className="k-fc-btn-ghost"
+            onClick={() => { setTransferError(''); setTransferForm(f => ({ ...f, amount: '', description: '', date: todayStr })); setShowTransfer(true); }}>
+            <FiRefreshCw size={14} /> {t('transfer')}
           </button>
           {/* 2026-09-17 — the Exchange button is gone at HQ and at every depot.
               Red Sea trades in Kwacha only, so there is nothing to convert. */}
-          <button
-            onClick={handlePrint}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', backgroundColor: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-          >
-            <FiPrinter size={15} /> {t('print')}
-          </button>
-        </div>
-      </div>
+          <button type="button" className="k-fc-btn-hero" onClick={handlePrint}><FiPrinter size={15} /> {t('print')}</button>
+        </>} />
 
       {/* v1.8.6 — Tab strip: Ledger (existing entries view) vs Exchanges.
           v1.9.27 — Exchanges hidden on Liquor-style K-only branches —
           they have no USD↔FRA conversions to track. */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '2px solid #e5e7eb' }}>
+      <div className="k-fc-tabs k-cb-tabs" role="tablist" aria-label="Cash Book">
         {[
           { key: 'ledger',    label: 'Ledger',      show: true },
           { key: 'exchanges', label: 'Exchanges',   show: !isLiquorStyle },
@@ -564,14 +558,8 @@ const CashBook = () => {
           // (System Settings → Deposit to), not always HQ.
           { key: 'deposits',  label: `${depositTo.label} Deposits`, show: true },
         ].filter(t => t.show).map(tab => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: '10px 22px', border: 'none', background: 'none',
-              cursor: 'pointer', fontSize: 14, fontWeight: 700,
-              color: activeTab === tab.key ? '#2563eb' : '#6b7280',
-              borderBottom: activeTab === tab.key ? '3px solid #2563eb' : '3px solid transparent',
-              marginBottom: -2, transition: 'color 0.15s',
-            }}>
+          <button key={tab.key} type="button" role="tab" aria-selected={activeTab === tab.key}
+            className={`k-fc-tab${activeTab === tab.key ? ' is-on' : ''}`} onClick={() => setActiveTab(tab.key)}>
             {tab.label}
           </button>
         ))}
@@ -598,6 +586,20 @@ const CashBook = () => {
 
       {activeTab === 'ledger' && (<>
 
+      {isLiquorStyle && (
+        <CashLedger
+          stats={stats} entries={entries} from={from} to={to} today={todayStr}
+          onRange={handleRange}
+          canView={hasPermission('CashBook:View')}
+          canEditOpening={!from && !to && hasPermission('CashBook:Edit')}
+          onEditOpening={openEditOB}
+          methodShown={methodShown}
+          depositTo={depositTo.label}
+          curSym={curSym}
+        />
+      )}
+
+      {!isLiquorStyle && (<>
       {/* Date Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{t('from')}:</label>
@@ -895,6 +897,8 @@ const CashBook = () => {
         );
       })()}
 
+      </>)}{/* end legacy per-currency summary */}
+
       {/* Opening Balance editor modal — three inputs */}
       <AdminPasswordPrompt
         open={obPrompt}
@@ -946,6 +950,7 @@ const CashBook = () => {
         </Portal>
       )}
 
+      {!isLiquorStyle && (<>
       {/* v1.13.43 — universal export (ZRA checklist #30) */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
         <ExportButtons
@@ -1249,6 +1254,7 @@ const CashBook = () => {
           </tbody>
         </table>
       </div>
+      </>)}{/* end legacy per-currency ledger */}
       {/* ── CashBook List Print Overlay ─────────────────────────────── */}
       {false && showListPrint && (() => {
         const fmt = (v) => parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
