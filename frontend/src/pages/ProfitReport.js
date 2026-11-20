@@ -88,11 +88,11 @@ const ProfitReport = () => {
     const bizAddr = esc(businessInfo?.business_address || '');
     const bizPhone = esc(businessInfo?.business_phone || '');
     const pc = (v, row) => (v == null ? '—' : esc(money(v, row.op === '±' || row.total)));
-    const plRows = pl.rows.map(r => `<tr style="border-bottom:1px solid #ddd${r.total ? ';background:#f5f5f5' : ''}">
+    const plRows = pl.rows.map(r => `<tr style="border-bottom:1px solid #e2e8f0${r.total ? ';background:#f1f5f9' : ''}">
       <td style="padding:6px 10px;font-weight:${r.total ? 700 : 500}">${r.op ? r.op + ' ' : ''}${esc(r.label)}</td>
       ${['shop', 'fuel', 'station'].map(k => `<td style="padding:6px 10px;text-align:right;font-family:monospace;font-weight:${r.total || k === 'station' ? 700 : 500}">${pc(r[k], r)}</td>`).join('')}
     </tr>`).join('');
-    const gradeRows = grades.map(g => `<tr style="border-bottom:1px solid #ddd">
+    const gradeRows = grades.map(g => `<tr style="border-bottom:1px solid #e2e8f0">
       <td style="padding:6px 10px;font-weight:600">${esc(g.name)}${g.estimated_litres > 0 ? ' *' : ''}</td>
       <td style="padding:6px 10px;text-align:right;font-family:monospace">${esc(fmtL(g.litres, 2))}</td>
       <td style="padding:6px 10px;text-align:right;font-family:monospace">${esc(money(g.revenue))}</td>
@@ -111,7 +111,7 @@ const ProfitReport = () => {
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:11.5px;color:#000}
       table{width:100%;border-collapse:collapse}
-      .h{font-size:10px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:#444;margin:14px 0 6px}
+      .h{font-size:10px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:#334155;margin:14px 0 6px}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -126,7 +126,7 @@ const ProfitReport = () => {
       </div>
       <table style="margin:10px 0 4px"><tr>
         ${[['Station sales', money(pl.sales)], ['Station gross profit', money(pl.gross, true)], ['Station net profit', money(pl.net, true)], ['Fuel margin per litre', ft.litres > 0 ? `${money(ft.margin_per_litre, true)} / L` : '—']]
-          .map(([l, v]) => `<td style="border:1px solid #000;padding:8px 10px"><div style="font-size:9px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:#444;margin-bottom:3px">${l}</div><div style="font-size:14px;font-weight:800;font-family:monospace">${esc(v)}</div></td>`).join('')}
+          .map(([l, v]) => `<td style="border:1px solid #000;padding:8px 10px"><div style="font-size:9px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:#334155;margin-bottom:3px">${l}</div><div style="font-size:14px;font-weight:800;font-family:monospace">${esc(v)}</div></td>`).join('')}
       </tr></table>
       <div class="h">${t('breakdown')} — ${esc(rangeLabel)}</div>
       <div style="border:1.5px solid #000"><table>
@@ -142,7 +142,7 @@ const ProfitReport = () => {
       <div class="h">${esc(monthLabel)} — ${t('monthToDate')}</div>
       <table><tr>
         ${[['Station sales', money(month.sales)], ['Station gross profit', money(month.gross, true)], ['Station net profit', money(month.net, true)], ['Fuel litres', fmtL(month.litres, 0)], ['Stock difference (shop)', money(month.stockDifference, true)]]
-          .map(([l, v]) => `<td style="border:1px solid #000;padding:8px 10px"><div style="font-size:9px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:#444;margin-bottom:3px">${l}</div><div style="font-size:12.5px;font-weight:800;font-family:monospace">${esc(v)}</div></td>`).join('')}
+          .map(([l, v]) => `<td style="border:1px solid #000;padding:8px 10px"><div style="font-size:9px;letter-spacing:.6px;text-transform:uppercase;font-weight:700;color:#334155;margin-bottom:3px">${l}</div><div style="font-size:12.5px;font-weight:800;font-family:monospace">${esc(v)}</div></td>`).join('')}
       </tr></table>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:24px;margin-bottom:12px">
         ${[['Prepared By', ''], ['Checked By', ''], ['Printed By', esc(printedBy)]].map(([label, name]) => `
@@ -153,7 +153,7 @@ const ProfitReport = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${esc(printedAt)}</span>
       </div>

@@ -8,6 +8,7 @@ import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 import { businessToday } from '../utils/businessDate';
+import { useDialog } from '../ux/ForecourtKit';
 
 // Map a document reference number to the page that hosts its detail view.
 // Returns { path, ref } for clickable references, or null for plain text
@@ -64,7 +65,7 @@ const typeStyle = (type) => {
   if (type === 'reverse')       return { background: '#dbeafe', color: '#1d4ed8' };
   if (type === 'sales_return')  return { background: '#fef9c3', color: '#854d0e' };
   if (type === 'reconciliation') return { background: '#ede9fe', color: '#7c3aed' };
-  return { background: '#f3f4f6', color: '#374151' };
+  return { background: '#f1f5f9', color: '#334155' };
 };
 
 const ACCENT = '#b91c1c';
@@ -72,6 +73,7 @@ const ACCENT_DARK = '#7f1d1d';
 const ACCENT_LIGHT = '#fef2f2';
 
 const SalesBinCard = () => {
+  const [dialog, ui] = useDialog();   // in-app boxes instead of browser pop-ups
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const [products, setProducts]           = useState([]);
@@ -199,9 +201,9 @@ const SalesBinCard = () => {
     const fmtN = (v) => (parseFloat(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     const openingRow = `<tr style="background:#eff6ff">
-      <td style="padding:7px 10px;color:#9ca3af">—</td>
+      <td style="padding:7px 10px;color:#94a3b8">—</td>
       <td style="padding:7px 10px">${formatDate(from)}</td>
-      <td style="padding:7px 10px;color:#9ca3af">—</td>
+      <td style="padding:7px 10px;color:#94a3b8">—</td>
       <td style="padding:7px 10px;color:#1d4ed8;font-weight:700">Opening Balance</td>
       <td style="padding:7px 10px;text-align:right;color:#166534;font-weight:700">${openBal > 0 ? fmtN(openBal) : ''}</td>
       <td style="padding:7px 10px;text-align:right">—</td>
@@ -216,11 +218,11 @@ const SalesBinCard = () => {
       const q = parseFloat(row.quantity);
       const inV  = q > 0 ? fmtN(toDisp(q)) : '';
       const outV = q < 0 ? fmtN(toDisp(Math.abs(q))) : '';
-      return `<tr style="background:${idx % 2 === 0 ? '#fff' : '#f9fafb'};border-bottom:1px solid #f3f4f6">
-        <td style="padding:6px 10px;color:#9ca3af">${idx + 1}</td>
+      return `<tr style="background:${idx % 2 === 0 ? '#fff' : '#f8fafc'};border-bottom:1px solid #f1f5f9">
+        <td style="padding:6px 10px;color:#94a3b8">${idx + 1}</td>
         <td style="padding:6px 10px">${formatDate(row.date)}</td>
         <td style="padding:6px 10px;font-weight:600">${fmtInvoiceNo(row.reference) || '—'}</td>
-        <td style="padding:6px 10px;color:#374151">${movementLabel(row.movement_type, row.quantity)}</td>
+        <td style="padding:6px 10px;color:#334155">${movementLabel(row.movement_type, row.quantity)}</td>
         <td style="padding:6px 10px;text-align:right;color:#166534;font-weight:700">${inV}</td>
         <td style="padding:6px 10px;text-align:right;color:#dc2626;font-weight:700">${outV}</td>
         <td style="padding:6px 10px;text-align:right;font-weight:800">${fmtN(toDisp(parseFloat(row.balance) || 0))}</td>
@@ -231,9 +233,9 @@ const SalesBinCard = () => {
       @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
       td{font-size:11px}
-      tfoot td{padding:9px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      tfoot td{padding:9px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -288,7 +290,7 @@ const SalesBinCard = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -406,7 +408,7 @@ const SalesBinCard = () => {
 </body></html>`;
 
     const w = window.open('', '_blank');
-    if (!w) { alert('Popup blocked — allow popups to print.'); return; }
+    if (!w) { ui.alert('Popup blocked — allow popups to print.'); return; }
     w.document.write(html);
     w.document.close();
     w.focus();
@@ -419,6 +421,7 @@ const SalesBinCard = () => {
     // did, and the Locked (sticky) top block scrolled away with it — the
     // Locked / Unlocked button appeared to do nothing, on phones especially.
     <div className="page-content k-lg" style={{ background: '#f8fafc' }}>
+      {dialog}
 
       {/* Sticky top block — Header + Filter + Summary. Lock toggle keeps it
           pinned at the top of the viewport so long scrolling tables stay
@@ -440,15 +443,15 @@ const SalesBinCard = () => {
               <FiShoppingCart size={22} color="#fff" />
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>Sales Bin Card</h1>
-              <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Sales counter stock movement history per product</p>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Sales Bin Card</h1>
+              <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Sales counter stock movement history per product</p>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* Pinning only makes sense where there is room for it. */}
             {!isPhone && <button onClick={() => setStickyLocked(v => !v)}
               title={stickyLocked ? 'Unlock top section (scrolls away)' : 'Lock top section (stays pinned on scroll)'}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 8, border: `1.5px solid ${stickyLocked ? ACCENT : '#d1d5db'}`, background: stickyLocked ? '#fef2f2' : '#fff', color: stickyLocked ? ACCENT : '#374151', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', borderRadius: 8, border: `1.5px solid ${stickyLocked ? ACCENT : '#cbd5e1'}`, background: stickyLocked ? '#fef2f2' : '#fff', color: stickyLocked ? ACCENT : '#334155', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
               {stickyLocked ? <FiLock size={14} /> : <FiUnlock size={14} />}
               {stickyLocked ? 'Locked' : 'Unlocked'}
             </button>}
@@ -471,29 +474,29 @@ const SalesBinCard = () => {
       </div>
 
       {/* Filter Bar */}
-      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '18px 20px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
+      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 20px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
         <div style={{ flex: '2 1 220px', minWidth: 180 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Product *</label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Product *</label>
           <input list="salesbincard-products" value={productSearch} onChange={e => handleProductInput(e.target.value)}
             placeholder="Type or select a product…"
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13, boxSizing: 'border-box' }} />
           <datalist id="salesbincard-products">
             {products.map(p => <option key={p.id} value={`${p.name}${p.unit ? ` (${p.unit})` : ''}`} />)}
           </datalist>
         </div>
         <div style={{ flex: '1 1 140px', minWidth: 130 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>From</label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>From</label>
           <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <div style={{ flex: '1 1 140px', minWidth: 130 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>To</label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>To</label>
           <input type="date" value={to} onChange={e => setTo(e.target.value)}
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <div>
           <button onClick={handleSearch} disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 8, border: 'none', background: loading ? '#9ca3af' : ACCENT, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 8, border: 'none', background: loading ? '#94a3b8' : ACCENT, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
             <FiSearch size={14} /> {loading ? 'Loading…' : 'Show'}
           </button>
         </div>
@@ -532,12 +535,12 @@ const SalesBinCard = () => {
 
       {/* Table */}
       {searched && (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>
               {selectedProduct ? selectedProduct.name : 'Product'} — Sales Bin Card
             </div>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>
+            <div style={{ fontSize: 12, color: '#64748b' }}>
               {formatDate(from)} – {formatDate(to)} &nbsp;·&nbsp; {rows.length} movement{rows.length !== 1 ? 's' : ''}
             </div>
           </div>
@@ -549,19 +552,19 @@ const SalesBinCard = () => {
                 <button key={key} onClick={() => setRowFilter(key)}
                   style={{
                     padding: '6px 14px', borderRadius: 20,
-                    border: `1px solid ${active ? activeBg : '#e5e7eb'}`,
+                    border: `1px solid ${active ? activeBg : '#e2e8f0'}`,
                     background: active ? activeBg : '#fff',
-                    color: active ? '#fff' : '#374151',
+                    color: active ? '#fff' : '#334155',
                     fontSize: 12, fontWeight: 700, cursor: 'pointer',
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                   }}>
                   {label}
-                  <span style={{ background: active ? '#fff' : '#f3f4f6', color: active ? activeBg : '#6b7280', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>{count}</span>
+                  <span style={{ background: active ? '#fff' : '#f1f5f9', color: active ? activeBg : '#64748b', borderRadius: 10, padding: '1px 7px', fontSize: 11 }}>{count}</span>
                 </button>
               );
             };
             return (
-              <div style={{ padding: '10px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', gap: 8, alignItems: 'center', background: '#fff', flexWrap: 'wrap' }}>
+              <div style={{ padding: '10px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: 8, alignItems: 'center', background: '#fff', flexWrap: 'wrap' }}>
                 {pill('all', 'All', rows.length, ACCENT)}
                 {pill('in',  'IN',  inCount,     '#166534')}
                 {pill('out', 'OUT', outCount,    '#b45309')}
@@ -570,7 +573,7 @@ const SalesBinCard = () => {
           })()}
 
           {rows.length === 0 && openBal === 0 ? (
-            <div style={{ padding: 48, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
+            <div style={{ padding: 48, textAlign: 'center', color: '#64748b', fontSize: 14 }}>
               No sales movements found for this product in the selected period.
             </div>
           ) : (
@@ -587,15 +590,15 @@ const SalesBinCard = () => {
                 </thead>
                 <tbody>
                   <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                    <td style={{ padding: '10px 14px', color: '#6b7280', fontFamily: 'monospace' }}>—</td>
-                    <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(from)}</td>
-                    <td style={{ padding: '10px 14px', color: '#6b7280' }}>—</td>
+                    <td style={{ padding: '10px 14px', color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>—</td>
+                    <td style={{ padding: '10px 14px', color: '#334155', whiteSpace: 'nowrap' }}>{formatDate(from)}</td>
+                    <td style={{ padding: '10px 14px', color: '#64748b' }}>—</td>
                     <td style={{ padding: '10px 14px' }}>
                       <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>Opening Balance</span>
                     </td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>{openBal > 0 ? money(openBal) : '—'}</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>—</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#1d4ed8', fontWeight: 800, fontFamily: 'monospace' }}>{(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>{openBal > 0 ? money(openBal) : '—'}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>—</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', color: '#1d4ed8', fontWeight: 800, fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                   </tr>
                   {visibleRows.map((row, idx) => {
                     const qty   = parseFloat(row.quantity);
@@ -603,10 +606,10 @@ const SalesBinCard = () => {
                     const isOut = qty < 0;
                     const ts    = typeStyle(row.movement_type);
                     return (
-                      <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa', borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '10px 14px', color: '#6b7280', fontFamily: 'monospace' }}>{idx + 1}</td>
-                        <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
-                        <td style={{ padding: '10px 14px', color: '#111827', fontWeight: 600 }}>
+                      <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '10px 14px', color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', color: '#334155', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
+                        <td style={{ padding: '10px 14px', color: '#0f172a', fontWeight: 600 }}>
                           {(() => {
                             // 2026-08-30 — a GRN reference opens the HQ
                             // read-only modal, not the branch GRN page. Red
@@ -635,14 +638,14 @@ const SalesBinCard = () => {
                           {row.source_grn_number && (() => {
                             const g = refTarget(row.source_grn_number);
                             return g
-                              ? <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 500, color: '#6b7280' }}>
+                              ? <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 500, color: '#64748b' }}>
                                   (from <button type="button"
                                     onClick={() => navigate(`${g.path}?ref=${encodeURIComponent(g.ref)}`)}
                                     style={{ background: 'none', border: 'none', padding: 0, color: '#1d4ed8', cursor: 'pointer', textDecoration: 'underline', textDecorationStyle: 'dotted', textUnderlineOffset: 3, fontSize: 'inherit', fontFamily: 'inherit', fontWeight: 500 }}>
                                     {row.source_grn_number}
                                   </button>)
                                 </span>
-                              : <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 500, color: '#6b7280' }}>(from {row.source_grn_number})</span>;
+                              : <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 500, color: '#64748b' }}>(from {row.source_grn_number})</span>;
                           })()}
                         </td>
                         <td style={{ padding: '10px 14px' }}>
@@ -650,9 +653,9 @@ const SalesBinCard = () => {
                             {movementLabel(row.movement_type, row.quantity)}
                           </span>
                         </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>{isIn ? money(toDisp(qty)) : '—'}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>{isOut ? money(toDisp(Math.abs(qty))) : '—'}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#111827', fontWeight: 800, fontFamily: 'monospace' }}>{(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>{isIn ? money(toDisp(qty)) : '—'}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>{isOut ? money(toDisp(Math.abs(qty))) : '—'}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#0f172a', fontWeight: 800, fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                       </tr>
                     );
                   })}
@@ -660,9 +663,9 @@ const SalesBinCard = () => {
                 <tfoot>
                   <tr style={{ borderTop: `2px solid ${ACCENT}`, background: ACCENT_LIGHT }}>
                     <td colSpan={4} style={{ padding: '11px 14px', fontWeight: 700, color: ACCENT, fontSize: 12, textTransform: 'uppercase' }}>Totals</td>
-                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#166534', fontFamily: 'monospace' }}>{(parseFloat(totalIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#dc2626', fontFamily: 'monospace' }}>{(parseFloat(totalOut)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#111827', fontFamily: 'monospace' }}>{(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#166534', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(totalIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#dc2626', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(totalOut)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                    <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -711,16 +714,16 @@ const SalesBinCard = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
                 {[
                   { label: 'Period From',  value: formatDate(from) },
                   { label: 'Period To',    value: formatDate(to) },
                   { label: 'Opening Bal.', value: `${(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unitLabel}` },
                   { label: 'Closing Bal.', value: `${(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unitLabel}` },
                 ].map((item, i) => (
-                  <div key={i} style={{ flex: 1, padding: '14px 16px', borderRight: i < 3 ? '1px solid #e5e7eb' : 'none' }}>
-                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: '#6b7280', marginBottom: 3 }}>{item.label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{item.value}</div>
+                  <div key={i} style={{ flex: 1, padding: '14px 16px', borderRight: i < 3 ? '1px solid #e2e8f0' : 'none' }}>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: '#64748b', marginBottom: 3 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{item.value}</div>
                   </div>
                 ))}
               </div>
@@ -736,9 +739,9 @@ const SalesBinCard = () => {
                   </thead>
                   <tbody>
                     <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
-                      <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(from)}</td>
-                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
+                      <td style={{ padding: '8px 10px', color: '#64748b' }}>—</td>
+                      <td style={{ padding: '8px 10px', color: '#334155' }}>{formatDate(from)}</td>
+                      <td style={{ padding: '8px 10px', color: '#64748b' }}>—</td>
                       <td style={{ padding: '8px 10px', color: '#1d4ed8', fontWeight: 700 }}>Opening Balance</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', color: '#166534', fontWeight: 700 }}>{openBal > 0 ? money(openBal) : ''}</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right' }}>—</td>
@@ -749,11 +752,11 @@ const SalesBinCard = () => {
                       const isIn  = qty > 0;
                       const isOut = qty < 0;
                       return (
-                        <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '8px 10px', color: '#6b7280' }}>{idx + 1}</td>
-                          <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(row.date)}</td>
+                        <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '8px 10px', color: '#64748b' }}>{idx + 1}</td>
+                          <td style={{ padding: '8px 10px', color: '#334155' }}>{formatDate(row.date)}</td>
                           <td style={{ padding: '8px 10px', fontWeight: 600 }}>{fmtInvoiceNo(row.reference) || '—'}</td>
-                          <td style={{ padding: '8px 10px', color: '#6b7280' }}>{movementLabel(row.movement_type, row.quantity)}</td>
+                          <td style={{ padding: '8px 10px', color: '#64748b' }}>{movementLabel(row.movement_type, row.quantity)}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#166534', fontWeight: 700 }}>{isIn ? money(toDisp(qty)) : ''}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#dc2626', fontWeight: 700 }}>{isOut ? money(toDisp(Math.abs(qty))) : ''}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800 }}>{(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -773,7 +776,7 @@ const SalesBinCard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, paddingTop: 12 }}>
                   {['Prepared By', 'Checked By', 'Approved By'].map((label, i) => (
                     <div key={i} style={{ textAlign: 'center', width: 160 }}>
-                      <div style={{ borderTop: '1px solid #374151', paddingTop: 8, fontSize: 11, color: '#6b7280' }}>{label}</div>
+                      <div style={{ borderTop: '1px solid #334155', paddingTop: 8, fontSize: 11, color: '#64748b' }}>{label}</div>
                     </div>
                   ))}
                 </div>
@@ -820,7 +823,7 @@ const SalesBinCard = () => {
                 <FiFileText size={22} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, letterSpacing: 1, opacity: 0.85, fontWeight: 700 }}>HQ GOODS RECEIVED NOTE</div>
-                  <div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'monospace' }}>
+                  <div style={{ fontSize: 19, fontWeight: 800, fontFamily: 'var(--k-font-mono)' }}>
                     {hqGrn?.grn?.grn_number || (hqGrnLoading ? 'Loading…' : '—')}
                   </div>
                 </div>
@@ -832,7 +835,7 @@ const SalesBinCard = () => {
               </div>
 
               <div style={{ padding: 20 }}>
-                {hqGrnLoading && <div style={{ color: '#6b7280', padding: '30px 0', textAlign: 'center' }}>Loading GRN…</div>}
+                {hqGrnLoading && <div style={{ color: '#64748b', padding: '30px 0', textAlign: 'center' }}>Loading GRN…</div>}
                 {hqGrnError && (
                   <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c',
                                 borderRadius: 8, padding: 14, fontSize: 13 }}>{hqGrnError}</div>
@@ -842,9 +845,9 @@ const SalesBinCard = () => {
                   const g = hqGrn.grn || {};
                   const po = hqGrn.purchase || null;
                   const cell = (label, value, mono) => (
-                    <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', background: '#fafafa' }}>
-                      <div style={{ fontSize: 10, letterSpacing: 0.6, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#111827', marginTop: 2,
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px', background: '#f8fafc' }}>
+                      <div style={{ fontSize: 10, letterSpacing: 0.6, color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>{label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a', marginTop: 2,
                                     fontFamily: mono ? 'monospace' : 'inherit' }}>{value || '—'}</div>
                     </div>
                   );
@@ -865,7 +868,7 @@ const SalesBinCard = () => {
                         {cell('Confirmed by (Branch)', when(g.confirmed_by_branch_name, g.confirmed_at_branch))}
                       </div>
 
-                      <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
                         <div style={{ background: '#fef2f2', color: ACCENT, padding: '9px 12px', fontSize: 11,
                                       fontWeight: 800, letterSpacing: 0.5 }}>
                           LINE ITEMS ({(hqGrn.items || []).length})
@@ -883,33 +886,33 @@ const SalesBinCard = () => {
                             </thead>
                             <tbody>
                               {(hqGrn.items || []).map((it, i) => (
-                                <tr key={it.id || i} style={{ borderTop: '1px solid #f3f4f6' }}>
-                                  <td style={{ padding: '8px 12px', fontWeight: 600, color: '#111827' }}>
+                                <tr key={it.id || i} style={{ borderTop: '1px solid #f1f5f9' }}>
+                                  <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>
                                     {it.product_name}
                                     {it.is_extra ? <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#92400e',
                                       background: '#fef3c7', padding: '1px 6px', borderRadius: 10 }}>EXTRA</span> : null}
                                   </td>
-                                  <td style={{ padding: '8px 12px', color: '#6b7280' }}>{it.unit || '—'}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.quantity)}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.unit_price)}</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{money(it.total_price)}</td>
+                                  <td style={{ padding: '8px 12px', color: '#64748b' }}>{it.unit || '—'}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{money(it.quantity)}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{money(it.unit_price)}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}>{money(it.total_price)}</td>
                                 </tr>
                               ))}
                             </tbody>
                             <tfoot>
-                              <tr style={{ borderTop: '2px solid #e5e7eb', background: '#fafafa' }}>
-                                <td colSpan={4} style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#374151' }}>ITEMS SUBTOTAL</td>
-                                <td style={{ padding: '9px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{money(g.items_subtotal)}</td>
+                              <tr style={{ borderTop: '2px solid #e2e8f0', background: '#f8fafc' }}>
+                                <td colSpan={4} style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#334155' }}>ITEMS SUBTOTAL</td>
+                                <td style={{ padding: '9px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}>{money(g.items_subtotal)}</td>
                               </tr>
                               {parseFloat(g.cn_total || 0) !== 0 && (
-                                <tr style={{ background: '#fafafa' }}>
-                                  <td colSpan={4} style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#374151' }}>CREDIT NOTES</td>
-                                  <td style={{ padding: '9px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: '#b91c1c' }}>−{money(g.cn_total)}</td>
+                                <tr style={{ background: '#f8fafc' }}>
+                                  <td colSpan={4} style={{ padding: '9px 12px', textAlign: 'right', fontWeight: 700, color: '#334155' }}>CREDIT NOTES</td>
+                                  <td style={{ padding: '9px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 700, color: '#b91c1c' }}>−{money(g.cn_total)}</td>
                                 </tr>
                               )}
-                              <tr style={{ background: '#111827', color: '#fff' }}>
+                              <tr style={{ background: '#0f172a', color: '#fff' }}>
                                 <td colSpan={4} style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800 }}>FINAL PAYABLE</td>
-                                <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800 }}>{money(g.final_payable)}</td>
+                                <td style={{ padding: '10px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 800 }}>{money(g.final_payable)}</td>
                               </tr>
                             </tfoot>
                           </table>
@@ -926,7 +929,7 @@ const SalesBinCard = () => {
                                         fontWeight: 800, letterSpacing: 0.5, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
                             <span>
                               {cn.reason || 'CREDIT NOTE'}
-                              {cn.credit_note_number && <span style={{ fontFamily: 'monospace', fontWeight: 700 }}> · {cn.credit_note_number}</span>}
+                              {cn.credit_note_number && <span style={{ fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}> · {cn.credit_note_number}</span>}
                             </span>
                             <span>− {money(cn.amount)}</span>
                           </div>
@@ -945,23 +948,23 @@ const SalesBinCard = () => {
                               <tbody>
                                 {(cn.items || []).map((it, i) => (
                                   <tr key={i} style={{ borderTop: '1px solid #fee2e2' }}>
-                                    <td style={{ padding: '7px 12px', fontWeight: 600, color: '#111827' }}>{it.product_name}</td>
-                                    <td style={{ padding: '7px 12px', color: '#6b7280' }}>{it.unit || '—'}</td>
-                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.quantity)}</td>
-                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.unit_value)}</td>
-                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace' }}>{money(it.discount)}</td>
-                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{money(it.total_price)}</td>
+                                    <td style={{ padding: '7px 12px', fontWeight: 600, color: '#0f172a' }}>{it.product_name}</td>
+                                    <td style={{ padding: '7px 12px', color: '#64748b' }}>{it.unit || '—'}</td>
+                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{money(it.quantity)}</td>
+                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{money(it.unit_value)}</td>
+                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{money(it.discount)}</td>
+                                    <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}>{money(it.total_price)}</td>
                                   </tr>
                                 ))}
                               </tbody>
                               <tfoot>
                                 <tr style={{ background: '#fff7f7', borderTop: '1px solid #fecaca' }}>
                                   <td colSpan={5} style={{ padding: '7px 12px', textAlign: 'right', color: '#991b1b' }}>VAT Amount</td>
-                                  <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700 }}>{money(cn.vat_amount)}</td>
+                                  <td style={{ padding: '7px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}>{money(cn.vat_amount)}</td>
                                 </tr>
                                 <tr style={{ background: '#fef2f2' }}>
                                   <td colSpan={5} style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 800, color: '#991b1b' }}>GRAND TOTAL</td>
-                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 800, color: '#991b1b' }}>− {money(cn.amount)}</td>
+                                  <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 800, color: '#991b1b' }}>− {money(cn.amount)}</td>
                                 </tr>
                               </tfoot>
                             </table>
@@ -970,8 +973,8 @@ const SalesBinCard = () => {
                       ))}
 
                       {g.notes && (
-                        <div style={{ marginTop: 12, fontSize: 12, color: '#6b7280' }}>
-                          <strong style={{ color: '#374151' }}>Notes:</strong> {g.notes}
+                        <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>
+                          <strong style={{ color: '#334155' }}>Notes:</strong> {g.notes}
                         </div>
                       )}
                     </>
@@ -979,9 +982,9 @@ const SalesBinCard = () => {
                 })()}
               </div>
 
-              <div style={{ borderTop: '1px solid #e5e7eb', padding: '12px 20px', display: 'flex',
-                            alignItems: 'center', justifyContent: 'space-between', background: '#fafafa' }}>
-                <span style={{ fontSize: 11, color: '#6b7280' }}>Read-only view · HQ archive</span>
+              <div style={{ borderTop: '1px solid #e2e8f0', padding: '12px 20px', display: 'flex',
+                            alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+                <span style={{ fontSize: 11, color: '#64748b' }}>Read-only view · HQ archive</span>
                 <button onClick={closeHqGrn}
                   style={{ background: ACCENT, color: '#fff', border: 'none', borderRadius: 8,
                            padding: '9px 20px', fontWeight: 700, cursor: 'pointer' }}>Close</button>

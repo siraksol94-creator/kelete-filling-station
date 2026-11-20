@@ -754,7 +754,7 @@ const CashReport = () => {
     const preparedBy = cashierName ? `${cashierName.first_name} ${cashierName.last_name}` : '—';
     const diff = parseFloat(form.difference)||0;
     const status = computedStatus;
-    const expenseRows = expenses.map((v,i)=>`<tr style="border-bottom:1px solid #ddd;background:${i%2===1?'#f9f9f9':'#fff'}">
+    const expenseRows = expenses.map((v,i)=>`<tr style="border-bottom:1px solid #e2e8f0;background:${i%2===1?'#f8fafc':'#fff'}">
       <td style="padding:7px 14px;font-family:monospace;font-size:11px">${v.voucher_number}</td>
       <td style="padding:7px 14px">${v.category}</td>
       <td style="padding:7px 14px;font-weight:500">${v.paid_to}</td>
@@ -769,7 +769,7 @@ const CashReport = () => {
           <span style="font-size:10px;color:#fff;font-weight:600">${expenses.length} voucher${expenses.length>1?'s':''}</span>
         </div>
         <table style="width:100%;border-collapse:collapse;font-size:11.5px">
-          <thead><tr style="background:#f0f0f0;border-bottom:1.5px solid #000">
+          <thead><tr style="background:#f1f5f9;border-bottom:1.5px solid #000">
             <th style="padding:7px 14px;text-align:left;font-weight:700;font-size:10.5px">Voucher No.</th>
             <th style="padding:7px 14px;text-align:left;font-weight:700;font-size:10.5px">Category</th>
             <th style="padding:7px 14px;text-align:left;font-weight:700;font-size:10.5px">Paid To</th>
@@ -777,7 +777,7 @@ const CashReport = () => {
             <th style="padding:7px 14px;text-align:right;font-weight:700;font-size:10.5px">Amount</th>
           </tr></thead>
           <tbody>${expenseRows}</tbody>
-          <tfoot><tr style="background:#f0f0f0;border-top:2px solid #000">
+          <tfoot><tr style="background:#f1f5f9;border-top:2px solid #000">
             <td colspan="4" style="padding:9px 14px;font-weight:700;text-align:right;font-size:12px">Total Expenses</td>
             <td style="padding:9px 14px;text-align:right;font-weight:800;font-size:13px;font-family:monospace">${curSym}${fmtV(expTotal)}</td>
           </tr></tfoot>
@@ -823,14 +823,14 @@ const CashReport = () => {
                  ...((methodShown('bank') || hasMoney(form.k_received)) ? [['Bank',form.k_received,false]] : []),
                  ['Credit Sales',form.pending,false],
                  ['Expenses (Cash Drawer)',form.expenses,true]
-              ].map(([label,val,italic],i,arr)=>`<tr style="border-bottom:${i<arr.length-1?'1px solid #ddd':'2px solid #000'}">
+              ].map(([label,val,italic],i,arr)=>`<tr style="border-bottom:${i<arr.length-1?'1px solid #e2e8f0':'2px solid #000'}">
                 <td style="padding:9px 14px;font-size:12px;font-style:${italic?'italic':'normal'}">${label}</td>
                 <td style="padding:9px 14px;text-align:right;font-weight:500;font-family:monospace;font-size:12px">${italic?'−':''}${curSym}${fmtV(val)}</td>
               </tr>`).join('')}
             </tbody>
             <tfoot>
-              <tr style="background:#f0f0f0;border-top:1px solid #000"><td style="padding:9px 14px;font-weight:700;font-size:12.5px">Total</td><td style="padding:9px 14px;text-align:right;font-weight:700;font-size:13px;font-family:monospace">${curSym}${fmtV(form.total)}</td></tr>
-              <tr style="background:#e8e8e8;border-top:1px solid #000"><td style="padding:10px 14px;font-weight:700;font-size:12px">Cash on Hand (After Change)</td><td style="padding:10px 14px;text-align:right;font-weight:800;font-size:14px;font-family:monospace">${curSym}${fmtV(form.total)}</td></tr>
+              <tr style="background:#f1f5f9;border-top:1px solid #000"><td style="padding:9px 14px;font-weight:700;font-size:12.5px">Total</td><td style="padding:9px 14px;text-align:right;font-weight:700;font-size:13px;font-family:monospace">${curSym}${fmtV(form.total)}</td></tr>
+              <tr style="background:#e2e8f0;border-top:1px solid #000"><td style="padding:10px 14px;font-weight:700;font-size:12px">Cash on Hand (After Change)</td><td style="padding:10px 14px;text-align:right;font-weight:800;font-size:14px;font-family:monospace">${curSym}${fmtV(form.total)}</td></tr>
             </tfoot>
           </table>
         </div>
@@ -841,10 +841,10 @@ const CashReport = () => {
             </div>
             <table>
               <tbody>
-                <tr style="border-bottom:1px solid #ddd"><td style="padding:9px 14px;font-size:12px">Expected Revenue</td><td style="padding:9px 14px;text-align:right;font-weight:600;font-family:monospace;font-size:12px">${curSym}${fmtV(form.expected)}</td></tr>
+                <tr style="border-bottom:1px solid #e2e8f0"><td style="padding:9px 14px;font-size:12px">Expected Revenue</td><td style="padding:9px 14px;text-align:right;font-weight:600;font-family:monospace;font-size:12px">${curSym}${fmtV(form.expected)}</td></tr>
                 <tr style="border-bottom:2px solid #000"><td style="padding:9px 14px;font-size:12px">Cash on Hand</td><td style="padding:9px 14px;text-align:right;font-weight:600;font-family:monospace;font-size:12px">${curSym}${fmtV(form.total)}</td></tr>
               </tbody>
-              <tfoot><tr style="background:#f0f0f0">
+              <tfoot><tr style="background:#f1f5f9">
                 <td style="padding:10px 14px;font-weight:700;font-size:13px">Difference</td>
                 <td style="padding:10px 14px;text-align:right;font-weight:800;font-size:14px;font-family:monospace">${diff>=0?'+':'−'}${curSym}${fmtV(Math.abs(diff))}</td>
               </tr></tfoot>
@@ -868,7 +868,7 @@ const CashReport = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;margin-top:16px;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;margin-top:16px;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -957,7 +957,7 @@ const CashReport = () => {
   };
 
   const inputStyle = (editable) => ({
-    background: editable ? '#fff' : '#f3f4f6',
+    background: editable ? '#fff' : '#f1f5f9',
     fontWeight: editable ? 400 : 600,
   });
 
@@ -1112,25 +1112,25 @@ const CashReport = () => {
       {/* v1.8.11 — old single-currency Top bar disabled. */}
       {false && (() => {
         const diff = daySummary.totalCash - daySummary.totalExpected;
-        const diffColor = diff === 0 ? '#6b7280' : diff > 0 ? '#15803d' : '#dc2626';
+        const diffColor = diff === 0 ? '#64748b' : diff > 0 ? '#15803d' : '#dc2626';
         const fmtS = (v) => Math.abs(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         return (
           <div className="no-print" style={{
             display: 'flex', gap: 0, marginBottom: 16,
-            border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden',
-            background: '#f9fafb', fontSize: 13,
+            border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden',
+            background: '#f8fafc', fontSize: 13,
           }}>
             {[
-              { label: t('totalExpectedAll'), value: `${curSym}${fmtS(daySummary.totalExpected)}`, color: '#374151', bg: '#f9fafb' },
-              { label: t('totalCashReceived'), value: `${curSym}${fmtS(daySummary.totalCash)}`, color: '#374151', bg: '#f9fafb' },
-              { label: t('difference'), value: `${diff >= 0 ? '+' : '−'}${curSym}${fmtS(diff)}`, color: diffColor, bg: diff === 0 ? '#f9fafb' : diff > 0 ? '#f0fdf4' : '#fef2f2' },
+              { label: t('totalExpectedAll'), value: `${curSym}${fmtS(daySummary.totalExpected)}`, color: '#334155', bg: '#f8fafc' },
+              { label: t('totalCashReceived'), value: `${curSym}${fmtS(daySummary.totalCash)}`, color: '#334155', bg: '#f8fafc' },
+              { label: t('difference'), value: `${diff >= 0 ? '+' : '−'}${curSym}${fmtS(diff)}`, color: diffColor, bg: diff === 0 ? '#f8fafc' : diff > 0 ? '#f0fdf4' : '#fef2f2' },
             ].map((item, i, arr) => (
               <div key={item.label} style={{
                 flex: 1, padding: '8px 16px',
-                borderRight: i < arr.length - 1 ? '1px solid #e5e7eb' : 'none',
+                borderRight: i < arr.length - 1 ? '1px solid #e2e8f0' : 'none',
                 background: item.bg,
               }}>
-                <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 500, marginBottom: 2 }}>{item.label}</div>
+                <div style={{ fontSize: 11, color: '#64748b', fontWeight: 500, marginBottom: 2 }}>{item.label}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.value}</div>
               </div>
             ))}
@@ -1306,7 +1306,7 @@ const CashReport = () => {
                       onChange={e => setForm({ ...form, [c.key]: e.target.value })}
                       disabled={!editMode} placeholder={blind ? 'Type what you counted' : (c.dec === 2 ? '0.00' : '0')} step={c.step}
                       className={`k-crp-count${blind ? ' is-blind' : ''}`}
-                      style={{ ...inputStyle(editMode), marginTop: 4, fontSize: 18, fontWeight: 700, color: '#111827' }} />
+                      style={{ ...inputStyle(editMode), marginTop: 4, fontSize: 18, fontWeight: 700, color: '#0f172a' }} />
                   </div>
 
                   {/* Breakdown → Total cash in (bookable to CR).
@@ -1322,16 +1322,16 @@ const CashReport = () => {
                     maxWidth: 260,
                   }}>
                     <span>+ Expenses paid</span>
-                    <span style={{ color: c.exp > 0 ? '#374151' : '#6b7280', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(c.exp)}</span>
+                    <span style={{ color: c.exp > 0 ? '#334155' : '#64748b', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(c.exp)}</span>
 
                     <span>± Drawer exchanges</span>
-                    <span style={{ color: exch !== 0 ? '#7c3aed' : '#6b7280', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>
+                    <span style={{ color: exch !== 0 ? '#7c3aed' : '#64748b', fontWeight: 600, whiteSpace: 'nowrap', textAlign: 'right' }}>
                       {exchAdj > 0 ? '+' : ''}{fmt(exchAdj)}
                     </span>
 
-                    <div style={{ gridColumn: '1 / span 2', borderTop: '1px solid #e5e7eb', marginTop: 2 }} />
+                    <div style={{ gridColumn: '1 / span 2', borderTop: '1px solid #e2e8f0', marginTop: 2 }} />
 
-                    <span style={{ fontWeight: 700, fontSize: 13, color: '#111827', paddingTop: 4 }}>= Total cash in</span>
+                    <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a', paddingTop: 4 }}>= Total cash in</span>
                     <span style={{ fontWeight: 800, fontSize: 17, color: c.color, whiteSpace: 'nowrap', textAlign: 'right', paddingTop: 4 }}>{fmt(totalCashIn)}</span>
 
                     <span style={{ color: '#475569', fontSize: 11, paddingTop: 2 }}>Expected sales (POS)</span>
@@ -1403,13 +1403,13 @@ const CashReport = () => {
                 {/* Body */}
                 <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
-                    <label style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>From POS orders</label>
+                    <label style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>From POS orders</label>
                     <div style={{
                       marginTop: 4, padding: '8px 12px',
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid #e2e8f0',
                       borderRadius: 6,
-                      background: '#f9fafb',
-                      fontSize: 18, fontWeight: 700, color: '#111827',
+                      background: '#f8fafc',
+                      fontSize: 18, fontWeight: 700, color: '#0f172a',
                     }}>
                       {fmt(counted)}
                     </div>
@@ -1424,13 +1424,13 @@ const CashReport = () => {
                       columnGap: 16,
                       rowGap: 6,
                       maxWidth: 260,
-                      borderTop: '1px solid #e5e7eb',
+                      borderTop: '1px solid #e2e8f0',
                       paddingTop: 8,
                     }}>
-                      <span style={{ fontWeight: 700, fontSize: 13, color: '#111827' }}>= Becomes receivable</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, color: '#0f172a' }}>= Becomes receivable</span>
                       <span style={{ fontWeight: 800, fontSize: 17, color: '#dc2626', whiteSpace: 'nowrap', textAlign: 'right' }}>{fmt(counted)}</span>
                     </div>
-                    <div style={{ marginTop: 10, fontSize: 11, color: '#6b7280', lineHeight: 1.45 }}>
+                    <div style={{ marginTop: 10, fontSize: 11, color: '#64748b', lineHeight: 1.45 }}>
                       Credit owed by customers from today's sales. Not cash — does not affect any drawer.
                     </div>
                   </div>
@@ -1504,7 +1504,7 @@ const CashReport = () => {
           const a = Math.abs(n);
           return `${s}${sym}${a.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}`;
         };
-        const colorFor = (n) => Math.abs(n) < 0.005 ? '#6b7280' : (n > 0 ? '#15803d' : '#dc2626');
+        const colorFor = (n) => Math.abs(n) < 0.005 ? '#64748b' : (n > 0 ? '#15803d' : '#dc2626');
         return (
           <div style={{ marginTop: 16, padding: '14px 18px', background: '#fffbeb', border: '1px solid #fcd34d', borderRadius: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: '#92400e', marginBottom: 8 }}>
@@ -1567,10 +1567,10 @@ const CashReport = () => {
                       const colour = isOver ? '#15803d' : '#dc2626';
                       return (
                         <tr key={`${r.direction}-${r.id}`} style={{ borderTop: '1px solid #fde68a' }}>
-                          <td style={{ padding: '6px 8px', color: '#374151' }}>{fmtInvoiceNo(r.order_number)}</td>
-                          <td style={{ padding: '6px 8px', color: '#374151' }}>{r.customer_name || '—'}</td>
-                          <td style={{ padding: '6px 8px', color: '#374151' }}>{r.cashier_name || '—'}</td>
-                          <td style={{ padding: '6px 8px', textAlign: 'right', color: '#6b7280' }}>${parseFloat(r.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                          <td style={{ padding: '6px 8px', color: '#334155' }}>{fmtInvoiceNo(r.order_number)}</td>
+                          <td style={{ padding: '6px 8px', color: '#334155' }}>{r.customer_name || '—'}</td>
+                          <td style={{ padding: '6px 8px', color: '#334155' }}>{r.cashier_name || '—'}</td>
+                          <td style={{ padding: '6px 8px', textAlign: 'right', color: '#64748b' }}>${parseFloat(r.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                           <td style={{ padding: '6px 8px', textAlign: 'right', fontWeight: 700, color: colour }}>{ccy} {sign}{sym}{amt.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })} {arrow}</td>
                         </tr>
                       );
@@ -1625,17 +1625,17 @@ const CashReport = () => {
       <div className="no-print" style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
-        border: '1px solid #e5e7eb', borderRadius: 10,
+        border: '1px solid #e2e8f0', borderRadius: 10,
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280', marginRight: 4 }}>Filter History:</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginRight: 4 }}>Filter History:</span>
 
         {/* Month */}
         <select
           value={filterMonth}
           onChange={e => setFilterMonth(Number(e.target.value))}
           style={{
-            padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db',
-            fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer',
+            padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1',
+            fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer',
           }}
         >
           <option value={0}>All Months</option>
@@ -1649,8 +1649,8 @@ const CashReport = () => {
           value={filterYear}
           onChange={e => setFilterYear(Number(e.target.value))}
           style={{
-            padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db',
-            fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer',
+            padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1',
+            fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer',
           }}
         >
           <option value={0}>All Years</option>
@@ -1664,7 +1664,7 @@ const CashReport = () => {
           <select
             value={filterUser}
             onChange={e => setFilterUser(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }}
           >
             <option value="all">All</option>
             {allSalesCashiers.map(u => (
@@ -1678,15 +1678,15 @@ const CashReport = () => {
           <button
             onClick={() => { setFilterMonth(0); setFilterYear(0); setFilterUser('all'); }}
             style={{
-              padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb',
-              fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer',
+              padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0',
+              fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer',
             }}
           >
             Clear
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>
           {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''}
           {(filterMonth !== 0 || filterYear !== 0) && (
             <> — {filterMonth !== 0 ? MONTHS[filterMonth - 1] : ''}{filterMonth !== 0 && filterYear !== 0 ? ' ' : ''}{filterYear !== 0 ? filterYear : ''}</>
@@ -1719,9 +1719,9 @@ const CashReport = () => {
           { label: 'Total Expected Cash', value: totalExpected,    color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
           { label: 'Total Cash on Hand',  value: totalAfterChange, color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
           { label: 'Total Difference',    value: totalDifference,
-            color: totalDifference < 0 ? '#dc2626' : totalDifference > 0 ? '#15803d' : '#6b7280',
-            bg:    totalDifference < 0 ? '#fef2f2' : totalDifference > 0 ? '#f0fdf4' : '#f9fafb',
-            border:totalDifference < 0 ? '#fecaca' : totalDifference > 0 ? '#bbf7d0' : '#e5e7eb',
+            color: totalDifference < 0 ? '#dc2626' : totalDifference > 0 ? '#15803d' : '#64748b',
+            bg:    totalDifference < 0 ? '#fef2f2' : totalDifference > 0 ? '#f0fdf4' : '#f8fafc',
+            border:totalDifference < 0 ? '#fecaca' : totalDifference > 0 ? '#bbf7d0' : '#e2e8f0',
             badge: diffStatus },
         ];
         return (
@@ -1800,7 +1800,7 @@ const CashReport = () => {
       })()}
 
       <div className="data-table-container no-print">
-        <h3 style={{ padding: '12px 16px', fontSize: 15, fontWeight: 600, borderBottom: '1px solid #e5e7eb' }}>Report History</h3>
+        <h3 style={{ padding: '12px 16px', fontSize: 15, fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>Report History</h3>
         <table className="data-table">
           <thead>
             {/* Report History columns.
@@ -1839,7 +1839,7 @@ const CashReport = () => {
           </thead>
           <tbody>
             {filteredReports.length === 0 ? (
-              <tr><td colSpan={isLiquorStyle ? 12 : 13} style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>No reports found for the selected period.</td></tr>
+              <tr><td colSpan={isLiquorStyle ? 12 : 13} style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>No reports found for the selected period.</td></tr>
             ) : filteredReports.map(r => {
               const usdR = parseFloat(r.usd_received || r.cash || 0);
               const fraR = parseFloat(r.fra_received || r.mobile_money || 0);
@@ -1875,7 +1875,7 @@ const CashReport = () => {
               return (
                 <tr key={r.id} style={{ cursor: 'pointer' }} onClick={() => { const cid = r.cashier_id ? String(r.cashier_id) : ''; setSelectedCashier(cid); loadDate(r.date.split('T')[0], cid); }}>
                   <td style={{ fontWeight: 500 }}>{formatDate(r.date)}</td>
-                  <td style={{ fontSize: 12, color: '#6b7280' }}>{r.cashier_name || '—'}</td>
+                  <td style={{ fontSize: 12, color: '#64748b' }}>{r.cashier_name || '—'}</td>
                   {isLiquorStyle ? (
                     <>
                       {(methodShown('bank') || filteredReports.some(x => hasMoney(x.k_received || x.bank))) && <td>{fmtK(kR)}</td>}
@@ -1887,7 +1887,7 @@ const CashReport = () => {
                       <td style={{ fontWeight: 500 }}>{fmtK(rowExpected)}</td>
                       <td style={{ fontWeight: 600, color: statusColor(rowStatus) }}>{sign(rowDiff)}{fmtK(rowDiff)}</td>
                       <td><span className={`badge ${statusBadge(rowStatus)}`}>{rowStatus}</span></td>
-                      <td style={{ color: '#6b7280', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || '—'}</td>
+                      <td style={{ color: '#64748b', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || '—'}</td>
                     </>
                   ) : (
                     <>
@@ -1901,7 +1901,7 @@ const CashReport = () => {
                       <td style={{ color: fraEx > 0 ? '#dc2626' : '' }}>{fraEx > 0 ? fraEx.toLocaleString(undefined, { maximumFractionDigits: 0 }) : dash}</td>
                       <td style={{ color: kEx > 0 ? '#dc2626' : '' }}>{kEx > 0 ? kEx.toLocaleString(undefined, { maximumFractionDigits: 0 }) : dash}</td>
                       <td>{curSym}{parseFloat(r.pending || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td style={{ color: '#6b7280', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || '—'}</td>
+                      <td style={{ color: '#64748b', fontSize: 12, maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.comment || '—'}</td>
                     </>
                   )}
                 </tr>
@@ -1974,7 +1974,7 @@ const CashReport = () => {
             </div>
             <div className="modal-body" style={{ padding: 0 }}>
               {filtered.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#6b7280', padding: '32px 0' }}>
+                <p style={{ textAlign: 'center', color: '#64748b', padding: '32px 0' }}>
                   No {expensesFilterCcy ? expensesFilterCcy + ' ' : ''}expenses recorded for this date.
                 </p>
               ) : (
@@ -1990,7 +1990,7 @@ const CashReport = () => {
                         <td style={{ fontWeight: 500 }}>{v.voucher_number}</td>
                         <td><span className="badge badge-gray">{v.category}</span></td>
                         <td>{v.paid_to}</td>
-                        <td style={{ color: '#6b7280' }}>{v.description || '—'}</td>
+                        <td style={{ color: '#64748b' }}>{v.description || '—'}</td>
                         <td style={{ textAlign: 'right', color: '#dc2626', fontWeight: 600 }}>
                           {expensesFilterCcy ? fmtA(valFor(v, expensesFilterCcy)) : `$${parseFloat(v.amount).toLocaleString()}`}
                         </td>
@@ -1998,7 +1998,7 @@ const CashReport = () => {
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr style={{ fontWeight: 700, borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
+                    <tr style={{ fontWeight: 700, borderTop: '2px solid #e2e8f0', background: '#f8fafc' }}>
                       <td colSpan={4} style={{ textAlign: 'right' }}>Total</td>
                       <td style={{ textAlign: 'right', color: '#dc2626' }}>
                         {expensesFilterCcy ? fmtA(totalFiltered) : `$${totalFiltered.toLocaleString()}`}
@@ -2082,7 +2082,7 @@ const CashReport = () => {
               boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
               fontFamily: '"Segoe UI", Arial, sans-serif',
               fontSize: 12,
-              color: '#1a1a2e',
+              color: '#0f172a',
               flexShrink: 0,
             }}
           >
@@ -2142,19 +2142,19 @@ const CashReport = () => {
                   <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse' }}>
                     <tbody>
                       {[
-                        { label: 'Initial Change (Float)', value: form.initial_change, color: '#374151' },
-                        { label: 'Cash', value: form.usd_received, color: '#374151' },
+                        { label: 'Initial Change (Float)', value: form.initial_change, color: '#334155' },
+                        { label: 'Cash', value: form.usd_received, color: '#334155' },
                         // 2026-09-11 — a hidden method shows only if money sits on it.
-                        ...((methodShown('momo') || hasMoney(form.fra_received)) ? [{ label: 'Mobile Money', value: form.fra_received, color: '#374151' }] : []),
-                        ...((methodShown('bank') || hasMoney(form.k_received)) ? [{ label: 'Bank', value: form.k_received, color: '#374151' }] : []),
-                        { label: 'Credit Sales (On Account)', value: form.pending, color: '#374151' },
+                        ...((methodShown('momo') || hasMoney(form.fra_received)) ? [{ label: 'Mobile Money', value: form.fra_received, color: '#334155' }] : []),
+                        ...((methodShown('bank') || hasMoney(form.k_received)) ? [{ label: 'Bank', value: form.k_received, color: '#334155' }] : []),
+                        { label: 'Credit Sales (On Account)', value: form.pending, color: '#334155' },
                         { label: 'Expenses (Cash Drawer)', value: form.expenses, color: '#dc2626', italic: true },
                       ].map((row, i, arr) => (
                         <tr key={i} style={{ borderBottom: i < arr.length - 1 ? '1px solid #f1f5f9' : '2px solid #e2e8f0' }}>
                           <td style={{ padding: '9px 18px', color: row.color, fontSize: 12, fontStyle: row.italic ? 'italic' : 'normal' }}>
                             {row.label}
                           </td>
-                          <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 500, color: row.color, fontFamily: 'monospace', fontSize: 12 }}>
+                          <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 500, color: row.color, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>
                             {row.color === '#dc2626' ? '−' : ''}${fmt(row.value)}
                           </td>
                         </tr>
@@ -2163,7 +2163,7 @@ const CashReport = () => {
                     <tfoot>
                       <tr style={{ background: '#f8fafc' }}>
                         <td style={{ padding: '10px 18px', fontWeight: 700, fontSize: 12.5 }}>Total</td>
-                        <td style={{ padding: '10px 18px', textAlign: 'right', fontWeight: 700, fontSize: 13, fontFamily: 'monospace' }}>
+                        <td style={{ padding: '10px 18px', textAlign: 'right', fontWeight: 700, fontSize: 13, fontFamily: 'var(--k-font-mono)' }}>
                           ${fmt(form.total)}
                         </td>
                       </tr>
@@ -2171,7 +2171,7 @@ const CashReport = () => {
                         <td style={{ padding: '11px 18px', fontWeight: 700, color: '#1d4ed8', fontSize: 12 }}>
                           Cash on Hand (After Change)
                         </td>
-                        <td style={{ padding: '11px 18px', textAlign: 'right', fontWeight: 800, color: '#1d4ed8', fontSize: 14, fontFamily: 'monospace' }}>
+                        <td style={{ padding: '11px 18px', textAlign: 'right', fontWeight: 800, color: '#1d4ed8', fontSize: 14, fontFamily: 'var(--k-font-mono)' }}>
                           ${fmt(form.total)}
                         </td>
                       </tr>
@@ -2199,14 +2199,14 @@ const CashReport = () => {
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <tbody>
                         <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '9px 18px', color: '#374151', fontSize: 12 }}>Expected Revenue</td>
-                          <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', fontSize: 12 }}>
+                          <td style={{ padding: '9px 18px', color: '#334155', fontSize: 12 }}>Expected Revenue</td>
+                          <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 600, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>
                             ${fmt(form.expected)}
                           </td>
                         </tr>
                         <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
-                          <td style={{ padding: '9px 18px', color: '#374151', fontSize: 12 }}>Cash on Hand</td>
-                          <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', fontSize: 12 }}>
+                          <td style={{ padding: '9px 18px', color: '#334155', fontSize: 12 }}>Cash on Hand</td>
+                          <td style={{ padding: '9px 18px', textAlign: 'right', fontWeight: 600, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>
                             ${fmt(form.total)}
                           </td>
                         </tr>
@@ -2220,7 +2220,7 @@ const CashReport = () => {
                             padding: '11px 18px', textAlign: 'right',
                             fontWeight: 800, fontSize: 14,
                             color: statusColor(computedStatus),
-                            fontFamily: 'monospace',
+                            fontFamily: 'var(--k-font-mono)',
                           }}>
                             {computedDiff >= 0 ? '+' : '−'}{curSym}{fmt(Math.abs(computedDiff))}
                           </td>
@@ -2285,19 +2285,19 @@ const CashReport = () => {
                     <thead>
                       <tr style={{ background: '#fafaf9' }}>
                         {['Voucher No.', 'Category', 'Paid To', 'Description'].map(h => (
-                          <th key={h} style={{ padding: '7px 18px', textAlign: 'left', fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontSize: 10.5, letterSpacing: 0.3 }}>{h}</th>
+                          <th key={h} style={{ padding: '7px 18px', textAlign: 'left', fontWeight: 600, color: '#64748b', borderBottom: '1px solid #e2e8f0', fontSize: 10.5, letterSpacing: 0.3 }}>{h}</th>
                         ))}
-                        <th style={{ padding: '7px 18px', textAlign: 'right', fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontSize: 10.5, letterSpacing: 0.3 }}>Amount</th>
+                        <th style={{ padding: '7px 18px', textAlign: 'right', fontWeight: 600, color: '#64748b', borderBottom: '1px solid #e2e8f0', fontSize: 10.5, letterSpacing: 0.3 }}>Amount</th>
                       </tr>
                     </thead>
                     <tbody>
                       {printExpenses.map((v, i) => (
-                        <tr key={v.id} style={{ borderBottom: '1px solid #f3f4f6', background: i % 2 === 1 ? '#fffbf7' : '#fff' }}>
-                          <td style={{ padding: '8px 18px', fontWeight: 600, color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>{v.voucher_number}</td>
-                          <td style={{ padding: '8px 18px', color: '#374151' }}>{v.category}</td>
+                        <tr key={v.id} style={{ borderBottom: '1px solid #f1f5f9', background: i % 2 === 1 ? '#fffbf7' : '#fff' }}>
+                          <td style={{ padding: '8px 18px', fontWeight: 600, color: '#334155', fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>{v.voucher_number}</td>
+                          <td style={{ padding: '8px 18px', color: '#334155' }}>{v.category}</td>
                           <td style={{ padding: '8px 18px', fontWeight: 500 }}>{v.paid_to}</td>
-                          <td style={{ padding: '8px 18px', color: '#6b7280' }}>{v.description || '—'}</td>
-                          <td style={{ padding: '8px 18px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>
+                          <td style={{ padding: '8px 18px', color: '#64748b' }}>{v.description || '—'}</td>
+                          <td style={{ padding: '8px 18px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>
                             ${fmt(v.amount)}
                           </td>
                         </tr>
@@ -2308,7 +2308,7 @@ const CashReport = () => {
                         <td colSpan={4} style={{ padding: '10px 18px', fontWeight: 700, textAlign: 'right', color: '#9a3412', fontSize: 12 }}>
                           Total Expenses
                         </td>
-                        <td style={{ padding: '10px 18px', textAlign: 'right', fontWeight: 800, color: '#dc2626', fontSize: 13, fontFamily: 'monospace' }}>
+                        <td style={{ padding: '10px 18px', textAlign: 'right', fontWeight: 800, color: '#dc2626', fontSize: 13, fontFamily: 'var(--k-font-mono)' }}>
                           ${fmt(printExpenses.reduce((s, v) => s + parseFloat(v.amount || 0), 0))}
                         </td>
                       </tr>
@@ -2326,7 +2326,7 @@ const CashReport = () => {
                   <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#64748b', fontWeight: 700, marginBottom: 6 }}>
                     Comments / Notes
                   </div>
-                  <div style={{ fontSize: 12.5, color: '#374151', lineHeight: 1.6 }}>{form.comment}</div>
+                  <div style={{ fontSize: 12.5, color: '#334155', lineHeight: 1.6 }}>{form.comment}</div>
                 </div>
               ) : (
                 <div style={{ marginBottom: 26 }}>
@@ -2393,7 +2393,7 @@ const CashReport = () => {
 
             {/* Body */}
             <div style={{ padding: '22px 24px' }}>
-              <p style={{ margin: '0 0 16px', fontSize: 13.5, color: '#374151', lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 16px', fontSize: 13.5, color: '#334155', lineHeight: 1.6 }}>
                 A Cash Receipt from <strong>Sales</strong> already exists for <strong>{formatDate(date)}</strong>:
               </p>
               {/* v1.8.86 — triple-currency breakdown so the user sees what's
@@ -2414,11 +2414,11 @@ const CashReport = () => {
                   const values = { usd, fra, k };
                   return (
                     <div style={{ fontSize: 12, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <div style={{ color: '#6b7280', fontSize: 11, fontWeight: 600, marginBottom: 2 }}>{label}</div>
+                      <div style={{ color: '#64748b', fontSize: 11, fontWeight: 600, marginBottom: 2 }}>{label}</div>
                       {rowLabels.map(r => (
                         <div key={r.slot} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span style={{ color: '#6b7280' }}>{r.label}</span>
-                          <span style={{ fontWeight: 700, color: valueColor, fontFamily: 'monospace' }}>{r.fmt(values[r.slot])}</span>
+                          <span style={{ color: '#64748b' }}>{r.label}</span>
+                          <span style={{ fontWeight: 700, color: valueColor, fontFamily: 'var(--k-font-mono)' }}>{r.fmt(values[r.slot])}</span>
                         </div>
                       ))}
                     </div>
@@ -2428,21 +2428,21 @@ const CashReport = () => {
                   <>
                     <div style={{ padding: '12px 16px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 9, marginBottom: 16 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, paddingBottom: 8, borderBottom: '1px dashed #bfdbfe' }}>
-                        <span style={{ fontWeight: 700, color: '#1d4ed8', fontFamily: 'monospace', fontSize: 13 }}>{existingCR.receipt_number}</span>
-                        <span style={{ fontSize: 10, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Current</span>
+                        <span style={{ fontWeight: 700, color: '#1d4ed8', fontFamily: 'var(--k-font-mono)', fontSize: 13 }}>{existingCR.receipt_number}</span>
+                        <span style={{ fontSize: 10, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Current</span>
                       </div>
                       <Row label="" valueColor="#1d4ed8"
                            usd={existingCR.usd_amount || existingCR.amount}
                            fra={existingCR.fra_amount}
                            k={existingCR.k_amount} />
                     </div>
-                    <p style={{ margin: '0 0 6px', fontSize: 13.5, color: '#374151', lineHeight: 1.6 }}>
+                    <p style={{ margin: '0 0 6px', fontSize: 13.5, color: '#334155', lineHeight: 1.6 }}>
                       Do you want to update it with the new amount?
                     </p>
                     <div style={{ padding: '12px 16px', background: '#f0fdf4', border: '1px solid #86efac', borderRadius: 8 }}>
                       <div style={{ marginBottom: 8, paddingBottom: 8, borderBottom: '1px dashed #86efac', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <span style={{ fontSize: 11, color: '#15803d', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>New</span>
-                        <span style={{ fontSize: 11, color: '#6b7280' }}><em>{pendingCRData.description}</em></span>
+                        <span style={{ fontSize: 11, color: '#64748b' }}><em>{pendingCRData.description}</em></span>
                       </div>
                       <Row label="" valueColor="#15803d"
                            usd={pendingCRData.usd_amount}
@@ -2455,18 +2455,18 @@ const CashReport = () => {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 onClick={handleAbortUpdateCR}
                 disabled={crSaving}
-                style={{ padding: '9px 20px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                style={{ padding: '9px 20px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
               >
                 No, Keep Existing
               </button>
               <button
                 onClick={handleConfirmUpdateCR}
                 disabled={crSaving}
-                style={{ padding: '9px 22px', borderRadius: 8, border: 'none', background: crSaving ? '#9ca3af' : '#1d4ed8', color: '#fff', cursor: crSaving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
+                style={{ padding: '9px 22px', borderRadius: 8, border: 'none', background: crSaving ? '#94a3b8' : '#1d4ed8', color: '#fff', cursor: crSaving ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
               >
                 {crSaving ? 'Updating…' : 'Yes, Update'}
               </button>

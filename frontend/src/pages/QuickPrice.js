@@ -237,7 +237,7 @@ const QuickPrice = () => {
         <div style={{ display: 'flex', gap: 8 }}>
           {dirtyIds.size > 0 && (
             <button onClick={handleDiscard} disabled={saving}
-              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <FiRefreshCw size={14} /> Discard
             </button>
           )}
@@ -252,9 +252,9 @@ const QuickPrice = () => {
         <div style={{ position: 'relative', flex: '0 0 360px' }}>
           <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product name or code…"
-            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
+            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
-        <div style={{ fontSize: 12, color: '#6b7280' }}>{filteredProducts.length} of {products.length} products</div>
+        <div style={{ fontSize: 12, color: '#64748b' }}>{filteredProducts.length} of {products.length} products</div>
       </div>
 
       {loading ? (
@@ -269,12 +269,12 @@ const QuickPrice = () => {
             return (
               <div key={p.id} style={{
                 background: '#fff',
-                border: `1.5px solid ${isDirty ? '#f59e0b' : '#e5e7eb'}`,
+                border: `1.5px solid ${isDirty ? '#f59e0b' : '#e2e8f0'}`,
                 borderRadius: 12,
                 padding: 14,
                 boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
               }}>
-                <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
+                <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e2e8f0' }}>
                   <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 14, lineHeight: 1.2 }}>{p.name}</div>
                   <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>
                     {p.code}
@@ -294,7 +294,7 @@ const QuickPrice = () => {
                     return (
                       <React.Fragment key={u.name}>
                         <div>
-                          <label style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                          <label style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                             <span>{u.name}{u.is_base && parseFloat(u.conv) === 1 ? '' : ` (1 ${u.name} = ${u.conv} ${p._units[p._units.length - 1].name})`}</span>
                             {isDefault && (
                               <span style={{ background: '#dbeafe', color: '#1d4ed8', padding: '1px 6px', borderRadius: 4, fontSize: 9, letterSpacing: 0.4 }}>DEFAULT</span>
@@ -316,7 +316,7 @@ const QuickPrice = () => {
                               style={{
                                 width: '100%', padding: '11px 12px 11px 28px',
                                 borderRadius: 8, fontSize: 16, fontWeight: 700,
-                                border: `2px solid ${isDirty ? '#f59e0b' : (isDefault ? '#93c5fd' : '#e5e7eb')}`,
+                                border: `2px solid ${isDirty ? '#f59e0b' : (isDefault ? '#93c5fd' : '#e2e8f0')}`,
                                 background: isDirty ? '#fffbeb' : (isDefault ? '#eff6ff' : '#fff'),
                                 color: '#0f172a', outline: 'none',
                                 boxSizing: 'border-box',

@@ -4,9 +4,9 @@ import assert from 'node:assert/strict';
 import { fmtK, fmtL, fmtSignedL, fmtDay, daysAgo, dipBand, spaceLeft } from '../../src/ux/forecourt';
 
 test('money and litres', () => {
-  assert.equal(fmtK(12345), 'K 12,345.00');
-  assert.equal(fmtK(-50.5), 'K -50.50');
-  assert.equal(fmtK('x'), 'K 0.00');
+  assert.equal(fmtK(12345), 'K12,345.00');
+  assert.equal(fmtK(-50.5), '−K50.50', 'minus before the K, never K-50');
+  assert.equal(fmtK('x'), 'K0.00');
   assert.equal(fmtL(30000), '30,000 L');
   assert.equal(fmtL(1234.567, 2), '1,234.57 L');
   assert.equal(fmtSignedL(-60), '−60.00 L');

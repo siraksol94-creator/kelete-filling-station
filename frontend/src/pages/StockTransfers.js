@@ -282,7 +282,7 @@ export default function StockTransfers() {
         )}
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {(() => {
           // v1.9.22 — pick which list to render based on main tab + sub-tab.
           // Pending uses the in-memory polled list (out/inc); history sub-
@@ -361,7 +361,7 @@ function TransferTable({ rows, loading, direction, onReceive, onCancel, onView }
         <tbody>
           {rows.map(t => (
             <tr key={t.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-              <td style={{ ...td, fontFamily: 'monospace', fontSize: 12 }}>{t.transfer_number}</td>
+              <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>{t.transfer_number}</td>
               <td style={td}>
                 <strong>{direction === 'out' ? t.to_name : t.from_name}</strong>{' '}
                 <span style={{ color: '#64748b', fontSize: 11 }}>({direction === 'out' ? t.to_slug : t.from_slug})</span>
@@ -526,7 +526,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 }}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(880px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>Send Transfer · from <span style={{ color: '#0ea5e9' }}>{sourceSlug}</span></h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>×</button>
         </div>
@@ -572,7 +572,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                     onChange={e => setFxRate(e.target.value)}
                     disabled={!costCurrency || costCurrency === 'USD'}
                     placeholder={costCurrency === 'USD' ? 'n/a — USD already' : costCurrency === 'K' ? 'e.g. 25' : costCurrency === 'FRA' ? 'e.g. 2250' : ''}
-                    style={{ ...inp, background: (!costCurrency || costCurrency === 'USD') ? '#f9fafb' : '#fff' }} />
+                    style={{ ...inp, background: (!costCurrency || costCurrency === 'USD') ? '#f8fafc' : '#fff' }} />
                 </div>
               </div>
               <div style={{ fontSize: 10.5, color: '#78350f', marginTop: 6, fontStyle: 'italic' }}>
@@ -587,7 +587,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
               <label style={lbl}>Products at {sourceSlug}</label>
               <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
                 style={{ ...inp, marginBottom: 8 }} />
-              <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+              <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: 8 }}>
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead style={{ background: '#f8fafc', position: 'sticky', top: 0 }}>
                     <tr><th style={thS}>Product</th><th style={{ ...thS, textAlign: 'right' }}>On Hand</th><th style={{ ...thS, textAlign: 'right', width: 100 }}>Send Qty</th></tr>
@@ -610,7 +610,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                             value={cart[p.sync_id]?.qty || ''}
                             onChange={e => setQty(p, e.target.value)}
                             title={`Enter quantity in ${dispUnit.name}`}
-                            style={{ width: 80, padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, textAlign: 'right' }} />
+                            style={{ width: 80, padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12, textAlign: 'right' }} />
                         </td>
                       </tr>
                       );
@@ -626,7 +626,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
             {/* Cart preview */}
             <div>
               <label style={lbl}>Cart ({cartItems.length} line{cartItems.length === 1 ? '' : 's'})</label>
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 10, background: '#f8fafc', minHeight: 250 }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 10, background: '#f8fafc', minHeight: 250 }}>
                 {cartItems.length === 0 ? (
                   <p style={{ color: '#64748b', fontSize: 12, fontStyle: 'italic', textAlign: 'center', margin: '40px 0' }}>Enter quantities in the table to build the transfer.</p>
                 ) : (
@@ -641,7 +641,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
                       const perUnit  = wacOf(x.product) * conv;
                       const lineTotal= x.qty * perUnit;
                       return (
-                        <div key={x.product.sync_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 4px', borderBottom: '1px dashed #e5e7eb' }}>
+                        <div key={x.product.sync_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 4px', borderBottom: '1px dashed #e2e8f0' }}>
                           <div>
                             <div style={{ fontWeight: 600, fontSize: 13 }}>{x.product.name}</div>
                             <div style={{ fontSize: 10, color: '#64748b' }}>{fmtQty(x.qty)} {unitName} × {fmtMoney(perUnit)}</div>
@@ -666,7 +666,7 @@ function CreateTransferModal({ sourceSlug, branches, onClose, onCreated, onError
           </div>
         </div>
 
-        <div style={{ padding: 14, borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <div style={{ padding: 14, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose}
             style={{ padding: '10px 18px', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
             Cancel
@@ -866,7 +866,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()}
         style={{ background: '#fff', borderRadius: 12, width: 'min(900px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ margin: 0 }}>{isReceive ? 'Receive Transfer' : 'Transfer Detail'} · {transfer.transfer_number}</h3>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
@@ -918,7 +918,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                             <input type="number" min="0" step="any" value={l.received_qty}
                               onChange={e => onReceivedChange(idx, e.target.value)}
-                              style={{ width: 80, padding: '4px 6px', border: `1px solid ${hasIssue ? '#fbbf24' : '#d1d5db'}`, borderRadius: 4, fontSize: 13, textAlign: 'right' }} />
+                              style={{ width: 80, padding: '4px 6px', border: `1px solid ${hasIssue ? '#fbbf24' : '#cbd5e1'}`, borderRadius: 4, fontSize: 13, textAlign: 'right' }} />
                             <span style={{ fontSize: 11, color: '#64748b' }}>{dispUnit}</span>
                           </div>
                         ) : (
@@ -928,7 +928,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                       <td style={td}>
                         {isReceive ? (
                           <select value={l.reason} onChange={e => setLine(idx, 'reason', e.target.value)}
-                            style={{ padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, background: '#fff' }}>
+                            style={{ padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12, background: '#fff' }}>
                             {REASON_OPTIONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
                           </select>
                         ) : (
@@ -939,7 +939,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                         {isReceive ? (
                           <input value={l.notes} onChange={e => setLine(idx, 'notes', e.target.value)}
                             placeholder={hasIssue ? 'e.g. crate broken on arrival' : ''}
-                            style={{ width: '100%', padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12 }} />
+                            style={{ width: '100%', padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12 }} />
                         ) : (
                           <span style={{ fontSize: 12, color: '#475569' }}>{l.notes || '—'}</span>
                         )}
@@ -954,7 +954,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
                 })}
               </tbody>
               <tfoot>
-                <tr style={{ borderTop: '2px solid #e5e7eb', fontWeight: 700 }}>
+                <tr style={{ borderTop: '2px solid #e2e8f0', fontWeight: 700 }}>
                   <td style={td}>Totals</td>
                   <td style={{ ...td, textAlign: 'right' }}>{fmtQ(totalSent)}</td>
                   <td style={{ ...td, textAlign: 'right' }}>{fmtQ(totalRecv)}</td>
@@ -977,9 +977,9 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
           )}
         </div>
 
-        <div style={{ padding: '14px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <div style={{ padding: '14px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose}
-            style={{ padding: '8px 18px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
+            style={{ padding: '8px 18px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
             {isReceive ? 'Cancel' : 'Close'}
           </button>
           {isReceive && (
@@ -995,7 +995,7 @@ function TransferDetailModal({ transfer, mode, onClose, onSubmit }) {
 }
 
 const lbl = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 };
-const inp = { width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '8px 12px', color: '#0f172a' };
 const thS = { padding: '6px 8px', fontSize: 10, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase' };

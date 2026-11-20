@@ -128,7 +128,7 @@ export default function HqGrnArchive() {
         : z.skipped ? `ZRA: nothing sent (${z.reason}).`
         : z.ok === false ? `ZRA: the Return FAILED (${z.error || 'see ZRA Smart Invoice log'}). Tell support.`
         : 'ZRA: Return sent.';
-      alert(
+      ui.alert(
         `GRN ${d.grn_number || row.grn_number} voided.\n` +
         (d.purchase_cancelled ? 'Purchase cancelled.\n' : '') +
         ((d.credit_notes_voided || []).length ? `Credit notes voided: ${d.credit_notes_voided.join(', ')}\n` : '') +
@@ -140,7 +140,7 @@ export default function HqGrnArchive() {
     } catch (err) {
       const d = err?.response?.data || {};
       const lines = (d.shortages || []).map(s => `• ${s.product_name}: needs ${s.needed}, only ${s.in_stock} in stock`);
-      alert((d.error || 'Void failed.') + (lines.length ? `\n\n${lines.join('\n')}` : ''));
+      ui.alert((d.error || 'Void failed.') + (lines.length ? `\n\n${lines.join('\n')}` : ''));
     }
     setVoiding(false);
   };
@@ -167,7 +167,7 @@ export default function HqGrnArchive() {
       <TracePanel trace={trace} />
 
       {/* Filters */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, padding: 14, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, padding: 14, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, marginBottom: 14 }}>
         <div>
           <label style={lbl}>Branch</label>
           <select value={branch} onChange={e => setBranch(e.target.value)} style={inp}>
@@ -212,7 +212,7 @@ export default function HqGrnArchive() {
         <div style={{ padding: 14, background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', borderRadius: 8, marginBottom: 12 }}>{error}</div>
       )}
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : visible.length === 0 ? (
@@ -248,9 +248,9 @@ export default function HqGrnArchive() {
                 {sort.sorted.map(g => (
                   <tr key={g.grn_sync_id} style={{ borderTop: '1px solid #f1f5f9' }}>
                     <td style={td}>{g.date}</td>
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>{g.invoice_number || '—'}</td>
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12 }}>{g.grn_number}</td>
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{g.po_number || '—'}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12, fontWeight: 700 }}>{g.invoice_number || '—'}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>{g.grn_number}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12, color: '#64748b' }}>{g.po_number || '—'}</td>
                     <td style={td}>{g.branch_name || g.branch_slug}</td>
                     <td style={td}>{g.supplier_name || '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{g.items_count}</td>
@@ -326,7 +326,7 @@ export default function HqGrnArchive() {
 
 function Card({ label, value, color, big }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
       <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: big ? 24 : 20, fontWeight: 800, color, marginTop: 4 }}>{value}</div>
     </div>
@@ -377,7 +377,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
     <div style={overlay} onClick={onClose}>
       <div onClick={e => e.stopPropagation()}
         style={{ background: '#fff', borderRadius: 12, width: 'min(960px, 95vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 16 }}>GRN {grn.grn_number || grn.grn_sync_id}</h3>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
@@ -385,7 +385,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
               {grn.date && <> · {grn.date}</>}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
         </div>
 
         <div style={{ padding: 16, overflowY: 'auto', flex: 1 }}>
@@ -405,7 +405,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
           ) : (
             <>
               {/* Provenance */}
-              <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                 <ProvenanceField label="From PO" value={grn.po_number || '—'} mono />
                 <ProvenanceField label="Supplier" value={grn.supplier_name || '—'} />
                 <ProvenanceField
@@ -444,9 +444,9 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
                 )}
               </div>
 
-              <h4 style={{ margin: '0 0 8px', fontSize: 13, color: '#374151' }}>Line Items</h4>
+              <h4 style={{ margin: '0 0 8px', fontSize: 13, color: '#334155' }}>Line Items</h4>
               {items.length === 0 ? (
-                <p style={{ color: '#6b7280', fontStyle: 'italic' }}>No line items.</p>
+                <p style={{ color: '#64748b', fontStyle: 'italic' }}>No line items.</p>
               ) : (
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead style={{ background: '#f8fafc' }}>
@@ -481,7 +481,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr style={{ borderTop: '2px solid #e5e7eb', fontWeight: 700 }}>
+                    <tr style={{ borderTop: '2px solid #e2e8f0', fontWeight: 700 }}>
                       <td colSpan={9} style={td}>Items subtotal</td>
                       <td style={{ ...td, textAlign: 'right' }}>{fmtMoney(itemsSubtotal || grn.items_subtotal)}</td>
                     </tr>
@@ -491,7 +491,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
 
               {cnRows && cnRows.length > 0 && (
                 <>
-                  <h4 style={{ margin: '18px 0 8px', fontSize: 13, color: '#374151' }}>Credit Notes</h4>
+                  <h4 style={{ margin: '18px 0 8px', fontSize: 13, color: '#334155' }}>Credit Notes</h4>
                   {/* 2026-08-30 — the archive listed only type, notes and a
                       total, so a K66,621.54 credit could not be traced to what
                       was actually returned. Each note now shows its lines and
@@ -560,10 +560,10 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
                 </>
               )}
 
-              <div style={{ marginTop: 18, padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+              <div style={{ marginTop: 18, padding: 14, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}><span>Items subtotal</span><strong>{fmtMoney(grn.items_subtotal || itemsSubtotal)}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: grn.cn_total > 0 ? '#dc2626' : '#6b7280' }}><span>Credit Notes</span><strong>{grn.cn_total > 0 ? '−' : ''}{fmtMoney(grn.cn_total)}</strong></div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', marginTop: 6, borderTop: '2px solid #e5e7eb', fontWeight: 700, fontSize: 15 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: grn.cn_total > 0 ? '#dc2626' : '#64748b' }}><span>Credit Notes</span><strong>{grn.cn_total > 0 ? '−' : ''}{fmtMoney(grn.cn_total)}</strong></div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0 0', marginTop: 6, borderTop: '2px solid #e2e8f0', fontWeight: 700, fontSize: 15 }}>
                   <span>Final Payable</span>
                   <span style={{ color: '#15803d' }}>{fmtMoney(grn.final_payable || (itemsSubtotal - (grn.cn_total || 0)))}</span>
                 </div>
@@ -572,7 +572,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
           )}
         </div>
 
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
           <div>
             {showVoid && (
               <button onClick={() => onVoid(row || grn)} disabled={voiding}
@@ -582,7 +582,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
             )}
           </div>
           <button onClick={onClose}
-            style={{ padding: '8px 22px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Close</button>
+            style={{ padding: '8px 22px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Close</button>
         </div>
       </div>
     </div>
@@ -591,7 +591,7 @@ function DetailsModal({ state, onClose, canVoid, voiding, onVoid }) {
 
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 };
 const lbl = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.4 };
-const inp = { width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.4 };
 const td  = { padding: '8px 12px', color: '#0f172a' };
 const fmtQty = (n) => parseFloat(n || 0).toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -658,7 +658,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
   const totCost   = rows.reduce((s, r) => s + (parseFloat(r.total_cost)     || 0), 0);
   const totDisc   = rows.reduce((s, r) => s + (parseFloat(r.total_discount) || 0), 0);
   const branchName = branches.find(b => b.slug === branch)?.name;
-  const num = { textAlign: 'right', fontFamily: 'monospace' };
+  const num = { textAlign: 'right', fontFamily: 'var(--k-font-mono)' };
 
   return (
     <div style={{ background: '#fff', border: '1px solid #bbf7d0', borderRadius: 10, marginBottom: 14, overflow: 'hidden' }}>
@@ -710,7 +710,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
 
           {rows.length > 0 && (
             <>
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 9, overflowX: 'auto' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 9, overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f0fdf4' }}>
@@ -768,7 +768,7 @@ function ProductReceivedPanel({ from, to, branch, branches }) {
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 8, fontWeight: 700, fontSize: 13, color: '#15803d' }}>
                 <FiPackage size={13} /> GRN Breakdown — {pickedRow?.product_name}
               </div>
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 9, overflowX: 'auto' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 9, overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ background: '#f0fdf4' }}>

@@ -145,14 +145,14 @@ export default function ReceiptConfirmationModal({
   return ReactDOM.createPortal((
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 960, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 17 }}>Confirm Received from {purchase.purchase_number}</h3>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
               Supplier: {purchase.supplier_name || '—'} · PO date: {purchase.date}
             </p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}><FiX size={20} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}><FiX size={20} /></button>
         </div>
 
         <div style={{ padding: '20px 24px' }}>
@@ -190,7 +190,7 @@ export default function ReceiptConfirmationModal({
                       return (
                         <tr key={l.sync_id} style={{ borderTop: '1px solid #f1f5f9' }}>
                           <td style={{ padding: '8px 10px' }}>
-                            {l.product_name} <span style={{ color: '#6b7280', fontSize: 11 }}>{l.unit}</span>
+                            {l.product_name} <span style={{ color: '#64748b', fontSize: 11 }}>{l.unit}</span>
                           </td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#475569' }}>{l.expected}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#475569' }}>{fmtMoney(l.base_price)}</td>
@@ -202,7 +202,7 @@ export default function ReceiptConfirmationModal({
                           <td style={{ padding: '8px 10px', textAlign: 'right' }}>
                             <input type="number" min="0" step="any" value={l.received}
                               onChange={e => updateLine(idx, 'received', e.target.value)}
-                              style={{ width: 100, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
+                              style={{ width: 100, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
                           </td>
                         </tr>
                       );
@@ -224,7 +224,7 @@ export default function ReceiptConfirmationModal({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
             <div>
               <h4 style={{ margin: 0, fontSize: 14 }}>Additional items received</h4>
-              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#6b7280' }}>
+              <p style={{ margin: '2px 0 0', fontSize: 11, color: '#64748b' }}>
                 For products the supplier delivered that weren't on this PO. Pick from existing HQ items only.
               </p>
             </div>
@@ -250,7 +250,7 @@ export default function ReceiptConfirmationModal({
                     <td style={{ padding: '6px 10px' }}>
                       <select value={r.product_sync_id}
                         onChange={e => updateExtra(idx, 'product_sync_id', e.target.value)}
-                        style={{ width: '100%', padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
+                        style={{ width: '100%', padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
                         <option value="">— pick an HQ item —</option>
                         {products.map(p => (
                           <option key={p.id} value={p.sync_id}>{p.name}</option>
@@ -260,17 +260,17 @@ export default function ReceiptConfirmationModal({
                     <td style={{ padding: '6px 10px', textAlign: 'right' }}>
                       <input type="number" min="0" step="any" value={r.quantity}
                         onChange={e => updateExtra(idx, 'quantity', e.target.value)}
-                        style={{ width: 90, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
+                        style={{ width: 90, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
                     </td>
                     <td style={{ padding: '6px 10px' }}>
                       <input value={r.unit}
                         onChange={e => updateExtra(idx, 'unit', e.target.value)}
-                        style={{ width: 70, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
+                        style={{ width: 70, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }} />
                     </td>
                     <td style={{ padding: '6px 10px', textAlign: 'right' }}>
                       <input type="number" min="0" step="0.01" value={r.cost_price}
                         onChange={e => updateExtra(idx, 'cost_price', e.target.value)}
-                        style={{ width: 90, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
+                        style={{ width: 90, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
                     </td>
                     <td style={{ padding: '6px 10px' }}>
                       <button onClick={() => removeExtra(idx)} style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer' }}>
@@ -290,9 +290,9 @@ export default function ReceiptConfirmationModal({
               their lines at the BASE price with the VAT on the header,
               which is why those 34 never added up on screen. */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start',
-                        border: '1px solid #e5e7eb', borderLeft: '4px solid #C8102E',
+                        border: '1px solid #e2e8f0', borderLeft: '4px solid #C8102E',
                         borderRadius: 10, padding: '14px 16px', marginBottom: 18,
-                        background: '#fafbfc' }}>
+                        background: '#f8fafc' }}>
             <FiInfo size={18} style={{ color: '#C8102E', flex: '0 0 auto', marginTop: 1 }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
@@ -309,15 +309,15 @@ export default function ReceiptConfirmationModal({
           {/* Supplier invoice */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 18 }}>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                 Supplier Invoice # <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <input value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)}
                 placeholder="e.g. INV-12345"
-                style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+                style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                 Invoice Attachment <span style={{ color: '#64748b', fontWeight: 500 }}>· optional</span>
               </label>
               <InvoiceAttachment value={invoiceAttachment} onChange={setInvoiceAttachment} />
@@ -333,11 +333,11 @@ export default function ReceiptConfirmationModal({
 
         <div style={{ padding: '0 24px 20px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onClose}
-            style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
+            style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
             Cancel
           </button>
           <button onClick={handleSubmit} disabled={saving}
-            style={{ padding: '10px 28px', background: saving ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+            style={{ padding: '10px 28px', background: saving ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
             {saving ? 'Submitting…' : 'Confirm Received'}
           </button>
         </div>

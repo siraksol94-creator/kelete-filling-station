@@ -27,7 +27,7 @@ const STATUS_META = {
   // arrives by WhatsApp when offloading is done, and is why nothing needs a
   // "returns complete" button.
   UNCONFIRMED: { label: 'Awaiting Confirmation', color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
-  PENDING:  { label: 'Awaiting Check',    color: '#6b7280', bg: '#f3f4f6', border: '#e5e7eb' },
+  PENDING:  { label: 'Awaiting Check',    color: '#64748b', bg: '#f1f5f9', border: '#e2e8f0' },
   // 2026-08-31 — the CHECKED stage now has two halves: Finance has to open
   // and confirm each GRN, then approve the confirmed ones as a batch. The tab
   // is named for the action that actually gates it, and the row badge below
@@ -465,7 +465,7 @@ const HqApApprovals = () => {
   };
 
   const AuditStrip = ({ r }) => (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11, color: '#6b7280', marginTop: 6 }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 11, color: '#64748b', marginTop: 6 }}>
       <span title="HQ Store Manager confirmed the GRN"><FiUser size={11} /> Confirmed: <strong>{r.confirmed_by_name || '—'}</strong> · {fmtDate(r.confirmed_at)}</span>
       {r.checked_at && <span title="Accounts clerk checked"><FiCheck size={11} /> Checked: <strong>{r.checked_by_name || '—'}</strong> · {fmtDate(r.checked_at)}</span>}
       {r.approved_at && <span title="Finance Head approved"><FiCheckCircle size={11} /> Approved: <strong>{r.approved_by_name || '—'}</strong> · {fmtDate(r.approved_at)}</span>}
@@ -516,12 +516,12 @@ const HqApApprovals = () => {
     <div style={{ padding: 24, background: '#f8fafc', height: '100vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12, flexShrink: 0 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>AP Approvals</h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>AP Approvals</h1>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
             HQ Store Manager confirms → Accounts checks → Finance approves → Cashier pays.
           </p>
         </div>
-        <button onClick={() => load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+        <button onClick={() => load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
           <FiRefreshCw size={14} /> Refresh
         </button>
       </div>
@@ -554,13 +554,13 @@ const HqApApprovals = () => {
             Clear
           </button>
         )}
-        <span style={{ alignSelf: 'center', fontSize: 12, color: '#6b7280' }}>
+        <span style={{ alignSelf: 'center', fontSize: 12, color: '#64748b' }}>
           {visibleRows.length} of {rows.length}
         </span>
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '2px solid #e5e7eb', flexShrink: 0 }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '2px solid #e2e8f0', flexShrink: 0 }}>
         {TABS.filter(t => (t !== 'PAID' || canSeePaid) && (t !== 'ALL' || canSeeAll)).map(t => {
           const meta = STATUS_META[t];
           const active = tab === t;
@@ -568,7 +568,7 @@ const HqApApprovals = () => {
             <button key={t} onClick={() => { setTab(t); clearBatch(); }}
                     style={{ padding: '10px 18px', border: 'none', background: 'none', cursor: 'pointer',
                              fontSize: 13, fontWeight: 700,
-                             color: active ? meta.color : '#6b7280',
+                             color: active ? meta.color : '#64748b',
                              borderBottom: active ? `3px solid ${meta.color}` : '3px solid transparent',
                              marginBottom: -2 }}>
               {meta.label}
@@ -580,12 +580,12 @@ const HqApApprovals = () => {
       {/* Rows — scrollable so the header + tabs stay pinned */}
       {/* Extra room at the foot of the list while the floating batch bar is up,
           so the last row's View button is never sitting underneath it. */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflowY: 'auto', flex: 1, minHeight: 0,
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflowY: 'auto', flex: 1, minHeight: 0,
                     paddingBottom: (batchSelectable && batchRows.length > 0) ? 84 : 0 }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Nothing to show for {STATUS_META[tab].label}.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Nothing to show for {STATUS_META[tab].label}.</div>
         ) : displayItems.map(item => {
           // ── Batch header: one line standing for several invoices ──────────
           if (item.type === 'batch') {
@@ -595,7 +595,7 @@ const HqApApprovals = () => {
             const first = members[0];
             const allPaid = members.every(m => rowOutstanding(m) <= 0.01);
             return (
-              <div key={`batch-${ref}`} style={{ borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
+              <div key={`batch-${ref}`} style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
                 <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                   <button onClick={() => setExpandedBatches(prev => {
                             const next = new Set(prev);
@@ -603,21 +603,21 @@ const HqApApprovals = () => {
                             return next;
                           })}
                           title={open ? 'Collapse' : 'Show the invoices in this batch'}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280',
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b',
                                    fontSize: 13, padding: 0, display: 'flex', alignItems: 'center' }}>
                     {open ? <FiChevronDown size={18} /> : <FiChevronRight size={18} />}
                   </button>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{first.supplier_name || 'Supplier'}</span>
-                    <span style={{ fontSize: 11, fontFamily: 'monospace', fontWeight: 700, color: '#4f46e5',
+                    <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{first.supplier_name || 'Supplier'}</span>
+                    <span style={{ fontSize: 11, fontFamily: 'var(--k-font-mono)', fontWeight: 700, color: '#4f46e5',
                                    background: '#eef2ff', border: '1px solid #c7d2fe', borderRadius: 10, padding: '2px 8px' }}>
                       {first.ap_batch_number || 'BATCH'}
                     </span>
-                    <span style={{ fontSize: 11, color: '#6b7280' }}>· {members.length} GRNs</span>
+                    <span style={{ fontSize: 11, color: '#64748b' }}>· {members.length} GRNs</span>
                   </div>
                   <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 13, color: '#374151' }}>
-                      Outstanding <strong style={{ fontSize: 15, color: '#111827' }}>{fmtMoney(total)}</strong>
+                    <span style={{ fontSize: 13, color: '#334155' }}>
+                      Outstanding <strong style={{ fontSize: 15, color: '#0f172a' }}>{fmtMoney(total)}</strong>
                     </span>
                     {canPay && !allPaid && (
                       <button onClick={() => {
@@ -632,10 +632,10 @@ const HqApApprovals = () => {
                     )}
                   </div>
                 </div>
-                <div style={{ padding: '0 18px 12px 48px', fontSize: 11, color: '#6b7280' }}>
+                <div style={{ padding: '0 18px 12px 48px', fontSize: 11, color: '#64748b' }}>
                   Approved: <strong>{first.approved_by_name || '—'}</strong> · {fmtDate(first.approved_at)}
                   {!open && (
-                    <> · <span style={{ color: '#6b7280' }}>
+                    <> · <span style={{ color: '#64748b' }}>
                       {members.map(m => m.invoice_number ? `${m.grn_number} (Inv ${m.invoice_number})` : m.grn_number).join(', ')}
                     </span></>
                   )}
@@ -678,7 +678,7 @@ const HqApApprovals = () => {
                       />
                     );
                   })()}
-                  <span style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{r.supplier_name || 'Supplier'}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{r.supplier_name || 'Supplier'}</span>
                   {/* 2026-08-31 — a standalone credit reads as a credit, not as
                       another invoice: its own label, and the amount negative. */}
                   {r.is_credit ? (
@@ -687,11 +687,11 @@ const HqApApprovals = () => {
                       CREDIT · {r.grn_number}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 11, color: '#6b7280' }}>· GRN {r.grn_number}</span>
+                    <span style={{ fontSize: 11, color: '#64748b' }}>· GRN {r.grn_number}</span>
                   )}
-                  {r.po_number && <span style={{ fontSize: 11, color: '#6b7280' }}>· PO {r.po_number}</span>}
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>· Branch {r.branch_name || r.branch_slug}</span>
-                  {r.invoice_number && <span style={{ fontSize: 11, color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: 3 }}><FiFileText size={11} /> Inv {r.invoice_number}</span>}
+                  {r.po_number && <span style={{ fontSize: 11, color: '#64748b' }}>· PO {r.po_number}</span>}
+                  <span style={{ fontSize: 11, color: '#64748b' }}>· Branch {r.branch_name || r.branch_slug}</span>
+                  {r.invoice_number && <span style={{ fontSize: 11, color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: 3 }}><FiFileText size={11} /> Inv {r.invoice_number}</span>}
                 </div>
                 <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
                   {/* Confirmed rows read differently, so an approver can see at
@@ -713,17 +713,17 @@ const HqApApprovals = () => {
                 </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-                <div style={{ fontSize: 13, color: '#374151' }}>
+                <div style={{ fontSize: 13, color: '#334155' }}>
                   {r.is_credit ? (
                     <span>Credit <strong style={{ color: '#166534', fontSize: 15 }}>− {fmtMoney(r.final_payable)}</strong>
-                      {r.reason && <span style={{ marginLeft: 10, color: '#6b7280' }}>· {r.reason}</span>}
+                      {r.reason && <span style={{ marginLeft: 10, color: '#64748b' }}>· {r.reason}</span>}
                     </span>
                   ) : (
                   <span>Subtotal <strong>{fmtMoney(r.items_subtotal)}</strong></span>
                   )}
                   {!r.is_credit && <>
                   {parseFloat(r.cn_total) > 0 && <span style={{ marginLeft: 12, color: '#dc2626' }}>− CN <strong>{fmtMoney(r.cn_total)}</strong></span>}
-                  <span style={{ marginLeft: 12 }}>= Payable <strong style={{ color: '#111827', fontSize: 15 }}>{fmtMoney(r.final_payable)}</strong></span>
+                  <span style={{ marginLeft: 12 }}>= Payable <strong style={{ color: '#0f172a', fontSize: 15 }}>{fmtMoney(r.final_payable)}</strong></span>
                   </>}
                   {/* 2026-08-30 — what has been paid and what is still owed.
                       The card showed the payable alone, so a part payment was
@@ -801,7 +801,7 @@ const HqApApprovals = () => {
                 {confirmModal.credits.map(c => (
                   <div key={c.sync_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '5px 0', borderTop: '1px solid #fed7aa' }}>
                     <div style={{ fontSize: 12, color: '#7c2d12', minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{c.credit_note_number}</div>
+                      <div style={{ fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>{c.credit_note_number}</div>
                       <div style={{ opacity: 0.85 }}>
                         {c.reason} · {fmtMoney(c.amount)}
                         {c.raised_by_name ? ` · ${c.raised_by_name}` : ''}
@@ -810,7 +810,7 @@ const HqApApprovals = () => {
                       {c.notes && <div style={{ opacity: 0.7, fontStyle: 'italic' }}>{c.notes}</div>}
                     </div>
                     <button onClick={() => confirmOneCredit(c)} disabled={confirmModal.busy}
-                      style={{ flexShrink: 0, padding: '6px 12px', background: confirmModal.busy ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: confirmModal.busy ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                      style={{ flexShrink: 0, padding: '6px 12px', background: confirmModal.busy ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: confirmModal.busy ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                       Confirm
                     </button>
                   </div>
@@ -841,7 +841,7 @@ const HqApApprovals = () => {
                 </span>
               </label>
             )}
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
               Supplier invoice <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <InvoiceAttachment value={confirmModal.attachment}
@@ -853,7 +853,7 @@ const HqApApprovals = () => {
             )}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
               <button onClick={() => setConfirmModal(null)} disabled={confirmModal.busy}
-                style={{ padding: '9px 16px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+                style={{ padding: '9px 16px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
                 Cancel
               </button>
               {(() => {
@@ -865,7 +865,7 @@ const HqApApprovals = () => {
                   <button onClick={submitConfirm} disabled={off}
                     title={blocked ? 'Settle the credit notes above first'
                          : needsAck ? 'Tick the box above to confirm there is no credit note' : ''}
-                    style={{ padding: '9px 16px', background: off ? '#9ca3af' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, cursor: off ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
+                    style={{ padding: '9px 16px', background: off ? '#94a3b8' : '#7c3aed', color: '#fff', border: 'none', borderRadius: 8, cursor: off ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
                     {confirmModal.busy ? 'Confirming…' : blocked ? 'Credits outstanding' : 'Confirm delivery'}
                   </button>
                 );
@@ -910,7 +910,7 @@ const HqApApprovals = () => {
         // the quirk had never surfaced. Anchored to the viewport instead, and
         // to the RIGHT so it clears the sidebar whatever width it is.
         <div style={{ position: 'fixed', bottom: 20, right: 28, zIndex: 1500,
-                      padding: '12px 16px', background: '#111827', color: '#fff',
+                      padding: '12px 16px', background: '#0f172a', color: '#fff',
                       borderRadius: 12, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
                       boxShadow: '0 10px 30px rgba(0,0,0,0.28)', maxWidth: 'calc(100vw - 300px)' }}>
           <span style={{ fontSize: 13 }}>
@@ -985,8 +985,8 @@ const HqApApprovals = () => {
                onClick={() => !batchModal.busy && setBatchModal(null)}>
             <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 520, padding: 22, maxHeight: '86vh', overflowY: 'auto' }}
                  onClick={e => e.stopPropagation()}>
-              <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: '#111827' }}>Pay Several GRNs</h3>
-              <p style={{ margin: '0 0 16px', fontSize: 13, color: '#6b7280' }}>
+              <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: '#0f172a' }}>Pay Several GRNs</h3>
+              <p style={{ margin: '0 0 16px', fontSize: 13, color: '#64748b' }}>
                 {batchSupplier} · {batchGrns.length} GRN{batchGrns.length === 1 ? '' : 's'}
                 {batchCredits.length > 0 && <> · {batchCredits.length} credit note{batchCredits.length === 1 ? '' : 's'} applied</>}
                 {' '}· to pay {fmtMoney(batchTotal)}
@@ -1001,10 +1001,10 @@ const HqApApprovals = () => {
                 </div>
               )}
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 }}>Amount</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 4 }}>Amount</label>
               <input type="number" autoFocus value={batchModal.amount}
                      onChange={e => setBatchModal(m => ({ ...m, amount: e.target.value }))}
-                     style={{ width: '100%', padding: '10px 12px', border: `1px solid ${isOver ? '#dc2626' : '#d1d5db'}`,
+                     style={{ width: '100%', padding: '10px 12px', border: `1px solid ${isOver ? '#dc2626' : '#cbd5e1'}`,
                               borderRadius: 8, fontSize: 15, boxSizing: 'border-box' }} />
 
               {isOver && (
@@ -1020,27 +1020,27 @@ const HqApApprovals = () => {
                 </div>
               )}
 
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', margin: '14px 0 4px' }}>Paid from</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', margin: '14px 0 4px' }}>Paid from</label>
               <select value={batchModal.paidFrom} onChange={e => setBatchModal(m => ({ ...m, paidFrom: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}>
                 <option>Bank</option><option>Cash</option><option>Mobile Money</option>
               </select>
 
               {preview.length > 0 && (
-                <div style={{ marginTop: 16, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
-                  <div style={{ background: '#f9fafb', padding: '8px 12px', fontSize: 11, fontWeight: 700, color: '#374151', letterSpacing: 0.4 }}>
+                <div style={{ marginTop: 16, border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ background: '#f8fafc', padding: '8px 12px', fontSize: 11, fontWeight: 700, color: '#334155', letterSpacing: 0.4 }}>
                     HOW IT WILL BE APPLIED — OLDEST FIRST
                   </div>
                   {preview.map(({ r, take, after }) => (
                     <div key={r.grn_sync_id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px',
-                                                      borderTop: '1px solid #f3f4f6', fontSize: 12 }}>
-                      <span style={{ fontFamily: 'monospace', color: '#111827' }}>{r.grn_number}</span>
+                                                      borderTop: '1px solid #f1f5f9', fontSize: 12 }}>
+                      <span style={{ fontFamily: 'var(--k-font-mono)', color: '#0f172a' }}>{r.grn_number}</span>
                       {/* The invoice number is what the supplier will quote back,
                           so it belongs beside the GRN when confirming a payment. */}
                       {r.invoice_number && (
-                        <span style={{ color: '#6b7280', fontSize: 11 }}>· Inv {r.invoice_number}</span>
+                        <span style={{ color: '#64748b', fontSize: 11 }}>· Inv {r.invoice_number}</span>
                       )}
-                      <span style={{ marginLeft: 'auto', color: '#374151' }}>{fmtMoney(take)}</span>
+                      <span style={{ marginLeft: 'auto', color: '#334155' }}>{fmtMoney(take)}</span>
                       <span style={{ padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 700,
                                      background: after <= 0.01 ? '#dcfce7' : '#fef3c7',
                                      color:      after <= 0.01 ? '#166534' : '#92400e' }}>
@@ -1049,7 +1049,7 @@ const HqApApprovals = () => {
                     </div>
                   ))}
                   {preview.length < batchGrns.length && (
-                    <div style={{ padding: '8px 12px', borderTop: '1px solid #f3f4f6', fontSize: 11, color: '#6b7280' }}>
+                    <div style={{ padding: '8px 12px', borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#64748b' }}>
                       {batchGrns.length - preview.length} selected GRN{batchGrns.length - preview.length === 1 ? '' : 's'} receive nothing — the amount runs out first.
                     </div>
                   )}
@@ -1058,7 +1058,7 @@ const HqApApprovals = () => {
 
               <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
                 <button onClick={() => setBatchModal(null)} disabled={batchModal.busy}
-                        style={{ flex: 1, padding: '10px', border: '1px solid #d1d5db', background: '#fff',
+                        style={{ flex: 1, padding: '10px', border: '1px solid #cbd5e1', background: '#fff',
                                  borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                   Cancel
                 </button>
@@ -1079,24 +1079,24 @@ const HqApApprovals = () => {
       {payModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setPayModal(null)}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 420, padding: 22 }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: '#111827' }}>Record Payment</h3>
-            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#6b7280' }}>{payModal.row.supplier_name} · GRN {payModal.row.grn_number}</p>
+            <h3 style={{ margin: '0 0 4px', fontSize: 17, fontWeight: 700, color: '#0f172a' }}>Record Payment</h3>
+            <p style={{ margin: '0 0 16px', fontSize: 13, color: '#64748b' }}>{payModal.row.supplier_name} · GRN {payModal.row.grn_number}</p>
             <div style={{ marginBottom: 14 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Amount ({symbol})</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Amount ({symbol})</label>
               <input type="number" value={payModal.amount} onChange={e => setPayModal(m => ({ ...m, amount: e.target.value }))}
-                     style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, boxSizing: 'border-box' }} />
+                     style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, boxSizing: 'border-box' }} />
             </div>
             <div style={{ marginBottom: 20 }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Paid From</label>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Paid From</label>
               <select value={payModal.paidFrom} onChange={e => setPayModal(m => ({ ...m, paidFrom: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 14, boxSizing: 'border-box' }}>
+                      style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 14, boxSizing: 'border-box' }}>
                 <option value="Bank">Bank</option>
                 <option value="Cash">Cash</option>
                 <option value="Mobile Money">Mobile Money</option>
               </select>
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setPayModal(null)} style={{ padding: '9px 16px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
+              <button onClick={() => setPayModal(null)} style={{ padding: '9px 16px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
               <button onClick={submitPay} style={{ padding: '9px 20px', border: 'none', borderRadius: 8, background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>Pay</button>
             </div>
           </div>
@@ -1127,9 +1127,9 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
       <div onClick={e => e.stopPropagation()}
            style={{ background: '#fff', borderRadius: 12, width: 'min(960px, 95vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <div>
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
               GRN {row.grn_number}
               <span style={{ marginLeft: 10, padding: '3px 10px', borderRadius: 14, fontSize: 11, fontWeight: 700,
                              background: STATUS_META[ap].bg, color: STATUS_META[ap].color,
@@ -1143,7 +1143,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               {(row.date || grn?.date) && <> · {row.date || grn?.date}</>}
             </div>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}><FiX size={20} /></button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}><FiX size={20} /></button>
         </div>
 
         {/* Body */}
@@ -1157,7 +1157,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
           ) : (
             <>
               {/* Provenance */}
-              <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, marginBottom: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
                 <ProvenanceField label="Supplier" value={row.supplier_name || grn?.supplier_name || '—'} />
                 <ProvenanceField label="From PO" value={row.po_number || '—'} mono />
                 <ProvenanceField
@@ -1197,8 +1197,8 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               </div>
 
               {/* Items */}
-              <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#111827' }}>Line Items ({items.length})</h4>
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
+              <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Line Items ({items.length})</h4>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', marginBottom: 16 }}>
                 <div style={{ overflowX: 'auto' }}>
                   <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead>
@@ -1223,7 +1223,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                     </thead>
                     <tbody>
                       {items.length === 0 ? (
-                        <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>No items on this GRN.</td></tr>
+                        <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#64748b' }}>No items on this GRN.</td></tr>
                       ) : items.map((it, idx) => {
                         const qty = parseFloat(it.quantity) || 0;
                         const price = parseFloat(it.unit_price) || 0;
@@ -1231,8 +1231,8 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                           <tr key={it.id || idx} style={{ borderTop: '1px solid #f1f5f9' }}>
                             <td style={tdStyle}>{idx + 1}</td>
                             <td style={{ ...tdStyle, textAlign: 'left' }}>
-                              <div style={{ fontWeight: 600, color: '#111827' }}>{it.product_name || it.name || '—'}</div>
-                              {it.product_code && <div style={{ fontSize: 10, color: '#6b7280' }}>{it.product_code}</div>}
+                              <div style={{ fontWeight: 600, color: '#0f172a' }}>{it.product_name || it.name || '—'}</div>
+                              {it.product_code && <div style={{ fontSize: 10, color: '#64748b' }}>{it.product_code}</div>}
                             </td>
                             <td style={tdStyle}>{it.unit || it.product_base_unit || '—'}</td>
                             <td style={{ ...tdStyle, textAlign: 'right' }}>{qty.toLocaleString()}</td>
@@ -1251,7 +1251,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                         against the invoice needs it where the lines end. */}
                     {items.length > 0 && (
                       <tfoot>
-                        <tr style={{ background: '#f8fafc', borderTop: '2px solid #e5e7eb' }}>
+                        <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0' }}>
                           <td colSpan={9} style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#0f172a' }}>Items Subtotal</td>
                           <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>
                             {fmtMoney(items.reduce((a, x) => a + (parseFloat(x.quantity) || 0) * (parseFloat(x.unit_price) || 0), 0))}
@@ -1266,7 +1266,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               {/* Credit Notes — full detail per note incl. items */}
               {credit_notes.length > 0 && (
                 <>
-                  <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#111827' }}>Credit Notes ({credit_notes.length})</h4>
+                  <h4 style={{ margin: '0 0 8px', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Credit Notes ({credit_notes.length})</h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
                     {credit_notes.map(cn => {
                       const cnItems = Array.isArray(cn.items) ? cn.items : [];
@@ -1370,7 +1370,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
               )}
 
               {/* Totals */}
-              <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
+              <div style={{ padding: 14, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 6, fontSize: 13 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span>Items Subtotal</span>
                   <strong>{fmtMoney(itemsSubtotal || row.items_subtotal)}</strong>
@@ -1381,9 +1381,9 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                     <strong>{fmtMoney(cnTotal || row.cn_total)}</strong>
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e5e7eb', paddingTop: 6, fontSize: 15 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: 6, fontSize: 15 }}>
                   <span style={{ fontWeight: 700 }}>Payable</span>
-                  <strong style={{ color: '#111827' }}>{fmtMoney(payable || row.final_payable)}</strong>
+                  <strong style={{ color: '#0f172a' }}>{fmtMoney(payable || row.final_payable)}</strong>
                 </div>
                 {/* 2026-08-30 — settlement, not just what was owed. The detail
                     view ended at Payable, so opening a GRN told you nothing
@@ -1397,7 +1397,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                       <strong style={{ color: '#166534' }}>{fmtMoney(row.paid_amount)}</strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15,
-                                  borderTop: '1px solid #e5e7eb', paddingTop: 6, marginTop: 4 }}>
+                                  borderTop: '1px solid #e2e8f0', paddingTop: 6, marginTop: 4 }}>
                       <span style={{ fontWeight: 700 }}>Balance</span>
                       <strong style={{ color: parseFloat(row.remaining_amount || 0) > 0 ? '#b45309' : '#166534' }}>
                         {fmtMoney(row.remaining_amount || 0)}
@@ -1411,18 +1411,18 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
         </div>
 
         {/* Footer with stage action */}
-        <div style={{ padding: '12px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, background: '#fff', borderRadius: '0 0 12px 12px' }}>
+        <div style={{ padding: '12px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, background: '#fff', borderRadius: '0 0 12px 12px' }}>
           <button onClick={onClose}
-                  style={{ padding: '9px 16px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                  style={{ padding: '9px 16px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             Close
           </button>
           {/* A credit note is checked BY choosing its GRN, so the picker sits
               next to the button rather than in a separate step. */}
           {ap === 'PENDING' && onCheck && attachOptions && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 'auto' }}>
-              <span style={{ fontSize: 12, color: '#374151', fontWeight: 600 }}>Apply to</span>
+              <span style={{ fontSize: 12, color: '#334155', fontWeight: 600 }}>Apply to</span>
               <select value={attachTo} onChange={e => setAttachTo(e.target.value)}
-                      style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, minWidth: 260 }}>
+                      style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, minWidth: 260 }}>
                 <option value="">— choose a GRN —</option>
                 {attachOptions.map(g => (
                   <option key={g.grn_sync_id} value={g.grn_sync_id}>
@@ -1511,7 +1511,7 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
                       style={{ width: '100%', padding: '9px 11px', borderRadius: 8, border: '1.5px solid #fca5a5', fontSize: 13, boxSizing: 'border-box', resize: 'vertical' }} />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
               <button onClick={() => { setRejecting(false); setReason(''); }}
-                      style={{ padding: '8px 14px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                      style={{ padding: '8px 14px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                 Cancel
               </button>
               <button disabled={reason.trim().length < 3}
@@ -1530,13 +1530,13 @@ function DetailModal({ state, symbol, fmtMoney, fmtDate, onClose, onCheck, onApp
 }
 
 const thStyle = { padding: '8px 10px', fontSize: 11, fontWeight: 700, textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.4 };
-const tdStyle = { padding: '8px 10px', fontSize: 12, textAlign: 'center', color: '#374151' };
+const tdStyle = { padding: '8px 10px', fontSize: 12, textAlign: 'center', color: '#334155' };
 
 function ProvenanceField({ label, value, extra, mono }) {
   return (
     <div>
       <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#64748b', fontWeight: 600, letterSpacing: 0.4, marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: '#111827', fontFamily: mono ? 'ui-monospace, monospace' : undefined }}>{value}</div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', fontFamily: mono ? 'ui-monospace, monospace' : undefined }}>{value}</div>
       {extra}
     </div>
   );

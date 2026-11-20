@@ -402,7 +402,7 @@ const Users = () => {
       {/* Filters */}
       <div className="filter-bar">
         <div className="search-input-container">
-          <FiSearch style={{ color: '#6b7280' }} />
+          <FiSearch style={{ color: '#64748b' }} />
           <input type="text" placeholder="Search by name or email..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)} className="filter-dropdown">
@@ -425,9 +425,9 @@ const Users = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>Loading...</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#64748b' }}>Loading...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#6b7280' }}>No users found.</td></tr>
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: 32, color: '#64748b' }}>No users found.</td></tr>
             ) : filtered.map((user, idx) => (
               <tr key={user.id}>
                 <td>
@@ -437,13 +437,13 @@ const Users = () => {
                     </div>
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{user.first_name} {user.last_name}</div>
-                      {user.phone && <div style={{ fontSize: 12, color: '#6b7280' }}>{user.phone}</div>}
+                      {user.phone && <div style={{ fontSize: 12, color: '#64748b' }}>{user.phone}</div>}
                     </div>
                   </div>
                 </td>
-                <td style={{ fontSize: 13, color: '#4b5563' }}>{user.email}</td>
+                <td style={{ fontSize: 13, color: '#475569' }}>{user.email}</td>
                 <td>
-                  <span className="badge" style={{ background: `${roleColors[user.role] || '#6b7280'}18`, color: roleColors[user.role] || '#6b7280', fontWeight: 600 }}>
+                  <span className="badge" style={{ background: `${roleColors[user.role] || '#64748b'}18`, color: roleColors[user.role] || '#64748b', fontWeight: 600 }}>
                     {user.role}
                   </span>
                   {Number(user.is_route_seller) === 1 && (
@@ -497,7 +497,7 @@ const Users = () => {
                 </div>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{modal === 'add' ? 'Add New User' : 'Edit User'}</h3>
               </div>
-              <button onClick={closeModal} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#6b7280' }}>
+              <button onClick={closeModal} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
                 <FiX size={18} />
               </button>
             </div>
@@ -547,7 +547,7 @@ const Users = () => {
                 <div style={inputWrap}>
                   <FiLock size={14} style={iconStyle} />
                   <input style={{ ...inputStyle, paddingRight: 36 }} type={showPassword ? 'text' : 'password'} autoComplete="new-password" placeholder={modal === 'add' ? 'Set password' : 'Leave blank to keep current'} value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
-                  <button type="button" onClick={() => setShowPassword(s => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 0 }}>
+                  <button type="button" onClick={() => setShowPassword(s => !s)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 0 }}>
                     {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
                   </button>
                 </div>
@@ -571,13 +571,13 @@ const Users = () => {
 
               {/* 2026-09-15 — every sale under this login counts as route selling
                   in HQ → Route Selling. Role and permissions are not affected. */}
-              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 14, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', background: form.isRouteSeller ? '#fffbeb' : '#fff' }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 14, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', background: form.isRouteSeller ? '#fffbeb' : '#fff' }}>
                 <input type="checkbox" checked={!!form.isRouteSeller}
                   onChange={e => setForm(f => ({ ...f, isRouteSeller: e.target.checked }))}
                   style={{ marginTop: 3, width: 16, height: 16 }} />
                 <span>
-                  <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#111827' }}>Route seller</span>
-                  <span style={{ display: 'block', fontSize: 12, color: '#6b7280' }}>Their sales show as route selling in HQ Route Selling.</span>
+                  <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: '#0f172a' }}>Route seller</span>
+                  <span style={{ display: 'block', fontSize: 12, color: '#64748b' }}>Their sales show as route selling in HQ Route Selling.</span>
                 </span>
               </label>
 
@@ -590,7 +590,7 @@ const Users = () => {
             </div>
 
             <div style={{ display: 'flex', gap: 10, padding: '16px 24px', borderTop: '1px solid #f1f5f9', justifyContent: 'flex-end' }}>
-              <button onClick={closeModal} style={{ padding: '10px 20px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#374151', fontWeight: 500 }}>
+              <button onClick={closeModal} style={{ padding: '10px 20px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#334155', fontWeight: 500 }}>
                 Cancel
               </button>
               <button
@@ -624,14 +624,14 @@ const Users = () => {
                       {isHqHost() ? 'HQ context' : 'Branch context'}
                     </span>
                   </h3>
-                  <div style={{ fontSize: 13, color: '#6b7280' }}>
+                  <div style={{ fontSize: 13, color: '#64748b' }}>
                     {permUser.first_name} {permUser.last_name}
-                    <span style={{ marginLeft: 6, color: '#6b7280' }}>·</span>
+                    <span style={{ marginLeft: 6, color: '#64748b' }}>·</span>
                     <span style={{ marginLeft: 6, fontSize: 12 }}>Only pages available on this host are shown.</span>
                   </div>
                 </div>
               </div>
-              <button onClick={() => setPermModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#6b7280' }}>
+              <button onClick={() => setPermModal(false)} style={{ background: '#f1f5f9', border: 'none', borderRadius: 8, width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}>
                 <FiX size={18} />
               </button>
             </div>
@@ -640,10 +640,10 @@ const Users = () => {
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
               {/* Access Level Radio */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 10 }}>Access Level</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 10 }}>Access Level</div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   {['All', 'Custom'].map(level => (
-                    <label key={level} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '10px 18px', borderRadius: 10, border: `2px solid ${accessLevel === level ? (level === 'All' ? '#16a34a' : '#2563eb') : '#e5e7eb'}`, background: accessLevel === level ? (level === 'All' ? '#f0fdf4' : '#eff6ff') : '#fafafa', fontWeight: accessLevel === level ? 700 : 400, fontSize: 14, color: accessLevel === level ? (level === 'All' ? '#15803d' : '#2563eb') : '#6b7280' }}>
+                    <label key={level} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '10px 18px', borderRadius: 10, border: `2px solid ${accessLevel === level ? (level === 'All' ? '#16a34a' : '#2563eb') : '#e2e8f0'}`, background: accessLevel === level ? (level === 'All' ? '#f0fdf4' : '#eff6ff') : '#f8fafc', fontWeight: accessLevel === level ? 700 : 400, fontSize: 14, color: accessLevel === level ? (level === 'All' ? '#15803d' : '#2563eb') : '#64748b' }}>
                       <input
                         type="radio"
                         name="accessLevel"
@@ -670,15 +670,15 @@ const Users = () => {
                 <div>
                   {/* Column headers */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 60px 70px', gap: 4, padding: '0 8px 8px', borderBottom: '2px solid #f1f5f9', marginBottom: 4 }}>
-                    <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Page</div>
+                    <div style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>Page</div>
                     {ACTIONS.map(a => (
-                      <div key={a} style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>{a}</div>
+                      <div key={a} style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' }}>{a}</div>
                     ))}
                   </div>
 
                   {filterGroupsForContext(PAGE_GROUPS, isHqHost()).map(({ group, pages }) => (
                     <div key={group} style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 2, padding: '10px 8px 6px' }}>{group}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 2, padding: '10px 8px 6px' }}>{group}</div>
                       {pages.map(({ key, label }) => {
                         const allChecked = ACTIONS.every(a => permList.includes(`${key}:${a}`));
                         const someChecked = ACTIONS.some(a => permList.includes(`${key}:${a}`));
@@ -692,7 +692,7 @@ const Users = () => {
                                 onChange={() => togglePageAll(key)}
                                 style={{ accentColor: '#2563eb', width: 15, height: 15, cursor: 'pointer' }}
                               />
-                              <span style={{ fontSize: 13, color: '#374151', fontWeight: someChecked ? 600 : 400 }}>{label}</span>
+                              <span style={{ fontSize: 13, color: '#334155', fontWeight: someChecked ? 600 : 400 }}>{label}</span>
                             </div>
                             {ACTIONS.map(action => (
                               <div key={action} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -715,7 +715,7 @@ const Users = () => {
 
             {/* Footer */}
             <div style={{ display: 'flex', gap: 10, padding: '16px 24px', borderTop: '1px solid #f1f5f9', justifyContent: 'flex-end' }}>
-              <button onClick={() => setPermModal(false)} style={{ padding: '10px 20px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#374151', fontWeight: 500 }}>
+              <button onClick={() => setPermModal(false)} style={{ padding: '10px 20px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14, color: '#334155', fontWeight: 500 }}>
                 Cancel
               </button>
               <button
@@ -744,10 +744,10 @@ const Users = () => {
   );
 };
 
-const labelStyle = { fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6, display: 'block' };
+const labelStyle = { fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6, display: 'block' };
 const inputWrap = { position: 'relative', display: 'flex', alignItems: 'center' };
-const iconStyle = { position: 'absolute', left: 10, color: '#6b7280', pointerEvents: 'none' };
-const inputStyle = { width: '100%', padding: '9px 10px 9px 32px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#fafafa' };
-const selectStyle = { width: '100%', padding: '9px 10px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', background: '#fafafa', cursor: 'pointer' };
+const iconStyle = { position: 'absolute', left: 10, color: '#64748b', pointerEvents: 'none' };
+const inputStyle = { width: '100%', padding: '9px 10px 9px 32px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box', background: '#f8fafc' };
+const selectStyle = { width: '100%', padding: '9px 10px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, outline: 'none', background: '#f8fafc', cursor: 'pointer' };
 
 export default Users;

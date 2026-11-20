@@ -7,7 +7,7 @@ import { FiGitMerge, FiRotateCcw } from 'react-icons/fi';
 import { getFleetMergePlan, applyFleetMerge, undoFleetMerge, getFleetMergeLog } from '../services/fuelApi';
 import { S } from '../pages/fuelStyles';
 
-const k = (n) => `K ${Number(n || 0).toFixed(2)}`;
+const k = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.abs(Number(n || 0)).toFixed(2)}`;
 
 export default function FleetMergePanel({ onDone }) {
   const [plan, setPlan] = useState(null);
@@ -47,14 +47,14 @@ export default function FleetMergePanel({ onDone }) {
     finally { setBusy(false); }
   };
 
-  const row = (cells, key) => <tr key={key} style={{ borderBottom: '1px solid #f3f4f6' }}>{cells.map((c, i) => <td key={i} style={S.td}>{c}</td>)}</tr>;
+  const row = (cells, key) => <tr key={key} style={{ borderBottom: '1px solid #f1f5f9' }}>{cells.map((c, i) => <td key={i} style={S.td}>{c}</td>)}</tr>;
 
   return (
     <div style={{ ...S.card, marginBottom: 16, padding: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
         <div>
           <strong><FiGitMerge /> Merge into Customers</strong>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>One accounts-receivable list: each fleet account is matched to a Customer by phone or name, or a new Credit customer is created; its balance moves to that Customer.</div>
+          <div style={{ fontSize: 13, color: '#64748b' }}>One accounts-receivable list: each fleet account is matched to a Customer by phone or name, or a new Credit customer is created; its balance moves to that Customer.</div>
         </div>
         <button onClick={review} disabled={busy} style={S.btnSecondary}>{plan ? 'Refresh review' : 'Review merge'}</button>
       </div>
@@ -87,7 +87,7 @@ export default function FleetMergePanel({ onDone }) {
             {log.some(l => !l.undone_at) && <button onClick={() => undo(null)} disabled={busy} style={S.btnSecondary}><FiRotateCcw /> Undo all merges</button>}
           </div>
           {log.length > 0 && (
-            <div style={{ marginTop: 12, fontSize: 13, color: '#374151' }}>
+            <div style={{ marginTop: 12, fontSize: 13, color: '#334155' }}>
               <strong>Merge log</strong>
               {log.slice(0, 20).map(l => (
                 <div key={l.id}>

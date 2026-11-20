@@ -429,11 +429,11 @@ const SIV = () => {
     const preparedBy = siv.created_by_name || '—';
 
     const itemRows = (siv.items || []).map((item, idx) => `
-      <tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#fafafa':'#fff'}">
-        <td style="padding:10px 14px;color:#9ca3af;font-size:10px">${idx+1}</td>
-        <td style="padding:10px 14px;font-weight:600;color:#111827">${item.product_name}${item.unit?` <span style="font-size:10px;color:#6b7280">(${item.unit})</span>`:''}</td>
-        <td style="padding:10px 14px;text-align:right;font-family:monospace;color:#374151">${fmt(item.quantity)}</td>
-        <td style="padding:10px 14px;text-align:right;font-family:monospace;color:#374151">${fmt(item.unit_price)}</td>
+      <tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#f8fafc':'#fff'}">
+        <td style="padding:10px 14px;color:#94a3b8;font-size:10px">${idx+1}</td>
+        <td style="padding:10px 14px;font-weight:600;color:#0f172a">${item.product_name}${item.unit?` <span style="font-size:10px;color:#64748b">(${item.unit})</span>`:''}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:monospace;color:#334155">${fmt(item.quantity)}</td>
+        <td style="padding:10px 14px;text-align:right;font-family:monospace;color:#334155">${fmt(item.unit_price)}</td>
         <td style="padding:10px 14px;text-align:right;font-weight:700;font-family:monospace;color:#1d4ed8">${fmt(item.total_price)}</td>
       </tr>`).join('');
 
@@ -475,7 +475,7 @@ const SIV = () => {
           <span style="font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#fff">Items Issued</span>
         </div>
         <table>
-          <thead><tr style="background:#f0f0f0;border-bottom:1.5px solid #000">
+          <thead><tr style="background:#f1f5f9;border-bottom:1.5px solid #000">
             <th style="padding:8px 12px;text-align:left;font-weight:700;color:#000;font-size:10px;width:30px">#</th>
             <th style="padding:8px 12px;text-align:left;font-weight:700;color:#000;font-size:10px">Product</th>
             <th style="padding:8px 12px;text-align:right;font-weight:700;color:#000;font-size:10px">Quantity</th>
@@ -483,16 +483,16 @@ const SIV = () => {
             <th style="padding:8px 12px;text-align:right;font-weight:700;color:#000;font-size:10px">Line Total</th>
           </tr></thead>
           <tbody>${(siv.items||[]).map((item,idx)=>`
-            <tr style="border-bottom:1px solid #ddd;background:${idx%2===1?'#f9f9f9':'#fff'}">
+            <tr style="border-bottom:1px solid #e2e8f0;background:${idx%2===1?'#f8fafc':'#fff'}">
               <td style="padding:9px 12px;color:#000;font-size:10px">${idx+1}</td>
               <td style="padding:9px 12px;font-weight:600">${item.product_name}${item.unit?` <span style="font-size:10px;color:#000">(${item.unit})</span>`:''}</td>
               <td style="padding:9px 12px;text-align:right;font-family:monospace">${fmt(item.quantity)}</td>
               <td style="padding:9px 12px;text-align:right;font-family:monospace">${fmt(item.unit_price)}</td>
               <td style="padding:9px 12px;text-align:right;font-weight:700;font-family:monospace">${fmt(item.total_price)}</td>
             </tr>`).join('')}</tbody>
-          <tfoot><tr style="background:#f0f0f0;border-top:2px solid #000">
+          <tfoot><tr style="background:#f1f5f9;border-top:2px solid #000">
             <td colspan="4" style="padding:11px 12px;font-weight:800;font-size:12px;letter-spacing:0.5px">GRAND TOTAL</td>
-            <td style="padding:11px 12px;text-align:right;font-weight:900;font-size:16px;font-family:monospace">$${fmt(siv.total_value)}</td>
+            <td style="padding:11px 12px;text-align:right;font-weight:900;font-size:16px;font-family:monospace">${curSym}${fmt(siv.total_value)}</td>
           </tr></tfoot>
         </table>
       </div>
@@ -506,7 +506,7 @@ const SIV = () => {
             <div class="sig-sub">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;margin-top:20px;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;margin-top:20px;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px;color:#000">${bizName} — Confidential Document</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
@@ -542,17 +542,17 @@ const SIV = () => {
     const rows = filteredSIVs.map((siv, idx) => {
       const sivItems = map[siv.id] || [];
       const itemRows = sivItems.map((item, i) => `
-        <tr style="border-bottom:1px solid #ddd;background:${i%2===1?'#f9f9f9':'#fff'}">
+        <tr style="border-bottom:1px solid #e2e8f0;background:${i%2===1?'#f8fafc':'#fff'}">
           <td style="padding:4px 10px;font-weight:500">${item.product_name}${item.unit?` <span style="font-size:9px;color:#000">(${item.unit})</span>`:''}</td>
           <td style="padding:4px 10px;text-align:right;font-family:monospace">${fmt(item.quantity)}</td>
           <td style="padding:4px 10px;text-align:right;font-family:monospace">${fmt(item.unit_price)}</td>
           <td style="padding:4px 10px;text-align:right;font-weight:600;font-family:monospace">${fmt(item.total_price)}</td>
         </tr>`).join('');
       const itemsTable = sivItems.length > 0 ? `
-        <tr style="background:#f5f5f5">
+        <tr style="background:#f1f5f9">
           <td colspan="7" style="padding:0 10px 8px 28px">
             <table style="width:100%;border-collapse:collapse;font-size:10px">
-              <thead><tr style="background:#e8e8e8;border-bottom:1px solid #bbb">
+              <thead><tr style="background:#e2e8f0;border-bottom:1px solid #cbd5e1">
                 <th style="padding:4px 10px;text-align:left;font-weight:600;color:#000">Product</th>
                 <th style="padding:4px 10px;text-align:right;font-weight:600;color:#000">Qty</th>
                 <th style="padding:4px 10px;text-align:right;font-weight:600;color:#000">Unit Price</th>
@@ -563,13 +563,13 @@ const SIV = () => {
           </td>
         </tr>` : '';
       return `
-        <tr style="background:${idx%2===1?'#f5f5f5':'#fff'};border-top:${idx>0?'2px solid #ccc':'none'}">
+        <tr style="background:${idx%2===1?'#f1f5f9':'#fff'};border-top:${idx>0?'2px solid #cbd5e1':'none'}">
           <td style="padding:8px 10px;color:#000;font-size:10px">${idx+1}</td>
           <td style="padding:8px 10px;font-weight:700;font-family:monospace">${siv.siv_number}</td>
           <td style="padding:8px 10px">${formatDate(siv.date)}</td>
           <td style="padding:8px 10px;font-weight:500">${siv.department}</td>
           <td style="padding:8px 10px;text-align:right">${siv.total_items}</td>
-          <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace">$${fmt(siv.total_value)}</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace">${curSym}${fmt(siv.total_value)}</td>
           <td style="padding:8px 10px;text-align:right"><span style="padding:2px 8px;border:1px solid #000;font-size:10px;font-weight:600">${siv.status}</span></td>
         </tr>${itemsTable}`;
     }).join('');
@@ -579,9 +579,9 @@ const SIV = () => {
       *{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:11.5px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
       td{font-size:11px}
-      tfoot td{padding:10px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      tfoot td{padding:10px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -616,7 +616,7 @@ const SIV = () => {
           <tfoot><tr>
             <td colspan="4">TOTAL — ${filteredSIVs.length} SIV${filteredSIVs.length!==1?'s':''}</td>
             <td style="text-align:right">${totalItems} items</td>
-            <td style="text-align:right;font-size:13px;font-family:monospace">$${fmt(filteredTotal)}</td>
+            <td style="text-align:right;font-size:13px;font-family:monospace">${curSym}${fmt(filteredTotal)}</td>
             <td></td>
           </tr></tfoot>
         </table>
@@ -630,7 +630,7 @@ const SIV = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px;color:#000">${bizName} — Confidential</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
@@ -658,11 +658,11 @@ const SIV = () => {
             disabled={printItemsLoading}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e5e7eb',
-              background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#374151',
+              padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0',
+              background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#334155',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b7280'; e.currentTarget.style.background = '#f9fafb'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#64748b'; e.currentTarget.style.background = '#f8fafc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}
           >
             <FiPrinter size={16} /> {t('print')}
           </button>
@@ -698,42 +698,42 @@ const SIV = () => {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
-        border: '1px solid #e5e7eb', borderRadius: 10,
+        border: '1px solid #e2e8f0', borderRadius: 10,
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155' }}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155' }}
           />
         </div>
         <button
           onClick={() => { setFilterFrom(todayStr); setFilterTo(todayStr); }}
-          style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}
+          style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0', fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer' }}
         >
           {t('clear')}
         </button>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ display: 'flex', borderRadius: 7, border: '1px solid #d1d5db', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', borderRadius: 7, border: '1px solid #cbd5e1', overflow: 'hidden' }}>
             {[{ key: 'by-siv', label: t('bySIVNo') }, { key: 'by-item', label: t('byItem') }].map(({ key, label }) => (
               <button key={key} onClick={() => setViewMode(key)} style={{
                 padding: '5px 13px', fontSize: 12, fontWeight: 600, cursor: 'pointer', border: 'none',
                 background: viewMode === key ? '#2563eb' : '#fff',
-                color: viewMode === key ? '#fff' : '#6b7280',
+                color: viewMode === key ? '#fff' : '#64748b',
               }}>{label}</button>
             ))}
           </div>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>
+          <span style={{ fontSize: 12, color: '#64748b' }}>
             {viewMode === 'by-siv'
               ? <>{filteredSIVs.length} SIV{filteredSIVs.length !== 1 ? 's' : ''}{hasFilter && <> &nbsp;·&nbsp; Total: <strong style={{ color: '#2563eb' }}>${filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>}</>
               : (() => {
@@ -750,7 +750,7 @@ const SIV = () => {
       <div className="data-table-container">
         {viewMode === 'by-siv' ? (
           filteredSIVs.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+            <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
               {hasFilter ? t('noSIVsInRange') : t('noData')}
             </div>
           ) : (
@@ -786,11 +786,11 @@ const SIV = () => {
                           disabled={viewLoading}
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: 5,
-                            padding: '5px 11px', borderRadius: 6, border: '1px solid #e5e7eb',
-                            background: '#f9fafb', color: '#6b7280', cursor: 'pointer', fontSize: 12, fontWeight: 500,
+                            padding: '5px 11px', borderRadius: 6, border: '1px solid #e2e8f0',
+                            background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 12, fontWeight: 500,
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.borderColor = '#86efac'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                         >
                           <FiEye size={12} /> View
                         </button>
@@ -800,11 +800,11 @@ const SIV = () => {
                           title={siv.source_grn_sync_id ? 'Edit auto-SIV — items locked to source GRN' : 'Edit SIV'}
                           style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: 30, height: 30, borderRadius: 6, border: '1px solid #e5e7eb',
-                            background: '#f9fafb', color: '#6b7280', cursor: 'pointer',
+                            width: 30, height: 30, borderRadius: 6, border: '1px solid #e2e8f0',
+                            background: '#f8fafc', color: '#64748b', cursor: 'pointer',
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = '#dbeafe'; e.currentTarget.style.color = '#2563eb'; e.currentTarget.style.borderColor = '#bfdbfe'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                         >
                           <FiEdit2 size={13} />
                         </button>}
@@ -828,7 +828,7 @@ const SIV = () => {
             const main = allMains.find(m => String(m.id) === String(it.main_category_id));
             const key = main ? main.id : '__unassigned__';
             const name = main ? main.name : 'Uncategorized';
-            const color = main ? main.color : '#6b7280';
+            const color = main ? main.color : '#64748b';
             if (!subMap.has(key)) subMap.set(key, { name, color, qty: 0, value: 0 });
             const e = subMap.get(key);
             e.qty += parseFloat(it.total_quantity || 0);
@@ -850,11 +850,11 @@ const SIV = () => {
                   {subs.map(s => (
                     <div key={s.name} style={{
                       padding: '6px 12px', borderRadius: 8,
-                      background: (s.color || '#6b7280') + '15',
-                      border: `1px solid ${(s.color || '#6b7280')}40`, fontSize: 12,
+                      background: (s.color || '#64748b') + '15',
+                      border: `1px solid ${(s.color || '#64748b')}40`, fontSize: 12,
                     }}>
                       <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
-                      <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
+                      <span style={{ marginLeft: 6, color: '#334155', fontWeight: 600 }}>
                         qty {(parseFloat(s.qty)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} · ${s.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </span>
                     </div>
@@ -862,7 +862,7 @@ const SIV = () => {
                 </div>
               )}
               {filteredSummary.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No items issued for the selected categories.</div>
+                <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No items issued for the selected categories.</div>
               ) : (
                 <table className="data-table">
                   <thead>
@@ -884,29 +884,29 @@ const SIV = () => {
                         onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
                         onMouseLeave={e => e.currentTarget.style.background = ''}
                       >
-                        <td style={{ color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
+                        <td style={{ color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
                         <td style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {isExpanded ? <FiChevronDown size={13} style={{ color: '#2563eb' }} /> : <FiChevronRight size={13} style={{ color: '#6b7280' }} />}
+                          {isExpanded ? <FiChevronDown size={13} style={{ color: '#2563eb' }} /> : <FiChevronRight size={13} style={{ color: '#64748b' }} />}
                           {row.product_name}
                         </td>
-                        <td style={{ color: '#6b7280' }}>{row.unit}</td>
-                        <td style={{ textAlign: 'right', fontFamily: 'monospace' }}>{parseFloat(row.total_quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ textAlign: 'right', fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>${parseFloat(row.total_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ color: '#64748b' }}>{row.unit}</td>
+                        <td style={{ textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(row.total_quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 700, color: '#2563eb', fontFamily: 'var(--k-font-mono)' }}>${parseFloat(row.total_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                       {isExpanded && (
                         <tr>
                           <td colSpan={5} style={{ padding: 0, background: '#f8fafc' }}>
                             <div style={{ padding: '8px 24px 12px 40px' }}>
                               {breakdown.length === 0 ? (
-                                <div style={{ fontSize: 12, color: '#6b7280', padding: '4px 0' }}>No SIV records found.</div>
+                                <div style={{ fontSize: 12, color: '#64748b', padding: '4px 0' }}>No SIV records found.</div>
                               ) : (
                                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                   <thead>
-                                    <tr style={{ color: '#6b7280' }}>
-                                      <th style={{ textAlign: 'left', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e5e7eb' }}>SIV No</th>
-                                      <th style={{ textAlign: 'left', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e5e7eb' }}>Date</th>
-                                      <th style={{ textAlign: 'left', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e5e7eb' }}>Time</th>
-                                      <th style={{ textAlign: 'right', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e5e7eb' }}>Qty</th>
+                                    <tr style={{ color: '#64748b' }}>
+                                      <th style={{ textAlign: 'left', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e2e8f0' }}>SIV No</th>
+                                      <th style={{ textAlign: 'left', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e2e8f0' }}>Date</th>
+                                      <th style={{ textAlign: 'left', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e2e8f0' }}>Time</th>
+                                      <th style={{ textAlign: 'right', fontWeight: 600, padding: '3px 8px', borderBottom: '1px solid #e2e8f0' }}>Qty</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -915,9 +915,9 @@ const SIV = () => {
                                       return (
                                         <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                           <td style={{ padding: '4px 8px', fontWeight: 500, color: '#1d4ed8' }}>{b.siv_number}</td>
-                                          <td style={{ padding: '4px 8px', color: '#374151' }}>{new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                                          <td style={{ padding: '4px 8px', color: '#374151' }}>{dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</td>
-                                          <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: 'monospace', color: '#111827' }}>{parseFloat(b.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                          <td style={{ padding: '4px 8px', color: '#334155' }}>{new Date(b.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                                          <td style={{ padding: '4px 8px', color: '#334155' }}>{dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</td>
+                                          <td style={{ padding: '4px 8px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#0f172a' }}>{parseFloat(b.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                         </tr>
                                       );
                                     })}
@@ -935,7 +935,7 @@ const SIV = () => {
                   <tfoot>
                     <tr style={{ background: '#f0f9ff', fontWeight: 700, borderTop: '2px solid #93c5fd' }}>
                       <td colSpan={4} style={{ textAlign: 'right', color: '#1d4ed8' }}>TOTAL</td>
-                      <td style={{ textAlign: 'right', color: '#1d4ed8', fontFamily: 'monospace' }}>
+                      <td style={{ textAlign: 'right', color: '#1d4ed8', fontFamily: 'var(--k-font-mono)' }}>
                         ${filteredSummary.reduce((s, r) => s + parseFloat(r.total_value || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                     </tr>
@@ -986,46 +986,46 @@ const SIV = () => {
                   { label: 'Date',        value: formatDate(viewSIV.date) },
                   { label: 'Total Items', value: viewSIV.total_items },
                 ].map(info => (
-                  <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{info.value}</div>
+                  <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{info.value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Items table */}
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'visible', marginBottom: 20 }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'visible', marginBottom: 20 }}>
                 <div style={{ background: '#eff6ff', padding: '10px 14px', borderBottom: '1px solid #bfdbfe', fontSize: 11.5, fontWeight: 700, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Items Issued
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb' }}>
-                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>#</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Product</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Quantity</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Unit Price ($)</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Total ($)</th>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>#</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Product</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Quantity</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Unit Price ($)</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Total ($)</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(viewSIV.items || []).map((item, idx) => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
-                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>
+                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                        <td style={{ padding: '10px 14px', color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>
                           {item.product_name}
-                          {item.unit && <span style={{ marginLeft: 6, fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: 10 }}>{item.unit}</span>}
+                          {item.unit && <span style={{ marginLeft: 6, fontSize: 11, color: '#64748b', background: '#f1f5f9', padding: '1px 6px', borderRadius: 10 }}>{item.unit}</span>}
                         </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#2563eb', fontFamily: 'monospace' }}>{parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#2563eb', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#eff6ff', borderTop: '2px solid #93c5fd' }}>
                       <td colSpan={4} style={{ padding: '10px 14px', fontWeight: 700, fontSize: 13, color: '#1d4ed8' }}>TOTAL</td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, fontSize: 15, fontFamily: 'monospace', color: '#1d4ed8' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, fontSize: 15, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>
                         {curSym}{parseFloat(viewSIV.total_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                     </tr>
@@ -1041,13 +1041,13 @@ const SIV = () => {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={() => printSingleSIV(viewSIV)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
-                  onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#9ca3af'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#d1d5db'; }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
                 >
                   <FiPrinter size={14} /> Print
                 </button>
@@ -1063,7 +1063,7 @@ const SIV = () => {
                   </button>
                 )}
                 {viewSIV.source_grn_sync_id && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', padding: '9px 12px', fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', padding: '9px 12px', fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
                     Auto-issued from GRN — delete the source GRN to remove this.
                   </span>
                 )}
@@ -1073,7 +1073,7 @@ const SIV = () => {
                   <button
                     onClick={() => { openEdit({ id: viewSIV.id }); setViewSIV(null); }}
                     title={viewSIV.source_grn_sync_id ? 'Edit auto-SIV — items locked to source GRN' : 'Edit SIV'}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
                   >
                     <FiEdit2 size={13} /> Edit
                   </button>
@@ -1105,7 +1105,7 @@ const SIV = () => {
                 )}
                 <div>
                   <h2 style={{ margin: 0 }}>{editMode ? 'Edit SIV' : t('sivTitle')}</h2>
-                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>
+                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
                     {editMode ? 'Update the store issue voucher' : 'Record stock issued from store'}
                   </p>
                 </div>
@@ -1144,7 +1144,7 @@ const SIV = () => {
                     <button
                       type="button"
                       onClick={() => { setShowAddDept(v => !v); setNewDeptName(''); }}
-                      style={{ padding: '0 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: showAddDept ? '#dcfce7' : '#f9fafb', color: showAddDept ? '#15803d' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
+                      style={{ padding: '0 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: showAddDept ? '#dcfce7' : '#f8fafc', color: showAddDept ? '#15803d' : '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}
                     >
                       <FiPlus size={13} /> New
                     </button>
@@ -1164,7 +1164,7 @@ const SIV = () => {
                             setShowAddDept(false); setNewDeptName('');
                           }
                         }}
-                        style={{ flex: 1, minWidth: 140, padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }}
+                        style={{ flex: 1, minWidth: 140, padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }}
                       />
                       <button
                         type="button"
@@ -1182,7 +1182,7 @@ const SIV = () => {
                       <button
                         type="button"
                         onClick={() => { setShowAddDept(false); setNewDeptName(''); }}
-                        style={{ padding: '6px 10px', background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
+                        style={{ padding: '6px 10px', background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
                       >
                         Cancel
                       </button>
@@ -1205,7 +1205,7 @@ const SIV = () => {
                     autoComplete="off"
                   />
                   {notesOpen && notesHistory.filter(n => !notes || n.toLowerCase().includes(notes.toLowerCase())).length > 0 && (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 200, maxHeight: 180, overflowY: 'auto' }}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 200, maxHeight: 180, overflowY: 'auto' }}>
                       {notesHistory.filter(n => !notes || n.toLowerCase().includes(notes.toLowerCase())).map((n, i) => (
                         <div key={i}
                           onMouseDown={() => { setNotes(n); setNotesOpen(false); }}
@@ -1230,7 +1230,7 @@ const SIV = () => {
 
                 {recentProducts.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                    <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
+                    <span style={{ fontSize: 11, color: '#64748b', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
                     {recentProducts.map(p => (
                       <button key={p.product_id} type="button"
                         onClick={() => {
@@ -1265,13 +1265,13 @@ const SIV = () => {
                 )}
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb' }}>
-                      <th style={{ padding: '8px 10px', textAlign: 'left',  border: '1px solid #e5e7eb', fontWeight: 600 }}>{t('product')}</th>
-                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e5e7eb', fontWeight: 600, width: 70 }}>{t('balance')}</th>
-                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e5e7eb', fontWeight: 600, width: 72 }}>{t('quantity')}</th>
-                      <th style={{ padding: '8px 10px', textAlign: 'left',  border: '1px solid #e5e7eb', fontWeight: 600, width: 100 }}>Unit</th>
-                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e5e7eb', fontWeight: 600, width: 88 }}>Unit Price</th>
-                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e5e7eb', fontWeight: 600, width: 88 }}>{t('total')}</th>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <th style={{ padding: '8px 10px', textAlign: 'left',  border: '1px solid #e2e8f0', fontWeight: 600 }}>{t('product')}</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: 600, width: 70 }}>{t('balance')}</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: 600, width: 72 }}>{t('quantity')}</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'left',  border: '1px solid #e2e8f0', fontWeight: 600, width: 100 }}>Unit</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: 600, width: 88 }}>Unit Price</th>
+                      <th style={{ padding: '8px 10px', textAlign: 'right', border: '1px solid #e2e8f0', fontWeight: 600, width: 88 }}>{t('total')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1301,7 +1301,7 @@ const SIV = () => {
                       }
                       return (
                         <tr key={index}>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '6px 8px', border: '1px solid #e2e8f0' }}>
                             <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                               <div style={{ flex: 1, position: 'relative' }}>
                                 <input
@@ -1338,10 +1338,10 @@ const SIV = () => {
                                     }
                                   }}
                                   placeholder="Type or search product…"
-                                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }}
+                                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }}
                                 />
                                 {openDropdownIdx === index && (
-                                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, maxHeight: '40vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', marginTop: 2 }}>
+                                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, maxHeight: '40vh', overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.15)', marginTop: 2 }}>
                                     {products
                                       .filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode))
                                       .map((p, pi) => (
@@ -1352,13 +1352,13 @@ const SIV = () => {
                                           onMouseLeave={() => setHighlightedIdx(-1)}
                                           style={{ padding: '10px 14px', cursor: 'pointer', fontSize: 14, borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: highlightedIdx === pi ? '#eff6ff' : '#fff' }}
                                         >
-                                          <span style={{ fontWeight: 500 }}>{p.name} <span style={{ fontSize: 12, color: '#6b7280' }}>({p.unit})</span></span>
-                                          <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>${(parseFloat(parseFloat(p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                                          <span style={{ fontWeight: 500 }}>{p.name} <span style={{ fontSize: 12, color: '#64748b' }}>({p.unit})</span></span>
+                                          <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>${(parseFloat(parseFloat(p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                         </div>
                                       ))
                                     }
                                     {products.filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode)).length === 0 && (
-                                      <div style={{ padding: '10px 12px', fontSize: 13, color: '#6b7280' }}>No matching products</div>
+                                      <div style={{ padding: '10px 12px', fontSize: 13, color: '#64748b' }}>No matching products</div>
                                     )}
                                   </div>
                                 )}
@@ -1371,19 +1371,19 @@ const SIV = () => {
                               )}
                             </div>
                           </td>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600, color: remaining !== null && remaining <= 0 ? '#dc2626' : '#15803d' }}>
+                          <td style={{ padding: '6px 8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600, color: remaining !== null && remaining <= 0 ? '#dc2626' : '#15803d' }}>
                             {remaining !== null ? `${remaining.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${displayUnit}` : '—'}
                           </td>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>
-                            <input type="number" className="form-input" style={{ margin: 0, padding: '6px 8px', fontSize: 13, textAlign: 'right', background: editIsAuto ? '#f3f4f6' : undefined }}
+                          <td style={{ padding: '6px 8px', border: '1px solid #e2e8f0' }}>
+                            <input type="number" className="form-input" style={{ margin: 0, padding: '6px 8px', fontSize: 13, textAlign: 'right', background: editIsAuto ? '#f1f5f9' : undefined }}
                               min="0" step="1" value={item.quantity} readOnly={editIsAuto}
                               onChange={e => { if (editIsAuto) return; updateItem(index, 'quantity', e.target.value); }} placeholder="0" />
                           </td>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '6px 8px', border: '1px solid #e2e8f0' }}>
                             {(() => {
                               const units = prod ? unitsForProductFE(prod) : [];
                               if (!prod || units.length <= 1) {
-                                return <div style={{ padding: '6px 8px', fontSize: 13, color: '#6b7280', background: '#f9fafb', borderRadius: 4 }}>{prod?.unit || '—'}</div>;
+                                return <div style={{ padding: '6px 8px', fontSize: 13, color: '#64748b', background: '#f8fafc', borderRadius: 4 }}>{prod?.unit || '—'}</div>;
                               }
                               return (
                                 <select
@@ -1395,7 +1395,7 @@ const SIV = () => {
                                     const newPrice = parseFloat(u?.price || 0);
                                     setItems(prev => prev.map((it, i) => i === index ? { ...it, unit: newUnit, unit_price: newPrice.toFixed(2), total_price: (parseFloat(it.quantity) || 0) * newPrice } : it));
                                   }}
-                                  style={{ width: '100%', padding: '6px 6px', fontSize: 13, border: '1px solid #d1d5db', borderRadius: 4, background: editIsAuto ? '#f3f4f6' : '#fff' }}
+                                  style={{ width: '100%', padding: '6px 6px', fontSize: 13, border: '1px solid #cbd5e1', borderRadius: 4, background: editIsAuto ? '#f1f5f9' : '#fff' }}
                                 >
                                   {units.map(u => (
                                     <option key={u.name} value={u.name}>
@@ -1406,12 +1406,12 @@ const SIV = () => {
                               );
                             })()}
                           </td>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb' }}>
+                          <td style={{ padding: '6px 8px', border: '1px solid #e2e8f0' }}>
                             <input type="number" className="form-input" style={{ margin: 0, padding: '6px 8px', fontSize: 13, textAlign: 'right' }}
                               min="0" step="0.01" value={item.unit_price}
                               onChange={e => updateItem(index, 'unit_price', e.target.value)} placeholder="0.00" />
                           </td>
-                          <td style={{ padding: '6px 8px', border: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 500 }}>
+                          <td style={{ padding: '6px 8px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 500 }}>
                             {curSym}{(parseFloat((parseFloat(item.total_price) || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
                         </tr>
@@ -1419,9 +1419,9 @@ const SIV = () => {
                     })}
                   </tbody>
                   <tfoot>
-                    <tr style={{ background: '#f9fafb' }}>
-                      <td colSpan={5} style={{ padding: '8px 10px', border: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 600 }}>{t('total')}</td>
-                      <td style={{ padding: '8px 10px', border: '1px solid #e5e7eb', textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <td colSpan={5} style={{ padding: '8px 10px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 600 }}>{t('total')}</td>
+                      <td style={{ padding: '8px 10px', border: '1px solid #e2e8f0', textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>
                         ${(parseFloat(grandTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                       </td>
                     </tr>
@@ -1482,7 +1482,7 @@ const SIV = () => {
 
           <div
             id="siv-print-document"
-            style={{ width: 794, background: '#ffffff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
+            style={{ width: 794, background: '#ffffff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}
           >
             {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%)', padding: '28px 44px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -1509,8 +1509,8 @@ const SIV = () => {
             <div style={{ padding: '26px 44px 36px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
                 {[
-                  { label: 'Period From',    value: formatDate(filterFrom),                                                              bg: '#f8fafc', color: '#374151',  border: '#e2e8f0' },
-                  { label: 'Period To',      value: formatDate(filterTo),                                                                bg: '#f8fafc', color: '#374151',  border: '#e2e8f0' },
+                  { label: 'Period From',    value: formatDate(filterFrom),                                                              bg: '#f8fafc', color: '#334155',  border: '#e2e8f0' },
+                  { label: 'Period To',      value: formatDate(filterTo),                                                                bg: '#f8fafc', color: '#334155',  border: '#e2e8f0' },
                   { label: 'SIVs in Period', value: filteredSIVs.length,                                                                 bg: '#eff6ff', color: '#1d4ed8',  border: '#bfdbfe' },
                   { label: 'Total Value',    value: '$' + filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 }),         bg: '#fff7ed', color: '#c2410c',  border: '#fed7aa' },
                 ].map(chip => (
@@ -1536,12 +1536,12 @@ const SIV = () => {
                       return (
                         <React.Fragment key={siv.id}>
                           <tr style={{ background: idx % 2 === 1 ? '#eff6ff' : '#fff', borderTop: idx > 0 ? '2px solid #e2e8f0' : 'none' }}>
-                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
-                            <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#2563eb' }}>{siv.siv_number}</td>
-                            <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(siv.date)}</td>
+                            <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'var(--k-font-mono)', fontSize: 11, color: '#2563eb' }}>{siv.siv_number}</td>
+                            <td style={{ padding: '8px 12px', color: '#334155' }}>{formatDate(siv.date)}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 500 }}>{siv.department}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#374151' }}>{siv.total_items}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#1d4ed8' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#334155' }}>{siv.total_items}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>
                               {curSym}{parseFloat(siv.total_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'right' }}>
@@ -1566,11 +1566,11 @@ const SIV = () => {
                                   </thead>
                                   <tbody>
                                     {sivItems.map((item, i) => (
-                                      <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                                        <td style={{ padding: '5px 10px', color: '#111827', fontWeight: 500 }}>{item.product_name}{item.unit && <span style={{ marginLeft: 6, fontSize: 10, color: '#6b7280' }}>({item.unit})</span>}</td>
-                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{curSym}{parseFloat(item.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: 600, color: '#1d4ed8', fontFamily: 'monospace' }}>{curSym}{parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                      <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <td style={{ padding: '5px 10px', color: '#0f172a', fontWeight: 500 }}>{item.product_name}{item.unit && <span style={{ marginLeft: 6, fontSize: 10, color: '#64748b' }}>({item.unit})</span>}</td>
+                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{curSym}{parseFloat(item.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: 600, color: '#1d4ed8', fontFamily: 'var(--k-font-mono)' }}>{curSym}{parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -1587,10 +1587,10 @@ const SIV = () => {
                       <td colSpan={4} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#1d4ed8' }}>
                         TOTAL — {filteredSIVs.length} SIV{filteredSIVs.length !== 1 ? 's' : ''}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: 11, color: '#374151' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: 11, color: '#334155' }}>
                         {filteredSIVs.reduce((s, v) => s + parseInt(v.total_items || 0), 0)} items
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#1d4ed8' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>
                         ${filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                       <td></td>
@@ -1633,7 +1633,7 @@ const SIV = () => {
 
           <div
             id="siv-print-document"
-            style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
+            style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}
           >
             {/* Document header */}
             <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #2563eb 100%)', padding: '30px 44px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -1648,7 +1648,7 @@ const SIV = () => {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.55, marginBottom: 8 }}>Document No.</div>
-                <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 1, fontFamily: 'monospace' }}>{viewSIV.siv_number}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 1, fontFamily: 'var(--k-font-mono)' }}>{viewSIV.siv_number}</div>
                 <div style={{ marginTop: 10, display: 'inline-block', padding: '3px 12px', borderRadius: 20, fontSize: 10, fontWeight: 700,
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.35)', color: '#fff' }}>
                   {viewSIV.status || 'Issued'}
@@ -1688,22 +1688,22 @@ const SIV = () => {
                   </thead>
                   <tbody>
                     {(viewSIV.items || []).map((item, idx) => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
-                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>
+                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                        <td style={{ padding: '10px 14px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>
                           {item.product_name}
-                          {item.unit && <span style={{ marginLeft: 6, fontSize: 10, color: '#6b7280' }}>({item.unit})</span>}
+                          {item.unit && <span style={{ marginLeft: 6, fontSize: 10, color: '#64748b' }}>({item.unit})</span>}
                         </td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#1d4ed8' }}>{parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155' }}>{parseFloat(item.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>{parseFloat(item.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#eff6ff', borderTop: '2px solid #93c5fd' }}>
                       <td colSpan={4} style={{ padding: '12px 14px', fontWeight: 800, fontSize: 12, color: '#1e3a5f', letterSpacing: 0.5 }}>GRAND TOTAL</td>
-                      <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, fontSize: 16, fontFamily: 'monospace', color: '#1d4ed8' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, fontSize: 16, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>
                         {curSym}{parseFloat(viewSIV.total_value || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                     </tr>
@@ -1722,8 +1722,8 @@ const SIV = () => {
                 {['Prepared By', 'Issued By', 'Received By'].map(label => (
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ height: 40, borderBottom: '1.5px solid #cbd5e1', marginBottom: 6 }} />
-                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#6b7280' }}>{label}</div>
-                    <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Name / Signature / Date</div>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#64748b' }}>{label}</div>
+                    <div style={{ fontSize: 9, color: '#64748b', marginTop: 2 }}>Name / Signature / Date</div>
                   </div>
                 ))}
               </div>

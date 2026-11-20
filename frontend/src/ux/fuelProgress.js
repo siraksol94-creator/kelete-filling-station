@@ -21,8 +21,8 @@ const num = (v) => {
 
 export function formatKwacha(n) {
   const v = num(n);
-  const sign = v < 0 ? '-' : '';
-  return `${sign}K ${Math.abs(v).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const sign = v < 0 ? '−' : '';
+  return `${sign}K${Math.abs(v).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // Cash variance → what to show. `amount` is always the full signed value.

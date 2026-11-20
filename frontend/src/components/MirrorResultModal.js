@@ -10,7 +10,7 @@ export default function MirrorResultModal({ result, onClose }) {
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(720px, 92vw)', maxHeight: '85vh', overflow: 'auto' }}>
-        <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
             <FiCheckCircle color="#16a34a" />
             <h3 style={{ margin: 0, fontSize: 16, color: '#0f172a' }}>Sync complete</h3>
@@ -23,10 +23,10 @@ export default function MirrorResultModal({ result, onClose }) {
             Pushed <strong>{entities.products || 0}</strong> products, <strong>{entities.categories || 0}</strong> categories, <strong>{entities.main_categories || 0}</strong> main categories, <strong>{entities.units || 0}</strong> units to <strong>{slugs.length}</strong> branch(es) in {elapsed_ms} ms.
           </p>
 
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+          <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e5e7eb' }}>
+                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                   <th style={th}>Branch</th>
                   <th style={th}>Products</th>
                   <th style={th}>Categories</th>
@@ -61,7 +61,7 @@ export default function MirrorResultModal({ result, onClose }) {
           </p>
         </div>
 
-        <div style={{ padding: '12px 18px', borderTop: '1px solid #e5e7eb', textAlign: 'right' }}>
+        <div style={{ padding: '12px 18px', borderTop: '1px solid #e2e8f0', textAlign: 'right' }}>
           <button onClick={onClose} style={{ padding: '8px 16px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Close</button>
         </div>
       </div>

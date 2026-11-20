@@ -15,7 +15,7 @@ import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 import InvoiceNo from '../components/InvoiceNo';
 import Portal from '../utils/Portal';
 import QRCode from 'qrcode';
-import { PageHero } from '../ux/ForecourtKit';
+import { PageHero, useDialog } from '../ux/ForecourtKit';
 import { quickRanges } from '../ux/profitModel';
 import { salesByHour, hourLabel, payMix, paidBy } from '../ux/salesModel';
 
@@ -41,6 +41,7 @@ const SalesReport = () => {
   const { hasPermission, user: authUser } = useAuth();
   const isAdmin = authUser?.role === 'Administrator';
   const { symbol: curSym, currencyMode, isLiquorStyle, methodShown } = useCurrency();
+  const [dialog, ui] = useDialog();   // in-app boxes instead of browser pop-ups
   // v1.9.26 — gate the USD/FRA/K rows + columns on the branch's
   // currency_mode. Mansa/Lusaka run K-only and should see one column.
   const showUSD = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
@@ -229,11 +230,12 @@ const SalesReport = () => {
   }, [dupes]);
 
   const handleDismissDupe = async (p) => {
-    if (!window.confirm(
-      `Mark ${p.a_number} and ${p.b_number} as NOT duplicates?\n\n`
-      + `Both sales stay exactly as they are — nothing is reversed, deleted or `
-      + `refunded. This only stops the warning appearing again.`
-    )) return;
+    if (!(await ui.confirm({
+      title: `Mark ${p.a_number} and ${p.b_number} as not duplicates?`,
+      text: `Both sales stay exactly as they are — nothing is reversed, deleted or `
+      + `refunded. This only stops the warning appearing again.`,
+      okLabel: 'Not duplicates',
+    }))) return;
     setDismissing(p.pair_key);
     try {
       await dismissPossibleDuplicate({
@@ -242,7 +244,7 @@ const SalesReport = () => {
       });
       setDupes(list => list.filter(x => x.pair_key !== p.pair_key));
     } catch (e) {
-      alert(e?.response?.data?.error || 'Could not save that.');
+      ui.alert(e?.response?.data?.error || 'Could not save that.');
     } finally {
       setDismissing(null);
     }
@@ -377,7 +379,7 @@ const SalesReport = () => {
       } catch (_) { /* non-fatal */ }
       setViewOrder({ ...res.data, __debitNotes: dns });
     } catch (err) {
-      alert('Failed to load order details.');
+      ui.alert('Failed to load order details.');
     } finally {
       setViewLoading(false);
     }
@@ -417,9 +419,9 @@ const SalesReport = () => {
         try {
           await reverseOrder(order.id, { rfd_rsn_cd: reason_cd, rfd_rsn_other: otherText });
           await fetchOrders();
-          alert(`Order ${fmtInvoiceNo(order.order_number)} has been reversed successfully.`);
+          ui.alert(`Order ${fmtInvoiceNo(order.order_number)} has been reversed successfully.`);
         } catch (err) {
-          alert(err.response?.data?.error || 'Failed to reverse order.');
+          ui.alert(err.response?.data?.error || 'Failed to reverse order.');
         }
       },
     });
@@ -431,7 +433,7 @@ const SalesReport = () => {
     const alreadyReversed = parseFloat(item.reversed_quantity || 0);
     const remaining = parseFloat(item.quantity) - alreadyReversed;
     if (!(remaining > 0)) {
-      alert('Nothing left to reverse on this line.');
+      ui.alert('Nothing left to reverse on this line.');
       return;
     }
     // Default the reverse unit to whatever was sold (item.unit)
@@ -442,7 +444,7 @@ const SalesReport = () => {
     if (!reverseModal) return;
     const { item, qtyToReverse, unit, reason_cd, reason_other } = reverseModal;
     const qty = parseFloat(qtyToReverse);
-    if (!(qty > 0)) { alert('Enter a quantity greater than 0.'); return; }
+    if (!(qty > 0)) { ui.alert('Enter a quantity greater than 0.'); return; }
     if (reason_cd === '07' && !String(reason_other || '').trim()) {
       setReverseModal(m => ({ ...m, error: 'Please briefly describe the reason.' }));
       return;
@@ -457,7 +459,7 @@ const SalesReport = () => {
     const remainingBase = isLineAlt ? remainingInLineUnit * conv : remainingInLineUnit;
     const remainingInReverseUnit = isReverseAlt ? remainingBase / conv : remainingBase;
     if (qty > remainingInReverseUnit + 0.0001) {
-      alert(`Cannot reverse more than ${(parseFloat(remainingInReverseUnit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unit}.`);
+      ui.alert(`Cannot reverse more than ${(parseFloat(remainingInReverseUnit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unit}.`);
       return;
     }
 
@@ -481,7 +483,7 @@ const SalesReport = () => {
       setReverseModal(null);
       await fetchOrders();
     } catch (err) {
-      alert(err.response?.data?.error || 'Failed to reverse item.');
+      ui.alert(err.response?.data?.error || 'Failed to reverse item.');
     } finally {
       setReversingItemId(null);
     }
@@ -559,7 +561,7 @@ const SalesReport = () => {
   .divider { text-align: center; font-size: 10px; overflow: hidden;
              white-space: nowrap; margin: 3px 0; }
   .items td { font-size: 10px; }
-  .items .sub { font-size: 9px; color: #444; padding: 0 0 3px 6px; }
+  .items .sub { font-size: 9px; color: #334155; padding: 0 0 3px 6px; }
   .head td { font-weight: 700; border-bottom: 1px solid #000; font-size: 9px; }
   .big { font-weight: 700; font-size: 12px; }
 </style></head><body>
@@ -672,7 +674,7 @@ const SalesReport = () => {
     try {
       order = (await getOrder(orderId)).data;
     } catch (_) {
-      alert('Could not load this sale to print it.');
+      ui.alert('Could not load this sale to print it.');
       return;
     }
     await handlePrintReceipt(order);
@@ -699,7 +701,7 @@ const SalesReport = () => {
     const hasFiscalCn = !!(order?.zra_cn_signed_at && order?.zra_cn_rcpt_no);
     const hasLocalCn  = !!(order?.zra_cn_signed_at && order?.local_cn_number);
     if (!hasFiscalCn && !hasLocalCn) {
-      alert('This order has no Credit Note yet. Reverse the order first.');
+      ui.alert('This order has no Credit Note yet. Reverse the order first.');
       return;
     }
     try {
@@ -719,7 +721,7 @@ const SalesReport = () => {
       }
     } catch (err) {
       console.error('[SalesReport] credit-note print failed:', err);
-      alert('Failed to render the Credit Note.');
+      ui.alert('Failed to render the Credit Note.');
     }
   };
 
@@ -851,7 +853,7 @@ const SalesReport = () => {
       // v1.13.140 — column set per ZRA meeting 2026-08-21:
       //   Descr | Cat | Qt | VAT Excl | Rate | VAT | Total
       //   Price column dropped (redundant with per-line Total).
-      return `<tr${showStrike ? ' style="text-decoration:line-through;color:#666;"' : ''}>
+      return `<tr${showStrike ? ' style="text-decoration:line-through;color:#475569;"' : ''}>
           <td>${nameLabel}</td>
           <td style="text-align:center;">${cat}</td>
           <td class="n">${qtyStr}</td>
@@ -1594,7 +1596,7 @@ const SalesReport = () => {
       if (!dnRow) {
         const { data } = await getOrderDebitNotes(order.id);
         if (!Array.isArray(data) || data.length === 0) {
-          alert('No debit notes on this order yet.');
+          ui.alert('No debit notes on this order yet.');
           return;
         }
         dnRow = data[0]; // newest first — created_at DESC on server
@@ -1603,7 +1605,7 @@ const SalesReport = () => {
       printDirect(html);
     } catch (err) {
       console.error('[SalesReport] debit-note print failed:', err);
-      alert('Failed to render the Debit Note.');
+      ui.alert('Failed to render the Debit Note.');
     }
   };
 
@@ -1657,7 +1659,7 @@ const SalesReport = () => {
         // Kelete: Name + Qty only, single row per item.
         const partialNoteKelete = partial ? `<tr><td colspan="2" style="font-size:9px;color:#b45309;padding-left:6px">was ${origQty} ${item.unit || ''} — reversed ${rq}</td></tr>` : '';
         return `
-        <tr style="${rowWeight}${item.reversed ? 'text-decoration:line-through;color:#999;' : ''}">
+        <tr style="${rowWeight}${item.reversed ? 'text-decoration:line-through;color:#64748b;' : ''}">
           <td style="font-weight:700;padding-top:4px;">${nameLabel}</td>
           <td style="text-align:right;white-space:nowrap;padding-top:4px;">${netQty} ${item.unit || ''}</td>
         </tr>
@@ -1668,8 +1670,8 @@ const SalesReport = () => {
       // paper matches the POS till receipt.
       const partialNote = partial ? `<tr><td colspan="4" style="font-size:9px;color:#b45309;padding-left:6px">was ${origQty} ${item.unit || ''} — reversed ${rq}</td></tr>` : '';
       return `
-      <tr><td colspan="4" style="font-weight:700;padding-top:4px;${item.reversed ? 'text-decoration:line-through;color:#999;' : ''}">${nameLabel}</td></tr>
-      <tr style="${rowWeight}${item.reversed ? 'color:#999;' : ''}">
+      <tr><td colspan="4" style="font-weight:700;padding-top:4px;${item.reversed ? 'text-decoration:line-through;color:#64748b;' : ''}">${nameLabel}</td></tr>
+      <tr style="${rowWeight}${item.reversed ? 'color:#64748b;' : ''}">
         <td></td>
         <td style="text-align:right;padding-left:8px;${partial ? 'font-weight:700' : ''}">${netQty} ${item.unit || ''}</td>
         <td style="text-align:right;white-space:nowrap;">${curSym}${fmt2(unitPx)}</td>
@@ -1846,13 +1848,13 @@ const SalesReport = () => {
     const rows = items.map((it, idx) => {
       const qInDisp = displayInDefaultUnit(it.total_qty, it);
       const avgInDisp = displayPriceInDefaultUnit(it.avg_price, it);
-      return `<tr style="background:${idx % 2 === 1 ? '#f5f5f5' : '#fff'};border-bottom:1px solid #ddd">
+      return `<tr style="background:${idx % 2 === 1 ? '#f1f5f9' : '#fff'};border-bottom:1px solid #e2e8f0">
         <td style="padding:7px 10px;color:#000;font-size:10.5px">${idx + 1}</td>
         <td style="padding:7px 10px;font-weight:700;font-family:monospace">${fmtQty(qInDisp.qty)} ${avgInDisp.unit}</td>
         <td style="padding:7px 10px;font-weight:600">${it.product_name || '—'}</td>
-        <td style="padding:7px 10px;font-size:10.5px;color:#444">${it.category_name || '—'}</td>
+        <td style="padding:7px 10px;font-size:10.5px;color:#334155">${it.category_name || '—'}</td>
         <td style="padding:7px 10px;font-size:10.5px">${avgInDisp.unit}</td>
-        <td style="padding:7px 10px;text-align:right;font-family:monospace">${curSym}${fmt(avgInDisp.price)} <span style="font-size:9px;color:#666">/ ${avgInDisp.unit}</span></td>
+        <td style="padding:7px 10px;text-align:right;font-family:monospace">${curSym}${fmt(avgInDisp.price)} <span style="font-size:9px;color:#475569">/ ${avgInDisp.unit}</span></td>
         <td style="padding:7px 10px;text-align:right;font-weight:700;font-family:monospace">${curSym}${fmt(it.total_revenue)}</td>
       </tr>`;
     }).join('');
@@ -1863,9 +1865,9 @@ const SalesReport = () => {
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
       td{font-size:11px}
-      tfoot td{padding:10px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      tfoot td{padding:10px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -1901,7 +1903,7 @@ const SalesReport = () => {
             <th style="text-align:right">Avg Unit Price</th>
             <th style="text-align:right">Total Revenue</th>
           </tr></thead>
-          <tbody>${rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#666">No sales in this period</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="7" style="padding:20px;text-align:center;color:#475569">No sales in this period</td></tr>'}</tbody>
           <tfoot><tr>
             <td colspan="6">GRAND TOTAL — ${items.length} product${items.length !== 1 ? 's' : ''}</td>
             <td style="text-align:right;font-size:13px;font-family:monospace">${curSym}${fmt(grandRevenue)}</td>
@@ -1917,7 +1919,7 @@ const SalesReport = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px;color:#000">${businessName} — Confidential</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
@@ -1929,6 +1931,7 @@ const SalesReport = () => {
 
   return (
     <div className="page-content">
+      {dialog}
       <PageHero icon={<FiShoppingCart />} title={t('salesReport')} subtitle={t('salesReportSubtitle')}
         actions={<>
           <div className="k-sr-exports">
@@ -2151,14 +2154,14 @@ const SalesReport = () => {
                   display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
                   padding: '10px 12px', background: '#fff', border: '1px solid #fde68a', borderRadius: 9,
                 }}>
-                  <span style={{ fontFamily: 'monospace', fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>
+                  <span style={{ fontFamily: 'var(--k-font-mono)', fontSize: 12.5, fontWeight: 700, color: '#0f172a' }}>
                     {fmtInvoiceNo(p.a_number)} → {fmtInvoiceNo(p.b_number)}
                   </span>
                   <span style={{ fontWeight: 700, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
                     {curSym}{(parseFloat(p.total) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                   {p.first_item && (
-                    <span style={{ fontSize: 12.5, color: '#6b7280' }}>{p.first_item}</span>
+                    <span style={{ fontSize: 12.5, color: '#64748b' }}>{p.first_item}</span>
                   )}
                   {/* The gap is the whole point. Six seconds is a duplicate;
                       twenty-nine is two customers at opening time. No threshold
@@ -2173,7 +2176,7 @@ const SalesReport = () => {
                     onClick={() => handleDismissDupe(p)}
                     disabled={dismissing === p.pair_key}
                     title="Both sales stay as they are. This only stops the warning."
-                    style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: dismissing === p.pair_key ? 'wait' : 'pointer', fontSize: 12.5, fontWeight: 700 }}>
+                    style={{ marginLeft: 'auto', padding: '6px 14px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#334155', cursor: dismissing === p.pair_key ? 'wait' : 'pointer', fontSize: 12.5, fontWeight: 700 }}>
                     {dismissing === p.pair_key ? 'Saving…' : 'Reviewed — not duplicates'}
                   </button>
                 </div>
@@ -2209,12 +2212,12 @@ const SalesReport = () => {
       <div className="card">
         <div className="card-header">
           <h3>Sales Transactions</h3>
-          <span style={{ fontSize: 13, color: '#6b7280' }}>{filtered.length} records ({activeOrders.length} active)</span>
+          <span style={{ fontSize: 13, color: '#64748b' }}>{filtered.length} records ({activeOrders.length} active)</span>
         </div>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>{t('loading')}</div>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>{t('loading')}</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No sales records found.</div>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No sales records found.</div>
         ) : (
           <div className="table-container">
             <table className="data-table k-sr-table">
@@ -2366,7 +2369,7 @@ const SalesReport = () => {
                             borrows the invoice's — v1.13.150. */}
                         <td>
                           <div style={{ lineHeight: 1.25 }}>
-                            <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{cnZraRcpt}</div>
+                            <div style={{ fontFamily: 'var(--k-font-mono)', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{cnZraRcpt}</div>
                             <div style={{ fontSize: 11, color: '#475569', marginTop: 1 }}>{cnKeleteRef}</div>
                           </div>
                         </td>
@@ -2421,7 +2424,7 @@ const SalesReport = () => {
           const main = allMains.find(m => String(m.id) === String(it.main_category_id));
           const key = main ? main.id : '__unassigned__';
           const name = main ? main.name : 'Uncategorized';
-          const color = main ? main.color : '#6b7280';
+          const color = main ? main.color : '#64748b';
           if (!subMap.has(key)) subMap.set(key, { name, color, qty: 0, revenue: 0 });
           const e = subMap.get(key);
           e.qty += parseFloat(it.total_qty || 0);
@@ -2440,18 +2443,18 @@ const SalesReport = () => {
             />
             <div className="card-header">
               <h3>Sales by Item</h3>
-              <span style={{ fontSize: 13, color: '#6b7280' }}>{filteredItems.length} products</span>
+              <span style={{ fontSize: 13, color: '#64748b' }}>{filteredItems.length} products</span>
             </div>
             {subs.length > 1 && (
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 16px 16px' }}>
                 {subs.map(s => (
                   <div key={s.name} style={{
                     padding: '6px 12px', borderRadius: 8,
-                    background: (s.color || '#6b7280') + '15',
-                    border: `1px solid ${(s.color || '#6b7280')}40`, fontSize: 12,
+                    background: (s.color || '#64748b') + '15',
+                    border: `1px solid ${(s.color || '#64748b')}40`, fontSize: 12,
                   }}>
                     <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
-                    <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
+                    <span style={{ marginLeft: 6, color: '#334155', fontWeight: 600 }}>
                       qty {(parseFloat(s.qty)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} · {curSym}{(parseFloat(s.revenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                     </span>
                   </div>
@@ -2459,9 +2462,9 @@ const SalesReport = () => {
               </div>
             )}
             {itemSummaryLoading ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>{t('loading')}</div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>{t('loading')}</div>
             ) : filteredItems.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No items sold for the selected categories.</div>
+              <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No items sold for the selected categories.</div>
             ) : (
               <div className="table-container">
                 <table className="data-table">
@@ -2482,17 +2485,17 @@ const SalesReport = () => {
                       const avgInDisp = displayPriceInDefaultUnit(item.avg_price, item);
                       return (
                       <tr key={idx} onClick={() => handleProductBreakdown(item.product_name)} style={{ cursor: 'pointer' }} title="Click to see individual sales">
-                        <td style={{ color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
+                        <td style={{ color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
                         <td><strong>{formatStockForProduct(item.total_qty, item)}</strong></td>
                         <td><strong style={{ color: '#2563eb' }}>{item.product_name}</strong></td>
-                        <td style={{ color: '#6b7280', fontSize: 12 }}>{item.category_name || '—'}</td>
-                        <td style={{ color: '#6b7280' }}>
+                        <td style={{ color: '#64748b', fontSize: 12 }}>{item.category_name || '—'}</td>
+                        <td style={{ color: '#64748b' }}>
                           {disp.name || '—'}
                           {disp.conv > 1 && (
-                            <div style={{ fontSize: 10, color: '#6b7280' }}>1 {disp.name} = {disp.conv} {item.unit}</div>
+                            <div style={{ fontSize: 10, color: '#64748b' }}>1 {disp.name} = {disp.conv} {item.unit}</div>
                           )}
                         </td>
-                        <td>{curSym}{(parseFloat(avgInDisp.price)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} <span style={{ fontSize: 10, color: '#6b7280' }}>/ {avgInDisp.unit}</span></td>
+                        <td>{curSym}{(parseFloat(avgInDisp.price)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} <span style={{ fontSize: 10, color: '#64748b' }}>/ {avgInDisp.unit}</span></td>
                         <td><strong style={{ color: '#15803d' }}>{curSym}{(parseFloat(parseFloat(item.total_revenue))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
                       </tr>
                       );
@@ -2500,7 +2503,7 @@ const SalesReport = () => {
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#f8faff', fontWeight: 700 }}>
-                      <td colSpan={6} style={{ textAlign: 'right', paddingRight: 16, color: '#374151' }}>Grand Total</td>
+                      <td colSpan={6} style={{ textAlign: 'right', paddingRight: 16, color: '#334155' }}>Grand Total</td>
                       <td style={{ color: '#15803d' }}>K{(parseFloat(filteredItems.reduce((s, p) => s + parseFloat(p.total_revenue), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     </tr>
                   </tfoot>
@@ -2527,7 +2530,7 @@ const SalesReport = () => {
           <div className="card">
             <div className="card-header">
               <h3>Sales by Payment Method</h3>
-              <span style={{ fontSize: 13, color: '#6b7280' }}>{activeOrders.length} order(s) · {fmtK(totalRevenue)}</span>
+              <span style={{ fontSize: 13, color: '#64748b' }}>{activeOrders.length} order(s) · {fmtK(totalRevenue)}</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: `repeat(${2 + (showMomo ? 1 : 0) + (showBank ? 1 : 0)}, 1fr)`, gap: 14, padding: '16px 20px' }}>
               {[
@@ -2545,7 +2548,7 @@ const SalesReport = () => {
             </div>
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
+                <tr style={{ background: '#f8fafc' }}>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>Date</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>Receipt #</th>
                   <th style={{ padding: '10px 12px', textAlign: 'left' }}>Customer</th>
@@ -2569,7 +2572,7 @@ const SalesReport = () => {
                       {/* v1.13.128k — was reading o.date which the /orders API doesn't
                           return; use o.created_at (UTC) to match every other tab. */}
                       <td style={{ padding: '8px 12px' }}>{o.created_at ? new Date(o.created_at + 'Z').toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</td>
-                      <td style={{ padding: '8px 12px', fontFamily: 'monospace' }}>{fmtInvoiceNo(o.order_number)}</td>
+                      <td style={{ padding: '8px 12px', fontFamily: 'var(--k-font-mono)' }}>{fmtInvoiceNo(o.order_number)}</td>
                       <td style={{ padding: '8px 12px' }}>{o.customer_name || 'Walk-in'}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>{fmtK(o.total_amount)}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', color: cash > 0 ? '#15803d' : '#cbd5e1' }}>{cash > 0 ? fmtK(cash) : '—'}</td>
@@ -2581,7 +2584,7 @@ const SalesReport = () => {
                 })}
               </tbody>
               <tfoot>
-                <tr style={{ background: '#f9fafb', fontWeight: 700, borderTop: '2px solid #e5e7eb' }}>
+                <tr style={{ background: '#f8fafc', fontWeight: 700, borderTop: '2px solid #e2e8f0' }}>
                   <td colSpan={3} style={{ padding: '10px 12px', textAlign: 'right' }}>TOTAL</td>
                   <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtK(totalRevenue)}</td>
                   <td style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>{fmtK(totalCashReceived)}</td>
@@ -2658,7 +2661,7 @@ const SalesReport = () => {
           <div className="card">
             <div className="card-header">
               <h3>Sales by Currency</h3>
-              <span style={{ fontSize: 13, color: '#6b7280' }}>{activeOrders.length} order(s)</span>
+              <span style={{ fontSize: 13, color: '#64748b' }}>{activeOrders.length} order(s)</span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, padding: '16px 20px' }}>
@@ -2682,37 +2685,37 @@ const SalesReport = () => {
             <div style={{ overflow: 'auto' }}>
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, margin: '0 0 16px', minWidth: 1100 }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Date</th>
-                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Receipt #</th>
-                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Customer</th>
-                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Total ($)</th>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Date</th>
+                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Receipt #</th>
+                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'left',  fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Customer</th>
+                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Total ($)</th>
                   <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', borderBottom: '1px solid #bbf7d0', background: '#f0fdf4' }}>USD ($)</th>
                   <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase', borderBottom: '1px solid #ddd6fe', background: '#faf5ff' }}>FRA</th>
                   <th colSpan={4} style={{ padding: '8px 12px',  textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#c2410c', textTransform: 'uppercase', borderBottom: '1px solid #fed7aa', background: '#fff7ed' }}>K</th>
-                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb', verticalAlign: 'middle' }}>Credit ($)</th>
+                  <th rowSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0', verticalAlign: 'middle' }}>Credit ($)</th>
                 </tr>
-                <tr style={{ background: '#f9fafb' }}>
+                <tr style={{ background: '#f8fafc' }}>
                   {['Paid', 'Given', 'Net', '±'].map((h, i) => (
-                    <th key={`u${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#15803d', borderBottom: '1px solid #e5e7eb', background: '#f0fdf4' }}>{h}</th>
+                    <th key={`u${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#15803d', borderBottom: '1px solid #e2e8f0', background: '#f0fdf4' }}>{h}</th>
                   ))}
                   {['Paid', 'Given', 'Net', '±'].map((h, i) => (
-                    <th key={`f${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#7c3aed', borderBottom: '1px solid #e5e7eb', background: '#faf5ff' }}>{h}</th>
+                    <th key={`f${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#7c3aed', borderBottom: '1px solid #e2e8f0', background: '#faf5ff' }}>{h}</th>
                   ))}
                   {['Paid', 'Given', 'Net', '±'].map((h, i) => (
-                    <th key={`k${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#c2410c', borderBottom: '1px solid #e5e7eb', background: '#fff7ed' }}>{h}</th>
+                    <th key={`k${i}`} style={{ padding: '6px 8px', textAlign: 'right', fontSize: 10, fontWeight: 600, color: '#c2410c', borderBottom: '1px solid #e2e8f0', background: '#fff7ed' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {activeOrders.length === 0 ? (
-                  <tr><td colSpan={17} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No sales for the selected period.</td></tr>
+                  <tr><td colSpan={17} style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>No sales for the selected period.</td></tr>
                 ) : activeOrders.map(o => {
                   const r = adjusted(o);
                   const usdCol = '#16a34a', fraCol = '#7c3aed', kCol = '#ea580c';
                   const cell = (val, dec, sym, color) => {
                     const n = parseFloat(val) || 0;
-                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#d1d5db' }}>—</span>;
+                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#cbd5e1' }}>—</span>;
                     return <span style={{ color }}>{sym}{n.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}</span>;
                   };
                   // v1.8.88 — signed display. Positive (kept) keeps the passed
@@ -2720,16 +2723,16 @@ const SalesReport = () => {
                   // is visually distinct from gain at a glance.
                   const diffCell = (val, dec, sym, color) => {
                     const n = parseFloat(val) || 0;
-                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#d1d5db' }}>—</span>;
+                    if (Math.abs(n) < (dec === 0 ? 0.5 : 0.005)) return <span style={{ color: '#cbd5e1' }}>—</span>;
                     const isNeg = n < 0;
                     const c = isNeg ? '#dc2626' : color;
                     const sign = isNeg ? '−' : '+';
                     return <span style={{ color: c, fontWeight: 700 }}>{sign}{sym}{Math.abs(n).toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec })}</span>;
                   };
                   return (
-                    <tr key={o.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={o.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '8px 12px' }}>{new Date(o.created_at + 'Z').toLocaleDateString('en-GB')}</td>
-                      <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 11 }}>{fmtInvoiceNo(o.order_number)}</td>
+                      <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 11 }}>{fmtInvoiceNo(o.order_number)}</td>
                       <td style={{ padding: '8px 12px' }}>{o.customer_name || 'Walk-in'}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700 }}>{curSym}{(parseFloat(o.total_amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                       {/* USD group */}
@@ -2747,14 +2750,14 @@ const SalesReport = () => {
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fff7ed1a' }}>{cell(r.kGiven, 0, '', kCol)}</td>
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fff7ed1a', fontWeight: 600 }}>{cell(r.kNet, 0, '', kCol)}</td>
                       <td style={{ padding: '8px', textAlign: 'right', background: '#fffbeb' }}>{diffCell(r.kDiff, 0, '', '#92400e')}</td>
-                      <td style={{ padding: '8px 12px', textAlign: 'right', color: r.credit > 0 ? '#dc2626' : '#6b7280', fontWeight: r.credit > 0 ? 700 : 400 }}>{r.credit > 0 ? `$${(parseFloat(r.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right', color: r.credit > 0 ? '#dc2626' : '#64748b', fontWeight: r.credit > 0 ? 700 : 400 }}>{r.credit > 0 ? `$${(parseFloat(r.credit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : '—'}</td>
                     </tr>
                   );
                 })}
               </tbody>
               {activeOrders.length > 0 && (
                 <tfoot>
-                  <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
+                  <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
                     <td colSpan={3} style={{ padding: '11px 12px' }}>TOTAL</td>
                     <td style={{ padding: '11px 12px', textAlign: 'right' }}>{curSym}{(parseFloat(totalRevenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     <td style={{ padding: '11px 8px', textAlign: 'right', color: '#15803d' }}>${totals.usdPaid.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -2806,12 +2809,12 @@ const SalesReport = () => {
         }
         .sr-btn-close {
           display: inline-flex; align-items: center; gap: 6px;
-          padding: 10px 20px; border: 1.5px solid #e5e7eb;
+          padding: 10px 20px; border: 1.5px solid #e2e8f0;
           border-radius: 10px; background: #fff; cursor: pointer;
-          font-size: 13px; font-weight: 600; color: #374151;
+          font-size: 13px; font-weight: 600; color: #334155;
           transition: background 0.15s, border-color 0.15s;
         }
-        .sr-btn-close:hover { background: #f9fafb; border-color: #d1d5db; }
+        .sr-btn-close:hover { background: #f8fafc; border-color: #cbd5e1; }
         .sr-btn-print {
           display: inline-flex; align-items: center; gap: 6px;
           padding: 10px 20px; border: none; border-radius: 10px;
@@ -2845,16 +2848,16 @@ const SalesReport = () => {
               terminal the buttons were out of sight and out of reach. */}
           <div style={{ background: '#fff', borderRadius: 14, width: 'min(420px, 94vw)', maxHeight: '92vh', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', flexWrap: 'nowrap' }}>
             {viewLoading ? (
-              <div style={{ padding: 48, textAlign: 'center', color: '#6b7280' }}>Loading receipt...</div>
+              <div style={{ padding: 48, textAlign: 'center', color: '#64748b' }}>Loading receipt...</div>
             ) : viewOrder && (
               <>
                 {/* Receipt content */}
-                <div id="sr-receipt-content" style={{ padding: '32px 28px', fontFamily: 'monospace', flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
+                <div id="sr-receipt-content" style={{ padding: '32px 28px', fontFamily: 'var(--k-font-mono)', flex: '1 1 auto', minHeight: 0, overflowY: 'auto' }}>
 
                   {/* Header */}
                   <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                    <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, fontFamily: 'sans-serif' }}>{businessName}</h2>
-                    <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>Official Receipt</p>
+                    <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, fontFamily: 'inherit' }}>{businessName}</h2>
+                    <p style={{ margin: '4px 0 0', fontSize: 12, color: '#64748b' }}>Official Receipt</p>
                     {viewOrder.status === 'Reversed' && (
                       <div style={{ marginTop: 8, padding: '3px 12px', background: '#fee2e2', color: '#dc2626', borderRadius: 20, display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em' }}>
                         ✕ REVERSED
@@ -2867,7 +2870,7 @@ const SalesReport = () => {
                     )}
                   </div>
 
-                  <div style={{ borderTop: '1px dashed #d1d5db', margin: '12px 0' }} />
+                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '12px 0' }} />
 
                   {/* Order Info */}
                   <div style={{ fontSize: 12, marginBottom: 12 }}>
@@ -2886,17 +2889,17 @@ const SalesReport = () => {
                       })()],
                     ].map(([label, value]) => (
                       <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                        <span style={{ color: '#6b7280' }}>{label}</span>
+                        <span style={{ color: '#64748b' }}>{label}</span>
                         <strong>{value}</strong>
                       </div>
                     ))}
                   </div>
 
-                  <div style={{ borderTop: '1px dashed #d1d5db', margin: '12px 0' }} />
+                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '12px 0' }} />
 
                   {/* Items */}
                   <div style={{ marginBottom: 12 }}>
-                    <div style={{ display: 'flex', fontSize: 11, color: '#6b7280', marginBottom: 6, fontWeight: 600 }}>
+                    <div style={{ display: 'flex', fontSize: 11, color: '#64748b', marginBottom: 6, fontWeight: 600 }}>
                       <span style={{ flex: 2 }}>ITEM</span>
                       <span style={{ textAlign: 'center', flex: 1 }}>QTY</span>
                       <span style={{ textAlign: 'right', flex: 1 }}>PRICE</span>
@@ -2978,7 +2981,7 @@ const SalesReport = () => {
                               style={{
                                 width: 22, height: 22, padding: 0, border: 'none',
                                 borderRadius: 5, cursor: 'pointer',
-                                background: reversingItemId === item.id ? '#e5e7eb' : 'linear-gradient(135deg,#f87171,#dc2626)',
+                                background: reversingItemId === item.id ? '#e2e8f0' : 'linear-gradient(135deg,#f87171,#dc2626)',
                                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0
                               }}
@@ -3000,7 +3003,7 @@ const SalesReport = () => {
                       {((!isLiquorStyle && Math.abs(lineDisc) > 0.001) || lineDisc > 0) && (
                         <div key={`${idx}-disc`} style={{
                           display: 'flex', fontSize: 11,
-                          color: lineDisc > 0 ? '#6b7280' : '#2563eb',
+                          color: lineDisc > 0 ? '#64748b' : '#2563eb',
                           marginTop: -2, marginBottom: 6,
                           opacity: item.reversed ? 0.5 : 1,
                         }}>
@@ -3020,7 +3023,7 @@ const SalesReport = () => {
                     })}
                   </div>
 
-                  <div style={{ borderTop: '1px dashed #d1d5db', margin: '12px 0' }} />
+                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '12px 0' }} />
 
                   {/* Totals — ORIGINAL transaction values + Partial Refunds section if any */}
                   {(() => {
@@ -3053,7 +3056,7 @@ const SalesReport = () => {
                     return (
                       <div style={{ fontSize: 12 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ color: '#6b7280' }}>Subtotal</span>
+                          <span style={{ color: '#64748b' }}>Subtotal</span>
                           <span>{curSym}{(parseFloat(originalSubtotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                         </div>
                         {/* v1.8.57 — discount can be negative (= markup). Show
@@ -3069,7 +3072,7 @@ const SalesReport = () => {
                             </span>
                           </div>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingTop: 6, borderTop: '1px solid #e5e7eb', fontWeight: 700, fontSize: 14 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, paddingTop: 6, borderTop: '1px solid #e2e8f0', fontWeight: 700, fontSize: 14 }}>
                           <span>TOTAL</span>
                           <span>{curSym}{(parseFloat(originalTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                         </div>
@@ -3082,7 +3085,7 @@ const SalesReport = () => {
                           if (!hasSplit) {
                             return (
                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                                <span style={{ color: '#6b7280' }}>Amount Received</span>
+                                <span style={{ color: '#64748b' }}>Amount Received</span>
                                 <span>{curSym}{(parseFloat(amountReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                               </div>
                             );
@@ -3091,23 +3094,23 @@ const SalesReport = () => {
                             <>
                               {cashIn > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                                  <span style={{ color: '#6b7280' }}>Cash</span>
+                                  <span style={{ color: '#64748b' }}>Cash</span>
                                   <span>{curSym}{(parseFloat(cashIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                 </div>
                               )}
                               {momoIn > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                                  <span style={{ color: '#6b7280' }}>Mobile Money</span>
+                                  <span style={{ color: '#64748b' }}>Mobile Money</span>
                                   <span>{curSym}{(parseFloat(momoIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                 </div>
                               )}
                               {bankIn > 0 && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                                  <span style={{ color: '#6b7280' }}>Bank</span>
+                                  <span style={{ color: '#64748b' }}>Bank</span>
                                   <span>{curSym}{(parseFloat(bankIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                 </div>
                               )}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontWeight: 700, borderTop: '1px dotted #e5e7eb', paddingTop: 3 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontWeight: 700, borderTop: '1px dotted #e2e8f0', paddingTop: 3 }}>
                                 <span>Total Received</span>
                                 <span>{curSym}{(parseFloat(amountReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                               </div>
@@ -3137,13 +3140,13 @@ const SalesReport = () => {
                         {/* Partial Refunds section — only shown if any reversal occurred */}
                         {refundLines.length > 0 && (
                           <>
-                            <div style={{ borderTop: '1px dashed #d1d5db', margin: '12px 0 8px' }} />
+                            <div style={{ borderTop: '1px dashed #cbd5e1', margin: '12px 0 8px' }} />
                             <div style={{ fontSize: 11, fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                               Partial Refunds
                             </div>
                             {refundLines.map((r, idx) => (
                               <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontSize: 11.5 }}>
-                                <span style={{ color: '#374151' }}>
+                                <span style={{ color: '#334155' }}>
                                   {r.item.product_name} −{(parseFloat(Number(r.qty))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {r.item.unit || ''}
                                 </span>
                                 <span style={{ color: '#b45309' }}>−{curSym}{(parseFloat(r.amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
@@ -3153,7 +3156,7 @@ const SalesReport = () => {
                               <span>Refund Owed</span>
                               <span>{curSym}{(parseFloat(totalRefund)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #111827', fontWeight: 800, fontSize: 14 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTop: '2px solid #0f172a', fontWeight: 800, fontSize: 14 }}>
                               <span>NET TOTAL</span>
                               <span>{curSym}{(parseFloat(netTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                             </div>
@@ -3163,9 +3166,9 @@ const SalesReport = () => {
                     );
                   })()}
 
-                  <div style={{ borderTop: '1px dashed #d1d5db', margin: '16px 0 12px' }} />
+                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '16px 0 12px' }} />
 
-                  <div style={{ textAlign: 'center', fontSize: 11, color: '#6b7280' }}>
+                  <div style={{ textAlign: 'center', fontSize: 11, color: '#64748b' }}>
                     <p style={{ margin: 0 }}>Thank you for your purchase!</p>
                     <p style={{ margin: '2px 0 0' }}>Please come again.</p>
                   </div>
@@ -3199,7 +3202,7 @@ const SalesReport = () => {
                     return (
                       <>
                         <div style={{ borderTop: '1px dashed #fca5a5', margin: '14px 0 10px' }} />
-                        <div style={{ fontSize: 11, color: '#b91c1c', fontFamily: 'monospace', display: 'grid', gap: 4 }}>
+                        <div style={{ fontSize: 11, color: '#b91c1c', fontFamily: 'var(--k-font-mono)', display: 'grid', gap: 4 }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
                             <span>CN No:</span>
                             <strong>{cnKeleteRef}</strong>
@@ -3226,7 +3229,7 @@ const SalesReport = () => {
                 {/* Action Buttons */}
                 <div className="sr-no-print" style={{
                   display: 'flex', gap: 8, padding: '14px 24px 20px',
-                  borderTop: '1px solid #f3f4f6', justifyContent: 'flex-end',
+                  borderTop: '1px solid #f1f5f9', justifyContent: 'flex-end',
                   flexWrap: 'wrap', flexShrink: 0, background: '#fff'
                 }}>
                   <button className="sr-btn-close" onClick={() => setViewOrder(null)}>
@@ -3267,14 +3270,14 @@ const SalesReport = () => {
                         try {
                           const res = await retryOrderZra(viewOrder.id);
                           if (res.data?.ok) {
-                            alert('ZRA fiscalisation succeeded. Reload to see the QR + signature.');
+                            ui.alert('ZRA fiscalisation succeeded. Reload to see the QR + signature.');
                             const fresh = await getOrder(viewOrder.id);
                             setViewOrder(fresh.data);
                           } else {
-                            alert(`Retry failed: ${res.data?.zra?.error || 'unknown'}. Background queue will keep trying.`);
+                            ui.alert(`Retry failed: ${res.data?.zra?.error || 'unknown'}. Background queue will keep trying.`);
                           }
                         } catch (err) {
-                          alert(`Retry failed: ${err?.response?.data?.error || err.message}`);
+                          ui.alert(`Retry failed: ${err?.response?.data?.error || err.message}`);
                         }
                       }}
                       title="Force an immediate ZRA saveSales retry for this order"
@@ -3337,9 +3340,9 @@ const SalesReport = () => {
         <Portal>
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 420, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#111827' }}>Reverse line item</h3>
-              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>{reverseModal.item.product_name}</p>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0f172a' }}>Reverse line item</h3>
+              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#64748b' }}>{reverseModal.item.product_name}</p>
             </div>
             <div style={{ padding: '20px 24px' }}>
               {(() => {
@@ -3356,18 +3359,18 @@ const SalesReport = () => {
 
                 return (
                   <>
-                    <div style={{ fontSize: 13, color: '#374151', marginBottom: 12, lineHeight: 1.7, background: '#f9fafb', borderRadius: 8, padding: '10px 12px' }}>
+                    <div style={{ fontSize: 13, color: '#334155', marginBottom: 12, lineHeight: 1.7, background: '#f8fafc', borderRadius: 8, padding: '10px 12px' }}>
                       <div>Original sold: <strong>{orig} {it.unit || ''}</strong>
-                        {it.alt_unit && !isLineAlt && (<span style={{ color: '#6b7280' }}> </span>)}
+                        {it.alt_unit && !isLineAlt && (<span style={{ color: '#64748b' }}> </span>)}
                       </div>
                       {already > 0 && <div>Already reversed: <strong style={{ color: '#dc2626' }}>{already} {it.unit || ''}</strong></div>}
                       <div>Remaining: <strong style={{ color: '#15803d' }}>{remainingInLineUnit} {it.unit || ''}</strong>
                         {it.alt_unit && (
-                          <span style={{ color: '#6b7280', fontSize: 12 }}> ({remainingBase} {baseUnit})</span>
+                          <span style={{ color: '#64748b', fontSize: 12 }}> ({remainingBase} {baseUnit})</span>
                         )}
                       </div>
                     </div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>How much to reverse?</label>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>How much to reverse?</label>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <input
                         type="number"
@@ -3377,34 +3380,34 @@ const SalesReport = () => {
                         max={remainingInReverseUnit}
                         value={reverseModal.qtyToReverse}
                         onChange={e => setReverseModal({ ...reverseModal, qtyToReverse: e.target.value })}
-                        style={{ flex: 1, padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 16, outline: 'none', boxSizing: 'border-box' }}
+                        style={{ flex: 1, padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 16, outline: 'none', boxSizing: 'border-box' }}
                       />
                       {it.alt_unit ? (
                         <select
                           value={reverseModal.unit}
                           onChange={e => setReverseModal({ ...reverseModal, unit: e.target.value })}
-                          style={{ padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 130 }}
+                          style={{ padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 130 }}
                         >
                           <option value={it.product_base_unit || baseUnit}>{it.product_base_unit || baseUnit}</option>
                           <option value={it.alt_unit}>{it.alt_unit} (1={conv})</option>
                         </select>
                       ) : (
-                        <div style={{ padding: '10px 14px', color: '#6b7280', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#f9fafb', minWidth: 90, textAlign: 'center' }}>{it.unit || ''}</div>
+                        <div style={{ padding: '10px 14px', color: '#64748b', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, background: '#f8fafc', minWidth: 90, textAlign: 'center' }}>{it.unit || ''}</div>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 8 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>
                       Pre-filled to full remaining. You can change qty or switch unit (e.g. customer returns 2 pcs when they bought boxes).
                     </div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
                       Max in {reverseModal.unit}: <strong>{(parseFloat(remainingInReverseUnit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
                     </div>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', margin: '14px 0 6px' }}>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', margin: '14px 0 6px' }}>
                       Reason for reversal <span style={{ color: '#dc2626' }}>*</span>
                     </label>
                     <select
                       value={reverseModal.reason_cd}
                       onChange={e => setReverseModal(m => ({ ...m, reason_cd: e.target.value, error: null }))}
-                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff' }}
+                      style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, background: '#fff' }}
                     >
                       <option value="01">01 — Wrong product(s)</option>
                       <option value="02">02 — Wrong price</option>
@@ -3416,7 +3419,7 @@ const SalesReport = () => {
                     </select>
                     {reverseModal.reason_cd === '07' && (
                       <div style={{ marginTop: 10 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                           Brief description <span style={{ color: '#dc2626' }}>*</span>
                         </label>
                         <input
@@ -3425,7 +3428,7 @@ const SalesReport = () => {
                           onChange={e => setReverseModal(m => ({ ...m, reason_other: e.target.value, error: null }))}
                           placeholder="e.g. customer changed mind"
                           maxLength={120}
-                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14 }}
+                          style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14 }}
                         />
                       </div>
                     )}
@@ -3438,7 +3441,7 @@ const SalesReport = () => {
                 );
               })()}
             </div>
-            <div style={{ padding: '14px 24px 20px', display: 'flex', gap: 8, justifyContent: 'flex-end', borderTop: '1px solid #f3f4f6' }}>
+            <div style={{ padding: '14px 24px 20px', display: 'flex', gap: 8, justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9' }}>
               <button onClick={() => setReverseModal(null)} className="sr-btn-close">Cancel</button>
               <button onClick={confirmReverseItem} className="sr-btn-reverse" disabled={reversingItemId === reverseModal.item.id}>
                 <FiRotateCcw size={14} /> {reversingItemId === reverseModal.item.id ? 'Reversing…' : 'Reverse'}
@@ -3455,39 +3458,39 @@ const SalesReport = () => {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 640, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column' }}>
             {/* Header */}
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>{breakdown.productName}</h3>
-                <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{breakdown.productName}</h3>
+                <p style={{ margin: '3px 0 0', fontSize: 12, color: '#64748b' }}>
                   Individual sales · {dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`}
                 </p>
               </div>
-              <button onClick={() => setBreakdown(null)} style={{ padding: '6px 14px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151' }}>Close</button>
+              <button onClick={() => setBreakdown(null)} style={{ padding: '6px 14px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#334155' }}>Close</button>
             </div>
             {/* Body */}
             <div style={{ padding: '16px 24px' }}>
               {breakdownLoading ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>{t('loading')}</div>
+                <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>{t('loading')}</div>
               ) : breakdown.items.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No sales found for this period.</div>
+                <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No sales found for this period.</div>
               ) : (
                 <>
                   <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
                       <tr style={{ background: '#f8faff' }}>
-                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>#</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Date & Time</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Order #</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Qty</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Unit Price</th>
-                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#374151', borderBottom: '1px solid #e5e7eb' }}>Total</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#334155', borderBottom: '1px solid #e2e8f0' }}>#</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#334155', borderBottom: '1px solid #e2e8f0' }}>Date & Time</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'left', fontWeight: 600, color: '#334155', borderBottom: '1px solid #e2e8f0' }}>Order #</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#334155', borderBottom: '1px solid #e2e8f0' }}>Qty</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#334155', borderBottom: '1px solid #e2e8f0' }}>Unit Price</th>
+                        <th style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#334155', borderBottom: '1px solid #e2e8f0' }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {breakdown.items.map((row, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '8px 12px', color: '#6b7280' }}>{i + 1}</td>
-                          <td style={{ padding: '8px 12px', color: '#374151' }}>{new Date(row.created_at + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '8px 12px', color: '#64748b' }}>{i + 1}</td>
+                          <td style={{ padding: '8px 12px', color: '#334155' }}>{new Date(row.created_at + 'Z').toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                           <td style={{ padding: '8px 12px', fontWeight: 600, color: '#2563eb' }}>{fmtInvoiceNo(row.order_number)}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'right' }}>{(parseFloat(parseFloat(row.quantity))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                           <td style={{ padding: '8px 12px', textAlign: 'right' }}>{curSym}{(parseFloat(parseFloat(row.unit_price))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -3497,7 +3500,7 @@ const SalesReport = () => {
                     </tbody>
                     <tfoot>
                       <tr style={{ background: '#f8faff', fontWeight: 700 }}>
-                        <td colSpan={3} style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>Total</td>
+                        <td colSpan={3} style={{ padding: '10px 12px', textAlign: 'right', color: '#334155' }}>Total</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right' }}>{(parseFloat(breakdown.items.reduce((s, r) => s + parseFloat(r.quantity), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         <td></td>
                         <td style={{ padding: '10px 12px', textAlign: 'right', color: '#15803d' }}>{curSym}{(parseFloat(breakdown.items.reduce((s, r) => s + parseFloat(r.total_price), 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
@@ -3521,20 +3524,20 @@ const SalesReport = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Reverse Sale</h3>
-              <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Reverse Sale</h3>
+              <p style={{ margin: '3px 0 0', fontSize: 12, color: '#64748b' }}>
                 {fmtInvoiceNo(reverseReasonModal.order.order_number)} — pick a reason, then confirm with admin password.
               </p>
             </div>
             <div style={{ padding: '18px 22px' }}>
-              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                 Reason for reversal <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <select
                 value={reverseReasonModal.reason_cd}
                 onChange={e => setReverseReasonModal(m => ({ ...m, reason_cd: e.target.value, error: null }))}
-                style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff' }}
+                style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, background: '#fff' }}
               >
                 <option value="01">01 — Wrong product(s)</option>
                 <option value="02">02 — Wrong price</option>
@@ -3546,7 +3549,7 @@ const SalesReport = () => {
               </select>
               {reverseReasonModal.reason_cd === '07' && (
                 <div style={{ marginTop: 12 }}>
-                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                     Brief description <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
@@ -3555,7 +3558,7 @@ const SalesReport = () => {
                     onChange={e => setReverseReasonModal(m => ({ ...m, reason_other: e.target.value, error: null }))}
                     placeholder="e.g. customer changed mind"
                     maxLength={120}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14 }}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14 }}
                   />
                 </div>
               )}
@@ -3565,10 +3568,10 @@ const SalesReport = () => {
                 </div>
               )}
             </div>
-            <div style={{ padding: '14px 22px 18px', display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '14px 22px 18px', display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #e2e8f0' }}>
               <button
                 onClick={() => setReverseReasonModal(null)}
-                style={{ padding: '8px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
+                style={{ padding: '8px 16px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}
               >
                 Cancel
               </button>
@@ -3589,9 +3592,9 @@ const SalesReport = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 480, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>Debit Note</h3>
-              <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Debit Note</h3>
+              <p style={{ margin: '3px 0 0', fontSize: 12, color: '#64748b' }}>
                 Additional charge on invoice <strong>{fmtInvoiceNo(debitNoteModal.order.order_number)}</strong>
                 {debitNoteModal.order.customer_name ? ` · ${debitNoteModal.order.customer_name}` : ''}
               </p>
@@ -3604,22 +3607,22 @@ const SalesReport = () => {
               ) : (
                 <>
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Amount ({curSym})</label>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Amount ({curSym})</label>
                     <input
                       type="number" min="0" step="0.01"
                       autoFocus
                       value={debitNoteModal.amount}
                       onChange={e => setDebitNoteModal(m => ({ ...m, amount: e.target.value }))}
                       placeholder="e.g. 150.00"
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 15, boxSizing: 'border-box' }}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 15, boxSizing: 'border-box' }}
                     />
                   </div>
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Reason (ZRA)</label>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Reason (ZRA)</label>
                     <select
                       value={debitNoteModal.reason_cd}
                       onChange={e => setDebitNoteModal(m => ({ ...m, reason_cd: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', background: '#fff' }}>
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', background: '#fff' }}>
                       <option value="01">01 — Wrong product</option>
                       <option value="02">02 — Wrong price</option>
                       <option value="03">03 — Damaged</option>
@@ -3630,13 +3633,13 @@ const SalesReport = () => {
                     </select>
                   </div>
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Notes (optional)</label>
+                    <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 6 }}>Notes (optional)</label>
                     <textarea
                       value={debitNoteModal.notes}
                       onChange={e => setDebitNoteModal(m => ({ ...m, notes: e.target.value }))}
                       placeholder="e.g. Delivery fee not billed at sale"
                       rows={2}
-                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', resize: 'vertical' }}
+                      style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', resize: 'vertical' }}
                     />
                   </div>
                   {debitNoteModal.error && (
@@ -3647,10 +3650,10 @@ const SalesReport = () => {
                 </>
               )}
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button
                 onClick={() => setDebitNoteModal(null)}
-                style={{ padding: '9px 16px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                style={{ padding: '9px 16px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#334155' }}>
                 {debitNoteModal.success ? 'Close' : 'Cancel'}
               </button>
               {!debitNoteModal.success && (

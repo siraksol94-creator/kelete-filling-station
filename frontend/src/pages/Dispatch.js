@@ -93,7 +93,7 @@ export default function Dispatch() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 16, height: 'calc(100vh - 200px)' }}>
         {/* ── LEFT: Paid orders queue ─────────────────────────────────── */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, overflowY: 'auto' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <h3 style={{ margin: 0, fontSize: 15, color: '#0f172a' }}>Paid · Awaiting Dispatch</h3>
             <span style={{ fontSize: 12, color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: 12 }}>
@@ -124,7 +124,7 @@ export default function Dispatch() {
                   onClick={() => openOrder(o.id)}
                   style={{
                     padding: '10px 12px',
-                    border: `1.5px solid ${selected?.id === o.id ? '#2563eb' : '#e5e7eb'}`,
+                    border: `1.5px solid ${selected?.id === o.id ? '#2563eb' : '#e2e8f0'}`,
                     background: selected?.id === o.id ? '#eff6ff' : '#fff',
                     borderRadius: 8, cursor: 'pointer',
                   }}>
@@ -152,7 +152,7 @@ export default function Dispatch() {
         </div>
 
         {/* ── RIGHT: Order detail + confirm ──────────────────────────── */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
           {!selected ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', flexDirection: 'column' }}>
               <FiTruck size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
@@ -178,7 +178,7 @@ export default function Dispatch() {
               <h4 style={{ margin: '18px 0 8px 0', fontSize: 14, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <FiCheckCircle /> Items to Release
               </h4>
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead style={{ background: '#f8fafc' }}>
                     <tr>

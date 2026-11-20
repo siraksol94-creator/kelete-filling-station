@@ -299,13 +299,13 @@ const PaymentVoucherFormModal = ({
               <div className="form-group">
                 <label>Paid From</label>
                 <input value={form.paid_from} disabled
-                  style={{ background: '#f3f4f6', fontWeight: 600, cursor: 'not-allowed' }} />
+                  style={{ background: '#f1f5f9', fontWeight: 600, cursor: 'not-allowed' }} />
               </div>
             )}
 
             {/* Amount split across methods — mirrors the AP Record Payment modal. */}
             <div className="form-group">
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                 Amount Paid (split across methods)
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(${shownFields.length}, 1fr)`, gap: 10 }}>
@@ -328,10 +328,10 @@ const PaymentVoucherFormModal = ({
                         title={locked ? (effectiveLiquorStyle ? 'Clear the other method to switch — one PV = one method.' : 'Clear the other currency to switch — one PV = one currency.') : ''}
                         style={{
                           width: '100%', padding: '8px 10px',
-                          border: `2px solid ${locked ? '#e5e7eb' : (parseFloat(form[f.key] || 0) > 0 || isDefault ? f.color : '#d1d5db')}`,
+                          border: `2px solid ${locked ? '#e2e8f0' : (parseFloat(form[f.key] || 0) > 0 || isDefault ? f.color : '#cbd5e1')}`,
                           borderRadius: 6, fontSize: 14, fontWeight: 600,
-                          color: locked ? '#cbd5e1' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#374151'),
-                          background: locked ? '#f9fafb' : '#fff',
+                          color: locked ? '#cbd5e1' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#334155'),
+                          background: locked ? '#f8fafc' : '#fff',
                           cursor: locked ? 'not-allowed' : 'text',
                           boxSizing: 'border-box',
                           boxShadow: isDefault && !locked ? `0 0 0 3px ${f.color}25` : 'none',
@@ -340,7 +340,7 @@ const PaymentVoucherFormModal = ({
                   );
                 })}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
                 {(() => {
                   // v1.10.31 — Liquor totals sum all three inputs in one currency
                   // (only one is non-zero due to the lock, so this reads the
@@ -350,7 +350,7 @@ const PaymentVoucherFormModal = ({
                     const t = fieldConfigs.reduce((s, f) => s + (parseFloat(form[f.key] || 0) || 0), 0);
                     return (
                       <>
-                        <span style={{ color: '#6b7280' }}>Total</span>
+                        <span style={{ color: '#64748b' }}>Total</span>
                         <span style={{ fontWeight: 800, color: '#1d4ed8' }}>
                           {curSym}{t.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
@@ -359,7 +359,7 @@ const PaymentVoucherFormModal = ({
                   }
                   return (
                     <>
-                      <span style={{ color: '#6b7280' }}>Header total (USD only)</span>
+                      <span style={{ color: '#64748b' }}>Header total (USD only)</span>
                       <span style={{ fontWeight: 800, color: '#1d4ed8' }}>
                         ${(parseFloat(form.usd_amount || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>

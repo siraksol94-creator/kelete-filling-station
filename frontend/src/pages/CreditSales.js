@@ -159,12 +159,12 @@ export function TicketsPage({ method }) {
           </tr></thead>
           <tbody>
             {rows.map(r => (
-              <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+              <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                 <td style={S.td}>{fmtDay(r.date || (r.created_at || '').slice(0, 10))}</td>
                 <td style={S.td}>{r.attendant_name || '-'} <span style={{ color: '#475569', fontSize: 12 }}>(shift #{r.shift_id})</span></td>
                 <td style={S.td}><strong>{r.customer_name}</strong>{r.card_number ? <span style={{ color: '#475569' }}> · {r.card_number}</span> : null}</td>
                 <td style={S.td}>{r.vehicle_registration || '-'}</td>
-                <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name || '-'}</span></td>
+                <td style={S.td}><span style={S.pill(r.grade_color || '#64748b')}>{r.grade_name || '-'}</span></td>
                 <td style={S.tdR}>{fmtL(r.litres, 2)}</td>
                 <td style={S.tdR}>{fmtK(r.price_per_litre)}</td>
                 <td style={S.tdR}><strong>{fmtK(r.amount)}</strong></td>

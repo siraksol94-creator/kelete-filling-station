@@ -141,7 +141,7 @@ export default function ItemPicker({
           value={text}
           readOnly
           title={text}
-          style={{ ...style, background: '#f8fafc', color: '#111827', cursor: 'default' }}
+          style={{ ...style, background: '#f8fafc', color: '#0f172a', cursor: 'default' }}
         />
         {!disabled && (
           <button
@@ -149,7 +149,7 @@ export default function ItemPicker({
             onClick={() => { onClear && onClear(); setOpen(true); setTimeout(() => inputRef.current && inputRef.current.focus(), 0); }}
             title="Choose a different item"
             style={{
-              flexShrink: 0, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280',
+              flexShrink: 0, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b',
               borderRadius: 4, width: 22, height: 22, lineHeight: '18px', cursor: 'pointer',
               fontSize: 14, padding: 0,
             }}>
@@ -175,7 +175,7 @@ export default function ItemPicker({
         onKeyDown={onKeyDown}
         style={{
           ...style,
-          border: unresolved ? '1px solid #f59e0b' : (style.border || '1px solid #d1d5db'),
+          border: unresolved ? '1px solid #f59e0b' : (style.border || '1px solid #cbd5e1'),
           background: unresolved ? '#fffbeb' : (style.background || '#fff'),
         }}
       />
@@ -187,7 +187,7 @@ export default function ItemPicker({
               position: 'fixed', zIndex: 100000,
               top: rect.top, left: rect.left, width: rect.width,
               maxHeight: 280, overflowY: 'auto', background: '#fff',
-              border: '1px solid #d1d5db', borderRadius: 6,
+              border: '1px solid #cbd5e1', borderRadius: 6,
               boxShadow: '0 10px 28px rgba(0,0,0,0.16)',
             }}>
             {matches.map((p, idx) => {
@@ -204,8 +204,8 @@ export default function ItemPicker({
                   {heading && (
                     <div style={{
                       padding: '5px 10px', fontSize: 10, fontWeight: 700, letterSpacing: 0.4,
-                      textTransform: 'uppercase', borderBottom: '1px solid #e5e7eb',
-                      color: tag ? '#15803d' : '#6b7280', background: tag ? '#f0fdf4' : '#f9fafb',
+                      textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0',
+                      color: tag ? '#15803d' : '#64748b', background: tag ? '#f0fdf4' : '#f8fafc',
                     }}>
                       {heading}
                     </div>
@@ -223,16 +223,16 @@ export default function ItemPicker({
                       ...(tagFor ? { borderLeft: `3px solid ${tag ? '#16a34a' : 'transparent'}` } : {}),
                       display: 'flex', justifyContent: 'space-between', gap: 10,
                     }}>
-                    <span style={{ color: tag ? '#15803d' : '#111827', fontWeight: tag ? 600 : 400 }}>{p.name}</span>
+                    <span style={{ color: tag ? '#15803d' : '#0f172a', fontWeight: tag ? 600 : 400 }}>{p.name}</span>
                     {tag
                       ? <span style={{ color: '#15803d', fontSize: 11, whiteSpace: 'nowrap' }}>{tag}</span>
-                      : p.code && <span style={{ color: '#6b7280', fontFamily: 'monospace', fontSize: 11 }}>{p.code}</span>}
+                      : p.code && <span style={{ color: '#64748b', fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>{p.code}</span>}
                   </div>
                 </React.Fragment>
               );
             })}
             {products.length > matches.length && (
-              <div style={{ padding: '6px 10px', fontSize: 10, color: '#6b7280', background: '#f9fafb' }}>
+              <div style={{ padding: '6px 10px', fontSize: 10, color: '#64748b', background: '#f8fafc' }}>
                 Showing {matches.length} — keep typing to narrow down.
               </div>
             )}
@@ -243,7 +243,7 @@ export default function ItemPicker({
             style={{
               position: 'fixed', zIndex: 100000,
               top: rect.top, left: rect.left, width: rect.width,
-              background: '#fff', border: '1px solid #d1d5db', borderRadius: 6,
+              background: '#fff', border: '1px solid #cbd5e1', borderRadius: 6,
               padding: '8px 10px', fontSize: 11, color: '#b45309',
               boxShadow: '0 10px 28px rgba(0,0,0,0.16)',
             }}>

@@ -32,7 +32,7 @@ const CategoryFilter = ({
   );
   const effectiveMains = useMemo(() => {
     const list = mainCategories.map(m => ({ ...m, _virtual: false }));
-    if (hasUnassigned) list.push({ id: '__unassigned__', name: 'Uncategorized', color: '#6b7280', _virtual: true });
+    if (hasUnassigned) list.push({ id: '__unassigned__', name: 'Uncategorized', color: '#64748b', _virtual: true });
     return list;
   }, [mainCategories, hasUnassigned]);
 
@@ -99,9 +99,9 @@ const CategoryFilter = ({
       style={{
         display: 'inline-flex', alignItems: 'center', gap: 6,
         padding: '5px 12px', borderRadius: 50,
-        background: checked ? (color + '20') : '#f3f4f6',
-        color: checked ? color : '#6b7280',
-        border: `1.5px solid ${checked ? (color + '50') : '#e5e7eb'}`,
+        background: checked ? (color + '20') : '#f1f5f9',
+        color: checked ? color : '#64748b',
+        border: `1.5px solid ${checked ? (color + '50') : '#e2e8f0'}`,
         fontWeight: 600, fontSize: 12, cursor: 'pointer',
         transition: 'all 0.12s',
         textDecoration: checked ? 'none' : 'line-through',
@@ -117,36 +117,36 @@ const CategoryFilter = ({
     // 2026-09-12 — cat-filter / cat-filter-row: on phones each chip row
     // scrolls sideways instead of wrapping down the screen (index.css).
     <div className="cat-filter" style={{
-      background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10,
+      background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10,
       padding: compact ? '10px 14px' : '14px 18px',
       marginBottom: 16,
     }}>
       <div className="cat-filter-row" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>
           <FiLayers size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Main Category:
         </span>
         {effectiveMains.length === 0 ? (
-          <span style={{ fontSize: 12, color: '#6b7280', fontStyle: 'italic' }}>(none configured)</span>
+          <span style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>(none configured)</span>
         ) : effectiveMains.map(m =>
-          chip(m.name, m.color || '#6b7280', isMainChecked(m.id), () => toggleMain(m.id), `m-${m.id}`)
+          chip(m.name, m.color || '#64748b', isMainChecked(m.id), () => toggleMain(m.id), `m-${m.id}`)
         )}
         {effectiveMains.length > 0 && (
           <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
             <button type="button" onClick={allOn}
-              style={{ fontSize: 11, padding: '3px 10px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', color: '#6b7280' }}>All</button>
+              style={{ fontSize: 11, padding: '3px 10px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', color: '#64748b' }}>All</button>
             <button type="button" onClick={allOff}
-              style={{ fontSize: 11, padding: '3px 10px', background: 'transparent', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', color: '#6b7280' }}>None</button>
+              style={{ fontSize: 11, padding: '3px 10px', background: 'transparent', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', color: '#64748b' }}>None</button>
           </span>
         )}
       </div>
 
       {visibleCats.length > 0 && (
-        <div className="cat-filter-row" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', borderTop: '1px dashed #e5e7eb', paddingTop: 8 }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>
+        <div className="cat-filter-row" style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', borderTop: '1px dashed #e2e8f0', paddingTop: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginRight: 4 }}>
             <FiTag size={11} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Category:
           </span>
           {visibleCats.map(c =>
-            chip(c.name, c.color || '#6b7280', isCatChecked(c.id), () => toggleCat(c.id), `c-${c.id}`)
+            chip(c.name, c.color || '#64748b', isCatChecked(c.id), () => toggleCat(c.id), `c-${c.id}`)
           )}
         </div>
       )}

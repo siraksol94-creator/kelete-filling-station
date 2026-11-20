@@ -108,7 +108,7 @@ export default function FuelDeliveries() {
                       <TankerArt width={86} color={r.grade_color || '#0e7490'} />
                       <div>
                         <div className="k-dl-litres k-fc-num">{fmtL(r.litres_delivered)}</div>
-                        <div className="k-dl-cost k-fc-num">K {Number(r.cost_per_litre || 0).toLocaleString('en-ZM', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} /L · <b>{fmtK(r.total_cost)}</b></div>
+                        <div className="k-dl-cost k-fc-num">K{Number(r.cost_per_litre || 0).toLocaleString('en-ZM', { minimumFractionDigits: 4, maximumFractionDigits: 4 })} /L · <b>{fmtK(r.total_cost)}</b></div>
                       </div>
                     </div>
                     <dl className="k-dl-check">

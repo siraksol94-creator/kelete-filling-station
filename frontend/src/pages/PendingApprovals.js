@@ -99,7 +99,7 @@ const PendingApprovals = () => {
     return (
       <div style={{ padding: 30 }}>
         <h2>Pending Approvals</h2>
-        <p style={{ color: '#6b7280' }}>Only administrators can view this page.</p>
+        <p style={{ color: '#64748b' }}>Only administrators can view this page.</p>
       </div>
     );
   }
@@ -111,28 +111,28 @@ const PendingApprovals = () => {
     // grid rolls.
     <div style={{ padding: 24, height: '100%', overflowY: 'auto' }}>
       <div style={{ marginBottom: 18 }}>
-        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>Discount Approvals</h2>
-        <p style={{ margin: '4px 0 14px', color: '#6b7280', fontSize: 13 }}>Cashier discount requests awaiting your verdict.</p>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Discount Approvals</h2>
+        <p style={{ margin: '4px 0 14px', color: '#64748b', fontSize: 13 }}>Cashier discount requests awaiting your verdict.</p>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: 12, background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap', padding: 12, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>From</label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4 }}>From</label>
             <input
               type="date"
               value={dateFrom}
               onChange={e => setDateFrom(e.target.value)}
-              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff' }}
+              style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff' }}
             />
-            <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>To</label>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4 }}>To</label>
             <input
               type="date"
               value={dateTo}
               onChange={e => setDateTo(e.target.value)}
-              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff' }}
+              style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff' }}
             />
             <button
               onClick={() => { setDateFrom(todayStr()); setDateTo(todayStr()); }}
-              style={{ padding: '6px 10px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
+              style={{ padding: '6px 10px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 11, fontWeight: 700 }}
             >Today</button>
           </div>
 
@@ -146,8 +146,8 @@ const PendingApprovals = () => {
                 style={{
                   padding: '8px 14px',
                   background: statusFilter === s ? '#dc2626' : '#fff',
-                  color: statusFilter === s ? '#fff' : '#374151',
-                  border: '1px solid ' + (statusFilter === s ? '#dc2626' : '#e5e7eb'),
+                  color: statusFilter === s ? '#fff' : '#334155',
+                  border: '1px solid ' + (statusFilter === s ? '#dc2626' : '#e2e8f0'),
                   borderRadius: 8, cursor: 'pointer', fontSize: 12, fontWeight: 700, textTransform: 'capitalize',
                 }}
               >{s}</button>
@@ -155,18 +155,18 @@ const PendingApprovals = () => {
             <button
               onClick={fetchList}
               title="Refresh"
-              style={{ padding: '8px 12px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}
+              style={{ padding: '8px 12px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer' }}
             ><FiRefreshCw size={14} /></button>
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Loading…</div>
       ) : list.length === 0 ? (
-        <div style={{ padding: 60, textAlign: 'center', background: '#f9fafb', border: '1px dashed #e5e7eb', borderRadius: 12 }}>
-          <FiClock size={28} color="#9ca3af" />
-          <div style={{ marginTop: 10, fontSize: 14, color: '#6b7280' }}>
+        <div style={{ padding: 60, textAlign: 'center', background: '#f8fafc', border: '1px dashed #e2e8f0', borderRadius: 12 }}>
+          <FiClock size={28} color="#94a3b8" />
+          <div style={{ marginTop: 10, fontSize: 14, color: '#64748b' }}>
             No {statusFilter} requests {dateFrom === dateTo ? `on ${dateFrom}` : `between ${dateFrom} and ${dateTo}`}.
           </div>
         </div>
@@ -189,9 +189,9 @@ const PendingApprovals = () => {
             const discount  = isCart ? perUnitD                       : qty * perUnitD; // signed for price-change
             const net       = isPriceChange ? qty * newPrice : Math.max(0, subtotal - discount);
             const row = (label, value, opts = {}) => (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 12, padding: '4px 0', ...(opts.divider ? { borderTop: '1px dashed #e5e7eb', marginTop: 4, paddingTop: 8 } : {}) }}>
-                <span style={{ color: opts.muted ? '#6b7280' : '#374151', fontWeight: opts.bold ? 700 : 500 }}>{label}</span>
-                <span style={{ color: opts.color || '#111827', fontWeight: opts.bold ? 800 : 600, fontSize: opts.big ? 14 : 12 }}>{value}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 12, padding: '4px 0', ...(opts.divider ? { borderTop: '1px dashed #e2e8f0', marginTop: 4, paddingTop: 8 } : {}) }}>
+                <span style={{ color: opts.muted ? '#64748b' : '#334155', fontWeight: opts.bold ? 700 : 500 }}>{label}</span>
+                <span style={{ color: opts.color || '#0f172a', fontWeight: opts.bold ? 800 : 600, fontSize: opts.big ? 14 : 12 }}>{value}</span>
               </div>
             );
             // Header pill colour: cart blue / line-discount red / line-markup green
@@ -205,19 +205,19 @@ const PendingApprovals = () => {
                             : isPriceChange ? (isMarkup ? 'Price Change · Surcharge' : 'Price Change · Discount')
                             : 'Line Discount';
             return (
-              <div key={r.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+              <div key={r.id} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
 
                 {/* Header — tag pill + title */}
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px', background: pillBg, color: pillFg, borderRadius: 999, fontSize: 11, fontWeight: 700 }}>
                   {isCart ? <FiShoppingCart size={11} /> : <FiTag size={11} />} {pillLabel}
                 </div>
-                <div style={{ marginTop: 8, fontWeight: 800, color: '#111827', fontSize: 15 }}>
+                <div style={{ marginTop: 8, fontWeight: 800, color: '#0f172a', fontSize: 15 }}>
                   {isCart ? 'Whole sale' : (r.product_name || 'Item')}
                 </div>
 
                 {/* Per-unit price math — only for line targets */}
                 {!isCart && (
-                  <div style={{ marginTop: 10, padding: '10px 12px', background: '#f9fafb', border: '1px solid #f3f4f6', borderRadius: 8 }}>
+                  <div style={{ marginTop: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 8 }}>
                     {row('Original price', `${curSym}${unitPx.toFixed(2)} / ${r.unit || ''}`, { muted: true })}
                     {isPriceChange ? (
                       <>
@@ -243,7 +243,7 @@ const PendingApprovals = () => {
                 )}
 
                 {/* Totals — line or cart */}
-                <div style={{ marginTop: 10, padding: '10px 12px', background: '#f9fafb', border: '1px solid #f3f4f6', borderRadius: 8 }}>
+                <div style={{ marginTop: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #f1f5f9', borderRadius: 8 }}>
                   {!isCart && row('Quantity', `${qty.toFixed(2)} ${r.unit || ''}`, { muted: true })}
                   {row(isCart ? 'Cart subtotal' : 'Line total (gross)', money(subtotal), { muted: true })}
                   {isPriceChange ? (
@@ -258,9 +258,9 @@ const PendingApprovals = () => {
                 </div>
 
                 {/* Requester */}
-                <div style={{ marginTop: 12, fontSize: 12, color: '#374151', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <FiUser size={12} color="#6b7280" /> Requested by <strong>{r.requester_name}</strong>
-                  <span style={{ color: '#6b7280', marginLeft: 'auto', fontSize: 11 }}>{(r.created_at || '').replace('T', ' ').slice(0, 16)}</span>
+                <div style={{ marginTop: 12, fontSize: 12, color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FiUser size={12} color="#64748b" /> Requested by <strong>{r.requester_name}</strong>
+                  <span style={{ color: '#64748b', marginLeft: 'auto', fontSize: 11 }}>{(r.created_at || '').replace('T', ' ').slice(0, 16)}</span>
                 </div>
 
                 {/* Actions / verdict */}
@@ -269,7 +269,7 @@ const PendingApprovals = () => {
                     <button
                       onClick={() => approve(r)}
                       disabled={busyId === r.id}
-                      style={{ flex: 1, padding: '10px 0', background: busyId === r.id ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: busyId === r.id ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      style={{ flex: 1, padding: '10px 0', background: busyId === r.id ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: busyId === r.id ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
                     ><FiCheck size={14} /> Approve</button>
                     <button
                       onClick={() => setRejectModal({ syncId: r.sync_id, reason: '' })}
@@ -300,19 +300,19 @@ const PendingApprovals = () => {
                 <button onClick={() => setRejectModal(null)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}><FiX size={18} /></button>
               </div>
               <div style={{ padding: 18 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>Reason (optional)</label>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>Reason (optional)</label>
                 <textarea
                   autoFocus
                   rows={3}
                   value={rejectModal.reason}
                   onChange={e => setRejectModal({ ...rejectModal, reason: e.target.value })}
                   placeholder="e.g. Exceeds the discount limit for this product"
-                  style={{ width: '100%', padding: 10, border: '1.5px solid #d1d5db', borderRadius: 8, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
+                  style={{ width: '100%', padding: 10, border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 13, resize: 'vertical', boxSizing: 'border-box', outline: 'none' }}
                 />
               </div>
-              <div style={{ padding: '12px 18px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                <button onClick={() => setRejectModal(null)} style={{ padding: '9px 16px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
-                <button onClick={reject} disabled={busyId === -1} style={{ padding: '9px 18px', background: busyId === -1 ? '#9ca3af' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: busyId === -1 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>{busyId === -1 ? 'Rejecting…' : 'Reject Discount'}</button>
+              <div style={{ padding: '12px 18px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                <button onClick={() => setRejectModal(null)} style={{ padding: '9px 16px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
+                <button onClick={reject} disabled={busyId === -1} style={{ padding: '9px 18px', background: busyId === -1 ? '#94a3b8' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: busyId === -1 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>{busyId === -1 ? 'Rejecting…' : 'Reject Discount'}</button>
               </div>
             </div>
           </div>

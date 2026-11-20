@@ -3,7 +3,7 @@
 // and triggers print. Seller block is read from business_settings
 // (Profile → Company) so each branch prints its own address.
 
-const K = n => 'K ' + Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const K = n => (Number(n || 0) < 0 ? '−' : '') + 'K' + Math.abs(Number(n || 0)).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const L = n => Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function openPrint(html) {
@@ -33,38 +33,38 @@ export function printTicket(t, method, seller = {}, logoUrl = '') {
 <style>
   @page { size: A4; margin: 14mm; }
   * { box-sizing: border-box; }
-  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #111; margin: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #0f172a; margin: 0; }
   .inv { max-width: 760px; margin: 0 auto; }
   .top { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1e3a8a; padding-bottom: 14px; margin-bottom: 18px; }
   .seller { display: flex; gap: 14px; align-items: flex-start; }
   .seller img { max-height: 70px; max-width: 180px; object-fit: contain; }
   .seller .name { font-size: 20px; font-weight: 800; color: #1e3a8a; letter-spacing: 0.5px; }
-  .seller .meta { font-size: 11px; color: #374151; line-height: 1.5; margin-top: 4px; }
-  .meta strong { color: #111; }
+  .seller .meta { font-size: 11px; color: #334155; line-height: 1.5; margin-top: 4px; }
+  .meta strong { color: #0f172a; }
   .inv-meta { text-align: right; }
-  .inv-meta .label { font-size: 22px; font-weight: 800; color: #111; letter-spacing: 1px; }
+  .inv-meta .label { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: 1px; }
   .inv-meta table { border-collapse: collapse; margin-left: auto; margin-top: 8px; }
   .inv-meta td { padding: 2px 4px; font-size: 11px; }
-  .inv-meta td.lbl { color: #6b7280; text-align: right; }
-  .inv-meta td.val { color: #111; font-weight: 700; text-align: right; }
-  .billto { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .billto h4 { margin: 0 0 4px; font-size: 10px; color: #6b7280; letter-spacing: 1px; }
-  .billto .big { font-size: 14px; font-weight: 700; color: #111; }
-  .billto .ln  { font-size: 11px; color: #374151; }
+  .inv-meta td.lbl { color: #64748b; text-align: right; }
+  .inv-meta td.val { color: #0f172a; font-weight: 700; text-align: right; }
+  .billto { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 12px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .billto h4 { margin: 0 0 4px; font-size: 10px; color: #64748b; letter-spacing: 1px; }
+  .billto .big { font-size: 14px; font-weight: 700; color: #0f172a; }
+  .billto .ln  { font-size: 11px; color: #334155; }
   table.items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
   table.items th { background: #1e3a8a; color: #fff; font-size: 11px; text-align: left; padding: 8px 10px; letter-spacing: 0.5px; }
   table.items th.r, table.items td.r { text-align: right; }
-  table.items td { padding: 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+  table.items td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 12px; }
   .totals { display: flex; justify-content: flex-end; margin-top: 10px; }
   .totals table { border-collapse: collapse; min-width: 280px; }
   .totals td { padding: 6px 10px; font-size: 12px; }
-  .totals td.lbl { color: #6b7280; text-align: right; }
+  .totals td.lbl { color: #64748b; text-align: right; }
   .totals td.val { text-align: right; font-weight: 700; }
   .totals tr.grand td { font-size: 15px; border-top: 2px solid #1e3a8a; background: #eef2ff; color: #1e3a8a; }
   .sigs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-top: 40px; }
-  .sig .line { border-top: 1px solid #111; margin-bottom: 4px; }
-  .sig .cap { font-size: 10px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
-  .foot { margin-top: 20px; font-size: 10px; color: #9ca3af; text-align: center; }
+  .sig .line { border-top: 1px solid #0f172a; margin-bottom: 4px; }
+  .sig .cap { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+  .foot { margin-top: 20px; font-size: 10px; color: #94a3b8; text-align: center; }
 </style></head><body>
   <div class="inv">
     <div class="top">
@@ -114,7 +114,7 @@ export function printTicket(t, method, seller = {}, logoUrl = '') {
       <tbody>
         <tr>
           <td><strong>${esc((t.grade_name || 'Fuel').toUpperCase())}</strong><br>
-              <span style="color:#6b7280;font-size:10px">Dispensed through nozzle on shift #${t.shift_id || ''}</span></td>
+              <span style="color:#64748b;font-size:10px">Dispensed through nozzle on shift #${t.shift_id || ''}</span></td>
           <td class="r">${L(t.litres)}</td>
           <td class="r">${K(t.price_per_litre)}</td>
           <td class="r"><strong>${K(t.amount)}</strong></td>
@@ -167,15 +167,15 @@ export function printTicketList(rows, method, filter, seller = {}, logoUrl = '')
   body { font-family: Arial, Helvetica, sans-serif; font-size: 11px; color: #000; margin: 0; }
   .hdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e3a8a; padding-bottom: 10px; margin-bottom: 10px; }
   .hdr .name { font-size: 16px; font-weight: 800; color: #1e3a8a; }
-  .hdr .meta { font-size: 10px; color: #374151; margin-top: 2px; }
+  .hdr .meta { font-size: 10px; color: #334155; margin-top: 2px; }
   .hdr img { max-height: 50px; }
   h2 { font-size: 14px; margin: 0 0 2px; }
-  .sub { font-size: 11px; color: #333; margin-bottom: 10px; }
+  .sub { font-size: 11px; color: #334155; margin-bottom: 10px; }
   table.r { width: 100%; border-collapse: collapse; }
-  table.r th, table.r td { border: 1px solid #999; padding: 5px 6px; font-size: 11px; text-align: left; vertical-align: top; }
+  table.r th, table.r td { border: 1px solid #64748b; padding: 5px 6px; font-size: 11px; text-align: left; vertical-align: top; }
   table.r th { background: #1e3a8a; color: #fff; }
   table.r td.r, table.r th.r { text-align: right; }
-  tfoot td { font-weight: 700; background: #f9fafb; }
+  tfoot td { font-weight: 700; background: #f8fafc; }
 </style></head><body>
   <div class="hdr">
     <div>
@@ -200,7 +200,7 @@ export function printTicketList(rows, method, filter, seller = {}, logoUrl = '')
       <th>Vehicle</th><th>Grade</th>
       <th class="r">Litres</th><th class="r">K/L</th><th class="r">Amount</th><th>Ref</th>
     </tr></thead>
-    <tbody>${rowsHtml || '<tr><td colspan="10" style="text-align:center;color:#999;padding:20px">No invoices</td></tr>'}</tbody>
+    <tbody>${rowsHtml || '<tr><td colspan="10" style="text-align:center;color:#64748b;padding:20px">No invoices</td></tr>'}</tbody>
     <tfoot><tr>
       <td colspan="6" class="r">TOTALS</td>
       <td class="r">${L(totLitres)}</td>

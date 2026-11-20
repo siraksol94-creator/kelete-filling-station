@@ -14,9 +14,9 @@ input[type="number"] {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: #f5f5f5;
-  color: #333;
+  font-family: var(--k-font);
+  background: var(--k-bg);
+  color: var(--k-ink-body);
   overflow: hidden;
 }
 
@@ -34,15 +34,18 @@ body {
   --sidebar-hover: #991B1B;
   --sidebar-active: rgba(14,116,144,0.30);
   --white: #ffffff;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
+  /* One neutral family for the whole app: slate (the sidebar's navy is
+     slate 800–950). The names stay "gray" so existing rules keep working. */
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
   --green: #16a34a;
   --green-bg: #dcfce7;
   --blue: #2563eb;
@@ -58,6 +61,13 @@ body {
   --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
   --radius: 8px;
   --radius-lg: 12px;
+
+  /* Kelete theme — the one place for fonts and base colours (kelete-ux.css
+     builds its --k-* tokens on these). */
+  --k-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --k-font-mono: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, 'SF Mono', Menlo, monospace;
+  --k-bg: #f1f5f9;           /* page background (slate 100) */
+  --k-ink-body: #1e293b;     /* default text (slate 800, 14:1 on white) */
 }
 
 /* Layout */
@@ -479,8 +489,8 @@ body {
 }
 
 .btn-checkout:disabled {
-  background: #ccc;
-  color: #4b4b4b;
+  background: #cbd5e1;
+  color: #334155;
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -664,7 +674,7 @@ body {
 .badge-purple { background: #ede9fe; color: #7c3aed; }
 .badge-orange { background: #ffedd5; color: #9a3412; }
 .badge-yellow { background: #fef9c3; color: #854d0e; }
-.badge-gray { background: #f3f4f6; color: #4b5563; }
+.badge-gray { background: #f1f5f9; color: #475569; }
 
 /* Category badges specific colors */
 .category-beef { background: #fee2e2; color: #b91c1c; }
@@ -1614,7 +1624,7 @@ body {
 
 .login-header p {
   font-size: 13px;
-  color: #6b7280;
+  color: #64748b;
   font-weight: 500;
   letter-spacing: 0.6px;
   text-transform: uppercase;
@@ -1630,17 +1640,17 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: #4b5563;
+  color: #475569;
   margin-bottom: 8px;
 }
 
 .login-form input {
   width: 100%;
   padding: 13px 16px;
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   font-size: 14.5px;
-  background: #f9fafb;
+  background: #f8fafc;
   transition: all 0.2s;
   outline: none;
   font-family: inherit;
@@ -1780,12 +1790,12 @@ body {
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #4b5366;
+  color: #475569;
 }
 .lc-form input {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #e1e5ee;
+  border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   font-size: 16px;
   background: #fff;
@@ -1830,7 +1840,7 @@ body {
   padding: 18px;
   text-align: center;
   font-size: 11px;
-  color: #9aa1b2;
+  color: #64748b;
 }
 
 /* Action buttons in tables */
@@ -1951,7 +1961,7 @@ body {
 .role-administrator { background: #fee2e2; color: #b91c1c; }
 .role-manager { background: #dbeafe; color: #1d4ed8; }
 .role-cashier { background: #fef9c3; color: #854d0e; }
-.role-staff { background: #f3f4f6; color: #4b5563; }
+.role-staff { background: #f1f5f9; color: #475569; }
 
 /* User avatar in table */
 .user-table-avatar {
@@ -2110,7 +2120,7 @@ body {
     display: block !important;
     grid-template-columns: none !important;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 10px 14px;
     margin-bottom: 10px;
@@ -2131,7 +2141,7 @@ body {
   .data-table tbody td::before {
     content: attr(data-label);
     font-weight: 500;
-    color: #6b7280;
+    color: #64748b;
     margin-right: 12px;
     flex: 0 0 auto;
     text-align: left;
@@ -2144,7 +2154,7 @@ body {
     font-weight: 600;
     padding: 4px 0 10px;
     margin-bottom: 6px;
-    border-bottom: 1px solid #f3f4f6 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
     justify-content: flex-start;
     text-align: left;
   }
@@ -2181,7 +2191,7 @@ body {
   .modal table tbody tr {
     display: block;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 12px 14px;
     margin-bottom: 10px;
@@ -2200,7 +2210,7 @@ body {
   .modal table tbody td::before {
     content: attr(data-label);
     font-weight: 500;
-    color: #6b7280;
+    color: #64748b;
     font-size: 12px;
     flex: 0 0 auto;
     min-width: 90px;
@@ -2297,7 +2307,7 @@ body {
   div[style*="position: fixed"][style*="top: 0"][style*="left: 0"][style*="background: rgba"] table tbody tr {
     display: block;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 12px 14px;
     margin-bottom: 10px;
@@ -2318,7 +2328,7 @@ body {
   div[style*="position: fixed"][style*="top: 0"][style*="left: 0"][style*="background: rgba"] table tbody td::before {
     content: attr(data-label);
     font-weight: 500;
-    color: #6b7280;
+    color: #64748b;
     font-size: 12px;
     flex: 0 0 auto;
     min-width: 90px;
@@ -2420,8 +2430,8 @@ body {
    bottom), this device (saved as clicked), sync (own buttons). One line per
    setting; the Red Sea navy for selected controls, the logo red for Save. */
 .ss-page { --ss-navy: #13306b; --ss-navy-deep: #0b1f4a; --ss-tint: #e8edf7; --ss-red: #c8000a;
-           --ss-ink: #0f172a; --ss-ink-2: #334155; --ss-muted: #5b6478; --ss-line: #e2e6ee; --ss-soft: #f7f9fc; }
-.ss-page .mono { font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace; font-size: 13px; }
+           --ss-ink: #0f172a; --ss-ink-2: #334155; --ss-muted: #475569; --ss-line: #e2e8f0; --ss-soft: #f8fafc; }
+.ss-page .mono { font-family: var(--k-font-mono); font-size: 13px; }
 .ss-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 20px; }
 .ss-head h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.3px; color: var(--ss-ink); }
 .ss-head p { margin: 4px 0 0; color: var(--ss-muted); font-size: 13px; }
@@ -2462,7 +2472,7 @@ body {
 .ss-fixed b { color: var(--ss-ink); font-weight: 600; }
 .ss-lock { font-size: 11px; color: var(--ss-muted); font-weight: 500; }
 
-.ss-switch { appearance: none; width: 44px; height: 24px; padding: 0; border: 0; border-radius: 999px; background: #cbd2de;
+.ss-switch { appearance: none; width: 44px; height: 24px; padding: 0; border: 0; border-radius: 999px; background: #cbd5e1;
              position: relative; cursor: pointer; flex-shrink: 0; transition: background 0.15s; }
 .ss-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
                     background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25); transition: transform 0.15s; }
@@ -2699,7 +2709,7 @@ body {
   table.phone-cards tbody tr {
     display: block !important;
     background: #fff !important;
-    border: 1px solid #e5e7eb !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 12px;
     padding: 10px 14px;
     margin-bottom: 10px;
@@ -2722,14 +2732,14 @@ body {
     flex: 0 0 auto;
     font-size: 12px;
     font-weight: 500;
-    color: #6b7280;
+    color: #64748b;
     text-align: left;
   }
   table.phone-cards tbody td:first-child {
     justify-content: flex-start;
     margin-bottom: 4px;
     padding: 2px 0 8px !important;
-    border-bottom: 1px solid #f3f4f6 !important;
+    border-bottom: 1px solid #f1f5f9 !important;
     font-size: 15px;
     font-weight: 700;
     text-align: left !important;
@@ -2745,7 +2755,7 @@ body {
   table.phone-cards tfoot tr {
     display: block !important;
     background: #f8fafc !important;
-    border: 1px solid #e5e7eb !important;
+    border: 1px solid #e2e8f0 !important;
     border-radius: 12px;
     padding: 10px 14px;
   }
@@ -2823,7 +2833,7 @@ body {
     justify-content: space-between;
     align-items: baseline;
     padding-top: 8px !important;
-    border-top: 1px dashed #d7dde8 !important;
+    border-top: 1px dashed #e2e8f0 !important;
     font-size: 15px;
   }
   div[style*="position: fixed"][style*="inset: 0"][style*="background: rgba"] table.purchase-lines tbody td:nth-child(12)::before {
@@ -2839,7 +2849,7 @@ body {
     order: 13;
   }
   /* Folded: product, total and Edit only. */
-  div[style*="position: fixed"][style*="inset: 0"][style*="background: rgba"] table.purchase-lines tbody tr.pl-folded { border-color: #e2e6ee !important; }
+  div[style*="position: fixed"][style*="inset: 0"][style*="background: rgba"] table.purchase-lines tbody tr.pl-folded { border-color: #e2e8f0 !important; }
   div[style*="position: fixed"][style*="inset: 0"][style*="background: rgba"] table.purchase-lines tbody tr.pl-folded td:not(:nth-child(1)):not(:nth-child(12)):not(:nth-child(13)) { display: none !important; }
   div[style*="position: fixed"][style*="inset: 0"][style*="background: rgba"] table.purchase-lines tbody tr.pl-folded td:nth-child(12) { border-top: none !important; padding-top: 0 !important; }
 }

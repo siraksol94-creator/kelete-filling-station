@@ -214,12 +214,12 @@ export default function IncomingStock() {
                 0
               );
               return (
-                <div key={g.key} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 0, marginBottom: 14, overflow: 'hidden' }}>
+                <div key={g.key} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 0, marginBottom: 14, overflow: 'hidden' }}>
                   {/* PO header */}
-                  <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                  <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
-                        <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{g.purchase_number}</span>
+                        <span style={{ fontFamily: 'var(--k-font-mono)', fontWeight: 700, fontSize: 14, color: '#0f172a' }}>{g.purchase_number}</span>
                         <span style={{ color: '#cbd5e1' }}>·</span>
                         <span style={{ fontSize: 14, fontWeight: 600, color: '#0f172a' }}>{g.supplier_name || '—'}</span>
                         <span style={{ color: '#cbd5e1' }}>·</span>
@@ -232,7 +232,7 @@ export default function IncomingStock() {
                         </span>
                         {allSubmitted && <span style={{ ...tag('#fef3c7', '#92400e'), marginLeft: 8 }}><FiClock size={10} style={{ verticalAlign: 'middle' }} /> Waiting HQ</span>}
                         {submittedGrnNumber && (
-                          <span style={{ marginLeft: 8, fontFamily: 'monospace', color: '#475569' }}>
+                          <span style={{ marginLeft: 8, fontFamily: 'var(--k-font-mono)', color: '#475569' }}>
                             · GRN <strong>{submittedGrnNumber}</strong>
                           </span>
                         )}
@@ -315,9 +315,9 @@ export default function IncomingStock() {
                               {/* v1.13.91 — history-tab statuses */}
                               {it.status === 'CONFIRMED' && <span style={tag('#dcfce7', '#166534')}>Confirmed</span>}
                               {it.status === 'REJECTED'  && <span style={tag('#fee2e2', '#991b1b')}>Rejected</span>}
-                              {it.status === 'CANCELLED' && <span style={tag('#f3f4f6', '#374151')}>Cancelled</span>}
+                              {it.status === 'CANCELLED' && <span style={tag('#f1f5f9', '#334155')}>Cancelled</span>}
                               {!isAwaiting && !isSubmitted && !['CONFIRMED','REJECTED','CANCELLED'].includes(it.status) && (
-                                <span style={tag('#f3f4f6', '#374151')}>{it.status}</span>
+                                <span style={tag('#f1f5f9', '#334155')}>{it.status}</span>
                               )}
                             </td>
                             <td style={td}>
@@ -333,7 +333,7 @@ export default function IncomingStock() {
                       })}
                     </tbody>
                     <tfoot>
-                      <tr style={{ background: '#f8fafc', borderTop: '2px solid #e5e7eb' }}>
+                      <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0' }}>
                         <td colSpan={4} style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#475569', textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.4 }}>PO total</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{fmtMoney(poSubtotal)}</td>
                         <td colSpan={3} />
@@ -427,7 +427,7 @@ function RejectModal({ state, setState, onCancel, onSubmit }) {
 
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 };
 const lbl = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 };
-const inp = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '8px 12px', color: '#0f172a' };
 const tag = (bg, fg) => ({ background: bg, color: fg, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, textTransform: 'uppercase', letterSpacing: 0.4, display: 'inline-flex', alignItems: 'center', gap: 4 });

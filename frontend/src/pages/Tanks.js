@@ -166,7 +166,7 @@ export default function Tanks() {
                     value={editingId ? (form.opening_litres ?? '') : (form.current_volume ?? '')}
                     onChange={e => setForm(editingId ? { ...form, opening_litres: e.target.value } : { ...form, current_volume: e.target.value })}
                     style={S.input} />
-                  <small style={{ color: '#6b7280', fontSize: 11 }}>
+                  <small style={{ color: '#64748b', fontSize: 11 }}>
                     {editingId
                       ? 'Edits the tank\'s opening ledger row and re-syncs current volume. Deliveries/sales/dips on top stay intact.'
                       : 'Posted as the first \'opening\' ledger row.'}
@@ -175,7 +175,7 @@ export default function Tanks() {
                 <label style={S.lbl}>Low Stock Alert (L)<input type="number" value={form.low_stock_litres} onChange={e => setForm({ ...form, low_stock_litres: e.target.value })} style={S.input} /></label>
                 <label style={S.lbl}>Group Code
                   <input value={form.group_code || ''} onChange={e => setForm({ ...form, group_code: e.target.value.toUpperCase() })} style={S.input} placeholder="e.g. A — leave blank if standalone" />
-                  <small style={{ color: '#6b7280', fontSize: 11 }}>Tanks sharing the same code are shown as one plumbed card. T1+T4=A, T2+T3=B, etc.</small>
+                  <small style={{ color: '#64748b', fontSize: 11 }}>Tanks sharing the same code are shown as one plumbed card. T1+T4=A, T2+T3=B, etc.</small>
                 </label>
                 <label style={S.lbl}>Status
                   <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={S.input}>

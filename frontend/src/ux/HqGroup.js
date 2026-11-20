@@ -12,8 +12,8 @@ import { ProgressBar, VarianceBadge } from './components';
 import { shiftSteps } from './stationMetrics';
 import { branchBars, forecourtFlags, fuelShare, shortBranch } from './hqMetrics';
 
-const K = (n) => `K ${Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const K0 = (n) => `K ${Math.round(Number(n || 0)).toLocaleString('en-ZM')}`;
+const K = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.abs(Number(n || 0)).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const K0 = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.round(Math.abs(Number(n || 0))).toLocaleString('en-ZM')}`;
 const L = (n) => `${Math.round(Number(n || 0)).toLocaleString('en-ZM')} L`;
 
 function Card({ icon, title, className = '', children, aside }) {

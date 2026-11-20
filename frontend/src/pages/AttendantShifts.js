@@ -6,7 +6,7 @@ import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 import { useHotkeys } from '../ux/useHotkeys';
 import { closeChecklist, cleanStreak, shiftSummary, formatKwacha } from '../ux/fuelProgress';
-import { fmtDay } from '../ux/forecourt';
+import { fmtK, fmtDay } from '../ux/forecourt';
 // UX-10 — "Thu 19 Nov · 06:02" for a shift's open / close stamp (shown as stored).
 const whenOf = (stamp) => { const t = String(stamp || ''); return t ? `${fmtDay(t.slice(0, 10))} · ${t.slice(11, 16)}` : '—'; };
 import { Checklist, ProgressBar, ShortcutHelp, ShortcutHint, SummaryStrip, Kbd } from '../ux/components';
@@ -345,8 +345,8 @@ export default function AttendantShifts() {
           </tr></thead>
           <tbody>
             {shifts.map(s => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                <td style={S.td}><span style={S.pill(s.status === 'Open' ? '#16a34a' : '#6b7280')}>{s.status}</span></td>
+              <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={S.td}><span style={S.pill(s.status === 'Open' ? '#16a34a' : '#64748b')}>{s.status}</span></td>
                 <td style={S.td}>
                   <AttendantAvatar profile={profileOf(s.attendant_user_id, s.attendant_name)} size={36} showName compact />
                   {s.shift_type && <span style={{ marginLeft: 6, fontSize: 10, padding: '2px 6px', background: s.shift_type === 'NIGHT' ? '#eef2ff' : '#eff6ff', color: s.shift_type === 'NIGHT' ? '#4338ca' : '#1e3a8a', borderRadius: 10, fontWeight: 700 }}>{s.shift_type}</span>}
@@ -399,7 +399,7 @@ export default function AttendantShifts() {
                 </td>
               </tr>
             ))}
-            {shifts.length === 0 && <tr><td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No shifts yet. Open the first one with <Kbd combo="alt+n" />.</td></tr>}
+            {shifts.length === 0 && <tr><td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No shifts yet. Open the first one with <Kbd combo="alt+n" />.</td></tr>}
           </tbody>
         </table>
         )}
@@ -440,14 +440,14 @@ export default function AttendantShifts() {
                   </label>
                 </div>
                 <div style={{ marginTop: 16 }}>
-                  <strong style={{ fontSize: 13, color: '#374151' }}>Pumps for this attendant *</strong>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
+                  <strong style={{ fontSize: 13, color: '#334155' }}>Pumps for this attendant *</strong>
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 8 }}>Tick a pump and every nozzle on it is assigned.</div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }} className="k-form-grid">
                     {pumps.map(p => {
                       const pumpNozIds = (p.nozzles || []).map(n => n.id);
                       const allIn = pumpNozIds.length > 0 && pumpNozIds.every(id => openForm.nozzle_ids.includes(id));
                       return (
-                        <label key={p.id} style={{ display: 'flex', alignItems: 'start', gap: 10, padding: 12, border: `1.5px solid ${allIn ? '#2563eb' : '#e5e7eb'}`, borderRadius: 8, cursor: 'pointer', background: allIn ? '#eff6ff' : '#fff' }}>
+                        <label key={p.id} style={{ display: 'flex', alignItems: 'start', gap: 10, padding: 12, border: `1.5px solid ${allIn ? '#2563eb' : '#e2e8f0'}`, borderRadius: 8, cursor: 'pointer', background: allIn ? '#eff6ff' : '#fff' }}>
                           <input type="checkbox" checked={allIn} onChange={e => {
                             const next = e.target.checked
                               ? Array.from(new Set([...openForm.nozzle_ids, ...pumpNozIds]))
@@ -455,12 +455,12 @@ export default function AttendantShifts() {
                             setOpenForm({ ...openForm, nozzle_ids: next });
                           }} style={{ marginTop: 3 }} />
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 700, fontSize: 14 }}>{p.code} <span style={{ color: '#6b7280', fontWeight: 500 }}>— {p.name}</span></div>
-                            <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                            <div style={{ fontWeight: 700, fontSize: 14 }}>{p.code} <span style={{ color: '#64748b', fontWeight: 500 }}>— {p.name}</span></div>
+                            <div style={{ fontSize: 12, color: '#64748b', marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                               {(p.nozzles || []).map(n => (
-                                <span key={n.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 4, background: '#f3f4f6' }}>
+                                <span key={n.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 4, background: '#f1f5f9' }}>
                                   <strong>{n.code}</strong>
-                                  <span style={{ color: n.grade_color || '#6b7280' }}>·</span>
+                                  <span style={{ color: n.grade_color || '#64748b' }}>·</span>
                                   <span>{n.grade_name}</span>
                                 </span>
                               ))}
@@ -470,7 +470,7 @@ export default function AttendantShifts() {
                         </label>
                       );
                     })}
-                    {pumps.length === 0 && <div style={{ color: '#6b7280', fontSize: 13 }}>No pumps configured.</div>}
+                    {pumps.length === 0 && <div style={{ color: '#64748b', fontSize: 13 }}>No pumps configured.</div>}
                   </div>
                 </div>
               </div>
@@ -539,9 +539,9 @@ export default function AttendantShifts() {
                   </tr></thead>
                   <tbody>
                     {liveNozzleRows.map((r, idx) => (
-                      <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6', background: r.invalid ? '#fef2f2' : undefined }}>
-                        <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#6b7280', fontSize: 12 }}>({r.pump_code})</span></td>
-                        <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
+                      <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: r.invalid ? '#fef2f2' : undefined }}>
+                        <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#64748b', fontSize: 12 }}>({r.pump_code})</span></td>
+                        <td style={S.td}><span style={S.pill(r.grade_color || '#64748b')}>{r.grade_name}</span></td>
                         <td style={S.tdR}>{fmtNum(r.opening_reading, 2)}</td>
                         <td style={S.tdR} className="k-meter-cell">
                           <div style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
@@ -566,7 +566,7 @@ export default function AttendantShifts() {
                               <button type="button"
                                 onClick={() => setCd({ ...cd, readings: { ...cd.readings, [r.id]: { ...cd.readings[r.id], closing_reading: String(r.opening_reading) } } })}
                                 title="No sales on this nozzle — use opening as closing"
-                                style={{ padding: '4px 8px', fontSize: 11, border: '1px solid #d1d5db', background: '#f9fafb', color: '#6b7280', borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                                style={{ padding: '4px 8px', fontSize: 11, border: '1px solid #cbd5e1', background: '#f8fafc', color: '#64748b', borderRadius: 4, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                                 = opening
                               </button>
                             )}
@@ -574,22 +574,22 @@ export default function AttendantShifts() {
                           {r.invalid && <div className="k-field-error" role="alert">Below the opening ({fmtNum(r.opening_reading, 2)})</div>}
                         </td>
                         <td style={S.tdR}><strong>{fmtNum(r.sold, 2)}</strong></td>
-                        <td style={S.tdR}>K {fmtNum(r.price_per_litre, 2)}</td>
-                        <td style={S.tdR}><strong>K {fmtNum(r.amt, 2)}</strong></td>
+                        <td style={S.tdR}>{fmtK(r.price_per_litre)}</td>
+                        <td style={S.tdR}><strong>{fmtK(r.amt)}</strong></td>
                       </tr>
                     ))}
-                    <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
+                    <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
                       <td colSpan={4} style={{ ...S.td, textAlign: 'right' }}>TOTAL READING SALES</td>
                       <td style={S.tdR} data-label="Litres">{fmtNum(liveNozzleRows.reduce((s, r) => s + r.sold, 0), 2)}</td>
                       <td style={S.td} data-label=""></td>
-                      <td style={S.tdR} data-label="Amount">K {fmtNum(grossSales, 2)}</td>
+                      <td style={S.tdR} data-label="Amount">{fmtK(grossSales)}</td>
                     </tr>
                   </tbody>
                 </table>
                 </div>
 
                 <div style={{ marginTop: 16, padding: 12, background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, fontSize: 13, color: '#1e3a8a' }}>
-                  <strong>Gross from meters: K {fmtNum(grossSales, 2)}</strong><br />
+                  <strong>Gross from meters: {fmtK(grossSales)}</strong><br />
                   Payment reconciliation happens in <strong>Fuel Cash Report</strong>. Dip readings now live on the <strong>Tank Dips</strong> page (one per tank per day, not per shift).
                 </div>
 
@@ -662,7 +662,7 @@ export default function AttendantShifts() {
                   <input type="number" step="0.01" value={ticket.price_per_litre} onChange={e => setTicket({ ...ticket, price_per_litre: e.target.value })} style={S.input} />
                 </label>
                 <label style={S.lbl}>Amount
-                  <input value={`K ${(Number(ticket.litres || 0) * Number(ticket.price_per_litre || 0)).toFixed(2)}`} readOnly style={{ ...S.input, background: '#f3f4f6', fontWeight: 700 }} />
+                  <input value={fmtK(Number(ticket.litres || 0) * Number(ticket.price_per_litre || 0))} readOnly style={{ ...S.input, background: '#f1f5f9', fontWeight: 700 }} />
                 </label>
               </div>
               <div style={S.modalFooter}>
@@ -683,7 +683,7 @@ export default function AttendantShifts() {
               <button onClick={() => setViewShift(null)} style={S.iconBtn}><FiX /></button>
             </div>
             <div style={{ padding: 20 }}>
-              <div style={{ color: '#6b7280', marginBottom: 12 }}>Opened: {viewShift.opened_at} &nbsp;·&nbsp; Closed: {viewShift.closed_at}</div>
+              <div style={{ color: '#64748b', marginBottom: 12 }}>Opened: {viewShift.opened_at} &nbsp;·&nbsp; Closed: {viewShift.closed_at}</div>
               <h4>Nozzle Readings</h4>
               <table style={S.table}>
                 <thead><tr>
@@ -696,14 +696,14 @@ export default function AttendantShifts() {
                 </tr></thead>
                 <tbody>
                   {(viewShift.readings || []).map(r => (
-                    <tr key={r.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                      <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#6b7280', fontSize: 12 }}>({r.pump_code})</span></td>
-                      <td style={S.td}><span style={S.pill(r.grade_color || '#6b7280')}>{r.grade_name}</span></td>
+                    <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={S.td}><strong>{r.nozzle_code}</strong> <span style={{ color: '#64748b', fontSize: 12 }}>({r.pump_code})</span></td>
+                      <td style={S.td}><span style={S.pill(r.grade_color || '#64748b')}>{r.grade_name}</span></td>
                       <td style={S.tdR}>{Number(r.opening_reading).toFixed(2)}</td>
                       <td style={S.tdR}>{Number(r.closing_reading || 0).toFixed(2)}</td>
                       <td style={S.tdR}><strong>{Number(r.litres_sold || 0).toFixed(2)}</strong></td>
-                      <td style={S.tdR}>K {Number(r.price_per_litre).toFixed(2)}</td>
-                      <td style={S.tdR}><strong>K {Number(r.expected_cash || 0).toFixed(2)}</strong></td>
+                      <td style={S.tdR}>{fmtK(r.price_per_litre)}</td>
+                      <td style={S.tdR}><strong>{fmtK(r.expected_cash || 0)}</strong></td>
                     </tr>
                   ))}
                 </tbody>
@@ -727,12 +727,12 @@ export default function AttendantShifts() {
                       </tr></thead>
                       <tbody>
                         {rows.map(c => (
-                          <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <tr key={c.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                             <td style={S.td}>{c.customer_name}</td>
                             <td style={S.td}>{(method === '1Card' ? c.card_number : c.vehicle_registration) || '-'}</td>
                             <td style={S.td}>{c.grade_name || '-'}</td>
                             <td style={S.tdR}>{Number(c.litres).toFixed(2)}</td>
-                            <td style={S.tdR}>K {Number(c.amount).toFixed(2)}</td>
+                            <td style={S.tdR}>{fmtK(c.amount)}</td>
                             <td style={S.td}>{c.receipt_number || '-'}</td>
                           </tr>
                         ))}
@@ -753,11 +753,11 @@ export default function AttendantShifts() {
                   <PayRow label="Credit Total" value={(viewShift.credit_sales || []).filter(c => (c.payment_method || 'Credit') === 'Credit').reduce((s, c) => s + Number(c.amount), 0).toFixed(2)} readOnly />
                 </div>
                 <div>
-                  <Tile label="Expected Cash" value={`K ${Number(viewShift.expected_cash || 0).toFixed(2)}`} highlight />
+                  <Tile label="Expected Cash" value={fmtK(viewShift.expected_cash || 0)} highlight />
                   <div style={{ height: 10 }} />
-                  <Tile label="Actual Cash" value={`K ${Number(viewShift.actual_cash || 0).toFixed(2)}`} />
+                  <Tile label="Actual Cash" value={fmtK(viewShift.actual_cash || 0)} />
                   <div style={{ height: 10 }} />
-                  <Tile label="Variance" value={`K ${Number(viewShift.variance || 0).toFixed(2)}`} color={Math.abs(viewShift.variance || 0) < 0.01 ? '#111' : (viewShift.variance < 0 ? '#dc2626' : '#16a34a')} />
+                  <Tile label="Variance" value={fmtK(viewShift.variance || 0)} color={Math.abs(viewShift.variance || 0) < 0.01 ? '#0f172a' : (viewShift.variance < 0 ? '#dc2626' : '#16a34a')} />
                 </div>
               </div>
 
@@ -768,12 +768,12 @@ export default function AttendantShifts() {
                     <thead><tr><th style={S.th}>Tank</th><th style={S.th}>Grade</th><th style={{ ...S.th, textAlign: 'right' }}>Reading</th><th style={{ ...S.th, textAlign: 'right' }}>Dip</th><th style={{ ...S.th, textAlign: 'right' }}>Variance</th></tr></thead>
                     <tbody>
                       {viewShift.dips.map(d => (
-                        <tr key={d.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                           <td style={S.td}><strong>{d.tank_code}</strong> — {d.tank_name}</td>
                           <td style={S.td}>{d.grade_name}</td>
                           <td style={S.tdR}>{d.reading_litres != null ? Number(d.reading_litres).toFixed(2) : '-'}</td>
                           <td style={S.tdR}>{Number(d.dip_litres).toFixed(2)}</td>
-                          <td style={{ ...S.tdR, color: Math.abs(d.variance || 0) < 0.5 ? '#111' : (d.variance < 0 ? '#dc2626' : '#15803d') }}>{d.variance != null ? Number(d.variance).toFixed(2) : '-'}</td>
+                          <td style={{ ...S.tdR, color: Math.abs(d.variance || 0) < 0.5 ? '#0f172a' : (d.variance < 0 ? '#dc2626' : '#15803d') }}>{d.variance != null ? Number(d.variance).toFixed(2) : '-'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -791,7 +791,7 @@ export default function AttendantShifts() {
 function SectionHeader({ title, action }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 10px' }}>
-      <h4 style={{ margin: 0, fontSize: 14, color: '#111', textTransform: 'uppercase', letterSpacing: 0.4 }}>{title}</h4>
+      <h4 style={{ margin: 0, fontSize: 14, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 0.4 }}>{title}</h4>
       {action}
     </div>
   );
@@ -799,10 +799,10 @@ function SectionHeader({ title, action }) {
 
 function PayRow({ label, value, onChange, readOnly, highlight }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f3f4f6' }}>
-      <span style={{ fontSize: 13, color: '#374151', fontWeight: highlight ? 700 : 500 }}>{label}</span>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+      <span style={{ fontSize: 13, color: '#334155', fontWeight: highlight ? 700 : 500 }}>{label}</span>
       <input type="number" step="0.01" value={value} readOnly={readOnly} onChange={readOnly ? undefined : e => onChange(e.target.value)}
-        style={{ ...S.input, width: 140, textAlign: 'right', background: readOnly ? '#f3f4f6' : '#fff', fontWeight: highlight ? 700 : 500 }} />
+        style={{ ...S.input, width: 140, textAlign: 'right', background: readOnly ? '#f1f5f9' : '#fff', fontWeight: highlight ? 700 : 500 }} />
     </div>
   );
 }

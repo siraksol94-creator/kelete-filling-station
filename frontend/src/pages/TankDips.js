@@ -136,12 +136,12 @@ export default function TankDips({ embedded = false } = {}) {
               const band = liveVariance == null ? null : dipBand(liveVariance, row.book_volume);
               const fullyPosted = row.posted_count === row.member_count && row.member_count > 0;
               return (
-                <tr key={key} style={{ borderBottom: '1px solid #f3f4f6', background: fullyPosted ? '#f9fafb' : '#fff' }}>
+                <tr key={key} style={{ borderBottom: '1px solid #f1f5f9', background: fullyPosted ? '#f8fafc' : '#fff' }}>
                   <td style={{ ...S.td, whiteSpace: 'nowrap' }}>
                     <strong>{row.tank_code}</strong>
-                    <div style={{ color: '#6b7280', fontSize: 11, marginTop: 2 }}>{row.tank_name}</div>
+                    <div style={{ color: '#64748b', fontSize: 11, marginTop: 2 }}>{row.tank_name}</div>
                   </td>
-                  <td style={S.td}><span style={{ ...S.pill(row.grade_color || '#6b7280'), whiteSpace: 'nowrap' }}>{row.grade_name || '-'}</span></td>
+                  <td style={S.td}><span style={{ ...S.pill(row.grade_color || '#64748b'), whiteSpace: 'nowrap' }}>{row.grade_name || '-'}</span></td>
                   <td style={{ ...S.tdR, whiteSpace: 'nowrap' }}>{fmtL(row.book_volume)}</td>
                   <td style={S.tdR}>
                     <input type="number" step="0.01" min="0" inputMode="decimal" value={ip.measured || ''}
@@ -156,7 +156,7 @@ export default function TankDips({ embedded = false } = {}) {
                         if (!fieldError(ip.measured) && ip.measured !== '' && saving !== key) save(row);
                         e.currentTarget.closest('table')?.querySelector(`[data-k-dip="${idx + 1}"]`)?.focus();
                       }}
-                      style={{ ...S.input, width: 140, textAlign: 'right', background: fullyPosted ? '#f3f4f6' : '#fff', borderColor: fieldError(ip.measured) ? '#b91c1c' : undefined }} />
+                      style={{ ...S.input, width: 140, textAlign: 'right', background: fullyPosted ? '#f1f5f9' : '#fff', borderColor: fieldError(ip.measured) ? '#b91c1c' : undefined }} />
                     {fieldError(ip.measured) && <div className="k-field-error" role="alert">{fieldError(ip.measured)}</div>}
                   </td>
                   <td style={{ ...S.tdR, fontWeight: 700, whiteSpace: 'nowrap' }}>
@@ -171,7 +171,7 @@ export default function TankDips({ embedded = false } = {}) {
                     <input value={ip.notes || ''}
                       disabled={fullyPosted}
                       onChange={e => setEdits({ ...edits, [key]: { ...ip, notes: e.target.value } })}
-                      style={{ ...S.input, minWidth: 160, background: fullyPosted ? '#f3f4f6' : '#fff' }}
+                      style={{ ...S.input, minWidth: 160, background: fullyPosted ? '#f1f5f9' : '#fff' }}
                       placeholder="Optional" />
                   </td>
                   <td style={S.td}>{row.taken_by_name || '-'}</td>
@@ -196,7 +196,7 @@ export default function TankDips({ embedded = false } = {}) {
                 </tr>
               );
             })}
-            {rows.length === 0 && <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No tanks.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No tanks.</td></tr>}
           </tbody>
         </table>
         )}

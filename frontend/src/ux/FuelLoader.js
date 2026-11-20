@@ -21,8 +21,8 @@ export function FuelCar({ width = 34, className = '' }) {
     <svg className={`k-fuelcar ${className}`} width={width} viewBox="0 0 64 32" aria-hidden="true" focusable="false">
       <path d="M6 22 L10 13 Q12 9 17 9 L37 9 Q42 9 46 13 L52 18 L58 19 Q61 20 61 23 L61 25 L6 25 Z" fill="var(--k-car, #b91c1c)" />
       <path d="M18 12 L26 12 L26 17 L13 17 Z M29 12 L36 12 Q40 12 43 16 L43 17 L29 17 Z" fill="#e0f2fe" />
-      <circle cx="18" cy="25" r="5" fill="#111827" /><circle cx="18" cy="25" r="2" fill="#9ca3af" />
-      <circle cx="48" cy="25" r="5" fill="#111827" /><circle cx="48" cy="25" r="2" fill="#9ca3af" />
+      <circle cx="18" cy="25" r="5" fill="#0f172a" /><circle cx="18" cy="25" r="2" fill="#94a3b8" />
+      <circle cx="48" cy="25" r="5" fill="#0f172a" /><circle cx="48" cy="25" r="2" fill="#94a3b8" />
       <rect x="57" y="20" width="4" height="2" rx="1" fill="#fde68a" />
     </svg>
   );
@@ -61,8 +61,8 @@ export default function FuelLoader({ size = 'md', message, rotate = true }) {
           <path d="M120 88 L127 70 Q130 63 139 63 L176 63 Q184 63 190 70 L200 80 L212 82 Q218 84 218 89 L218 94 L120 94 Z" fill="var(--k-car, #b91c1c)" />
           <path d="M141 68 L156 68 L156 78 L133 78 Z M160 68 L174 68 Q181 68 186 75 L187 78 L160 78 Z" fill="#e0f2fe" />
           <rect x="124" y="73" width="7" height="5" rx="1.5" fill="#7f1d1d" />
-          <circle cx="141" cy="94" r="9" fill="#111827" /><circle cx="141" cy="94" r="3.5" fill="#cbd5e1" />
-          <circle cx="196" cy="94" r="9" fill="#111827" /><circle cx="196" cy="94" r="3.5" fill="#cbd5e1" />
+          <circle cx="141" cy="94" r="9" fill="#0f172a" /><circle cx="141" cy="94" r="3.5" fill="#cbd5e1" />
+          <circle cx="196" cy="94" r="9" fill="#0f172a" /><circle cx="196" cy="94" r="3.5" fill="#cbd5e1" />
           <rect x="212" y="85" width="6" height="3" rx="1.5" fill="#fde68a" />
           {/* fuel gauge filling up */}
           <g transform="translate(150 40)">

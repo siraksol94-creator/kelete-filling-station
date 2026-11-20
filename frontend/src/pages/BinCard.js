@@ -103,8 +103,8 @@ const BinCard = () => {
               <FiPackage size={22} color="#fff" />
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>{t('binCard')}</h1>
-              <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>Store stock movement history per product</p>
+              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{t('binCard')}</h1>
+              <p style={{ margin: 0, fontSize: 13, color: '#64748b' }}>Store stock movement history per product</p>
             </div>
           </div>
           {searched && (displayRows.length > 0 || openBal > 0) && (
@@ -119,15 +119,15 @@ const BinCard = () => {
       </div>
 
       {/* ── Filter Bar ───────────────────────────────────────────────── */}
-      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', padding: '18px 20px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
+      <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', padding: '18px 20px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', gap: 14, alignItems: 'flex-end' }}>
         <div style={{ flex: '2 1 220px', minWidth: 180 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Product *</label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Product *</label>
           <input
             list="bincard-products"
             value={productSearch}
             onChange={e => handleProductInput(e.target.value)}
             placeholder={t('typeOrSelectProduct')}
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13, color: '#111827', background: '#fff', boxSizing: 'border-box' }}
+            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13, color: '#0f172a', background: '#fff', boxSizing: 'border-box' }}
           />
           <datalist id="bincard-products">
             {products.map(p => (
@@ -136,20 +136,20 @@ const BinCard = () => {
           </datalist>
         </div>
         <div style={{ flex: '1 1 140px', minWidth: 130 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>From</label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>From</label>
           <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <div style={{ flex: '1 1 140px', minWidth: 130 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 }}>To</label>
+          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>To</label>
           <input type="date" value={to} onChange={e => setTo(e.target.value)}
-            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <div>
           <button
             onClick={handleSearch}
             disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 8, border: 'none', background: loading ? '#9ca3af' : '#166534', color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 8, border: 'none', background: loading ? '#94a3b8' : '#166534', color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}
           >
             <FiSearch size={14} /> {loading ? t('loading') : t('show')}
           </button>
@@ -183,19 +183,19 @@ const BinCard = () => {
 
       {/* ── Bin Card Table ────────────────────────────────────────────── */}
       {searched && (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb' }}>
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0' }}>
           {/* Table header info strip */}
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>
+          <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: '#0f172a' }}>
               {selectedProduct ? selectedProduct.name : t('product')} — {t('storeBinCard')}
             </div>
-            <div style={{ fontSize: 12, color: '#6b7280' }}>
+            <div style={{ fontSize: 12, color: '#64748b' }}>
               {formatDate(from)} – {formatDate(to)} &nbsp;·&nbsp; {displayRows.length} movement{displayRows.length !== 1 ? 's' : ''}
             </div>
           </div>
 
           {displayRows.length === 0 && openBal === 0 ? (
-            <div style={{ padding: 48, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
+            <div style={{ padding: 48, textAlign: 'center', color: '#64748b', fontSize: 14 }}>
               No stock movements found for this product in the selected period.
             </div>
           ) : (
@@ -213,45 +213,45 @@ const BinCard = () => {
                   <tbody>
                     {/* Opening Balance row */}
                     <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                      <td style={{ padding: '10px 14px', color: '#6b7280', fontFamily: 'monospace' }}>—</td>
-                      <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(from)}</td>
-                      <td style={{ padding: '10px 14px', color: '#6b7280' }}>—</td>
+                      <td style={{ padding: '10px 14px', color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>—</td>
+                      <td style={{ padding: '10px 14px', color: '#334155', whiteSpace: 'nowrap' }}>{formatDate(from)}</td>
+                      <td style={{ padding: '10px 14px', color: '#64748b' }}>—</td>
                       <td style={{ padding: '10px 14px' }}>
                         <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: '#dbeafe', color: '#1d4ed8' }}>
                           Opening Balance
                         </span>
                       </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>
                         {openBal > 0 ? openBal.toFixed(2) : '—'}
                       </td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>—</td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#1d4ed8', fontWeight: 800, fontFamily: 'monospace' }}>{(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>—</td>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', color: '#1d4ed8', fontWeight: 800, fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     </tr>
                     {displayRows.map((row, idx) => {
                       const qty = parseFloat(row.quantity);
                       const isIn  = qty > 0;
                       const isOut = qty < 0;
                       return (
-                        <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '10px 14px', color: '#6b7280', fontFamily: 'monospace' }}>{idx + 1}</td>
-                          <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
-                          <td style={{ padding: '10px 14px', color: '#111827', fontWeight: 600 }}>{fmtInvoiceNo(row.reference) || '—'}</td>
+                        <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '10px 14px', color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>{idx + 1}</td>
+                          <td style={{ padding: '10px 14px', color: '#334155', whiteSpace: 'nowrap' }}>{formatDate(row.date)}</td>
+                          <td style={{ padding: '10px 14px', color: '#0f172a', fontWeight: 600 }}>{fmtInvoiceNo(row.reference) || '—'}</td>
                           <td style={{ padding: '10px 14px' }}>
                             <span style={{
                               display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700,
-                              background: row.movement_type === 'grn' ? '#dcfce7' : row.movement_type === 'siv' ? '#fef9c3' : row.movement_type === 'opening' ? '#eff6ff' : '#f3f4f6',
-                              color:      row.movement_type === 'grn' ? '#166534' : row.movement_type === 'siv' ? '#854d0e' : row.movement_type === 'opening' ? '#1d4ed8' : '#374151',
+                              background: row.movement_type === 'grn' ? '#dcfce7' : row.movement_type === 'siv' ? '#fef9c3' : row.movement_type === 'opening' ? '#eff6ff' : '#f1f5f9',
+                              color:      row.movement_type === 'grn' ? '#166534' : row.movement_type === 'siv' ? '#854d0e' : row.movement_type === 'opening' ? '#1d4ed8' : '#334155',
                             }}>
                               {movementLabel(row.movement_type)}
                             </span>
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'monospace' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#166534', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>
                             {isIn ? toDisp(qty).toFixed(2) : '—'}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'monospace' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#dc2626', fontWeight: 700, fontFamily: 'var(--k-font-mono)' }}>
                             {isOut ? toDisp(Math.abs(qty)).toFixed(2) : '—'}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#111827', fontWeight: 800, fontFamily: 'monospace' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#0f172a', fontWeight: 800, fontFamily: 'var(--k-font-mono)' }}>
                             {(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
                         </tr>
@@ -261,9 +261,9 @@ const BinCard = () => {
                   <tfoot>
                     <tr style={{ borderTop: '2px solid #166534', background: '#f0fdf4' }}>
                       <td colSpan={4} style={{ padding: '11px 14px', fontWeight: 700, color: '#166534', fontSize: 12, textTransform: 'uppercase' }}>Totals</td>
-                      <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#166534', fontFamily: 'monospace' }}>{(parseFloat(totalIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                      <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#dc2626', fontFamily: 'monospace' }}>{(parseFloat(totalOut)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                      <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#111827', fontFamily: 'monospace' }}>{(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#166534', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(totalIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#dc2626', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(totalOut)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ padding: '11px 14px', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -319,16 +319,16 @@ const BinCard = () => {
               </div>
 
               {/* Info strip */}
-              <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0' }}>
                 {[
                   { label: 'Period From',  value: formatDate(from) },
                   { label: 'Period To',    value: formatDate(to) },
                   { label: 'Opening Bal.', value: `${(parseFloat(openBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unitLabel}` },
                   { label: 'Closing Bal.', value: `${(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} ${unitLabel}` },
                 ].map((item, i) => (
-                  <div key={i} style={{ flex: 1, padding: '14px 16px', borderRight: i < 3 ? '1px solid #e5e7eb' : 'none' }}>
-                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: '#6b7280', marginBottom: 3 }}>{item.label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{item.value}</div>
+                  <div key={i} style={{ flex: 1, padding: '14px 16px', borderRight: i < 3 ? '1px solid #e2e8f0' : 'none' }}>
+                    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: '#64748b', marginBottom: 3 }}>{item.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{item.value}</div>
                   </div>
                 ))}
               </div>
@@ -346,9 +346,9 @@ const BinCard = () => {
                   <tbody>
                     {/* Opening Balance row */}
                     <tr style={{ background: '#eff6ff', borderBottom: '1px solid #dbeafe' }}>
-                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
-                      <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(from)}</td>
-                      <td style={{ padding: '8px 10px', color: '#6b7280' }}>—</td>
+                      <td style={{ padding: '8px 10px', color: '#64748b' }}>—</td>
+                      <td style={{ padding: '8px 10px', color: '#334155' }}>{formatDate(from)}</td>
+                      <td style={{ padding: '8px 10px', color: '#64748b' }}>—</td>
                       <td style={{ padding: '8px 10px', color: '#1d4ed8', fontWeight: 700 }}>Opening Balance</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', color: '#166534', fontWeight: 700 }}>{openBal > 0 ? openBal.toFixed(2) : ''}</td>
                       <td style={{ padding: '8px 10px', textAlign: 'right', color: '#dc2626', fontWeight: 700 }}>—</td>
@@ -359,14 +359,14 @@ const BinCard = () => {
                       const isIn  = qty > 0;
                       const isOut = qty < 0;
                       return (
-                        <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f9fafb', borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '8px 10px', color: '#6b7280' }}>{idx + 1}</td>
-                          <td style={{ padding: '8px 10px', color: '#374151' }}>{formatDate(row.date)}</td>
-                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#111827' }}>{fmtInvoiceNo(row.reference) || '—'}</td>
-                          <td style={{ padding: '8px 10px', color: '#6b7280' }}>{movementLabel(row.movement_type)}</td>
+                        <tr key={row.id} style={{ background: idx % 2 === 0 ? '#fff' : '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '8px 10px', color: '#64748b' }}>{idx + 1}</td>
+                          <td style={{ padding: '8px 10px', color: '#334155' }}>{formatDate(row.date)}</td>
+                          <td style={{ padding: '8px 10px', fontWeight: 600, color: '#0f172a' }}>{fmtInvoiceNo(row.reference) || '—'}</td>
+                          <td style={{ padding: '8px 10px', color: '#64748b' }}>{movementLabel(row.movement_type)}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#166534', fontWeight: 700 }}>{isIn ? toDisp(qty).toFixed(2) : ''}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', color: '#dc2626', fontWeight: 700 }}>{isOut ? toDisp(Math.abs(qty)).toFixed(2) : ''}</td>
-                          <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#111827' }}>{(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                          <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{(parseFloat(toDisp(parseFloat(row.balance)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         </tr>
                       );
                     })}
@@ -376,7 +376,7 @@ const BinCard = () => {
                       <td colSpan={4} style={{ padding: '9px 10px', fontWeight: 700, color: '#166534', fontSize: 11, textTransform: 'uppercase' }}>Totals</td>
                       <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 800, color: '#166534' }}>{(parseFloat(totalIn)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                       <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 800, color: '#dc2626' }}>{(parseFloat(totalOut)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                      <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 800, color: '#111827' }}>{(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td style={{ padding: '9px 10px', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{(parseFloat(closeBal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -385,7 +385,7 @@ const BinCard = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 40, paddingTop: 12 }}>
                   {['Prepared By', 'Checked By', 'Approved By'].map((label, i) => (
                     <div key={i} style={{ textAlign: 'center', width: 160 }}>
-                      <div style={{ borderTop: '1px solid #374151', paddingTop: 8, fontSize: 11, color: '#6b7280' }}>{label}</div>
+                      <div style={{ borderTop: '1px solid #334155', paddingTop: 8, fontSize: 11, color: '#64748b' }}>{label}</div>
                     </div>
                   ))}
                 </div>

@@ -71,18 +71,18 @@ const Backups = () => {
     <div style={{ padding: 24, background: '#f8fafc', height: '100vh', overflowY: 'auto', boxSizing: 'border-box' }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>System Backups</h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>System Backups</h1>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
             Automated nightly snapshots of every branch database. Kept 14 days on the server. Download any snapshot as a .tar.gz.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={load} disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 16px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 16px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             <FiRefreshCw size={14} /> Refresh
           </button>
           <button onClick={runBackup} disabled={creating}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 8, border: 'none', background: creating ? '#9ca3af' : '#16a34a', color: '#fff', cursor: creating ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 8, border: 'none', background: creating ? '#94a3b8' : '#16a34a', color: '#fff', cursor: creating ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
             <FiPlay size={14} /> {creating ? 'Creating…' : 'Create Backup Now'}
           </button>
         </div>
@@ -103,39 +103,39 @@ const Backups = () => {
 
       {/* Summary tiles */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 20 }}>
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Backup Folder</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', fontFamily: 'monospace', wordBreak: 'break-all' }}>{root || '—'}</div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Backup Folder</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', fontFamily: 'var(--k-font-mono)', wordBreak: 'break-all' }}>{root || '—'}</div>
         </div>
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Snapshots</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#111827' }}>{rows.length}</div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Snapshots</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{rows.length}</div>
         </div>
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Storage Used</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#111827' }}>{totalHuman}</div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Storage Used</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{totalHuman}</div>
         </div>
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Schedule</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>Daily @ 02:00 CAT</div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>14-day retention</div>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Schedule</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>Daily @ 02:00 CAT</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>14-day retention</div>
         </div>
       </div>
 
       {/* Table */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
-        <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: '#111827' }}>Snapshots</h3>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22 }}>
+        <h3 style={{ margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>Snapshots</h3>
         {loading ? (
-          <div style={{ padding: 30, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+          <div style={{ padding: 30, textAlign: 'center', color: '#64748b' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 30, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>
+          <div style={{ padding: 30, textAlign: 'center', color: '#64748b', fontSize: 13 }}>
             {note ? note : 'No backups on disk yet. Click "Create Backup Now" to make the first one.'}
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f9fafb', color: '#6b7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 700 }}>Snapshot</th>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 700 }}>Created</th>
                   <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 700 }}>Databases</th>
@@ -146,18 +146,18 @@ const Backups = () => {
               <tbody>
                 {rows.map(r => (
                   <tr key={r.name} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '10px 12px', color: '#111827', fontFamily: 'monospace', fontWeight: 700 }}>
+                    <td style={{ padding: '10px 12px', color: '#0f172a', fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}>
                       <FiDatabase size={12} style={{ marginRight: 6, verticalAlign: 'middle', color: '#6366f1' }} />
                       {r.name}
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#6b7280' }}>{(r.created_at || '').replace('T', ' ').slice(0, 19)}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{r.db_count}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{r.size_human}</td>
+                    <td style={{ padding: '10px 12px', color: '#64748b' }}>{(r.created_at || '').replace('T', ' ').slice(0, 19)}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{r.db_count}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{r.size_human}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right' }}>
                       <button
                         onClick={() => runDownload(r.name)}
                         disabled={downloading === r.name}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, border: '1.5px solid #2563eb', background: downloading === r.name ? '#f3f4f6' : '#fff', color: downloading === r.name ? '#6b7280' : '#2563eb', cursor: downloading === r.name ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', borderRadius: 6, border: '1.5px solid #2563eb', background: downloading === r.name ? '#f1f5f9' : '#fff', color: downloading === r.name ? '#64748b' : '#2563eb', cursor: downloading === r.name ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                         <FiDownload size={12} /> {downloading === r.name ? 'Downloading…' : 'Download'}
                       </button>
                     </td>

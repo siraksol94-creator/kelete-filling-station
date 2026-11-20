@@ -3,7 +3,7 @@
 const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
 
 // K 12,345.00 — always two decimals, thousands separated, minus sign kept.
-export const fmtK = (n) => `K ${num(n).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+export const fmtK = (n) => `${num(n) < 0 ? '−' : ''}K${Math.abs(num(n)).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 // 30,000 L (or 1,234.56 L with dp = 2).
 export const fmtL = (n, dp = 0) => `${num(n).toLocaleString('en-ZM', { minimumFractionDigits: dp, maximumFractionDigits: dp })} L`;
 // +12.50 L / −60.00 L / 0.00 L — a variance, always with its sign, never rounded away.

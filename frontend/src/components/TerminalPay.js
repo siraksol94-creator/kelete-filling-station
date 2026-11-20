@@ -63,15 +63,15 @@ function pressDigits(prev, key, max) {
 }
 
 const S = {
-  overlay: { position: 'fixed', inset: 0, zIndex: 1500, background: '#f7f8fb', color: '#0f172a',
+  overlay: { position: 'fixed', inset: 0, zIndex: 1500, background: '#f8fafc', color: '#0f172a',
              display: 'flex', flexDirection: 'column', fontFamily: 'inherit' },
   bar: { background: NAVY, color: '#fff', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 },
   back: { background: 'none', border: 'none', color: '#c7d2ee', fontSize: 14, fontWeight: 600, padding: '4px 0', cursor: 'pointer' },
   body: { flex: 1, minHeight: 0, overflowY: 'auto', padding: '10px 12px 0', display: 'flex', flexDirection: 'column', gap: 8 },
-  card: { background: '#fff', border: '1px solid #e3e7ef', borderRadius: 14, padding: '10px 14px' },
-  lbl: { fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#6b7385' },
+  card: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: '10px 14px' },
+  lbl: { fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#64748b' },
   big: { fontSize: 30, fontWeight: 800, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', color: NAVY_DEEP },
-  foot: { padding: 12, flexShrink: 0, background: '#f7f8fb' },
+  foot: { padding: 12, flexShrink: 0, background: '#f8fafc' },
 };
 
 // ── keypad ───────────────────────────────────────────────────────────────
@@ -86,11 +86,11 @@ function Keypad({ onPress, allowDot = true }) {
             <button key={i} type="button" onClick={() => onPress(k)}
               style={{
                 height: 'clamp(40px, 6.6vh, 54px)', borderRadius: 12,
-                border: k === 'del' ? '1px solid #f7cdd3' : '1px solid #e3e6ee',
+                border: k === 'del' ? '1px solid #f7cdd3' : '1px solid #e2e8f0',
                 background: k === 'del' ? '#fdf0f1' : '#fff',
                 color: k === 'del' ? RED : NAVY_DEEP,
                 fontSize: k === 'del' ? 18 : 21, fontWeight: 700, cursor: 'pointer',
-                boxShadow: '0 1px 0 #d6dbe6', touchAction: 'manipulation',
+                boxShadow: '0 1px 0 #e2e8f0', touchAction: 'manipulation',
               }}>
               {k === 'del' ? '⌫' : k}
             </button>
@@ -203,7 +203,7 @@ export default function TerminalPayWindow({
         <div style={{ ...S.card, display: 'grid', gap: 2 }}>
           <span style={S.lbl}>Amount due</span>
           <span style={S.big}>{money(total)}</span>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: '#6b7385' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, color: '#64748b' }}>
             <span>{itemCount} item{itemCount === 1 ? '' : 's'} · {buyerLabel}</span>
             <button type="button" onClick={() => { setSheet(true); setSheetField('tpin'); }}
               style={{ background: 'none', border: 'none', color: NAVY, fontWeight: 700, fontSize: 12, cursor: 'pointer', padding: 0 }}>
@@ -222,13 +222,13 @@ export default function TerminalPayWindow({
                 <button key={m.key} type="button" onClick={() => pick(m.key)}
                   style={{
                     background: on ? m.soft : '#fff',
-                    border: `1.5px solid ${on ? m.color : has ? '#c5d1ea' : '#dfe4ee'}`,
+                    border: `1.5px solid ${on ? m.color : has ? '#c5d1ea' : '#e2e8f0'}`,
                     boxShadow: on ? `inset 0 0 0 1px ${m.color}` : 'none',
                     borderRadius: 12, padding: '7px 4px', cursor: 'pointer',
-                    display: 'grid', gap: 1, color: on ? m.color : '#475067',
+                    display: 'grid', gap: 1, color: on ? m.color : '#475569',
                   }}>
                   <span style={{ fontWeight: 700, fontSize: 13 }}>{m.label}</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: has ? '#334155' : '#9aa3b5' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: has ? '#334155' : '#64748b' }}>
                     {has ? plain(amounts[m.key]) : '—'}
                   </span>
                 </button>
@@ -249,7 +249,7 @@ export default function TerminalPayWindow({
           {quick.map((v, i) => (
             <button key={v} type="button"
               onClick={() => { setPayModal((p) => ({ ...p, [active]: v.toFixed(2) })); setFresh(true); }}
-              style={{ background: i === 0 ? NAVY_TINT : '#fff', border: `1px solid ${i === 0 ? '#c5d1ea' : '#dfe4ee'}`, borderRadius: 10, padding: '7px 0', fontSize: 12, fontWeight: 700, color: NAVY, cursor: 'pointer', fontVariantNumeric: 'tabular-nums' }}>
+              style={{ background: i === 0 ? NAVY_TINT : '#fff', border: `1px solid ${i === 0 ? '#c5d1ea' : '#e2e8f0'}`, borderRadius: 10, padding: '7px 0', fontSize: 12, fontWeight: 700, color: NAVY, cursor: 'pointer', fontVariantNumeric: 'tabular-nums' }}>
               {i === 0 ? 'Exact' : plain(v)}
             </button>
           ))}
@@ -274,7 +274,7 @@ export default function TerminalPayWindow({
         <button type="button" onClick={complete} disabled={!!blocker}
           style={{
             width: '100%', border: 'none', borderRadius: 14, padding: '12px 14px',
-            background: blocker ? '#cbd2dd' : '#16a34a', color: blocker ? '#5b6477' : '#fff',
+            background: blocker ? '#cbd5e1' : '#16a34a', color: blocker ? '#475569' : '#fff',
             cursor: blocker ? 'not-allowed' : 'pointer', display: 'grid', gap: 1,
           }}>
           <span style={{ fontWeight: 800, fontSize: 16 }}>Complete Sale</span>
@@ -301,12 +301,12 @@ function BuyerSheet({ payModal, setPayModal, zraEnabled, selectedCustomer, tpinL
   const tpin = payModal.buyerTpin || '';
   const tpinReady = /^\d{10}$/.test(tpin);
   const box = (on) => ({
-    border: `1.5px solid ${on ? NAVY : '#d6dce7'}`, boxShadow: on ? `inset 0 0 0 1px ${NAVY}` : 'none',
+    border: `1.5px solid ${on ? NAVY : '#e2e8f0'}`, boxShadow: on ? `inset 0 0 0 1px ${NAVY}` : 'none',
     borderRadius: 10, padding: '9px 10px', fontSize: 14, fontWeight: 600, background: '#fff',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, cursor: 'pointer',
   });
-  const lbl = { fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#6b7385' };
-  const text = { width: '100%', padding: '9px 10px', border: '1.5px solid #d6dce7', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' };
+  const lbl = { fontSize: 11, fontWeight: 700, letterSpacing: '.05em', textTransform: 'uppercase', color: '#64748b' };
+  const text = { width: '100%', padding: '9px 10px', border: '1.5px solid #e2e8f0', borderRadius: 10, fontSize: 14, boxSizing: 'border-box' };
   const register = (
     <button type="button" onClick={onRegisterCustomer}
       style={{ padding: '4px 10px', border: 'none', borderRadius: 7, background: NAVY, color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
@@ -318,7 +318,7 @@ function BuyerSheet({ payModal, setPayModal, zraEnabled, selectedCustomer, tpinL
     <div style={{ position: 'absolute', inset: 0, zIndex: 2 }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,.45)' }} />
       <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '92%', overflowY: 'auto', background: '#fff', borderRadius: '20px 20px 0 0', padding: '10px 14px 14px', display: 'grid', gap: 10 }}>
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: '#d3d8e2', justifySelf: 'center' }} />
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: '#cbd5e1', justifySelf: 'center' }} />
         <div style={{ fontWeight: 800, fontSize: 16 }}>Buyer &amp; LPO</div>
 
         {selectedCustomer ? (
@@ -327,7 +327,7 @@ function BuyerSheet({ payModal, setPayModal, zraEnabled, selectedCustomer, tpinL
           <div style={{ display: 'grid', gap: 2 }}>
             <span style={lbl}>Buyer</span>
             <span style={{ fontWeight: 700 }}>{selectedCustomer.name}</span>
-            <span style={{ fontSize: 12, color: selectedCustomer.tpin ? '#6b7385' : '#b45309' }}>
+            <span style={{ fontSize: 12, color: selectedCustomer.tpin ? '#64748b' : '#b45309' }}>
               {selectedCustomer.tpin ? `TPIN ${selectedCustomer.tpin}` : "No TPIN on file — the receipt will use ZRA's walk-in default"}
             </span>
           </div>
@@ -336,14 +336,14 @@ function BuyerSheet({ payModal, setPayModal, zraEnabled, selectedCustomer, tpinL
             <div style={{ display: 'grid', gap: 4 }}>
               <span style={lbl}>Buyer TPIN <span style={{ textTransform: 'none', fontWeight: 400 }}>(leave blank for walk-in)</span></span>
               <div onClick={() => setField('tpin')} style={box(field === 'tpin')}>
-                <span style={{ letterSpacing: 1, color: tpin ? '#0f172a' : '#9aa3b5' }}>{tpin || '10 digits'}</span>
+                <span style={{ letterSpacing: 1, color: tpin ? '#0f172a' : '#64748b' }}>{tpin || '10 digits'}</span>
                 <button type="button" disabled={!tpinReady || tpinLookup?.status === 'loading'}
                   onClick={(e) => { e.stopPropagation(); lookupTpin(tpin); }}
-                  style={{ padding: '4px 10px', border: 'none', borderRadius: 7, background: tpinReady ? NAVY : '#e5e7eb', color: tpinReady ? '#fff' : '#6b7280', fontSize: 11, fontWeight: 700, cursor: tpinReady ? 'pointer' : 'not-allowed' }}>
+                  style={{ padding: '4px 10px', border: 'none', borderRadius: 7, background: tpinReady ? NAVY : '#e2e8f0', color: tpinReady ? '#fff' : '#64748b', fontSize: 11, fontWeight: 700, cursor: tpinReady ? 'pointer' : 'not-allowed' }}>
                   {tpinLookup?.status === 'loading' ? '…' : 'Verify'}
                 </button>
               </div>
-              {tpinLookup?.status === 'loading' && <span style={{ fontSize: 11.5, color: '#6b7385' }}>Checking with ZRA…</span>}
+              {tpinLookup?.status === 'loading' && <span style={{ fontSize: 11.5, color: '#64748b' }}>Checking with ZRA…</span>}
               {tpinLookup?.status === 'verified' && (
                 <span style={{ fontSize: 11.5, color: '#166534', fontWeight: 700 }}>
                   ✓ {tpinLookup.source === 'local' ? 'Local match' : 'ZRA verified'}: {tpinLookup.name || '(no name on file)'}
@@ -397,7 +397,7 @@ function BuyerSheet({ payModal, setPayModal, zraEnabled, selectedCustomer, tpinL
               <div style={{ display: 'grid', gap: 4 }}>
                 <span style={lbl}>LPO number <span style={{ color: '#b91c1c' }}>*</span></span>
                 <div onClick={() => setField('lpo')} style={box(field === 'lpo')}>
-                  <span style={{ color: payModal.lpoNumber ? '#0f172a' : '#9aa3b5' }}>{payModal.lpoNumber || 'e.g. 109506957'}</span>
+                  <span style={{ color: payModal.lpoNumber ? '#0f172a' : '#64748b' }}>{payModal.lpoNumber || 'e.g. 109506957'}</span>
                 </div>
               </div>
             )}
@@ -434,31 +434,31 @@ export function TerminalQtyWindow({ name, unit, unitPrice, value, onChange, onCa
       <div style={S.body}>
         <div style={{ ...S.card, display: 'grid', gap: 2 }}>
           <span style={{ fontWeight: 700, fontSize: 15 }}>{name}</span>
-          <span style={{ fontSize: 12, color: '#6b7385' }}>{money(unitPrice)} per {unit}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{money(unitPrice)} per {unit}</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '56px 1fr 56px', gap: 8 }}>
-          <button type="button" onClick={() => step(-1)} style={{ background: '#fff', border: '1px solid #dfe4ee', borderRadius: 12, fontSize: 24, fontWeight: 700, color: NAVY, cursor: 'pointer' }}>−</button>
+          <button type="button" onClick={() => step(-1)} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 24, fontWeight: 700, color: NAVY, cursor: 'pointer' }}>−</button>
           <div style={{ background: '#fff', border: `2px solid ${invalid ? '#fcd34d' : NAVY}`, borderRadius: 14, textAlign: 'center', fontSize: 32, fontWeight: 800, padding: '6px 0', fontVariantNumeric: 'tabular-nums' }}>
             {value || '0'}
           </div>
-          <button type="button" onClick={() => step(1)} style={{ background: '#fff', border: '1px solid #dfe4ee', borderRadius: 12, fontSize: 24, fontWeight: 700, color: NAVY, cursor: 'pointer' }}>+</button>
+          <button type="button" onClick={() => step(1)} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, fontSize: 24, fontWeight: 700, color: NAVY, cursor: 'pointer' }}>+</button>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
           {[1, 10, 50, 100].map((n) => (
             <button key={n} type="button" onClick={() => { onChange(String(n)); setFresh(true); }}
-              style={{ background: '#fff', border: '1px solid #dfe4ee', borderRadius: 10, padding: '7px 0', fontSize: 12.5, fontWeight: 700, color: NAVY, cursor: 'pointer' }}>
+              style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: '7px 0', fontSize: 12.5, fontWeight: 700, color: NAVY, cursor: 'pointer' }}>
               {n}
             </button>
           ))}
         </div>
         <Keypad onPress={(k) => set(pressQty(value, k, fresh))} />
-        <div style={{ textAlign: 'center', fontSize: 13, color: '#4b5366', fontVariantNumeric: 'tabular-nums' }}>
+        <div style={{ textAlign: 'center', fontSize: 13, color: '#475569', fontVariantNumeric: 'tabular-nums' }}>
           Line total <b style={{ color: '#0f172a' }}>{money(typed * unitPrice)}</b>
         </div>
       </div>
       <div style={S.foot}>
         <button type="button" onClick={onSubmit} disabled={invalid}
-          style={{ width: '100%', border: 'none', borderRadius: 14, padding: '13px 14px', background: invalid ? '#cbd2dd' : RED, color: invalid ? '#5b6477' : '#fff', fontWeight: 800, fontSize: 16, cursor: invalid ? 'not-allowed' : 'pointer' }}>
+          style={{ width: '100%', border: 'none', borderRadius: 14, padding: '13px 14px', background: invalid ? '#cbd5e1' : RED, color: invalid ? '#475569' : '#fff', fontWeight: 800, fontSize: 16, cursor: invalid ? 'not-allowed' : 'pointer' }}>
           Add to cart{!invalid ? ` · ${value} ${unit}` : ''}
         </button>
       </div>

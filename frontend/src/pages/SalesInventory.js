@@ -220,6 +220,8 @@ const SalesInventory = () => {
   }, { totalSales: 0, totalReturns: 0, totalCost: 0, totalRevenue: 0, totalProfit: 0, totalStocking: 0, totalDiff: 0 });
 
   const fmt = (v) => v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  // Money in full with the minus before the K: −K812.40 (not K-812.40).
+  const money = (v) => `${(Number(v) || 0) < 0 ? '−' : ''}${curSym}${fmt(Math.abs(Number(v) || 0))}`;
 
   const pendingCount = Object.keys(actualBalances)
     .filter(id => {
@@ -237,16 +239,16 @@ const SalesInventory = () => {
       icon: <FiPackage size={18} />, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe'
     },
     {
-      label: 'Revenue', value: fmt(profitSummary.revenue), prefix: curSym,
+      label: 'Revenue', value: money(profitSummary.revenue), prefix: '',
       icon: <FiDollarSign size={18} />, color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0'
     },
     {
-      label: 'Total Cost', value: fmt(summaryTotals.totalCost), prefix: curSym,
+      label: 'Total Cost', value: money(summaryTotals.totalCost), prefix: '',
       icon: <FiDollarSign size={18} />, color: '#b45309', bg: '#fffbeb', border: '#fde68a'
     },
     {
       label: 'Gross Profit',
-      value: fmt(dailyGrossProfit), prefix: curSym,
+      value: money(dailyGrossProfit), prefix: '',
       icon: <FiTrendingUp size={18} />,
       color: dailyGrossProfit >= 0 ? '#15803d' : '#b91c1c',
       bg: dailyGrossProfit >= 0 ? '#f0fdf4' : '#fef2f2',
@@ -254,31 +256,31 @@ const SalesInventory = () => {
     },
     {
       label: 'Net Profit',
-      value: fmt(dailyNetProfit), prefix: curSym,
+      value: money(dailyNetProfit), prefix: '',
       icon: <FiTrendingUp size={18} />,
       color: dailyNetProfit >= 0 ? '#15803d' : '#b91c1c',
       bg: dailyNetProfit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: dailyNetProfit >= 0 ? '#bbf7d0' : '#fecaca'
     },
     {
-      label: 'Stocking Value', value: fmt(summaryTotals.totalStocking), prefix: curSym,
+      label: 'Stocking Value', value: money(summaryTotals.totalStocking), prefix: '',
       icon: <FiPackage size={18} />, color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe'
     },
     {
       label: 'Difference',
-      value: fmt(summaryTotals.totalDiff), prefix: curSym,
+      value: money(summaryTotals.totalDiff), prefix: '',
       icon: <FiAlertTriangle size={18} />,
       color: summaryTotals.totalDiff < 0 ? '#b91c1c' : '#15803d',
       bg: summaryTotals.totalDiff < 0 ? '#fef2f2' : '#f0fdf4',
       border: summaryTotals.totalDiff < 0 ? '#fecaca' : '#bbf7d0'
     },
     {
-      label: 'Monthly Revenue', value: fmt(monthlySummary.total_revenue), prefix: curSym,
+      label: 'Monthly Revenue', value: money(monthlySummary.total_revenue), prefix: '',
       icon: <FiDollarSign size={18} />, color: '#0369a1', bg: '#f0f9ff', border: '#bae6fd',
       monthly: true
     },
     {
-      label: 'Monthly Gross Profit', value: fmt(monthlySummary.gross_profit), prefix: curSym,
+      label: 'Monthly Gross Profit', value: money(monthlySummary.gross_profit), prefix: '',
       icon: <FiTrendingUp size={18} />,
       color: monthlySummary.gross_profit >= 0 ? '#15803d' : '#b91c1c',
       bg: monthlySummary.gross_profit >= 0 ? '#f0fdf4' : '#fef2f2',
@@ -286,7 +288,7 @@ const SalesInventory = () => {
       monthly: true
     },
     {
-      label: 'Monthly Net Profit', value: fmt(monthlySummary.net_profit), prefix: curSym,
+      label: 'Monthly Net Profit', value: money(monthlySummary.net_profit), prefix: '',
       icon: <FiTrendingUp size={18} />,
       color: monthlySummary.net_profit >= 0 ? '#15803d' : '#b91c1c',
       bg: monthlySummary.net_profit >= 0 ? '#f0fdf4' : '#fef2f2',
@@ -294,7 +296,7 @@ const SalesInventory = () => {
       monthly: true
     },
     {
-      label: 'Monthly Difference', value: fmt(monthlySummary.total_difference), prefix: curSym,
+      label: 'Monthly Difference', value: money(monthlySummary.total_difference), prefix: '',
       icon: <FiAlertTriangle size={18} />,
       color: monthlySummary.total_difference < 0 ? '#b91c1c' : '#15803d',
       bg: monthlySummary.total_difference < 0 ? '#fef2f2' : '#f0fdf4',
@@ -320,7 +322,7 @@ const SalesInventory = () => {
 
     const rows = filtered.map((p, idx) => {
       const r = computeRow(p);
-      return `<tr style="background:${idx % 2 === 1 ? '#f5f5f5' : '#fff'};border-bottom:1px solid #ddd">
+      return `<tr style="background:${idx % 2 === 1 ? '#f1f5f9' : '#fff'};border-bottom:1px solid #e2e8f0">
         <td style="padding:6px 10px;color:#000;font-size:10.5px">${idx + 1}</td>
         <td style="padding:6px 10px;font-weight:600">${p.name}</td>
         <td style="padding:6px 10px;text-align:right;font-family:monospace">${fmtQ(r.openingBalance)}</td>
@@ -337,9 +339,9 @@ const SalesInventory = () => {
       @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
       td{font-size:11px}
-      tfoot td{padding:9px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      tfoot td{padding:9px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -365,7 +367,7 @@ const SalesInventory = () => {
             <th style="text-align:right">Sale Price</th>
             <th style="text-align:right">Total Revenue</th>
           </tr></thead>
-          <tbody>${rows || '<tr><td colspan="9" style="padding:20px;text-align:center;color:#666">No products in this view</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="9" style="padding:20px;text-align:center;color:#475569">No products in this view</td></tr>'}</tbody>
           <tfoot><tr>
             <td colspan="8">GRAND TOTAL — ${filtered.length} product${filtered.length !== 1 ? 's' : ''}</td>
             <td style="text-align:right;font-size:13px;font-family:monospace">${curSym}${fmt(summaryTotals.totalRevenue)}</td>
@@ -381,7 +383,7 @@ const SalesInventory = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between">
         <span style="font-size:9px;color:#000">${bizName} — Confidential</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
@@ -407,9 +409,11 @@ const SalesInventory = () => {
               padding: '10px 22px', borderRadius: 10, border: 'none',
               cursor: pendingCount === 0 ? 'not-allowed' : 'pointer',
               fontSize: 14, fontWeight: 600,
-              background: pendingCount > 0 ? 'linear-gradient(135deg, #16a34a, #15803d)' : '#d1d5db',
-              color: 'white',
-              boxShadow: pendingCount > 0 ? '0 4px 14px rgba(22,163,74,0.45)' : 'none',
+              // the header's main action in the shared hero colours: amber when
+              // there is something to save, a quiet outline when there is not
+              background: pendingCount > 0 ? '#fbbf24' : 'rgba(255,255,255,0.06)',
+              color: pendingCount > 0 ? '#1c1917' : '#cbd5e1',
+              boxShadow: pendingCount > 0 ? '0 4px 14px rgba(251,191,36,0.35)' : 'inset 0 0 0 1px rgba(255,255,255,0.28)',
               transition: 'all 0.25s', opacity: saving ? 0.75 : 1,
             }}
           >
@@ -417,7 +421,7 @@ const SalesInventory = () => {
             {saving ? 'Saving...' : 'Save Actual Balances'}
             {pendingCount > 0 && !saving && (
               <span style={{
-                background: 'rgba(255,255,255,0.25)', borderRadius: 12,
+                background: 'rgba(28,25,23,0.14)', borderRadius: 12,
                 padding: '1px 9px', fontSize: 12, fontWeight: 700, marginLeft: 2
               }}>
                 {pendingCount}
@@ -427,7 +431,7 @@ const SalesInventory = () => {
         )}
         <button
           onClick={handlePrintInventory}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, backgroundColor: '#2563eb', color: 'white' }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.28)', cursor: 'pointer', fontSize: 14, fontWeight: 600, backgroundColor: 'rgba(255,255,255,0.06)', color: '#fff' }}
         >
           <FiPrinter size={17} /> Print
         </button>
@@ -493,14 +497,14 @@ const SalesInventory = () => {
             <input
               type="date" value={filterDate} max={maxDate}
               onChange={e => setFilterDate(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13, fontWeight: 500, color: '#374151', cursor: 'pointer' }}
+              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, fontWeight: 500, color: '#334155', cursor: 'pointer' }}
             />
             <button
               onClick={() => setFilterDate(businessToday())}
               style={{
-                padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb',
+                padding: '8px 14px', borderRadius: 8, border: '1px solid #e2e8f0',
                 background: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 500,
-                color: '#374151', whiteSpace: 'nowrap',
+                color: '#334155', whiteSpace: 'nowrap',
               }}
             >
               Today
@@ -541,7 +545,7 @@ const SalesInventory = () => {
                 border: `1px solid ${(s.color || '#475569')}40`, fontSize: 12,
               }}>
                 <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
-                <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
+                <span style={{ marginLeft: 6, color: '#334155', fontWeight: 600 }}>
                   {s.count} item{s.count !== 1 ? 's' : ''} · ${s.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -593,7 +597,7 @@ const SalesInventory = () => {
                   const isExpanded = !!expandedRows[product.id];
                   return (
                     <React.Fragment key={product.id}>
-                    <tr style={{ background: locked ? '#f9fafb' : undefined }}>
+                    <tr style={{ background: locked ? '#f8fafc' : undefined }}>
                       <td>
                         <div
                           onClick={() => toggleExpand(product.id)}
@@ -601,7 +605,7 @@ const SalesInventory = () => {
                           title="Click to see SIV breakdown"
                         >
                           <FiChevronDown size={13} style={{ color: '#475569', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-                          <strong style={{ color: '#111827' }}>{product.name}</strong>
+                          <strong style={{ color: '#0f172a' }}>{product.name}</strong>
                         </div>
                       </td>
                       {/* v1.8.31 — always render in the product's configured
@@ -620,15 +624,15 @@ const SalesInventory = () => {
                           columns removed per user request. */}
                       <td style={{ textAlign: 'right' }}>{curSym}{r.costPrice.toFixed(2)}</td>
                       <td style={{ textAlign: 'right' }}>{curSym}{r.sellingPrice.toFixed(2)}</td>
-                      <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.totalCostPrice)}</td>
-                      <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.totalSellingPrice)}</td>
+                      <td style={{ textAlign: 'right' }}>{money(r.totalCostPrice)}</td>
+                      <td style={{ textAlign: 'right' }}>{money(r.totalSellingPrice)}</td>
                       <td style={{ textAlign: 'right', color: r.totalDifference < 0 ? '#b91c1c' : '#15803d' }}>
-                        {curSym}{fmt(r.totalDifference)}
+                        {money(r.totalDifference)}
                       </td>
                       <td style={{ textAlign: 'right', fontWeight: 600, color: r.profit >= 0 ? '#15803d' : '#b91c1c' }}>
-                        {curSym}{fmt(r.profit)}
+                        {money(r.profit)}
                       </td>
-                      <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.stockingPrice)}</td>
+                      <td style={{ textAlign: 'right' }}>{money(r.stockingPrice)}</td>
                     </tr>
                     {isExpanded && (
                       <tr style={{ background: '#f0f9ff' }}>
@@ -651,7 +655,7 @@ const SalesInventory = () => {
                                 {sivBreakdowns[product.id].map((row, i) => (
                                   <tr key={i}>
                                     <td style={{ padding: '2px 14px 2px 0', color: '#2563eb', fontWeight: 600 }}>{row.siv_number}</td>
-                                    <td style={{ padding: '2px 14px 2px 0', color: '#374151' }}>{row.department}</td>
+                                    <td style={{ padding: '2px 14px 2px 0', color: '#334155' }}>{row.department}</td>
                                     <td style={{ padding: '2px 14px 2px 0', color: '#475569' }}>{new Date(row.created_at + 'Z').toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                                     <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600, color: '#15803d' }}>{parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                   </tr>
@@ -667,18 +671,18 @@ const SalesInventory = () => {
                 })}
               </tbody>
               <tfoot>
-                <tr style={{ fontWeight: 700, borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
+                <tr style={{ fontWeight: 700, borderTop: '2px solid #e2e8f0', background: '#f8fafc' }}>
                   <td>TOTALS</td>
                   <td colSpan={3}></td>
                   <td style={{ textAlign: 'right' }}>{summaryTotals.totalSales.toLocaleString()}</td>
                   <td style={{ textAlign: 'right', color: '#b45309' }}>{summaryTotals.totalReturns > 0 ? summaryTotals.totalReturns.toLocaleString() : '—'}</td>
                   <td colSpan={4}></td>
                   <td></td>
-                  <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalCost)}</td>
-                  <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalRevenue)}</td>
-                  <td style={{ textAlign: 'right', color: summaryTotals.totalDiff < 0 ? '#b91c1c' : '#15803d' }}>{curSym}{fmt(summaryTotals.totalDiff)}</td>
-                  <td style={{ textAlign: 'right', color: summaryTotals.totalProfit >= 0 ? '#15803d' : '#b91c1c' }}>{curSym}{fmt(summaryTotals.totalProfit)}</td>
-                  <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalStocking)}</td>
+                  <td style={{ textAlign: 'right' }}>{money(summaryTotals.totalCost)}</td>
+                  <td style={{ textAlign: 'right' }}>{money(summaryTotals.totalRevenue)}</td>
+                  <td style={{ textAlign: 'right', color: summaryTotals.totalDiff < 0 ? '#b91c1c' : '#15803d' }}>{money(summaryTotals.totalDiff)}</td>
+                  <td style={{ textAlign: 'right', color: summaryTotals.totalProfit >= 0 ? '#15803d' : '#b91c1c' }}>{money(summaryTotals.totalProfit)}</td>
+                  <td style={{ textAlign: 'right' }}>{money(summaryTotals.totalStocking)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -697,7 +701,7 @@ const SalesInventory = () => {
             background: '#fff', borderRadius: 14, padding: '26px 28px', width: 380,
             boxShadow: '0 20px 60px rgba(0,0,0,0.22)', animation: 'slideUp 0.2s ease'
           }}>
-            <h4 style={{ margin: '0 0 5px', fontSize: 16, fontWeight: 700, color: '#111827' }}>
+            <h4 style={{ margin: '0 0 5px', fontSize: 16, fontWeight: 700, color: '#0f172a' }}>
               Enter Custom Reason
             </h4>
             <p style={{ margin: '0 0 16px', fontSize: 12, color: '#475569' }}>
@@ -711,19 +715,19 @@ const SalesInventory = () => {
               rows={3}
               style={{
                 width: '100%', boxSizing: 'border-box', padding: '10px 12px',
-                borderRadius: 8, border: '1.5px solid #d1d5db', fontSize: 13,
+                borderRadius: 8, border: '1.5px solid #cbd5e1', fontSize: 13,
                 resize: 'vertical', outline: 'none', fontFamily: 'inherit',
                 transition: 'border-color 0.2s', lineHeight: 1.5,
               }}
               onFocus={e => e.target.style.borderColor = '#2563eb'}
-              onBlur={e => e.target.style.borderColor = '#d1d5db'}
+              onBlur={e => e.target.style.borderColor = '#cbd5e1'}
             />
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>
               <button
                 onClick={() => setOtherModal(null)}
                 style={{
-                  padding: '9px 20px', borderRadius: 8, border: '1px solid #e5e7eb',
-                  background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#374151'
+                  padding: '9px 20px', borderRadius: 8, border: '1px solid #e2e8f0',
+                  background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#334155'
                 }}
               >
                 Cancel
@@ -733,7 +737,7 @@ const SalesInventory = () => {
                 disabled={!otherModal.text?.trim()}
                 style={{
                   padding: '9px 20px', borderRadius: 8, border: 'none',
-                  background: otherModal.text?.trim() ? '#2563eb' : '#d1d5db',
+                  background: otherModal.text?.trim() ? '#2563eb' : '#cbd5e1',
                   color: '#fff', cursor: otherModal.text?.trim() ? 'pointer' : 'not-allowed',
                   fontSize: 13, fontWeight: 600, transition: 'background 0.2s'
                 }}

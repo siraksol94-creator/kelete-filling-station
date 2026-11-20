@@ -45,7 +45,7 @@ export default function ChangePasswordModal({ onClose }) {
       autoFocus={autoFocus}
       style={{
         width: '100%', padding: '10px 12px', fontSize: 14, borderRadius: 8, boxSizing: 'border-box',
-        border: `1.5px solid ${bad ? '#fca5a5' : '#d1d5db'}`, outline: 'none', color: '#0f172a',
+        border: `1.5px solid ${bad ? '#fca5a5' : '#cbd5e1'}`, outline: 'none', color: '#0f172a',
       }}
     />
   );
@@ -56,7 +56,7 @@ export default function ChangePasswordModal({ onClose }) {
            onClick={(e) => { if (e.target === e.currentTarget && !saving) onClose(); }}>
         <form onSubmit={submit}
               style={{ width: '100%', maxWidth: 400, background: '#fff', borderRadius: 14, boxShadow: '0 24px 64px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #eef1f5' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #f1f5f9' }}>
             <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: '#0f172a' }}>Change password</h3>
             <button type="button" onClick={onClose} disabled={saving} aria-label="Close"
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', display: 'inline-flex', padding: 4 }}>
@@ -77,15 +77,15 @@ export default function ChangePasswordModal({ onClose }) {
           ) : (
             <>
               <div style={{ padding: '18px 20px', display: 'grid', gap: 14 }}>
-                <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155' }}>
                   Current password
                   {input(current, setCurrent, 'current-password', true)}
                 </label>
-                <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155' }}>
                   New password
                   {input(next, setNext, 'new-password', false)}
                 </label>
-                <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                <label style={{ display: 'grid', gap: 6, fontSize: 13, fontWeight: 600, color: '#334155' }}>
                   Confirm new password
                   {input(confirm, setConfirm, 'new-password', false, mismatch)}
                   {mismatch && <span style={{ fontSize: 12, fontWeight: 500, color: '#b91c1c' }}>The new passwords do not match.</span>}
@@ -100,9 +100,9 @@ export default function ChangePasswordModal({ onClose }) {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 20px', borderTop: '1px solid #eef1f5', background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '14px 20px', borderTop: '1px solid #f1f5f9', background: '#fff' }}>
                 <button type="button" onClick={onClose} disabled={saving}
-                  style={{ padding: '10px 16px', background: '#fff', color: '#374151', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                  style={{ padding: '10px 16px', background: '#fff', color: '#334155', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}

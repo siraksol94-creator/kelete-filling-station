@@ -34,7 +34,7 @@ const cnReasonStyle = (r) => {
     case 'Discount':     return { bg: '#dcfce7', color: '#15803d', border: '#86efac' };
     case 'Crate Return': return { bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' };
     case 'Goods Return': return { bg: '#ffedd5', color: '#9a3412', border: '#fed7aa' };
-    default:             return { bg: '#f3f4f6', color: '#374151', border: '#e5e7eb' };
+    default:             return { bg: '#f1f5f9', color: '#334155', border: '#e2e8f0' };
   }
 };
 const cnEmptyItem = (dep = '') => ({ product_id: '', product_text: '', quantity: '', unit_value: dep ? String(dep) : '', unit: '', unit_conv: 1 });
@@ -687,28 +687,28 @@ const GRN = () => {
       const rows = filteredGRNs.map((grn,idx) => {
         const items = map[grn.id] || [];
         const ps = grn.payment_status||'Not Paid';
-        const subRows = items.length > 0 ? `<tr style="background:#f5f5f5"><td colspan="7" style="padding:0 10px 8px 28px">
+        const subRows = items.length > 0 ? `<tr style="background:#f1f5f9"><td colspan="7" style="padding:0 10px 8px 28px">
           <table style="width:100%;border-collapse:collapse;font-size:10px">
-            <thead><tr style="background:#e8e8e8;border-bottom:1px solid #bbb">
+            <thead><tr style="background:#e2e8f0;border-bottom:1px solid #cbd5e1">
               <th style="padding:4px 10px;text-align:left;font-weight:600;color:#000">Product</th>
               <th style="padding:4px 10px;text-align:right;font-weight:600;color:#000">Qty</th>
               <th style="padding:4px 10px;text-align:right;font-weight:600;color:#000">Unit Cost</th>
               <th style="padding:4px 10px;text-align:right;font-weight:600;color:#000">Total</th>
-            </tr></thead><tbody>${items.map(item=>`<tr style="border-bottom:1px solid #ddd">
+            </tr></thead><tbody>${items.map(item=>`<tr style="border-bottom:1px solid #e2e8f0">
               <td style="padding:4px 10px;font-weight:500">${item.product_name}</td>
               <td style="padding:4px 10px;text-align:right;font-family:monospace">${parseFloat(item.quantity).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-              <td style="padding:4px 10px;text-align:right;font-family:monospace">$${fmt(item.unit_price)}</td>
-              <td style="padding:4px 10px;text-align:right;font-weight:600;font-family:monospace">$${fmt(item.total_price)}</td>
+              <td style="padding:4px 10px;text-align:right;font-family:monospace">${curSym}${fmt(item.unit_price)}</td>
+              <td style="padding:4px 10px;text-align:right;font-weight:600;font-family:monospace">${curSym}${fmt(item.total_price)}</td>
             </tr>`).join('')}</tbody>
           </table>
         </td></tr>` : '';
-        return `<tr style="background:${idx%2===1?'#f5f5f5':'#fff'};border-top:${idx>0?'2px solid #ccc':'none'}">
+        return `<tr style="background:${idx%2===1?'#f1f5f9':'#fff'};border-top:${idx>0?'2px solid #cbd5e1':'none'}">
           <td style="padding:8px 10px;color:#000;font-size:10.5px">${idx+1}</td>
           <td style="padding:8px 10px;font-weight:700;font-family:monospace;font-size:11px">${grn.grn_number}</td>
           <td style="padding:8px 10px">${formatDate(grn.date||grn.created_at)}</td>
           <td style="padding:8px 10px;font-weight:500">${grn.supplier_name||'—'}</td>
           <td style="padding:8px 10px;text-align:right">${grn.total_items}</td>
-          <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace">$${fmt(grn.total_amount)}</td>
+          <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace">${curSym}${fmt(grn.total_amount)}</td>
           <td style="padding:8px 10px;text-align:right"><span style="padding:2px 8px;border:1px solid #000;font-size:10px;font-weight:600">${ps}</span></td>
         </tr>${subRows}`;
       }).join('');
@@ -716,9 +716,9 @@ const GRN = () => {
         @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
         body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
         table{width:100%;border-collapse:collapse}
-        th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
+        th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
         td{font-size:11px}
-        tfoot td{padding:10px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+        tfoot td{padding:10px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
       </style></head><body>
         <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
           <div>
@@ -751,7 +751,7 @@ const GRN = () => {
             <tfoot><tr>
               <td colspan="4">TOTAL — ${filteredGRNs.length} GRN${filteredGRNs.length!==1?'s':''}</td>
               <td style="text-align:right">${filteredGRNs.reduce((s,g)=>s+parseInt(g.total_items||0),0)} items</td>
-              <td style="text-align:right;font-size:13px;font-family:monospace">$${filteredTotal.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+              <td style="text-align:right;font-size:13px;font-family:monospace">${curSym}${filteredTotal.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
               <td></td>
             </tr></tfoot>
           </table>
@@ -765,7 +765,7 @@ const GRN = () => {
               <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
             </div>`).join('')}
         </div>
-        <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+        <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
           <span style="font-size:9px;color:#000">${bizName} — Confidential</span>
           <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
         </div>
@@ -786,7 +786,7 @@ const GRN = () => {
     const items = grn.items || [];
     const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
     const preparedBy = grn.created_by_name || '—';
-    const itemRows = items.map((item,idx)=>`<tr style="border-bottom:1px solid #ddd;background:${idx%2===1?'#f9f9f9':'#fff'}">
+    const itemRows = items.map((item,idx)=>`<tr style="border-bottom:1px solid #e2e8f0;background:${idx%2===1?'#f8fafc':'#fff'}">
       <td style="padding:9px 12px;color:#000;font-size:10.5px">${idx+1}</td>
       <td style="padding:9px 12px;font-weight:600">${item.product_name}</td>
       <td style="padding:9px 12px;text-align:right;font-family:monospace">${parseFloat(item.quantity).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
@@ -823,7 +823,7 @@ const GRN = () => {
           <span style="font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#fff">Items Received</span>
         </div>
         <table>
-          <thead><tr style="background:#f0f0f0;border-bottom:1.5px solid #000">
+          <thead><tr style="background:#f1f5f9;border-bottom:1.5px solid #000">
             <th style="padding:8px 12px;text-align:left;font-size:10px;width:30px">#</th>
             <th style="padding:8px 12px;text-align:left;font-size:10px">Product</th>
             <th style="padding:8px 12px;text-align:right;font-size:10px">Quantity</th>
@@ -832,9 +832,9 @@ const GRN = () => {
             <th style="padding:8px 12px;text-align:left;font-size:10px">Expiry Date</th>
           </tr></thead>
           <tbody>${itemRows}</tbody>
-          <tfoot><tr style="background:#f0f0f0;border-top:2px solid #000">
+          <tfoot><tr style="background:#f1f5f9;border-top:2px solid #000">
             <td colspan="5" style="padding:11px 12px;font-weight:800;font-size:12px;letter-spacing:0.5px">GRAND TOTAL</td>
-            <td style="padding:11px 12px;text-align:right;font-weight:900;font-size:16px;font-family:monospace">$${fmt(grn.total_amount)}</td>
+            <td style="padding:11px 12px;text-align:right;font-weight:900;font-size:16px;font-family:monospace">${curSym}${fmt(grn.total_amount)}</td>
           </tr></tfoot>
         </table>
       </div>
@@ -848,7 +848,7 @@ const GRN = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;margin-top:20px;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;margin-top:20px;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px;color:#000">${bizName} — Confidential Document</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
@@ -874,12 +874,12 @@ const GRN = () => {
             disabled={printItemsLoading}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 7,
-              padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e5e7eb',
-              background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#374151',
+              padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0',
+              background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#334155',
               transition: 'all 0.15s',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b7280'; e.currentTarget.style.background = '#f9fafb'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#64748b'; e.currentTarget.style.background = '#f8fafc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}
           >
             <FiPrinter size={16} /> {t('print')}
           </button>
@@ -920,37 +920,37 @@ const GRN = () => {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
-        border: '1px solid #e5e7eb', borderRadius: 10,
+        border: '1px solid #e2e8f0', borderRadius: 10,
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{t('filterByDate')}:</span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }}
           />
         </div>
 
         {hasFilter && (
           <button
             onClick={() => { setFilterFrom(''); setFilterTo(''); }}
-            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}
+            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0', fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer' }}
           >
             {t('clear')}
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>
           {filteredGRNs.length} GRN{filteredGRNs.length !== 1 ? 's' : ''}
           {hasFilter && <> &nbsp;·&nbsp; Total: <strong style={{ color: '#15803d' }}>{filteredTotalDisplay}</strong></>}
         </span>
@@ -959,7 +959,7 @@ const GRN = () => {
       {/* ── GRN Table ─────────────────────────────────────────────── */}
       <div className="data-table-container">
         {filteredGRNs.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
             {hasFilter ? t('noGRNsInRange') : t('noData')}
           </div>
         ) : (
@@ -1001,11 +1001,11 @@ const GRN = () => {
                         disabled={viewLoading}
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
-                          padding: '5px 11px', borderRadius: 6, border: '1px solid #e5e7eb',
-                          background: '#f9fafb', color: '#6b7280', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 500,
+                          padding: '5px 11px', borderRadius: 6, border: '1px solid #e2e8f0',
+                          background: '#f8fafc', color: '#64748b', cursor: 'pointer', transition: 'all 0.15s', fontSize: 12, fontWeight: 500,
                         }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.borderColor = '#86efac'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                       >
                         <FiEye size={12} /> {t('view')}
                       </button>
@@ -1016,11 +1016,11 @@ const GRN = () => {
                           title="Edit GRN"
                           style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: 30, height: 30, borderRadius: 6, border: '1px solid #e5e7eb',
-                            background: '#f9fafb', color: '#6b7280', cursor: 'pointer', transition: 'all 0.15s',
+                            width: 30, height: 30, borderRadius: 6, border: '1px solid #e2e8f0',
+                            background: '#f8fafc', color: '#64748b', cursor: 'pointer', transition: 'all 0.15s',
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = '#dbeafe'; e.currentTarget.style.color = '#2563eb'; e.currentTarget.style.borderColor = '#bfdbfe'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                         >
                           <FiEdit2 size={13} />
                         </button>
@@ -1040,7 +1040,7 @@ const GRN = () => {
       </div>
 
       {/* ── Product Received Breakdown ────────────────────────────── */}
-      <div style={{ marginTop: 20, border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ marginTop: 20, border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
 
         {/* Collapsible Header */}
         <button
@@ -1055,9 +1055,9 @@ const GRN = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <FiPackage size={16} style={{ color: '#15803d' }} />
             <span style={{ fontWeight: 700, fontSize: 14, color: '#15803d' }}>Product Received Breakdown</span>
-            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>— How much of each product was received in a date range</span>
+            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 400 }}>— How much of each product was received in a date range</span>
           </div>
-          {showReport ? <FiChevronUp size={16} style={{ color: '#6b7280' }} /> : <FiChevronDown size={16} style={{ color: '#6b7280' }} />}
+          {showReport ? <FiChevronUp size={16} style={{ color: '#64748b' }} /> : <FiChevronDown size={16} style={{ color: '#64748b' }} />}
         </button>
 
         {showReport && (
@@ -1067,10 +1067,10 @@ const GRN = () => {
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 14, flexWrap: 'wrap', marginBottom: 18 }}>
               {/* Product search */}
               <div style={{ flex: '0 0 240px' }}>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 5 }}>Product</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 5 }}>Product</label>
                 <div style={{ position: 'relative' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid #d1d5db', borderRadius: 8, padding: '7px 12px', background: '#fff' }}>
-                    <FiSearch style={{ color: '#6b7280', flexShrink: 0 }} size={14} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid #cbd5e1', borderRadius: 8, padding: '7px 12px', background: '#fff' }}>
+                    <FiSearch style={{ color: '#64748b', flexShrink: 0 }} size={14} />
                     <input
                       ref={reportSearchRef}
                       type="text"
@@ -1106,7 +1106,7 @@ const GRN = () => {
                     {reportProduct && <FiCheckCircle style={{ color: '#15803d', flexShrink: 0 }} size={14} />}
                   </div>
                   {reportShowDropdown && reportFilteredDropdown.length > 0 && (
-                    <div ref={reportDropdownRef} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 2 }}>
+                    <div ref={reportDropdownRef} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 2 }}>
                       {reportFilteredDropdown.map((p, idx) => (
                         <div
                           key={p.id}
@@ -1121,7 +1121,7 @@ const GRN = () => {
                           style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, background: reportHighlightedIdx === idx ? '#f0fdf4' : '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}
                         >
                           <span style={{ fontWeight: 500 }}>{p.name}</span>
-                          {p.code && <span style={{ color: '#6b7280', fontSize: 12 }}>{p.code}</span>}
+                          {p.code && <span style={{ color: '#64748b', fontSize: 12 }}>{p.code}</span>}
                         </div>
                       ))}
                     </div>
@@ -1129,25 +1129,25 @@ const GRN = () => {
                 </div>
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 5 }}>From Date</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 5 }}>From Date</label>
                 <input
                   type="date" value={reportFrom} max={reportTo || todayStr}
                   onChange={e => setReportFrom(e.target.value)}
-                  style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, color: '#374151' }}
+                  style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, color: '#334155' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#6b7280', marginBottom: 5 }}>To Date</label>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 5 }}>To Date</label>
                 <input
                   type="date" value={reportTo} min={reportFrom || undefined} max={todayStr}
                   onChange={e => setReportTo(e.target.value)}
-                  style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, color: '#374151' }}
+                  style={{ padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, color: '#334155' }}
                 />
               </div>
               <button
                 onClick={() => runProductReport()}
                 disabled={reportLoading}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 20px', borderRadius: 8, border: 'none', background: reportLoading ? '#9ca3af' : '#16a34a', color: '#fff', cursor: reportLoading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 20px', borderRadius: 8, border: 'none', background: reportLoading ? '#94a3b8' : '#16a34a', color: '#fff', cursor: reportLoading ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}
               >
                 <FiSearch size={14} />
                 {reportLoading ? 'Searching…' : 'Search'}
@@ -1155,7 +1155,7 @@ const GRN = () => {
               {reportSearched && !reportLoading && (
                 <button
                   onClick={() => { setReportFrom(''); setReportTo(todayStr); setReportProduct(''); setReportSearchText(''); setReportData([]); setReportBreakdown([]); setReportSearched(false); setReportError(''); }}
-                  style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13 }}
+                  style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 13 }}
                 >
                   Clear
                 </button>
@@ -1171,13 +1171,13 @@ const GRN = () => {
 
             {/* Results */}
             {!reportSearched && !reportLoading && (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: '#6b7280', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '30px 0', color: '#64748b', fontSize: 13 }}>
                 Set a date range and click Search to see product quantities received.
               </div>
             )}
 
             {reportSearched && !reportLoading && reportData.length === 0 && !reportError && (
-              <div style={{ textAlign: 'center', padding: '30px 0', color: '#6b7280', fontSize: 13 }}>
+              <div style={{ textAlign: 'center', padding: '30px 0', color: '#64748b', fontSize: 13 }}>
                 No GRN items found for the selected filters.
               </div>
             )}
@@ -1185,7 +1185,7 @@ const GRN = () => {
             {reportData.length > 0 && (
               <>
                 {/* Period label */}
-                <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 10 }}>
+                <div style={{ fontSize: 12, color: '#64748b', marginBottom: 10 }}>
                   Showing <strong style={{ color: '#15803d' }}>{reportData.length}</strong> product{reportData.length !== 1 ? 's' : ''}
                   {(reportFrom || reportTo) && (
                     <> from <strong>{reportFrom ? formatDate(reportFrom) : 'the beginning'}</strong> to <strong>{reportTo ? formatDate(reportTo) : 'today'}</strong></>
@@ -1193,7 +1193,7 @@ const GRN = () => {
                 </div>
 
                 {/* Summary table */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', marginBottom: reportBreakdown.length > 0 ? 20 : 0 }}>
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden', marginBottom: reportBreakdown.length > 0 ? 20 : 0 }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                     <thead>
                       <tr style={{ background: '#f0fdf4' }}>
@@ -1208,28 +1208,28 @@ const GRN = () => {
                     </thead>
                     <tbody>
                       {reportData.map((row, idx) => (
-                        <tr key={row.product_id} style={{ borderTop: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                          <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
-                          <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>
+                        <tr key={row.product_id} style={{ borderTop: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                          <td style={{ padding: '10px 14px', color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
+                          <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>
                             {row.product_name}
-                            {row.unit && <span style={{ marginLeft: 6, fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '1px 6px', borderRadius: 10 }}>{row.unit}</span>}
+                            {row.unit && <span style={{ marginLeft: 6, fontSize: 11, color: '#64748b', background: '#f1f5f9', padding: '1px 6px', borderRadius: 10 }}>{row.unit}</span>}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontSize: 15, color: '#15803d', fontFamily: 'monospace' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontSize: 15, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>
                             {parseFloat(row.total_quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151' }}>{row.grn_count}</td>
-                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#374151', fontFamily: 'monospace' }}>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', color: '#334155' }}>{row.grn_count}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: '#334155', fontFamily: 'var(--k-font-mono)' }}>
                             ${parseFloat(row.total_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </td>
-                          <td style={{ padding: '10px 14px', textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{formatDate(row.first_received)}</td>
-                          <td style={{ padding: '10px 14px', textAlign: 'center', color: '#6b7280', fontSize: 12 }}>{formatDate(row.last_received)}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'center', color: '#64748b', fontSize: 12 }}>{formatDate(row.first_received)}</td>
+                          <td style={{ padding: '10px 14px', textAlign: 'center', color: '#64748b', fontSize: 12 }}>{formatDate(row.last_received)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
                         <td colSpan={4} style={{ padding: '10px 14px', fontWeight: 700, fontSize: 12.5, color: '#14532d' }}>TOTAL</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, fontSize: 14, fontFamily: 'monospace', color: '#15803d' }}>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, fontSize: 14, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                           ${reportTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                         <td colSpan={2}></td>
@@ -1259,18 +1259,18 @@ const GRN = () => {
                         </thead>
                         <tbody>
                           {reportBreakdown.map((row, idx) => (
-                            <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                              <td style={{ padding: '9px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
-                              <td style={{ padding: '9px 14px', fontWeight: 600, color: '#2563eb', fontFamily: 'monospace', fontSize: 12 }}>{row.grn_number}</td>
-                              <td style={{ padding: '9px 14px', color: '#374151' }}>{formatDate(row.date)}</td>
-                              <td style={{ padding: '9px 14px', color: '#374151' }}>{row.supplier_name || '—'}</td>
-                              <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#15803d', fontFamily: 'monospace' }}>
+                            <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                              <td style={{ padding: '9px 14px', color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
+                              <td style={{ padding: '9px 14px', fontWeight: 600, color: '#2563eb', fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>{row.grn_number}</td>
+                              <td style={{ padding: '9px 14px', color: '#334155' }}>{formatDate(row.date)}</td>
+                              <td style={{ padding: '9px 14px', color: '#334155' }}>{row.supplier_name || '—'}</td>
+                              <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>
                                 {parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </td>
-                              <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>
+                              <td style={{ padding: '9px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155' }}>
                                 ${parseFloat(row.unit_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </td>
-                              <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', color: '#374151' }}>
+                              <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, fontFamily: 'var(--k-font-mono)', color: '#334155' }}>
                                 ${parseFloat(row.total_price || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </td>
                             </tr>
@@ -1281,11 +1281,11 @@ const GRN = () => {
                             <td colSpan={4} style={{ padding: '9px 14px', fontWeight: 700, fontSize: 12, color: '#14532d' }}>
                               TOTAL — {reportBreakdown.length} GRN{reportBreakdown.length !== 1 ? 's' : ''}
                             </td>
-                            <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, fontFamily: 'monospace', color: '#15803d' }}>
+                            <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                               {reportBreakdown.reduce((s, r) => s + parseFloat(r.quantity || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                             <td></td>
-                            <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, fontFamily: 'monospace', color: '#15803d' }}>
+                            <td style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 800, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                               ${reportBreakdown.reduce((s, r) => s + parseFloat(r.total_price || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                           </tr>
@@ -1332,7 +1332,7 @@ const GRN = () => {
               <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: 14, marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: 0.5 }}>Grand Total</span>
-                  <span style={{ fontSize: 22, fontWeight: 900, color: '#15803d', fontFamily: 'monospace' }}>
+                  <span style={{ fontSize: 22, fontWeight: 900, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>
                     {viewMoney(viewGRN.total_amount || 0)}
                   </span>
                 </div>
@@ -1368,7 +1368,7 @@ const GRN = () => {
               })()}
 
               {/* Section heading */}
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 4px 8px' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, padding: '4px 4px 8px' }}>
                 Items Received ({(viewGRN.items || []).length})
               </div>
 
@@ -1381,18 +1381,18 @@ const GRN = () => {
                 const hasContainer = item.container_product_sync_id && (recv > 0 || ret > 0);
                 const containerProd = hasContainer ? products.find(p => p.sync_id === item.container_product_sync_id) : null;
                 return (
-                  <div key={item.id} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 6 }}>
-                      <span style={{ color: '#6b7280', fontWeight: 500, marginRight: 6 }}>{idx + 1}.</span>
+                  <div key={item.id} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, marginBottom: 8, boxShadow: '0 1px 2px rgba(0,0,0,0.03)' }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 6 }}>
+                      <span style={{ color: '#64748b', fontWeight: 500, marginRight: 6 }}>{idx + 1}.</span>
                       {item.product_name}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13, color: '#374151' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13, color: '#334155' }}>
                       <span>
                         {parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} {item.unit || item.product_unit || ''}
-                        <span style={{ color: '#6b7280', margin: '0 6px' }}>×</span>
+                        <span style={{ color: '#64748b', margin: '0 6px' }}>×</span>
                         {viewMoney(item.unit_price)}
                       </span>
-                      <span style={{ fontWeight: 800, color: '#15803d', fontFamily: 'monospace' }}>
+                      <span style={{ fontWeight: 800, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>
                         {viewMoney(item.total_price)}
                       </span>
                     </div>
@@ -1426,24 +1426,24 @@ const GRN = () => {
               {/* Invoice attachment */}
               {viewGRN.invoice_attachment && (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Invoice Attachment</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Invoice Attachment</div>
                   <InvoiceAttachment value={viewGRN.invoice_attachment} onChange={() => {}} kind="grn" disabled />
                 </div>
               )}
             </div>
 
             {/* Sticky footer */}
-            <div style={{ borderTop: '1px solid #e5e7eb', padding: '10px 12px', display: 'flex', gap: 8, background: '#fff', flexShrink: 0 }}>
+            <div style={{ borderTop: '1px solid #e2e8f0', padding: '10px 12px', display: 'flex', gap: 8, background: '#fff', flexShrink: 0 }}>
               <button
                 onClick={() => printSingleGRN(viewGRN)}
-                style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 8px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 600 }}
+                style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 8px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#334155', fontSize: 12, fontWeight: 600 }}
               >
                 <FiPrinter size={13} /> Print
               </button>
               {hasPermission('GRN:Edit') && (
                 <button
                   onClick={() => { openEdit({ id: viewGRN.id }); setViewGRN(null); }}
-                  style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 12, fontWeight: 600 }}
+                  style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px 8px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', fontSize: 12, fontWeight: 600 }}
                 >
                   <FiEdit2 size={13} /> Edit
                 </button>
@@ -1530,28 +1530,28 @@ const GRN = () => {
                   { label: 'Date',        value: formatDate(viewGRN.date || viewGRN.created_at) },
                   { label: 'Total Items', value: viewGRN.total_items },
                 ].map(info => (
-                  <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{info.value}</div>
+                  <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{info.value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Items table */}
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
                 <div style={{ background: '#f0fdf4', padding: '10px 14px', borderBottom: '1px solid #d1fae5', fontSize: 11.5, fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                   Items Received
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb' }}>
-                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>#</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Product</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Quantity</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Unit</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Unit Cost ({symForCcy(viewGRN.cost_currency).trim() || 'FRA'})</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Total ({symForCcy(viewGRN.cost_currency).trim() || 'FRA'})</th>
-                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#6b7280', fontSize: 11.5, borderBottom: '1px solid #e5e7eb' }}>Expiry Date</th>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>#</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Product</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Quantity</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Unit</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Unit Cost ({symForCcy(viewGRN.cost_currency).trim() || 'FRA'})</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'right', fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Total ({symForCcy(viewGRN.cost_currency).trim() || 'FRA'})</th>
+                      <th style={{ padding: '9px 14px', textAlign: 'left',  fontWeight: 600, color: '#64748b', fontSize: 11.5, borderBottom: '1px solid #e2e8f0' }}>Expiry Date</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1566,14 +1566,14 @@ const GRN = () => {
                         : null;
                       return (
                         <React.Fragment key={item.id}>
-                          <tr style={{ borderBottom: hasContainer ? 'none' : '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                            <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12 }}>{idx + 1}</td>
-                            <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>{item.product_name}</td>
-                            <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.unit || item.product_unit || '—'}</td>
-                            <td style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#15803d', fontFamily: 'monospace' }}>{parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{item.expiry_date || '—'}</td>
+                          <tr style={{ borderBottom: hasContainer ? 'none' : '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                            <td style={{ padding: '10px 14px', color: '#64748b', fontSize: 12 }}>{idx + 1}</td>
+                            <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>{item.product_name}</td>
+                            <td style={{ padding: '10px 14px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td style={{ padding: '10px 14px', color: '#334155', fontSize: 12 }}>{item.unit || item.product_unit || '—'}</td>
+                            <td style={{ padding: '10px 14px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td style={{ padding: '10px 14px', color: '#334155', fontSize: 12 }}>{item.expiry_date || '—'}</td>
                           </tr>
                           {hasContainer && (
                             <tr style={{ background: '#fffbeb', borderBottom: '1px solid #f1f5f9' }}>
@@ -1590,7 +1590,7 @@ const GRN = () => {
                                 {(recv - ret) === 0 && '—'}
                                 &nbsp;@ {viewMoney(dep)}
                               </td>
-                              <td style={{ padding: '6px 14px 10px', textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', color: containerLine < 0 ? '#dc2626' : '#92400e' }}>
+                              <td style={{ padding: '6px 14px 10px', textAlign: 'right', fontWeight: 600, fontFamily: 'var(--k-font-mono)', color: containerLine < 0 ? '#dc2626' : '#92400e' }}>
                                 {containerLine < 0 ? '−' : '+'}{viewMoney(Math.abs(containerLine))}
                               </td>
                               <td style={{ padding: '6px 14px 10px' }}></td>
@@ -1603,7 +1603,7 @@ const GRN = () => {
                   <tfoot>
                     <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
                       <td colSpan={6} style={{ padding: '10px 14px', fontWeight: 700, fontSize: 13, color: '#14532d' }}>TOTAL</td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, fontSize: 15, fontFamily: 'monospace', color: '#15803d' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 800, fontSize: 15, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                         {viewMoney(viewGRN.total_amount || 0)}
                       </td>
                     </tr>
@@ -1621,19 +1621,19 @@ const GRN = () => {
               {/* Invoice attachment */}
               {viewGRN.invoice_attachment && (
                 <div style={{ marginTop: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Invoice Attachment</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Invoice Attachment</div>
                   <InvoiceAttachment value={viewGRN.invoice_attachment} onChange={() => {}} kind="grn" disabled />
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
                 onClick={() => printSingleGRN(viewGRN)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#9ca3af'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#d1d5db'; }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
               >
                 <FiPrinter size={14} /> Print
               </button>
@@ -1641,7 +1641,7 @@ const GRN = () => {
                 {hasPermission('GRN:Edit') && (
                   <button
                     onClick={() => { openEdit({ id: viewGRN.id }); setViewGRN(null); }}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
                   >
                     <FiEdit2 size={13} /> Edit
                   </button>
@@ -1684,7 +1684,7 @@ const GRN = () => {
           }}>
 
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 {editMode && (
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -1693,13 +1693,13 @@ const GRN = () => {
                 )}
                 <div>
                   <h3 style={{ margin: 0, fontSize: 17 }}>{editMode ? 'Edit GRN' : t('grnTitle')}</h3>
-                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>
+                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
                     {editMode ? 'Update the goods received note'
                       : linkedPurchaseSyncId ? `From HQ Purchase ${linkedPurchaseNumber}` : 'Record stock received from a supplier'}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}><FiX size={20} /></button>
+              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}><FiX size={20} /></button>
             </div>
 
             {/* v1.9.17 — tab strip (HQ-linked GRNs only). Past/legacy GRNs
@@ -1708,7 +1708,7 @@ const GRN = () => {
                 [Other(n)] [Summary]. Each CN tab queues a draft into
                 creditNotes[] — the real POST happens on Save GRN. */}
             {linkedPurchaseSyncId && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid #e5e7eb', padding: '0 24px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid #e2e8f0', padding: '0 24px' }}>
                 {[
                   { id: 'grn',           label: 'GRN' },
                   { id: 'Discount',      label: `Discount${cnCountByReason('Discount')      ? ` (${cnCountByReason('Discount')})`      : ''}` },
@@ -1742,13 +1742,13 @@ const GRN = () => {
                   as plain text on save. */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                     {t('supplier')}
                   </label>
-                  <div style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f3f4f6', fontSize: 14, color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#f1f5f9', fontSize: 14, color: '#334155', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span>{pendingSupplierName || suppliers.find(s => String(s.id) === String(supplierId))?.name || '—'}</span>
                     {linkedPurchaseNumber && (
-                      <span style={{ fontSize: 11, color: '#6b7280', fontStyle: 'italic' }}>from PO {linkedPurchaseNumber}</span>
+                      <span style={{ fontSize: 11, color: '#64748b', fontStyle: 'italic' }}>from PO {linkedPurchaseNumber}</span>
                     )}
                   </div>
                 </div>
@@ -1756,15 +1756,15 @@ const GRN = () => {
                   {/* v1.9.12 — Date + Supplier Invoice # share the right cell
                       when the GRN is HQ-PO-linked. Invoice # is required;
                       the form blocks save until it's filled. */}
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{t('date')}</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>{t('date')}</label>
                   <input
                     type="date" value={date} max={todayStr}
                     onChange={e => setDate(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
                   />
                   {linkedPurchaseSyncId && (
                     <div style={{ marginTop: 10 }}>
-                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                      <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                         Supplier Invoice # <span style={{ color: '#dc2626' }}>*</span>
                       </label>
                       <input
@@ -1772,7 +1772,7 @@ const GRN = () => {
                         value={supplierInvoiceNumber}
                         onChange={e => setSupplierInvoiceNumber(e.target.value)}
                         placeholder="e.g. INV-12345"
-                        style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
                       />
                     </div>
                   )}
@@ -1781,18 +1781,18 @@ const GRN = () => {
 
               {/* Notes */}
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{t('notes')}</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>{t('notes')}</label>
                 <div ref={notesRef} style={{ position: 'relative' }}>
                   <input
                     type="text" value={notes}
                     onChange={e => { setNotes(e.target.value); setNotesOpen(true); }}
                     onFocus={() => setNotesOpen(true)}
                     placeholder="e.g. Delivery reference, invoice number..."
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
                     autoComplete="off"
                   />
                   {notesOpen && notesHistory.filter(n => !notes || n.toLowerCase().includes(notes.toLowerCase())).length > 0 && (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 200, maxHeight: 180, overflowY: 'auto' }}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', zIndex: 200, maxHeight: 180, overflowY: 'auto' }}>
                       {notesHistory.filter(n => !notes || n.toLowerCase().includes(notes.toLowerCase())).map((n, i) => (
                         <div key={i}
                           onMouseDown={() => { setNotes(n); setNotesOpen(false); }}
@@ -1808,14 +1808,14 @@ const GRN = () => {
 
               {/* Invoice attachment (PDF / image / camera) */}
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Invoice Attachment</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Invoice Attachment</label>
                 <InvoiceAttachment value={invoiceAttachment} onChange={setInvoiceAttachment} kind="grn" />
               </div>
 
               {/* Items */}
               <div style={{ marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                  <label style={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>
                     {t('product')}s <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <button
@@ -1836,7 +1836,7 @@ const GRN = () => {
                 {/* Recent products quick-add chips */}
                 {recentProducts.length > 0 && (
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
-                    <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
+                    <span style={{ fontSize: 11, color: '#64748b', alignSelf: 'center', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Recent:</span>
                     {recentProducts.map(p => (
                       <button key={p.product_id} type="button"
                         onClick={() => {
@@ -1873,14 +1873,14 @@ const GRN = () => {
                 {/* Items Table */}
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb' }}>
-                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>{t('product')}</th>
-                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb', width: 90 }}>{t('quantity')}</th>
-                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb', width: 130 }}>Unit</th>
-                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb', width: 110 }}>Cost ({curSym})</th>
-                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb', width: 110 }}>Total ({curSym})</th>
-                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb', width: 140 }}>Expiry Date</th>
-                      <th style={{ padding: '10px 8px', borderBottom: '1px solid #e5e7eb', width: 44 }}></th>
+                    <tr style={{ background: '#f8fafc' }}>
+                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>{t('product')}</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0', width: 90 }}>{t('quantity')}</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0', width: 130 }}>Unit</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0', width: 110 }}>Cost ({curSym})</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0', width: 110 }}>Total ({curSym})</th>
+                      <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0', width: 140 }}>Expiry Date</th>
+                      <th style={{ padding: '10px 8px', borderBottom: '1px solid #e2e8f0', width: 44 }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1915,7 +1915,7 @@ const GRN = () => {
                                 onFocus={e => { const r = e.target.getBoundingClientRect(); setDropdownRect({ top: r.bottom + 2, left: r.left, width: r.width }); setOpenDropdownIdx(idx); setHighlightedIdx(-1); }}
                                 onBlur={() => { setTimeout(() => { setOpenDropdownIdx(-1); setHighlightedIdx(-1); }, 160); }}
                                 placeholder="Type or search product…"
-                                style={{ width: '100%', padding: '8px 10px', border: `1px solid ${incomplete && !item.product_id ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }}
+                                style={{ width: '100%', padding: '8px 10px', border: `1px solid ${incomplete && !item.product_id ? '#f59e0b' : '#e2e8f0'}`, borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }}
                                 onKeyDown={e => {
                                   const filtered = products.filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode));
                                   if (e.key === 'ArrowDown') {
@@ -1953,7 +1953,7 @@ const GRN = () => {
                                 }}
                               />
                               {openDropdownIdx === idx && dropdownRect && (
-                                <div style={{ position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999, background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, maxHeight: 200, overflowY: 'auto', boxShadow: '0 6px 20px rgba(0,0,0,0.12)' }}>
+                                <div style={{ position: 'fixed', top: dropdownRect.top, left: dropdownRect.left, width: dropdownRect.width, zIndex: 9999, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 6, maxHeight: 200, overflowY: 'auto', boxShadow: '0 6px 20px rgba(0,0,0,0.12)' }}>
                                   {products
                                     .filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode))
                                     .map((p, pIdx) => (
@@ -1985,13 +1985,13 @@ const GRN = () => {
                                       >
                                         <span style={{ fontWeight: 500 }}>{p.name}</span>
                                         {(p.cost_price || p.selling_price) && (
-                                          <span style={{ fontSize: 11, color: '#6b7280' }}>${(parseFloat(parseFloat(p.cost_price || p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+                                          <span style={{ fontSize: 11, color: '#64748b' }}>${(parseFloat(parseFloat(p.cost_price || p.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                                         )}
                                       </div>
                                     ))
                                   }
                                   {products.filter(p => matchTokens(item.product_text, p.name, p.code, p.barcode)).length === 0 && (
-                                    <div style={{ padding: '10px 12px', fontSize: 13, color: '#6b7280' }}>No matching products</div>
+                                    <div style={{ padding: '10px 12px', fontSize: 13, color: '#64748b' }}>No matching products</div>
                                   )}
                                 </div>
                               )}
@@ -2002,7 +2002,7 @@ const GRN = () => {
                               type="number" min="0" step="1" placeholder="0"
                               value={item.quantity}
                               onChange={e => { updateItem(idx, 'quantity', e.target.value); if (addRowError) setAddRowError(''); }}
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${incomplete && (!item.quantity || parseFloat(item.quantity) <= 0) ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, textAlign: 'right' }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${incomplete && (!item.quantity || parseFloat(item.quantity) <= 0) ? '#f59e0b' : '#e2e8f0'}`, borderRadius: 6, fontSize: 13, textAlign: 'right' }}
                             />
                           </td>
                           {/* ── Unit picker — dropdown enumerates every packaging the product was configured with. ── */}
@@ -2011,13 +2011,13 @@ const GRN = () => {
                               const prod = products.find(p => p.id === parseInt(item.product_id));
                               if (!prod) {
                                 return (
-                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#6b7280', background: '#f9fafb' }}>—</div>
+                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, color: '#64748b', background: '#f8fafc' }}>—</div>
                                 );
                               }
                               const units = unitsForProductFE(prod);
                               if (units.length <= 1) {
                                 return (
-                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#374151', background: '#f9fafb' }}>{prod.unit}</div>
+                                  <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, color: '#334155', background: '#f8fafc' }}>{prod.unit}</div>
                                 );
                               }
                               return (
@@ -2032,7 +2032,7 @@ const GRN = () => {
                                     const conv = u ? parseFloat(u.conv) : 1;
                                     updateItem(idx, 'unit_price', (base * conv).toFixed(2));
                                   }}
-                                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, background: '#fff' }}
+                                  style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, background: '#fff' }}
                                 >
                                   {units.map(u => (
                                     <option key={u.name} value={u.name}>
@@ -2048,11 +2048,11 @@ const GRN = () => {
                               type="number" min="0" step="0.01" placeholder="0.00"
                               value={item.unit_price}
                               onChange={e => { updateItem(idx, 'unit_price', e.target.value); if (addRowError) setAddRowError(''); }}
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${incomplete && item.unit_price === '' ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, textAlign: 'right' }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${incomplete && item.unit_price === '' ? '#f59e0b' : '#e2e8f0'}`, borderRadius: 6, fontSize: 13, textAlign: 'right' }}
                             />
                           </td>
                           <td style={{ padding: '8px 8px' }}>
-                            <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, textAlign: 'right', background: '#f9fafb', color: '#374151' }}>
+                            <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, textAlign: 'right', background: '#f8fafc', color: '#334155' }}>
                               {(parseFloat(lineTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                             </div>
                           </td>
@@ -2061,14 +2061,14 @@ const GRN = () => {
                               type="date"
                               value={item.expiry_date}
                               onChange={e => updateItem(idx, 'expiry_date', e.target.value)}
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12 }}
+                              style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 12 }}
                             />
                           </td>
                           <td style={{ padding: '8px 4px', textAlign: 'center' }}>
                             <button
                               onClick={() => removeItemRow(idx)}
                               disabled={items.length === 1}
-                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f3f4f6' : '#fee2e2', color: items.length === 1 ? '#6b7280' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}
+                              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f1f5f9' : '#fee2e2', color: items.length === 1 ? '#64748b' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}
                             >
                               <FiTrash2 size={14} />
                             </button>
@@ -2115,18 +2115,18 @@ const GRN = () => {
                 </table>
 
                 {/* Grand Total */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 24, marginTop: 12, paddingTop: 12, borderTop: '2px solid #e5e7eb', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 24, marginTop: 12, paddingTop: 12, borderTop: '2px solid #e2e8f0', flexWrap: 'wrap' }}>
                   {containerTotal !== 0 && (
                     <>
-                      <span style={{ fontSize: 12, color: '#6b7280' }}>
-                        Beverages: <strong style={{ color: '#374151' }}>{curSym}{(parseFloat(beverageTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
+                      <span style={{ fontSize: 12, color: '#64748b' }}>
+                        Beverages: <strong style={{ color: '#334155' }}>{curSym}{(parseFloat(beverageTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
                       </span>
                       <span style={{ fontSize: 12, color: '#92400e' }}>
                         Containers: <strong>{containerTotal < 0 ? '−' : '+'}{curSym}{(parseFloat(Math.abs(containerTotal))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
                       </span>
                     </>
                   )}
-                  <span style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>{t('amount')}:</span>
+                  <span style={{ fontWeight: 600, color: '#334155', fontSize: 14 }}>{t('amount')}:</span>
                   <span style={{ fontWeight: 700, fontSize: 18, color: '#15803d' }}>{curSym}{(parseFloat(totalAmount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                 </div>
               </div>
@@ -2232,8 +2232,8 @@ const GRN = () => {
 
                   {/* Reference (read-only, auto-linked to this GRN's PO) */}
                   <div style={{ marginBottom: 14 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Reference</label>
-                    <div style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f9fafb', fontSize: 13, color: '#374151' }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Reference</label>
+                    <div style={{ padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', fontSize: 13, color: '#334155' }}>
                       {linkedPurchaseNumber || '—'}
                     </div>
                   </div>
@@ -2242,7 +2242,7 @@ const GRN = () => {
                   {hasItems ? (
                     <>
                       <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                        <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4 }}>
                           {reason === 'Goods Return' ? 'Items returned (goods)' : 'Items returned (crates & bottles)'}
                         </label>
                         {reason === 'Crate Return' && defaultDep > 0 && (
@@ -2256,12 +2256,12 @@ const GRN = () => {
                           </span>
                         )}
                       </div>
-                      <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 8, marginBottom: 8, background: '#fafafa' }}>
+                      <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 8, marginBottom: 8, background: '#f8fafc' }}>
                         {(() => {
                           const gridCols = '2.2fr 0.7fr 0.9fr 1.0fr 1.2fr 28px';
                           return (
                             <>
-                              <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', padding: '4px 4px 6px' }}>
+                              <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', padding: '4px 4px 6px' }}>
                                 <span>Product</span>
                                 <span style={{ textAlign: 'right' }}>Qty</span>
                                 <span style={{ textAlign: 'center' }}>Unit</span>
@@ -2278,27 +2278,27 @@ const GRN = () => {
                                     <input list={`grn-cn-products-${idx}`} value={r.product_text}
                                       onChange={e => updateCnRow(idx, 'product_text', e.target.value)}
                                       placeholder={reason === 'Goods Return' ? 'Product' : 'Crate or empty bottle'}
-                                      style={{ padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
+                                      style={{ padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
                                     <datalist id={`grn-cn-products-${idx}`}>
                                       {products.map(p => <option key={p.id} value={p.name} />)}
                                     </datalist>
                                     <input type="number" min="0" step="0.01" value={r.quantity}
                                       onChange={e => updateCnRow(idx, 'quantity', e.target.value)}
-                                      style={{ padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
+                                      style={{ padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
                                     {rowUnits.length > 1 ? (
                                       <select value={r.unit || ''} onChange={e => updateCnRow(idx, 'unit', e.target.value)}
-                                        style={{ padding: '7px 6px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }}>
+                                        style={{ padding: '7px 6px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }}>
                                         {rowUnits.map(u => <option key={u.name} value={u.name}>{u.name}</option>)}
                                       </select>
                                     ) : (
-                                      <span style={{ padding: '7px 6px', fontSize: 12, color: '#6b7280', textAlign: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      <span style={{ padding: '7px 6px', fontSize: 12, color: '#64748b', textAlign: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {r.unit || (rowProduct?.unit || '')}
                                       </span>
                                     )}
                                     <input type="number" min="0" step="0.01" value={r.unit_value}
                                       onChange={e => updateCnRow(idx, 'unit_value', e.target.value)}
-                                      style={{ padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
-                                    <span style={{ padding: '7px 4px', fontSize: 12, fontWeight: 700, color: '#374151', textAlign: 'right', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      style={{ padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
+                                    <span style={{ padding: '7px 4px', fontSize: 12, fontWeight: 700, color: '#334155', textAlign: 'right', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                       {curSym}{lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                     <button type="button" onClick={() => removeCnRow(idx)} title="Remove row"
@@ -2319,18 +2319,18 @@ const GRN = () => {
                     </>
                   ) : (
                     <div style={{ marginBottom: 12 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Amount * ({curSym})</label>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Amount * ({curSym})</label>
                       <input type="number" min="0" step="0.01" value={cnDraftAmount} onChange={e => setCnDraftAmount(e.target.value)}
                         placeholder="0.00"
-                        style={{ width: '100%', padding: '11px 12px', border: '1.5px solid #d1d5db', borderRadius: 8, fontSize: 16, fontWeight: 700, textAlign: 'right', boxSizing: 'border-box' }} />
+                        style={{ width: '100%', padding: '11px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 16, fontWeight: 700, textAlign: 'right', boxSizing: 'border-box' }} />
                     </div>
                   )}
 
                   {/* Notes */}
                   <div style={{ marginBottom: 12 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Notes</label>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Notes</label>
                     <textarea value={cnDraftNotes} onChange={e => setCnDraftNotes(e.target.value)} rows={2}
-                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' }} />
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' }} />
                   </div>
 
                   {/* AP preview */}
@@ -2357,7 +2357,7 @@ const GRN = () => {
                   {/* Already-queued CNs for this reason */}
                   {cnCountByReason(reason) > 0 && (
                     <div style={{ marginTop: 10 }}>
-                      <h5 style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                      <h5 style={{ margin: '0 0 8px', fontSize: 12, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4 }}>
                         Queued {reason} ({cnCountByReason(reason)})
                       </h5>
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -2372,8 +2372,8 @@ const GRN = () => {
                         <tbody>
                           {creditNotes.map((c, idx) => c.reason !== reason ? null : (
                             <tr key={idx} style={{ borderTop: '1px solid #f1f5f9' }}>
-                              <td style={{ padding: '8px 10px', color: '#374151' }}>{c.notes || '—'}</td>
-                              <td style={{ padding: '8px 10px', color: '#6b7280', fontSize: 12 }}>
+                              <td style={{ padding: '8px 10px', color: '#334155' }}>{c.notes || '—'}</td>
+                              <td style={{ padding: '8px 10px', color: '#64748b', fontSize: 12 }}>
                                 {c.items?.length ? c.items.map(it => `${it.quantity}×${it.product_name || ''}`).join(', ') : '—'}
                               </td>
                               <td style={{ padding: '8px 10px', textAlign: 'right', color: rs.color, fontWeight: 700 }}>−{curSym}{(parseFloat(c.amount)||0).toFixed(2)}</td>
@@ -2395,13 +2395,13 @@ const GRN = () => {
             {linkedPurchaseSyncId && activeTab === 'summary' && (
               <div style={{ padding: '20px 24px' }}>
                 <h4 style={{ margin: '0 0 14px', fontSize: 15 }}>Review &amp; Submit</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, fontSize: 13, color: '#374151' }}>
-                  <div><span style={{ color: '#6b7280' }}>From PO:</span> <strong>{linkedPurchaseNumber || '—'}</strong></div>
-                  <div><span style={{ color: '#6b7280' }}>Supplier Invoice #:</span> <strong>{supplierInvoiceNumber || '—'}</strong></div>
-                  <div><span style={{ color: '#6b7280' }}>Date:</span> <strong>{date}</strong></div>
-                  <div><span style={{ color: '#6b7280' }}>Items:</span> <strong>{items.filter(i => i.product_id && parseFloat(i.quantity) > 0).length}</strong></div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, fontSize: 13, color: '#334155' }}>
+                  <div><span style={{ color: '#64748b' }}>From PO:</span> <strong>{linkedPurchaseNumber || '—'}</strong></div>
+                  <div><span style={{ color: '#64748b' }}>Supplier Invoice #:</span> <strong>{supplierInvoiceNumber || '—'}</strong></div>
+                  <div><span style={{ color: '#64748b' }}>Date:</span> <strong>{date}</strong></div>
+                  <div><span style={{ color: '#64748b' }}>Items:</span> <strong>{items.filter(i => i.product_id && parseFloat(i.quantity) > 0).length}</strong></div>
                 </div>
-                <div style={{ marginTop: 22, padding: 18, background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+                <div style={{ marginTop: 22, padding: 18, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: 14 }}>
                     <span>Items subtotal</span>
                     <strong>{curSym}{(parseFloat(totalAmount)||0).toFixed(2)}</strong>
@@ -2416,7 +2416,7 @@ const GRN = () => {
                       </div>
                     );
                   })}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 0', marginTop: 6, borderTop: '2px solid #e5e7eb', fontSize: 16, fontWeight: 700 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 0 0', marginTop: 6, borderTop: '2px solid #e2e8f0', fontSize: 16, fontWeight: 700 }}>
                     <span>Final Payable to Supplier</span>
                     <span style={{ color: '#15803d' }}>{curSym}{Math.max(0, (parseFloat(totalAmount)||0) - cnTotal).toFixed(2)}</span>
                   </div>
@@ -2435,10 +2435,10 @@ const GRN = () => {
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button onClick={() => setShowForm(false)} style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
+                <button onClick={() => setShowForm(false)} style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
                   {t('cancel')}
                 </button>
-                <button onClick={handleSave} disabled={saving} style={{ padding: '10px 28px', background: saving ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+                <button onClick={handleSave} disabled={saving} style={{ padding: '10px 28px', background: saving ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
                   {saving ? t('saving') : editMode ? 'Update GRN' : `${t('save')} GRN`}
                 </button>
               </div>
@@ -2478,7 +2478,7 @@ const GRN = () => {
           {/* A4 Document */}
           <div
             id="print-document"
-            style={{ width: 794, background: '#ffffff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
+            style={{ width: 794, background: '#ffffff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}
           >
             {/* Header Banner */}
             <div style={{ background: 'linear-gradient(135deg, #14532d 0%, #16a34a 100%)', padding: '28px 44px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -2543,9 +2543,9 @@ const GRN = () => {
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb' }}>
+                    <tr style={{ background: '#f8fafc' }}>
                       {['#', 'GRN Number', 'Date', 'Supplier', 'Items', 'Total Amount', 'Status'].map((h, i) => (
-                        <th key={h} style={{ padding: '8px 12px', textAlign: i >= 4 ? 'right' : 'left', fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontSize: 10.5, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '8px 12px', textAlign: i >= 4 ? 'right' : 'left', fontWeight: 600, color: '#64748b', borderBottom: '1px solid #e2e8f0', fontSize: 10.5, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -2555,12 +2555,12 @@ const GRN = () => {
                       return (
                         <React.Fragment key={grn.id}>
                           <tr style={{ background: idx % 2 === 1 ? '#f0fdf4' : '#fff', borderTop: idx > 0 ? '2px solid #e2e8f0' : 'none' }}>
-                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
-                            <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#1d4ed8' }}>{grn.grn_number}</td>
-                            <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(grn.date || grn.created_at)}</td>
+                            <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
+                            <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'var(--k-font-mono)', fontSize: 11, color: '#1d4ed8' }}>{grn.grn_number}</td>
+                            <td style={{ padding: '8px 12px', color: '#334155' }}>{formatDate(grn.date || grn.created_at)}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 500 }}>{grn.supplier_name || '—'}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#374151' }}>{grn.total_items}</td>
-                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#15803d' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', color: '#334155' }}>{grn.total_items}</td>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                               {curSym}{parseFloat(grn.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
                             <td style={{ padding: '8px 12px', textAlign: 'right' }}>
@@ -2592,11 +2592,11 @@ const GRN = () => {
                                   </thead>
                                   <tbody>
                                     {grnItems.map((item, i) => (
-                                      <tr key={i} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                                        <td style={{ padding: '5px 10px', color: '#111827', fontWeight: 500 }}>{item.product_name}</td>
-                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#374151', fontFamily: 'monospace' }}>${parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                        <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: 600, color: '#15803d', fontFamily: 'monospace' }}>${parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                      <tr key={i} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                        <td style={{ padding: '5px 10px', color: '#0f172a', fontWeight: 500 }}>{item.product_name}</td>
+                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td style={{ padding: '5px 10px', textAlign: 'right', color: '#334155', fontFamily: 'var(--k-font-mono)' }}>${parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                                        <td style={{ padding: '5px 10px', textAlign: 'right', fontWeight: 600, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>${parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -2613,10 +2613,10 @@ const GRN = () => {
                       <td colSpan={4} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#14532d' }}>
                         TOTAL — {filteredGRNs.length} GRN{filteredGRNs.length !== 1 ? 's' : ''}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: 11, color: '#374151' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontSize: 11, color: '#334155' }}>
                         {filteredGRNs.reduce((s, g) => s + parseInt(g.total_items || 0), 0)} items
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#15803d' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                         ${filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                       <td></td>
@@ -2690,7 +2690,7 @@ const GRN = () => {
           {/* A4 Document */}
           <div
             id="print-document"
-            style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
+            style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}
           >
             {/* ── Green gradient header ── */}
             <div style={{ background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #16a34a 100%)', padding: '30px 44px 24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -2705,7 +2705,7 @@ const GRN = () => {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.55, marginBottom: 8 }}>Document No.</div>
-                <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 1, fontFamily: 'monospace' }}>{viewGRN.grn_number}</div>
+                <div style={{ fontSize: 22, fontWeight: 900, letterSpacing: 1, fontFamily: 'var(--k-font-mono)' }}>{viewGRN.grn_number}</div>
                 <div style={{ marginTop: 10, display: 'inline-block', padding: '3px 12px', borderRadius: 20, fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
                   background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.35)', color: '#fff' }}>
                   {viewGRN.payment_status || 'Not Paid'}
@@ -2753,20 +2753,20 @@ const GRN = () => {
                   </thead>
                   <tbody>
                     {(viewGRN.items || []).map((item, idx) => (
-                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
-                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827' }}>{item.product_name}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#15803d' }}>{parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                        <td style={{ padding: '10px 14px', color: '#374151', fontSize: 10.5 }}>{item.expiry_date || '—'}</td>
+                      <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                        <td style={{ padding: '10px 14px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a' }}>{item.product_name}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155' }}>{parseFloat(item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155' }}>{parseFloat(item.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>{parseFloat(item.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td style={{ padding: '10px 14px', color: '#334155', fontSize: 10.5 }}>{item.expiry_date || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
                       <td colSpan={5} style={{ padding: '12px 14px', fontWeight: 800, fontSize: 12, color: '#14532d', letterSpacing: 0.5 }}>GRAND TOTAL</td>
-                      <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, fontSize: 16, fontFamily: 'monospace', color: '#15803d' }}>
+                      <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 900, fontSize: 16, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>
                         {viewMoney(viewGRN.total_amount || 0)}
                       </td>
                     </tr>
@@ -2787,8 +2787,8 @@ const GRN = () => {
                 {['Prepared By', 'Received By', 'Approved By'].map(label => (
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ height: 40, borderBottom: '1.5px solid #cbd5e1', marginBottom: 6 }} />
-                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#6b7280' }}>{label}</div>
-                    <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Name / Signature / Date</div>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#64748b' }}>{label}</div>
+                    <div style={{ fontSize: 9, color: '#64748b', marginTop: 2 }}>Name / Signature / Date</div>
                   </div>
                 ))}
               </div>

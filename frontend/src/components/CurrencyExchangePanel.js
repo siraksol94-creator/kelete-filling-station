@@ -92,7 +92,7 @@ export default function CurrencyExchangePanel({
   }
 
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, marginTop: 18 }}>
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, marginTop: 18 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <FiRepeat color="#7c3aed" />
@@ -137,7 +137,7 @@ export default function CurrencyExchangePanel({
                   <td style={{ ...td, textAlign: 'right', color: '#15803d', fontWeight: 600 }}>
                     +{symFor(r.to_currency)}{fmt(r.to_amount, decFor(r.to_currency))} {r.to_currency}
                   </td>
-                  <td style={{ ...td, textAlign: 'right', color: '#64748b', fontFamily: 'monospace' }}>
+                  <td style={{ ...td, textAlign: 'right', color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>
                     {/* v1.8.22 — canonical street-rate display: always show
                         'X foreign per 1 USD' (the format cashiers can verify
                         against today's posted rate). DB stores rate as
@@ -322,7 +322,7 @@ function AddExchangeModal({ scope, defaultDate, cashierId, drawerBalance, onClos
             <input type="text" inputMode="decimal"
               value={formatThousands(form.from_amount)}
               onChange={onAmountChange('from_amount')}
-              placeholder="0" style={{ ...inp, marginTop: 6, fontFamily: 'monospace', fontSize: 15 }} />
+              placeholder="0" style={{ ...inp, marginTop: 6, fontFamily: 'var(--k-font-mono)', fontSize: 15 }} />
             {drawerBalance && (
               <div style={{ fontSize: 11, color: '#7c2d12', marginTop: 4 }}>
                 Available: <strong>{fmt(drawerBalance[form.from_currency] || 0, form.from_currency === 'USD' ? 2 : 0)}</strong> {form.from_currency}
@@ -337,7 +337,7 @@ function AddExchangeModal({ scope, defaultDate, cashierId, drawerBalance, onClos
             <input type="text" inputMode="decimal"
               value={formatThousands(form.to_amount)}
               onChange={onAmountChange('to_amount')}
-              placeholder="0" style={{ ...inp, marginTop: 6, fontFamily: 'monospace', fontSize: 15 }} />
+              placeholder="0" style={{ ...inp, marginTop: 6, fontFamily: 'var(--k-font-mono)', fontSize: 15 }} />
           </div>
         </div>
 
@@ -368,7 +368,7 @@ function AddExchangeModal({ scope, defaultDate, cashierId, drawerBalance, onClos
         {error && <div style={{ color: '#dc2626', fontSize: 12, marginBottom: 8 }}>{error}</div>}
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <button onClick={onClose} disabled={saving} style={{ padding: '8px 14px', borderRadius: 6, border: '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
+          <button onClick={onClose} disabled={saving} style={{ padding: '8px 14px', borderRadius: 6, border: '1.5px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
           <button onClick={submit} disabled={saving} style={{ padding: '8px 16px', borderRadius: 6, border: 'none', background: '#7c3aed', color: '#fff', cursor: saving ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700 }}>
             {saving ? 'Saving…' : 'Save Exchange'}
           </button>

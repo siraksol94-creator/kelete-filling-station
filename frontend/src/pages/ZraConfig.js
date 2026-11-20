@@ -283,9 +283,9 @@ const ZraConfig = () => {
 
   const inputStyle = {
     width: '100%', padding: '10px 12px', borderRadius: 8,
-    border: '1px solid #d1d5db', fontSize: 14, boxSizing: 'border-box',
+    border: '1px solid #cbd5e1', fontSize: 14, boxSizing: 'border-box',
   };
-  const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 6 };
+  const labelStyle = { display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 };
 
   const loadBacklog = async () => {
     try {
@@ -346,7 +346,7 @@ const ZraConfig = () => {
               onClick={handlePushAll}
               disabled={pushing || !backlog.enabled}
               title={!backlog.enabled ? 'Connect this branch to ZRA first' : 'Send every waiting sale, oldest first'}
-              style={{ marginLeft: 'auto', padding: '9px 20px', borderRadius: 9, border: 'none', background: (pushing || !backlog.enabled) ? '#d1d5db' : '#b45309', color: '#fff', cursor: (pushing || !backlog.enabled) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+              style={{ marginLeft: 'auto', padding: '9px 20px', borderRadius: 9, border: 'none', background: (pushing || !backlog.enabled) ? '#cbd5e1' : '#b45309', color: '#fff', cursor: (pushing || !backlog.enabled) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
               {pushing ? `Sending ${pushDone} of ${pushTotal}...` : 'Push All to ZRA'}
             </button>
           </div>
@@ -392,8 +392,8 @@ const ZraConfig = () => {
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>ZRA Smart Invoice (VSDC)</h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>ZRA Smart Invoice (VSDC)</h1>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
             Configure the local VSDC service, then initialize this device with ZRA once.
           </p>
         </div>
@@ -482,12 +482,12 @@ const ZraConfig = () => {
       )}
 
       {loading ? (
-        <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+        <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Loading…</div>
       ) : (
         <>
           {/* Editable config */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: '#111827' }}>Device Configuration</h3>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22, marginBottom: 20 }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>Device Configuration</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
               {/* v1.13.145 — Environment dropdown HIDDEN per Sirak
                   2026-08-25. A cashier/admin flipping this from
@@ -539,12 +539,12 @@ const ZraConfig = () => {
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelStyle}>
                   VSDC proxy secret
-                  <span style={{ fontWeight: 400, color: '#6b7280' }}> — only for tills with no local VSDC (Electron)</span>
+                  <span style={{ fontWeight: 400, color: '#64748b' }}> — only for tills with no local VSDC (Electron)</span>
                 </label>
                 <input type="text" value={form.zra_proxy_secret || ''}
                   onChange={e => setForm({ ...form, zra_proxy_secret: e.target.value })}
-                  placeholder="auto-generated" style={{ ...inputStyle, fontFamily: 'monospace', fontSize: 12 }} />
-                <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4, lineHeight: 1.6 }}>
+                  placeholder="auto-generated" style={{ ...inputStyle, fontFamily: 'var(--k-font-mono)', fontSize: 12 }} />
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4, lineHeight: 1.6 }}>
                   On an Electron till set <strong>VSDC URL</strong> to
                   {' '}<code>https://&lt;branch&gt;.keletezm.com/api/zra/vsdc-proxy</code>{' '}
                   and paste this secret here. The desktop then fiscalises through the VPS —
@@ -608,7 +608,7 @@ const ZraConfig = () => {
                   when VSDC cannot be reached — would have been unreachable
                   during a ZRA launch. */}
               {(
-              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', marginTop: 4, background: form.zra_block_offline_sales ? '#fef3c7' : '#f9fafb', border: `1.5px solid ${form.zra_block_offline_sales ? '#fbbf24' : '#e5e7eb'}`, borderRadius: 8 }}>
+              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px', marginTop: 4, background: form.zra_block_offline_sales ? '#fef3c7' : '#f8fafc', border: `1.5px solid ${form.zra_block_offline_sales ? '#fbbf24' : '#e2e8f0'}`, borderRadius: 8 }}>
                 <input
                   id="zra_block_offline_sales"
                   type="checkbox"
@@ -616,12 +616,12 @@ const ZraConfig = () => {
                   onChange={e => setForm({ ...form, zra_block_offline_sales: e.target.checked ? 1 : 0 })}
                   style={{ marginTop: 3, cursor: 'pointer' }}
                 />
-                <label htmlFor="zra_block_offline_sales" style={{ cursor: 'pointer', fontSize: 13, color: '#374151', lineHeight: 1.5, fontWeight: 700 }}>
+                <label htmlFor="zra_block_offline_sales" style={{ cursor: 'pointer', fontSize: 13, color: '#334155', lineHeight: 1.5, fontWeight: 700 }}>
                   Block sales when VSDC is offline
                   {form.zra_block_offline_sales
                     ? <span style={{ marginLeft: 8, padding: '1px 8px', background: '#f59e0b', color: '#fff', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>ON</span>
                     : <span style={{ marginLeft: 8, padding: '1px 8px', background: '#dc2626', color: '#fff', borderRadius: 10, fontSize: 10, fontWeight: 700 }}>OFF</span>}
-                  <div style={{ fontWeight: 400, fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                  <div style={{ fontWeight: 400, fontSize: 11, color: '#64748b', marginTop: 4 }}>
                     <strong>ON</strong> — no sale is made without a fiscal receipt. Strictest reading of T11A.
                     <br />
                     <strong>OFF</strong> — the till keeps selling with a <em>provisional</em> receipt and the
@@ -635,16 +635,16 @@ const ZraConfig = () => {
 
             <div style={{ display: 'flex', gap: 10, marginTop: 20, flexWrap: 'wrap' }}>
               <button onClick={handleSave} disabled={saving}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 8, border: 'none', background: saving ? '#9ca3af' : '#2563eb', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 8, border: 'none', background: saving ? '#94a3b8' : '#2563eb', color: '#fff', cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
                 <FiSave size={15} /> {saving ? 'Saving…' : 'Save Configuration'}
               </button>
               <button onClick={handleInitialize} disabled={initing || !canInitialize}
                 title={!canInitialize ? 'Save configuration first' : 'Register this device with VSDC now'}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 8, border: 'none', background: (!canInitialize || initing) ? '#9ca3af' : '#16a34a', color: '#fff', cursor: (!canInitialize || initing) ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 22px', borderRadius: 8, border: 'none', background: (!canInitialize || initing) ? '#94a3b8' : '#16a34a', color: '#fff', cursor: (!canInitialize || initing) ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
                 <FiPlay size={15} /> {initing ? 'Initializing…' : 'Initialize Device'}
               </button>
               <button onClick={load} disabled={loading}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 <FiRefreshCw size={14} /> Reload
               </button>
             </div>
@@ -660,17 +660,17 @@ const ZraConfig = () => {
               some fields never populated. Kept the 3 activation
               identifiers (SDC ID, MRC No, Taxpayer Name) that
               directly prove T01A activation. */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
-            <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: '#111827' }}>Device Identity (from VSDC)</h3>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22, marginBottom: 20 }}>
+            <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>Device Identity (from VSDC)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14 }}>
               {[
                 ['SDC ID',        initState.zra_sdc_id],
                 ['MRC No',        initState.zra_mrc_no],
                 ['Taxpayer Name', initState.zra_taxpr_nm],
               ].map(([label, value]) => (
-                <div key={label} style={{ padding: 12, borderRadius: 8, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: value ? '#111827' : '#cbd5e1', fontFamily: 'monospace' }}>{value ?? '—'}</div>
+                <div key={label} style={{ padding: 12, borderRadius: 8, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: value ? '#0f172a' : '#cbd5e1', fontFamily: 'var(--k-font-mono)' }}>{value ?? '—'}</div>
                 </div>
               ))}
             </div>
@@ -684,19 +684,19 @@ const ZraConfig = () => {
               read-only codes. The VSDC sync tile below populates the
               local table once VSDC WAR is live on that branch. */}
           {isHqHost() && (
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22, marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ flex: 1, minWidth: 260 }}>
-                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Import UNSPSC from Excel</h3>
-                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#6b7280' }}>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>Import UNSPSC from Excel</h3>
+                <p style={{ margin: '4px 0 0', fontSize: 12, color: '#64748b' }}>
                   Bulk-load the ZRA-published <strong>UNSPSC-Classification-Codes.xlsx</strong> straight into the local database. Use this to unblock Item Details before the VSDC WAR is installed — you can still re-sync from VSDC later.
                 </p>
-                <p style={{ margin: '6px 0 0', fontSize: 11, color: '#6b7280' }}>
-                  Rows currently cached: <strong style={{ color: '#111827' }}>{syncState.counts.itemClasses.toLocaleString()}</strong>
+                <p style={{ margin: '6px 0 0', fontSize: 11, color: '#64748b' }}>
+                  Rows currently cached: <strong style={{ color: '#0f172a' }}>{syncState.counts.itemClasses.toLocaleString()}</strong>
                 </p>
               </div>
               <div>
-                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1.5px solid #0ea5e9', background: importingXlsx ? '#f3f4f6' : '#fff', color: importingXlsx ? '#6b7280' : '#0ea5e9', cursor: importingXlsx ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 8, border: '1.5px solid #0ea5e9', background: importingXlsx ? '#f1f5f9' : '#fff', color: importingXlsx ? '#64748b' : '#0ea5e9', cursor: importingXlsx ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                   <FiDownloadCloud size={14} /> {importingXlsx ? 'Importing…' : 'Pick Excel file'}
                   <input type="file" accept=".xlsx,.xls" onChange={handleImportUnspscXlsx} disabled={importingXlsx} style={{ display: 'none' }} />
                 </label>
@@ -706,9 +706,9 @@ const ZraConfig = () => {
           )}
 
           {/* Data Sync — Codes / UNSPSC / Notices */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22, marginBottom: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Data Sync (from VSDC)</h3>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>Data Sync (from VSDC)</h3>
               <button
                 onClick={async () => {
                   setSyncing(s => ({ ...s, all: true })); setMessage(null);
@@ -721,7 +721,7 @@ const ZraConfig = () => {
                 }}
                 disabled={syncing.all || !isInitialized}
                 title={!isInitialized ? 'Initialize the device first' : 'Run all three syncs in sequence'}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 8, border: 'none', background: (syncing.all || !isInitialized) ? '#9ca3af' : '#7c3aed', color: '#fff', cursor: (syncing.all || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '8px 16px', borderRadius: 8, border: 'none', background: (syncing.all || !isInitialized) ? '#94a3b8' : '#7c3aed', color: '#fff', cursor: (syncing.all || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                 <FiDownloadCloud size={14} /> {syncing.all ? 'Syncing all…' : 'Sync All'}
               </button>
             </div>
@@ -734,15 +734,15 @@ const ZraConfig = () => {
                 const st = syncStateByEndpoint[card.endpoint] || {};
                 const okBadge = st.last_result_cd === '000';
                 return (
-                  <div key={card.key} style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+                  <div key={card.key} style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                       <FiDatabase size={13} /> {card.label}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-                      <span style={{ fontSize: 22, fontWeight: 800, color: '#111827', fontFamily: 'monospace' }}>{card.count.toLocaleString()}</span>
-                      <span style={{ fontSize: 11, color: '#6b7280' }}>rows cached</span>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', fontFamily: 'var(--k-font-mono)' }}>{card.count.toLocaleString()}</span>
+                      <span style={{ fontSize: 11, color: '#64748b' }}>rows cached</span>
                     </div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>
                       Last pulled: {st.last_pulled_at
                         ? new Date(/[TZ]/.test(st.last_pulled_at) ? st.last_pulled_at : st.last_pulled_at.replace(' ', 'T') + 'Z').toLocaleString('en-GB', { hour12: false })
                         : '—'}
@@ -757,7 +757,7 @@ const ZraConfig = () => {
                     )}
                     <button onClick={card.run} disabled={syncing[card.key] || !isInitialized}
                       title={!isInitialized ? 'Initialize the device first' : 'Sync now'}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (syncing[card.key] || !isInitialized) ? '#f3f4f6' : '#fff', color: (syncing[card.key] || !isInitialized) ? '#6b7280' : '#2563eb', cursor: (syncing[card.key] || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (syncing[card.key] || !isInitialized) ? '#f1f5f9' : '#fff', color: (syncing[card.key] || !isInitialized) ? '#64748b' : '#2563eb', cursor: (syncing[card.key] || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                       <FiDownloadCloud size={12} /> {syncing[card.key] ? 'Syncing…' : 'Sync Now'}
                     </button>
                   </div>
@@ -782,7 +782,7 @@ const ZraConfig = () => {
                 {pendingFisc.pending} invoice{pendingFisc.pending > 1 ? 's' : ''} awaiting fiscalisation
                 {pendingFisc.breached && ' — ACT NOW'}
               </div>
-              <div style={{ fontSize: 12, color: '#374151', marginTop: 6, lineHeight: 1.7 }}>
+              <div style={{ fontSize: 12, color: '#334155', marginTop: 6, lineHeight: 1.7 }}>
                 Oldest is <strong>{pendingFisc.oldest_age_hours} hours</strong> old
                 (warning threshold {pendingFisc.warn_hours}h).
                 {pendingFisc.breached
@@ -790,7 +790,7 @@ const ZraConfig = () => {
                   : ' The retry queue re-sends automatically once VSDC is reachable.'}
               </div>
               {(pendingFisc.orders || []).slice(0, 3).map(o => (
-                <div key={o.id} style={{ fontSize: 11, color: '#6b7280', marginTop: 4, fontFamily: 'monospace' }}>
+                <div key={o.id} style={{ fontSize: 11, color: '#64748b', marginTop: 4, fontFamily: 'var(--k-font-mono)' }}>
                   {o.order_number} · {o.age_hours}h · {o.retries} retries
                   {o.zra_error_code ? ` · [${o.zra_error_code}]` : ''}
                 </div>
@@ -808,15 +808,15 @@ const ZraConfig = () => {
               All disabled until the device is initialized (no cfg → nothing
               to call). Each tile carries its own state so a slow reconcile
               doesn't block clicking another button.  */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22, marginBottom: 20 }}>
-            <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#111827' }}>ZRA Diagnostics</h3>
-            <p style={{ margin: '0 0 16px', fontSize: 12, color: '#6b7280' }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22, marginBottom: 20 }}>
+            <h3 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>ZRA Diagnostics</h3>
+            <p style={{ margin: '0 0 16px', fontSize: 12, color: '#64748b' }}>
               On-demand reconciliation + lookup tools. Nothing here changes fiscal state — reads and non-destructive updates only.
             </p>
 
             {/* Invoice status lookup — text input + button + inline result */}
-            <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6', marginBottom: 14 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+            <div style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                 <FiSearch size={13} /> Invoice status on ZRA
               </div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'stretch', flexWrap: 'wrap' }}>
@@ -826,11 +826,11 @@ const ZraConfig = () => {
                   value={invcNoInput}
                   onChange={e => { setInvcNoInput(e.target.value.replace(/\D/g, '')); setDiagInvc({ loading: false, result: null, error: null }); }}
                   placeholder="Invoice number (e.g. 12345)"
-                  style={{ flex: 1, minWidth: 180, padding: '8px 12px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, fontFamily: 'monospace', boxSizing: 'border-box' }}
+                  style={{ flex: 1, minWidth: 180, padding: '8px 12px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontFamily: 'var(--k-font-mono)', boxSizing: 'border-box' }}
                 />
                 <button onClick={runInvcLookup} disabled={diagInvc.loading || !isInitialized || !invcNoInput}
                   title={!isInitialized ? 'Initialize the device first' : 'Query ZRA for this invoice'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#f3f4f6' : '#2563eb', color: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#6b7280' : '#fff', cursor: (diagInvc.loading || !isInitialized || !invcNoInput) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#f1f5f9' : '#2563eb', color: (diagInvc.loading || !isInitialized || !invcNoInput) ? '#64748b' : '#fff', cursor: (diagInvc.loading || !isInitialized || !invcNoInput) ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                   {diagInvc.loading ? 'Checking…' : 'Look up'}
                 </button>
               </div>
@@ -842,7 +842,7 @@ const ZraConfig = () => {
                   {diagInvc.result.exists ? (
                     <>
                       <div style={{ fontWeight: 700, color: '#166534', marginBottom: 4 }}>✓ Invoice {diagInvc.result.invcNo} exists on ZRA</div>
-                      <div style={{ color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>
+                      <div style={{ color: '#334155', fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>
                         Receipt: {diagInvc.result.data?.rcptNo ?? '—'} · SDC: {diagInvc.result.data?.sdcId ?? '—'} · Signed: {diagInvc.result.data?.vsdcRcptPbctDate ?? '—'}
                       </div>
                     </>
@@ -856,21 +856,21 @@ const ZraConfig = () => {
             {/* Four action tiles — reconcile items / sync RRP / stock drift / branches */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
               {/* Item reconciliation */}
-              <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+              <div style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                   <FiDatabase size={13} /> Item registry drift
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>
                   Compare local products vs ZRA's item list. Flags unregistered, missing, or tax-mismatched rows.
                 </div>
                 <button onClick={runReconcileItems} disabled={diagItems.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Run reconciliation now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagItems.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagItems.loading || !isInitialized) ? '#6b7280' : '#2563eb', cursor: (diagItems.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #2563eb', background: (diagItems.loading || !isInitialized) ? '#f1f5f9' : '#fff', color: (diagItems.loading || !isInitialized) ? '#64748b' : '#2563eb', cursor: (diagItems.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiRefreshCw size={12} /> {diagItems.loading ? 'Checking…' : 'Reconcile'}
                 </button>
                 {diagItems.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagItems.error}</div>}
                 {diagItems.result && !diagItems.error && (
-                  <div style={{ marginTop: 8, fontSize: 11, color: '#374151', lineHeight: 1.7 }}>
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#334155', lineHeight: 1.7 }}>
                     <div>ZRA: <strong>{diagItems.result.total_on_zra}</strong> · Local: <strong>{diagItems.result.total_local}</strong></div>
                     <div>Matched: <strong style={{ color: '#166534' }}>{diagItems.result.matched}</strong></div>
                     {diagItems.result.unregistered_locally > 0 && <div style={{ color: '#a16207' }}>Never pushed: <strong>{diagItems.result.unregistered_locally}</strong></div>}
@@ -882,44 +882,44 @@ const ZraConfig = () => {
               </div>
 
               {/* Manufacturer RRP sync */}
-              <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+              <div style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                   <FiDownloadCloud size={13} /> Manufacturer RRP sync
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>
                   Pull the latest Recommended Retail Prices from ZRA and refresh MTV Category B products.
                 </div>
                 <button onClick={runRrpSync} disabled={diagRrp.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Pull RRPs now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #16a34a', background: (diagRrp.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagRrp.loading || !isInitialized) ? '#6b7280' : '#15803d', cursor: (diagRrp.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #16a34a', background: (diagRrp.loading || !isInitialized) ? '#f1f5f9' : '#fff', color: (diagRrp.loading || !isInitialized) ? '#64748b' : '#15803d', cursor: (diagRrp.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiDownloadCloud size={12} /> {diagRrp.loading ? 'Syncing…' : 'Sync RRPs'}
                 </button>
                 {diagRrp.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagRrp.error}</div>}
                 {diagRrp.result && !diagRrp.error && (
-                  <div style={{ marginTop: 8, fontSize: 11, color: '#374151', lineHeight: 1.7 }}>
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#334155', lineHeight: 1.7 }}>
                     <div>Pulled: <strong>{diagRrp.result.pulled ?? 0}</strong></div>
                     <div>Updated products: <strong style={{ color: '#166534' }}>{diagRrp.result.updated ?? 0}</strong></div>
-                    {diagRrp.result.unmatched > 0 && <div style={{ color: '#6b7280' }}>Unmatched (not in our catalogue): <strong>{diagRrp.result.unmatched}</strong></div>}
+                    {diagRrp.result.unmatched > 0 && <div style={{ color: '#64748b' }}>Unmatched (not in our catalogue): <strong>{diagRrp.result.unmatched}</strong></div>}
                   </div>
                 )}
               </div>
 
               {/* Stock drift check */}
-              <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+              <div style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                   <FiTrendingDown size={13} /> Stock drift vs ZRA
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>
                   Compare local current_stock against ZRA's ledger. Non-zero drift = a stock push likely failed.
                 </div>
                 <button onClick={runStockReconcile} disabled={diagStock.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Check stock drift now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #f59e0b', background: (diagStock.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagStock.loading || !isInitialized) ? '#6b7280' : '#f59e0b', cursor: (diagStock.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #f59e0b', background: (diagStock.loading || !isInitialized) ? '#f1f5f9' : '#fff', color: (diagStock.loading || !isInitialized) ? '#64748b' : '#f59e0b', cursor: (diagStock.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiRefreshCw size={12} /> {diagStock.loading ? 'Checking…' : 'Check drift'}
                 </button>
                 {diagStock.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagStock.error}</div>}
                 {diagStock.result && !diagStock.error && (
-                  <div style={{ marginTop: 8, fontSize: 11, color: '#374151', lineHeight: 1.7 }}>
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#334155', lineHeight: 1.7 }}>
                     <div>Items on ZRA: <strong>{diagStock.result.unique_items_on_zra ?? 0}</strong> · Matched local: <strong>{diagStock.result.matched_local ?? 0}</strong></div>
                     {diagStock.result.zra_result_note && (
                       <div style={{ color: '#b45309' }}>
@@ -930,15 +930,15 @@ const ZraConfig = () => {
                       Drift rows: <strong>{diagStock.result.drift_count ?? 0}</strong>
                     </div>
                     {diagStock.result.drift_count > 0 && (
-                      <div style={{ marginTop: 6, maxHeight: 120, overflowY: 'auto', fontSize: 10, fontFamily: 'monospace' }}>
+                      <div style={{ marginTop: 6, maxHeight: 120, overflowY: 'auto', fontSize: 10, fontFamily: 'var(--k-font-mono)' }}>
                         {(diagStock.result.drifts || []).slice(0, 5).map(d => (
-                          <div key={d.id} style={{ padding: '2px 0', color: '#6b7280' }}>
+                          <div key={d.id} style={{ padding: '2px 0', color: '#64748b' }}>
                             {d.name}: local {d.local} · ZRA movements {d.zra_movement_qty ?? '—'}
                             {d.zra_movement_records ? ` (${d.zra_movement_records} rec)` : ''}
                             {d.note ? ` — ${d.note}` : ''}
                           </div>
                         ))}
-                        {diagStock.result.drift_count > 5 && <div style={{ padding: '2px 0', color: '#6b7280' }}>… and {diagStock.result.drift_count - 5} more</div>}
+                        {diagStock.result.drift_count > 5 && <div style={{ padding: '2px 0', color: '#64748b' }}>… and {diagStock.result.drift_count - 5} more</div>}
                       </div>
                     )}
                   </div>
@@ -951,7 +951,7 @@ const ZraConfig = () => {
                     route now returns 410. See routes/zra.js for the full
                     writeup. Residual stock is push-only on VSDC; ZRA's
                     Stock Inventory page is the authoritative read. */}
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed #e5e7eb', fontSize: 11, color: '#6b7280', lineHeight: 1.6 }}>
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed #e2e8f0', fontSize: 11, color: '#64748b', lineHeight: 1.6 }}>
                   This endpoint returns ZRA's <strong>movement ledger</strong> (per-movement quantities), not residual
                   stock levels — residual is push-only on VSDC. Compare residuals on the ZRA portal's
                   Stock Inventory page.
@@ -964,26 +964,26 @@ const ZraConfig = () => {
                   tile demonstrates the CIS CAN make the call and
                   handles "no data" gracefully, which is the correct,
                   expected result for this taxpayer's business scope. */}
-              <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+              <div style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                   <FiDownloadCloud size={13} /> Import declarations (ASYCUDA)
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>
                   Pull import declarations Smart Invoice has for our TPIN. Red Sea sources locally — an empty result here is expected and correct.
                 </div>
                 <button onClick={runImportsPull} disabled={diagImports.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Pull import declarations now'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #0ea5e9', background: (diagImports.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagImports.loading || !isInitialized) ? '#6b7280' : '#0ea5e9', cursor: (diagImports.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #0ea5e9', background: (diagImports.loading || !isInitialized) ? '#f1f5f9' : '#fff', color: (diagImports.loading || !isInitialized) ? '#64748b' : '#0ea5e9', cursor: (diagImports.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiDownloadCloud size={12} /> {diagImports.loading ? 'Pulling…' : 'Pull imports'}
                 </button>
                 {diagImports.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagImports.error}</div>}
                 {diagImports.result && !diagImports.error && (
-                  <div style={{ marginTop: 8, fontSize: 11, color: '#374151' }}>
-                    <div>Declaration lines pulled: <strong style={{ color: (diagImports.result.pulled || 0) === 0 ? '#166534' : '#111827' }}>{diagImports.result.pulled ?? 0}</strong>
-                      {diagImports.result.inserted != null && <span style={{ color: '#6b7280' }}> · {diagImports.result.inserted} new</span>}
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#334155' }}>
+                    <div>Declaration lines pulled: <strong style={{ color: (diagImports.result.pulled || 0) === 0 ? '#166534' : '#0f172a' }}>{diagImports.result.pulled ?? 0}</strong>
+                      {diagImports.result.inserted != null && <span style={{ color: '#64748b' }}> · {diagImports.result.inserted} new</span>}
                     </div>
                     {(diagImports.result.pulled || 0) === 0 ? (
-                      <div style={{ color: '#6b7280', marginTop: 2 }}>✓ Expected — no ASYCUDA declarations for this TPIN.</div>
+                      <div style={{ color: '#64748b', marginTop: 2 }}>✓ Expected — no ASYCUDA declarations for this TPIN.</div>
                     ) : (
                       <div style={{ color: '#b45309', marginTop: 4 }}>
                         Review and decide them on the <strong>HQ ZRA Import Queue</strong> page.
@@ -994,27 +994,27 @@ const ZraConfig = () => {
               </div>
 
               {/* Branch list */}
-              <div style={{ padding: 14, borderRadius: 10, background: '#f9fafb', border: '1px solid #f3f4f6' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#374151' }}>
+              <div style={{ padding: 14, borderRadius: 10, background: '#f8fafc', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, fontSize: 12, fontWeight: 700, color: '#334155' }}>
                   <FiHome size={13} /> ZRA branches for this TPIN
                 </div>
-                <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 10 }}>
+                <div style={{ fontSize: 11, color: '#64748b', marginBottom: 10 }}>
                   Show branch office IDs (bhfId) that ZRA has registered for our TPIN. Handy when opening a new depot.
                 </div>
                 <button onClick={runBranchesList} disabled={diagBranches.loading || !isInitialized}
                   title={!isInitialized ? 'Initialize the device first' : 'Fetch ZRA branches'}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #7c3aed', background: (diagBranches.loading || !isInitialized) ? '#f3f4f6' : '#fff', color: (diagBranches.loading || !isInitialized) ? '#6b7280' : '#7c3aed', cursor: (diagBranches.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: '1.5px solid #7c3aed', background: (diagBranches.loading || !isInitialized) ? '#f1f5f9' : '#fff', color: (diagBranches.loading || !isInitialized) ? '#64748b' : '#7c3aed', cursor: (diagBranches.loading || !isInitialized) ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700 }}>
                   <FiPackage size={12} /> {diagBranches.loading ? 'Loading…' : 'Show branches'}
                 </button>
                 {diagBranches.error && <div style={{ marginTop: 8, fontSize: 11, color: '#b91c1c' }}>{diagBranches.error}</div>}
                 {diagBranches.result && !diagBranches.error && (
-                  <div style={{ marginTop: 8, fontSize: 11, color: '#374151' }}>
+                  <div style={{ marginTop: 8, fontSize: 11, color: '#334155' }}>
                     <div style={{ marginBottom: 6 }}>Found: <strong>{(diagBranches.result.branches || []).length}</strong></div>
-                    <div style={{ maxHeight: 140, overflowY: 'auto', fontSize: 10, fontFamily: 'monospace' }}>
+                    <div style={{ maxHeight: 140, overflowY: 'auto', fontSize: 10, fontFamily: 'var(--k-font-mono)' }}>
                       {(diagBranches.result.branches || []).map((b, i) => (
-                        <div key={i} style={{ padding: '3px 0', color: '#6b7280', borderTop: i > 0 ? '1px dashed #e5e7eb' : 'none' }}>
-                          <strong style={{ color: '#111827' }}>{b.bhfId || '—'}</strong> · {b.bhfNm || '—'}
-                          {b.locDesc && <span style={{ color: '#6b7280' }}> · {b.locDesc}</span>}
+                        <div key={i} style={{ padding: '3px 0', color: '#64748b', borderTop: i > 0 ? '1px dashed #e2e8f0' : 'none' }}>
+                          <strong style={{ color: '#0f172a' }}>{b.bhfId || '—'}</strong> · {b.bhfNm || '—'}
+                          {b.locDesc && <span style={{ color: '#64748b' }}> · {b.locDesc}</span>}
                         </div>
                       ))}
                     </div>
@@ -1027,18 +1027,18 @@ const ZraConfig = () => {
           {/* Audit log — v1.13.144: rows clickable, opens detail modal with
               full request_body + response_body. Reviewer can inspect every
               VSDC round-trip without SSHing to the VPS. */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 22 }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 22 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111827' }}>Recent VSDC Calls</h3>
-              <span style={{ fontSize: 12, color: '#6b7280' }}>{audit.length} entr{audit.length === 1 ? 'y' : 'ies'} · click a row for full request/response</span>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#0f172a' }}>Recent VSDC Calls</h3>
+              <span style={{ fontSize: 12, color: '#64748b' }}>{audit.length} entr{audit.length === 1 ? 'y' : 'ies'} · click a row for full request/response</span>
             </div>
             {audit.length === 0 ? (
-              <div style={{ padding: 24, color: '#6b7280', fontSize: 13, textAlign: 'center' }}>No VSDC calls yet. Click Initialize Device to make the first one.</div>
+              <div style={{ padding: 24, color: '#64748b', fontSize: 13, textAlign: 'center' }}>No VSDC calls yet. Click Initialize Device to make the first one.</div>
             ) : (
               <div style={{ overflowX: 'auto', maxHeight: 500 }}>
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb', color: '#6b7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, position: 'sticky', top: 0 }}>
+                    <tr style={{ background: '#f8fafc', color: '#64748b', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, position: 'sticky', top: 0 }}>
                       <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 700 }}>When</th>
                       <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 700 }}>Endpoint</th>
                       <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 700 }}>Result</th>
@@ -1053,21 +1053,21 @@ const ZraConfig = () => {
                         <tr key={r.id}
                             style={{ borderTop: '1px solid #f1f5f9', cursor: 'pointer' }}
                             onClick={() => setSelectedAudit(r)}
-                            onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                            onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                             onMouseLeave={e => e.currentTarget.style.background = ''}>
-                          <td style={{ padding: '10px 12px', color: '#374151', whiteSpace: 'nowrap' }}>{(() => {
+                          <td style={{ padding: '10px 12px', color: '#334155', whiteSpace: 'nowrap' }}>{(() => {
                             const raw = r.created_at || r.created_at_local; if (!raw) return '—';
                             const iso = /[TZ]/.test(raw) ? raw : raw.replace(' ', 'T') + 'Z';
                             return new Date(iso).toLocaleString('en-GB', { hour12: false });
                           })()}</td>
-                          <td style={{ padding: '10px 12px', color: '#6b7280', fontFamily: 'monospace', fontSize: 12 }}>{r.endpoint}</td>
+                          <td style={{ padding: '10px 12px', color: '#64748b', fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>{r.endpoint}</td>
                           <td style={{ padding: '10px 12px' }}>
                             <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: ok ? '#dcfce7' : '#fef2f2', color: ok ? '#166534' : '#b91c1c' }}>
                               {r.result_cd || '—'}
                             </span>
                           </td>
-                          <td style={{ padding: '10px 12px', color: '#6b7280', fontSize: 12, maxWidth: 400, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.result_msg || '—'}</td>
-                          <td style={{ padding: '10px 12px', textAlign: 'right', color: '#6b7280', fontFamily: 'monospace' }}>{r.duration_ms ?? '—'}</td>
+                          <td style={{ padding: '10px 12px', color: '#64748b', fontSize: 12, maxWidth: 400, overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.result_msg || '—'}</td>
+                          <td style={{ padding: '10px 12px', textAlign: 'right', color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>{r.duration_ms ?? '—'}</td>
                         </tr>
                       );
                     })}
@@ -1093,10 +1093,10 @@ const ZraConfig = () => {
                 <div onClick={e => e.stopPropagation()}
                      style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 900, maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
                   {/* Header */}
-                  <div style={{ padding: '16px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '16px 22px', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#111827', fontFamily: 'monospace' }}>{selectedAudit.endpoint}</div>
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{(() => {
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#0f172a', fontFamily: 'var(--k-font-mono)' }}>{selectedAudit.endpoint}</div>
+                      <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{(() => {
                         const raw = selectedAudit.created_at || selectedAudit.created_at_local; if (!raw) return '—';
                         const iso = /[TZ]/.test(raw) ? raw : raw.replace(' ', 'T') + 'Z';
                         return new Date(iso).toLocaleString('en-GB', { hour12: false });
@@ -1107,16 +1107,16 @@ const ZraConfig = () => {
                         {selectedAudit.result_cd || '—'} {selectedAudit.result_msg ? '· ' + selectedAudit.result_msg : ''}
                       </span>
                       <button onClick={() => setSelectedAudit(null)}
-                              style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#6b7280', lineHeight: 1 }}
+                              style={{ background: 'transparent', border: 'none', fontSize: 22, cursor: 'pointer', color: '#64748b', lineHeight: 1 }}
                               title="Close">×</button>
                     </div>
                   </div>
                   {/* Body panels */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 0, overflow: 'auto', flex: 1 }}>
-                    <div style={{ padding: '14px 22px 6px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #f1f5f9' }}>Request Body</div>
-                    <pre style={{ margin: 0, padding: '12px 22px', fontSize: 12, fontFamily: 'monospace', color: '#111827', background: '#f9fafb', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 300, overflow: 'auto' }}>{prettyJson(selectedAudit.request_body)}</pre>
-                    <div style={{ padding: '14px 22px 6px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #f1f5f9', borderTop: '1px solid #e5e7eb' }}>Response Body</div>
-                    <pre style={{ margin: 0, padding: '12px 22px', fontSize: 12, fontFamily: 'monospace', color: '#111827', background: '#f9fafb', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 300, overflow: 'auto' }}>{prettyJson(selectedAudit.response_body)}</pre>
+                    <div style={{ padding: '14px 22px 6px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #f1f5f9' }}>Request Body</div>
+                    <pre style={{ margin: 0, padding: '12px 22px', fontSize: 12, fontFamily: 'var(--k-font-mono)', color: '#0f172a', background: '#f8fafc', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 300, overflow: 'auto' }}>{prettyJson(selectedAudit.request_body)}</pre>
+                    <div style={{ padding: '14px 22px 6px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #f1f5f9', borderTop: '1px solid #e2e8f0' }}>Response Body</div>
+                    <pre style={{ margin: 0, padding: '12px 22px', fontSize: 12, fontFamily: 'var(--k-font-mono)', color: '#0f172a', background: '#f8fafc', whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 300, overflow: 'auto' }}>{prettyJson(selectedAudit.response_body)}</pre>
                   </div>
                 </div>
               </div>

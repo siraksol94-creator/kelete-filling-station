@@ -241,7 +241,7 @@ const HQDeposits = () => {
       await confirmCashDeposit(d.id);
       await fetchDeposits();
     } catch (err) {
-      alert(err?.response?.data?.error || 'Failed to confirm deposit');
+      ui.alert(err?.response?.data?.error || 'Failed to confirm deposit');
     }
   };
 
@@ -279,7 +279,7 @@ const HQDeposits = () => {
       }
       await fetchDeposits();
     } catch (err) {
-      alert(err?.response?.data?.error || (mode === 'edit' ? 'Failed to edit deposit date' : 'Failed to confirm deposit'));
+      ui.alert(err?.response?.data?.error || (mode === 'edit' ? 'Failed to edit deposit date' : 'Failed to confirm deposit'));
     }
   };
 
@@ -291,7 +291,7 @@ const HQDeposits = () => {
       setRejectReason('');
       await fetchDeposits();
     } catch (err) {
-      alert(err?.response?.data?.error || 'Failed to reject deposit');
+      ui.alert(err?.response?.data?.error || 'Failed to reject deposit');
     }
   };
 
@@ -317,7 +317,7 @@ const HQDeposits = () => {
       await deleteCashDeposit(d.id, reason.trim());
       await fetchDeposits();
     } catch (err) {
-      alert(err?.response?.data?.error || 'Failed to delete deposit');
+      ui.alert(err?.response?.data?.error || 'Failed to delete deposit');
     }
   };
 
@@ -392,7 +392,7 @@ const HQDeposits = () => {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={fetchDeposits}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             <FiRefreshCw size={15} /> Refresh
           </button>
           {/* 2026-09-14 — hidden when System Settings → Auto deposit is on: the
@@ -455,9 +455,9 @@ const HQDeposits = () => {
 
       {/* Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
-        <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>Status:</label>
+        <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>Status:</label>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }}>
+          style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }}>
           <option value="ALL">All</option>
           <option value="PENDING">Pending</option>
           <option value="CONFIRMED">Confirmed</option>
@@ -465,31 +465,31 @@ const HQDeposits = () => {
         </select>
         {onHq && (
           <>
-            <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginLeft: 8 }}>Depot:</label>
+            <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginLeft: 8 }}>Depot:</label>
             <select value={branchFilter} onChange={e => setBranchFilter(e.target.value)}
-              style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }}>
+              style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }}>
               <option value="">All depots</option>
               {branchOptions.map(([slug, name]) => <option key={slug} value={slug}>{name}</option>)}
             </select>
           </>
         )}
         {/* 2026-09-17 — date range on the deposit date. Blank = every date. */}
-        <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600, marginLeft: 8 }}>From:</label>
+        <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginLeft: 8 }}>From:</label>
         <input type="date" value={fromDate} max={toDate || undefined} onChange={e => setFromDate(e.target.value)}
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
-        <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>To:</label>
+          style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }} />
+        <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>To:</label>
         <input type="date" value={toDate} min={fromDate || undefined} onChange={e => setToDate(e.target.value)}
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
+          style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }} />
         {(fromDate || toDate || branchFilter || statusFilter !== 'PENDING') && (
           <button type="button" onClick={() => { setFromDate(''); setToDate(''); setBranchFilter(''); setStatusFilter('PENDING'); }}
-            style={{ padding: '6px 12px', border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', borderRadius: 6, fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
             Clear
           </button>
         )}
       </div>
 
       {/* Deposits table */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
         {liveDeposits.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
             <FiInbox size={40} style={{ marginBottom: 12, opacity: 0.4 }} />
@@ -534,7 +534,7 @@ const HQDeposits = () => {
                         style={{ borderTop: '1px solid #f1f5f9',
                                  opacity: isDeleted ? 0.55 : 1,
                                  textDecoration: isDeleted ? 'line-through' : 'none' }}>
-                      <td style={{ ...td, color: '#374151', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                      <td style={{ ...td, color: '#334155', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                           {canReceive
                             ? <FiArrowDownLeft size={14} color="#16a34a" title="Incoming" />
@@ -543,8 +543,8 @@ const HQDeposits = () => {
                         </span>
                       </td>
                       <td style={td}>{partyLabel(d)}</td>
-                      <td style={{ ...td, color: '#6b7280', maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.notes}>{d.notes || '—'}</td>
-                      <td style={{ ...td, fontFamily: 'monospace', fontSize: 11 }}>{d.deposit_number}</td>
+                      <td style={{ ...td, color: '#64748b', maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={d.notes}>{d.notes || '—'}</td>
+                      <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>{d.deposit_number}</td>
                       <td style={td}>
                         {(() => {
                           const atts = parseAttachments(d.attachment);
@@ -577,11 +577,11 @@ const HQDeposits = () => {
                           </div>
                         )}
                       </td>
-                      <td style={{ ...td, color: '#6b7280', fontSize: 11 }}>
+                      <td style={{ ...td, color: '#64748b', fontSize: 11 }}>
                         <div>{d.created_at ? new Date(d.created_at).toLocaleString() : '—'}</div>
                         {d.created_by_name && <div style={{ fontSize: 10 }}>by {d.created_by_name}</div>}
                       </td>
-                      <td style={{ ...td, color: '#6b7280', fontSize: 11 }}>
+                      <td style={{ ...td, color: '#64748b', fontSize: 11 }}>
                         {d.confirmed_at ? (
                           <>
                             <div>{new Date(d.confirmed_at).toLocaleString()}</div>
@@ -643,7 +643,7 @@ const HQDeposits = () => {
               <button className="modal-close" onClick={() => setShowSend(false)}><FiX /></button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: 13, color: '#6b7280', marginTop: 0, marginBottom: 14 }}>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 0, marginBottom: 14 }}>
                 Record cash physically leaving this branch and going to {targetName}. No exchange happens — just enter the raw currency and amount. {targetName} marks it confirmed when they receive it.
               </p>
               <div className="form-row">
@@ -683,9 +683,9 @@ const HQDeposits = () => {
                           onClick={() => setSendForm({ ...sendForm, from_method: opt.value })}
                           style={{
                             flex: '1 1 130px', padding: '10px 12px', borderRadius: 8,
-                            border: `2px solid ${active ? opt.color : '#e5e7eb'}`,
+                            border: `2px solid ${active ? opt.color : '#e2e8f0'}`,
                             background: active ? `${opt.color}15` : '#fff',
-                            color: active ? opt.color : '#374151',
+                            color: active ? opt.color : '#334155',
                             fontWeight: active ? 700 : 500, fontSize: 13, cursor: 'pointer',
                           }}>
                           {opt.label}
@@ -709,7 +709,7 @@ const HQDeposits = () => {
               </div>
               <div className="form-group">
                 <label>Attach Deposit Slips (optional) — picture or PDF, multiple allowed</label>
-                <div style={{ border: '1px dashed #d1d5db', borderRadius: 8, padding: 10, background: '#fafafa' }}>
+                <div style={{ border: '1px dashed #cbd5e1', borderRadius: 8, padding: 10, background: '#f8fafc' }}>
                   {/* List of already-uploaded attachments with Remove */}
                   {(sendForm.attachments || []).length > 0 && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
@@ -719,9 +719,9 @@ const HQDeposits = () => {
                         const url = `${apiBase}/uploads/${path}`;
                         const shortName = path.length > 36 ? `…${path.slice(-34)}` : path;
                         return (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 6 }}>
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6 }}>
                             {isPdf ? <FiFileText size={14} color="#dc2626" /> : <FiImage size={14} color="#16a34a" />}
-                            <span style={{ flex: 1, fontSize: 11, fontFamily: 'monospace', color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortName}</span>
+                            <span style={{ flex: 1, fontSize: 11, fontFamily: 'var(--k-font-mono)', color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortName}</span>
                             <a href={url} target="_blank" rel="noopener noreferrer"
                                style={{ display: 'inline-flex', alignItems: 'center', gap: 3, padding: '3px 8px', background: '#dcfce7', color: '#166534', borderRadius: 4, fontSize: 11, fontWeight: 600, textDecoration: 'none' }}>
                               <FiEye size={11} /> View
@@ -751,7 +751,7 @@ const HQDeposits = () => {
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#fff', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 6, cursor: uploadingAtt ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 600 }}>
                       <FiCamera size={12} /> Camera
                     </button>
-                    <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>
+                    <span style={{ fontSize: 11, color: '#64748b', alignSelf: 'center' }}>
                       {(sendForm.attachments || []).length} attached
                     </span>
                   </div>
@@ -767,11 +767,11 @@ const HQDeposits = () => {
               )}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
                 <button onClick={() => setShowSend(false)}
-                  style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
+                  style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
                   Cancel
                 </button>
                 <button onClick={handleSend} disabled={sending}
-                  style={{ padding: '10px 28px', background: sending ? '#9ca3af' : '#d97706', color: '#fff', border: 'none', borderRadius: 8, cursor: sending ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  style={{ padding: '10px 28px', background: sending ? '#94a3b8' : '#d97706', color: '#fff', border: 'none', borderRadius: 8, cursor: sending ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                   <FiSend size={14} />
                   {sending ? 'Sending...' : 'Send Deposit'}
                 </button>
@@ -792,7 +792,7 @@ const HQDeposits = () => {
               <button className="modal-close" onClick={() => setRejectingId(null)}><FiX /></button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: 13, color: '#6b7280', marginTop: 0 }}>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 0 }}>
                 Tell the branch why you're rejecting (cash short, never arrived, wrong amount, etc.).
               </p>
               <div className="form-group">
@@ -802,7 +802,7 @@ const HQDeposits = () => {
               </div>
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 14 }}>
                 <button onClick={() => setRejectingId(null)}
-                  style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
+                  style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
                   Cancel
                 </button>
                 <button onClick={handleReject}

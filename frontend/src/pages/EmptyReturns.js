@@ -278,25 +278,25 @@ const EmptyReturns = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('from')}</span>
           <input type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('to')}</span>
           <input type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         {hasFilter && (
           <button onClick={() => { setFilterFrom(''); setFilterTo(''); }}
-            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}>{t('clear')}</button>
+            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0', fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer' }}>{t('clear')}</button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>
           {filteredReturns.length} return{filteredReturns.length !== 1 ? 's' : ''}
           {hasFilter && <> &nbsp;·&nbsp; Total credit: <strong style={{ color: '#15803d' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>}
         </span>
@@ -304,7 +304,7 @@ const EmptyReturns = () => {
 
       <div className="data-table-container">
         {filteredReturns.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
             {hasFilter ? t('noEmptyReturnsInRange') : t('noEmptyReturnsYet')}
           </div>
         ) : (
@@ -323,12 +323,12 @@ const EmptyReturns = () => {
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => openView(r)} disabled={viewLoading}
-                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#6b7280', cursor: 'pointer', fontSize: 12 }}>
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px', borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 12 }}>
                         <FiEye size={12} /> View
                       </button>
                       {hasPermission('GRN:Edit') && (
                         <button onClick={() => openEdit(r)} disabled={editLoading} title="Edit"
-                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#6b7280', cursor: 'pointer' }}>
+                          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer' }}>
                           <FiEdit2 size={13} />
                         </button>
                       )}
@@ -372,7 +372,7 @@ const EmptyReturns = () => {
                 <label>Notes</label>
                 <textarea value={notes} onChange={e => setNotes(e.target.value)}
                   rows={2} placeholder="e.g. Collected from POS counter on 20 May"
-                  style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, fontFamily: 'inherit' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontFamily: 'inherit' }} />
               </div>
 
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, tableLayout: 'fixed' }}>
@@ -385,13 +385,13 @@ const EmptyReturns = () => {
                   <col style={{ width: 50 }} />
                 </colgroup>
                 <thead>
-                  <tr style={{ background: '#f9fafb' }}>
-                    <th style={{ padding: '10px 10px', textAlign: 'left',   fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>Empty Product</th>
-                    <th style={{ padding: '10px 10px', textAlign: 'right',  fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>In Yard</th>
-                    <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>Quantity</th>
-                    <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>Deposit ({curSym})</th>
-                    <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>Total ({curSym})</th>
-                    <th style={{ padding: '10px 8px',  borderBottom: '1px solid #e5e7eb' }}></th>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: '10px 10px', textAlign: 'left',   fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>Empty Product</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'right',  fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>In Yard</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>Quantity</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>Deposit ({curSym})</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'center', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>Total ({curSym})</th>
+                    <th style={{ padding: '10px 8px',  borderBottom: '1px solid #e2e8f0' }}></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -416,7 +416,7 @@ const EmptyReturns = () => {
                                 deposit: it.deposit || (defaultDeposit ? String(defaultDeposit) : (sel?.cost_price ? String(sel.cost_price) : '')),
                               } : it));
                             }}
-                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, background: '#fff' }}>
+                            style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, background: '#fff' }}>
                             <option value="">— Select empty product —</option>
                             {eligibleProducts.map(p => {
                               const bal = parseFloat(p.store_balance || 0) + parseFloat(p.sales_balance || 0);
@@ -428,10 +428,10 @@ const EmptyReturns = () => {
                             })}
                           </select>
                         </td>
-                        <td style={{ padding: '8px 8px', textAlign: 'right', fontSize: 12, color: remaining !== null && remaining < 0 ? '#dc2626' : '#6b7280', fontFamily: 'monospace' }}>
+                        <td style={{ padding: '8px 8px', textAlign: 'right', fontSize: 12, color: remaining !== null && remaining < 0 ? '#dc2626' : '#64748b', fontFamily: 'var(--k-font-mono)' }}>
                           {prod ? (
                             <>
-                              <div style={{ fontWeight: 600, color: '#374151' }}>{inYard.toFixed(0)}</div>
+                              <div style={{ fontWeight: 600, color: '#334155' }}>{inYard.toFixed(0)}</div>
                               {qty > 0 && (
                                 <div style={{ fontSize: 10, marginTop: 2, color: overshoot ? '#dc2626' : '#15803d' }}>
                                   after: {remaining.toFixed(0)}
@@ -444,22 +444,22 @@ const EmptyReturns = () => {
                           <input type="number" min="0" step="1" placeholder="0"
                             value={item.quantity}
                             onChange={e => updateItem(idx, 'quantity', e.target.value)}
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${overshoot ? '#fca5a5' : '#e5e7eb'}`, borderRadius: 6, fontSize: 13, textAlign: 'right', background: overshoot ? '#fef2f2' : '#fff' }} />
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: `1px solid ${overshoot ? '#fca5a5' : '#e2e8f0'}`, borderRadius: 6, fontSize: 13, textAlign: 'right', background: overshoot ? '#fef2f2' : '#fff' }} />
                         </td>
                         <td style={{ padding: '8px 8px' }}>
                           <input type="number" min="0" step="0.01" placeholder="0.00"
                             value={item.deposit}
                             onChange={e => updateItem(idx, 'deposit', e.target.value)}
-                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, textAlign: 'right' }} />
                         </td>
                         <td style={{ padding: '8px 8px' }}>
-                          <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, textAlign: 'right', background: '#f9fafb', color: '#374151' }}>
+                          <div style={{ width: '100%', boxSizing: 'border-box', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, textAlign: 'right', background: '#f8fafc', color: '#334155' }}>
                             {(parseFloat(lineTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </div>
                         </td>
                         <td style={{ padding: '8px 4px', textAlign: 'center' }}>
                           <button onClick={() => removeItemRow(idx)} disabled={items.length === 1}
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f3f4f6' : '#fee2e2', color: items.length === 1 ? '#6b7280' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}>
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, background: items.length === 1 ? '#f1f5f9' : '#fee2e2', color: items.length === 1 ? '#64748b' : '#dc2626', border: 'none', borderRadius: 6, cursor: items.length === 1 ? 'not-allowed' : 'pointer' }}>
                             <FiTrash2 size={14} />
                           </button>
                         </td>
@@ -474,8 +474,8 @@ const EmptyReturns = () => {
                   style={{ padding: '7px 14px', background: '#f0fdf4', color: '#15803d', border: '1px dashed #86efac', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 500 }}>
                   <FiPlus size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Add Line
                 </button>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 12, borderTop: '2px solid #e5e7eb' }}>
-                  <span style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>Supplier Credit:</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingTop: 12, borderTop: '2px solid #e2e8f0' }}>
+                  <span style={{ fontWeight: 600, color: '#334155', fontSize: 14 }}>Supplier Credit:</span>
                   <span style={{ fontWeight: 700, fontSize: 18, color: '#15803d' }}>{curSym}{(parseFloat(totalAmount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
                 </div>
               </div>
@@ -491,9 +491,9 @@ const EmptyReturns = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 14 }}>
-                <button onClick={() => setShowForm(false)} style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+                <button onClick={() => setShowForm(false)} style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
                 <button onClick={handleSave} disabled={saving}
-                  style={{ padding: '10px 28px', background: saving ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+                  style={{ padding: '10px 28px', background: saving ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
                   {saving ? 'Saving...' : (editMode ? 'Update Return' : 'Save Return')}
                 </button>
               </div>
@@ -514,22 +514,22 @@ const EmptyReturns = () => {
             </div>
             <div className="modal-body">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14, fontSize: 13 }}>
-                <div><strong style={{ color: '#6b7280' }}>Supplier:</strong> {viewER.supplier_name || '—'}</div>
-                <div><strong style={{ color: '#6b7280' }}>Date:</strong> {formatDate(viewER.date)}</div>
-                <div><strong style={{ color: '#6b7280' }}>Items:</strong> {viewER.total_items}</div>
-                <div><strong style={{ color: '#6b7280' }}>Total Credit:</strong> <span style={{ color: '#15803d', fontWeight: 700 }}>{curSym}{(parseFloat(parseFloat(viewER.total_amount))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
-                {viewER.created_by_name && <div><strong style={{ color: '#6b7280' }}>Created by:</strong> {viewER.created_by_name}</div>}
+                <div><strong style={{ color: '#64748b' }}>Supplier:</strong> {viewER.supplier_name || '—'}</div>
+                <div><strong style={{ color: '#64748b' }}>Date:</strong> {formatDate(viewER.date)}</div>
+                <div><strong style={{ color: '#64748b' }}>Items:</strong> {viewER.total_items}</div>
+                <div><strong style={{ color: '#64748b' }}>Total Credit:</strong> <span style={{ color: '#15803d', fontWeight: 700 }}>{curSym}{(parseFloat(parseFloat(viewER.total_amount))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+                {viewER.created_by_name && <div><strong style={{ color: '#64748b' }}>Created by:</strong> {viewER.created_by_name}</div>}
               </div>
               {viewER.notes && (
-                <div style={{ padding: '10px 14px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, marginBottom: 12 }}>{viewER.notes}</div>
+                <div style={{ padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, marginBottom: 12 }}>{viewER.notes}</div>
               )}
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
-                  <tr style={{ background: '#f9fafb' }}>
-                    <th style={{ padding: 10, textAlign: 'left', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>Product</th>
-                    <th style={{ padding: 10, textAlign: 'right', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>Qty</th>
-                    <th style={{ padding: 10, textAlign: 'right', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>Deposit</th>
-                    <th style={{ padding: 10, textAlign: 'right', fontSize: 12, color: '#6b7280', borderBottom: '1px solid #e5e7eb' }}>Total</th>
+                  <tr style={{ background: '#f8fafc' }}>
+                    <th style={{ padding: 10, textAlign: 'left', fontSize: 12, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Product</th>
+                    <th style={{ padding: 10, textAlign: 'right', fontSize: 12, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Qty</th>
+                    <th style={{ padding: 10, textAlign: 'right', fontSize: 12, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Deposit</th>
+                    <th style={{ padding: 10, textAlign: 'right', fontSize: 12, color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Total</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -550,7 +550,7 @@ const EmptyReturns = () => {
                     <FiTrash2 size={12} style={{ verticalAlign: 'middle', marginRight: 4 }} /> Delete
                   </button>
                 )}
-                <button onClick={() => setViewER(null)} style={{ padding: '8px 20px', border: '1px solid #e5e7eb', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 13 }}>Close</button>
+                <button onClick={() => setViewER(null)} style={{ padding: '8px 20px', border: '1px solid #e2e8f0', borderRadius: 6, background: '#fff', cursor: 'pointer', fontSize: 13 }}>Close</button>
               </div>
             </div>
           </div>
