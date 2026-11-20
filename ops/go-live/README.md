@@ -132,7 +132,7 @@ proves the originals didn't change. Read `summary.md`.
 | Line in summary.md | Go | Stop / decide |
 |---|---|---|
 | `integrity` | `ok` | Anything else: **stop**. Take a fresh snapshot; if it's still not ok, investigate before anything else |
-| `Upgrade rehearsal on a scratch copy` | `ok — version N → 11` | `FAILED`: **stop**. Send me the migration number and error; that database would not upgrade |
+| `Upgrade rehearsal on a scratch copy` | `ok — version N → 13` | `FAILED`: **stop**. Send me the migration number and error; that database would not upgrade |
 | `Duplicate sync_ids` | absent | Present: **stop** and review. Sync would treat two records as one |
 | `Fuel codes held as separate records in more than one database` | `0` | `> 0`: decision **G4** before the tills are upgraded |
 | `Fleet merge review` | Any | `need a decision > 0` is fine. You resolve these in the merge screen after go-live (section 9) |
@@ -267,6 +267,7 @@ automatically at start-up, once, each in its own transaction.
 | 51 | UX-15 | Cash Report: blind count, in-app confirm, kit header, readable colours | — |
 | 52 | Fix | Cash receipt totals: each receipt once per method (fuel day receipt no longer counted again as Bank) | — |
 | 53 | UX-16 | Sales Inventory, Stock Card, Bin Card, VAT Report in the same look; K not $ | — |
+| 54 | Docs | Go-live checks expect schema version 13 (was 11) | — |
 
 Before tagging, on the test machine:
 
@@ -291,7 +292,7 @@ folder.
    MASTER_DB_PATH=~/kelete-rehearsal/master.db DB_PATH=~/kelete-rehearsal/kelete.db \
    TENANTS_DIR=~/kelete-rehearsal/tenants node server-tenant.js
    ```
-   Every database should log `[migrate] … applied 1 … 11` (or only the
+   Every database should log `[migrate] … applied 1 … 13` (or only the
    missing ones), with no `FAILED`.
 3. Build the frontend (`cd frontend && npm ci && npm run build`) and open it
    against port 5399, logged in as your own Administrator. Check, without
@@ -366,7 +367,7 @@ through.
    - `pm2 logs <name> --lines 300 | grep -E "\[migrate\]|FAILED|refuse"`: each
      database applied its migrations, and there's no `FAILED`
    - as Administrator: `GET /api/system/schema-status` for each branch shows
-     version 11
+     version 13
    - log in as Administrator, a supervisor and a cashier, and open each one's
      usual screens
    - `pm2 logs | grep "WOULD DENY"`: lines for legitimate work go on the list
