@@ -270,6 +270,7 @@ automatically at start-up, once, each in its own transaction.
 | 54 | Docs | Go-live checks expect schema version 13 (was 11) | — |
 | 55 | UX-17 | One theme: slate greys, one mono font, K12.00 / −K12.00 on every screen, $ → K on GRN/SIV/Receivables prints, in-app boxes on Sales Report, Cash Receipt, POS and HQ screens | — |
 | 56 | Fix | Sales Report: over-collected split by currency (USD · FRA · K) back on tri-currency branches; nothing changes on Kelete's K-only book | — |
+| 57 | Docs | `HANDOVER.md`: overview for the person deploying and continuing the work | — |
 
 Before tagging, on the test machine:
 

@@ -417,6 +417,13 @@
    "covers": "Fix",
    "what": "Final check before go-live (lint against the pre-session code: 0 new warnings after this). UX-14 kept the over-collected total on tri-currency branches but lost its USD / FRA / K split, leaving three unused totals. The split is shown again. Kelete (K-only) never shows over-collected, so nothing changes there.",
    "migrations": []
+  },
+  {
+   "n": 57,
+   "subject": "Docs: HANDOVER.md — what this release does, how to deploy it, decisions for the VPS owner, and the open work (for review)",
+   "covers": "Docs",
+   "what": "HANDOVER.md at the top of the repository: where things stand, what was done (by area, with change numbers), the migrations, the short deployment path, the decisions G0–G5, what was not done, known issues, the phone-scanner notes, and the rules this work followed. No code changes.",
+   "migrations": []
   }
  ],
  "migrations": [
