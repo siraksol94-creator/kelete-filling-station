@@ -1393,10 +1393,23 @@ router.get('/consolidated-profit', hqAuth, requirePagePerm('HQConsolidatedProfit
           sumRev += revenue; sumCogs += cogs; sumGross += gross; sumPv += pv; sumNet += net;
         }
 
+        // Fuel (Profit Report decision 2026-11-20): the branch's closed
+        // shifts, by grade and by day, and the credit-ticket fuel its stored
+        // shop figures contain. Read-only. null where the branch has no
+        // forecourt tables or they cannot be read — the shop figures stand.
+        let fuel = null;
+        try {
+          fuel = require('../services/fuelProfit').fuelProfit(db, { from, to, daily: true });
+        } catch (e) {
+          console.error(`[hq.consolidated-profit] ${t.slug} fuel:`, e.message);
+        }
+
         branches.push({
           slug: t.slug, name,
+          // Shop figures exactly as stored (unchanged); fuel alongside.
           totals: { revenue: sumRev, cogs: sumCogs, gross: sumGross, pv: sumPv, net: sumNet },
           daily,
+          fuel,
         });
       } catch (e) {
         console.error(`[hq.consolidated-profit] ${t.slug}:`, e.message);

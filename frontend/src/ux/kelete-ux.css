@@ -1367,7 +1367,7 @@
 .k-pr-grades tfoot th, .k-pr-grades tfoot td { font-weight: 800; background: #f8fafc; border-top: 2px solid #e2e8f0; }
 .k-pr-pl-col { min-width: 210px; }
 .k-pr-plw { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; width: 100%; }
-.k-pr-grades thead th:first-child { text-align: left; }
+.k-pr-grades thead th:first-child, .k-pr-pl thead th:first-child { text-align: left; }
 .k-pr-grades td.k-pr-pl-col b small { font-size: 12px; color: #475569; font-weight: 600; }
 .k-pr-bar { flex: 1; max-width: 120px; height: 8px; border-radius: 999px; background: #f1f5f9; overflow: hidden; }
 .k-pr-bar > span { display: block; height: 100%; border-radius: 999px; }
@@ -1388,3 +1388,16 @@
   .k-pr-pl thead th:first-child, .k-pr-grades thead th:first-child, .k-pr-pl tr.is-total th:first-child, .k-pr-grades tfoot th:first-child { background: #f8fafc; }
   .k-pr-grades tbody th small { margin-left: 0; }
 }
+
+/* HQ Consolidated Profit (pages/HqConsolidatedProfit.js) — reuses k-pr-*. */
+.k-pr-error { padding: 12px 14px; margin: 0 0 14px; border-radius: 12px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-weight: 600; }
+.k-hq-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 6px 0 2px; border: 0; background: none; font: inherit; font-weight: 800; color: #0f172a; cursor: pointer; border-radius: 8px; }
+.k-hq-toggle:hover { background: #f1f5f9; }
+.k-hq-toggle:focus-visible { outline: 3px solid #f59e0b; outline-offset: 1px; }
+.k-hq-toggle svg { color: #b45309; flex: none; margin-top: 3px; }
+.k-hq-toggle { text-align: left; align-items: flex-start; }
+.k-hq-tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 999px; background: #f1f5f9; color: #475569; font-size: 11px; font-weight: 700; }
+.k-hq-l { font-size: 12px; font-weight: 600; color: #475569; }
+.k-hq-day th, .k-hq-day td { background: #f8fafc; font-size: 13px; }
+.k-hq-day th { padding-left: 40px !important; font-weight: 600; color: #475569; font-variant-numeric: tabular-nums; }
+.k-hq-day .is-station { background: #fffbeb; }

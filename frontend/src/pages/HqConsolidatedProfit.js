@@ -1,204 +1,241 @@
-// HqConsolidatedProfit — group net profit rolled up across every Kelete
-// branch. Kelete is K-only across every branch, so there's no fx
-// conversion (contrast Kelete, which needs Kassumbalesa's USD/K rate).
-// HQ overhead is SUM(payment_vouchers.amount); Kelete has no LCV
-// concept so no exclusion is applied.
+// HqConsolidatedProfit — group profit across every Kelete branch, as
+// Shop | Fuel | Station (decision 2026-11-20, same rules as the branch Profit
+// Report; see ux/hqProfitModel.js). Kelete is K-only, so no fx conversion.
+// HQ overhead = HQ's payment vouchers, taken once at group level.
 //
-// Only useful on the bare HQ host (keletezm.com). The
-// sidebar entry lives under the Accounting group next to Profit Report.
+// Only useful on the bare HQ host (keletezm.com). The sidebar entry lives
+// under the Accounting group.
 //
-// v1.13.62 — new page (Kelete's HqConsolidatedProfit ported, K-only).
-import React, { useEffect, useMemo, useState } from 'react';
-import { FiRefreshCw, FiChevronRight, FiChevronDown } from 'react-icons/fi';
+// v1.13.62 — first version (shop only). 2026-11-20 — fuel added per branch.
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { FiRefreshCw, FiChevronRight, FiChevronDown, FiLayers, FiInfo, FiShoppingBag, FiDroplet } from 'react-icons/fi';
 import { getHqConsolidatedProfit } from '../services/api';
 import { businessToday } from '../utils/businessDate';
+import { PageHero } from '../ux/ForecourtKit';
+import { fmtL } from '../ux/forecourt';
+import { quickRanges, marginBar } from '../ux/profitModel';
+import { hqGroup, branchDays } from '../ux/hqProfitModel';
 
-const fmtK       = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-const fmtSign    = (n) => (parseFloat(n || 0) < 0 ? '−' : '');
-const firstOfMonthISO = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-};
+// Money in full: "K1,234.56"; "−K10.00" when signed and negative.
+const money = (v, signed = false) => `${signed && Number(v) < 0 ? '−' : ''}K${Math.abs(parseFloat(v || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const todayISO = () => businessToday();
 
+function Money({ v, signed }) {
+  const tone = signed ? (v < 0 ? ' is-neg' : v > 0 ? ' is-pos' : '') : '';
+  return <span className={`k-pr-money${tone}`}>{money(v, signed)}</span>;
+}
+
 export default function HqConsolidatedProfit() {
-  const [from, setFrom] = useState(firstOfMonthISO());
-  const [to,   setTo]   = useState(todayISO());
+  const quick = useMemo(() => quickRanges(todayISO()), []);
+  const month = quick.find(q => q.key === 'month');
+  const [from, setFrom] = useState(month.from);
+  const [to,   setTo]   = useState(month.to);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
   const [expanded, setExpanded] = useState({});
 
-  const load = async () => {
+  const load = useCallback(async (f, t) => {
     setLoading(true); setError('');
     try {
-      const res = await getHqConsolidatedProfit({ from, to });
+      const res = await getHqConsolidatedProfit({ from: f, to: t });
       setData(res.data);
     } catch (err) {
       setError(err?.response?.data?.error || err?.message || 'Failed to load consolidated profit');
     }
     setLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { load(from, to); }, [from, to, load]);
 
-  const branchNetTotal = useMemo(() => {
-    if (!data?.branches) return 0;
-    return data.branches.reduce((s, b) => s + parseFloat(b.totals.net || 0), 0);
-  }, [data]);
-
+  const g = useMemo(() => hqGroup(data || {}), [data]);
+  const activeQuick = quick.find(q => q.from === from && q.to === to)?.key;
   const toggle = (slug) => setExpanded(e => ({ ...e, [slug]: !e[slug] }));
-
-  const groupNet = parseFloat(data?.group_net || 0);
+  const shopPct = g.shopShare == null ? 0 : Math.round(g.shopShare * 100);
+  const bestPerLitre = Math.max(0, ...g.grades.map(x => x.margin_per_litre || 0));
+  const rangeLabel = from === to ? from : `${from} → ${to}`;
 
   return (
-    <div className="page-content">
-      <div className="page-header">
-        <div>
-          <h1>HQ Consolidated Profit</h1>
-          <p>Group net profit across every branch, in K · HQ overhead = payment vouchers</p>
+    <div className="page-content k-pr">
+      <PageHero icon={<FiLayers />} title="HQ Consolidated Profit"
+        subtitle={`Shop, fuel and the whole group · every branch · ${rangeLabel}`}
+        actions={<button type="button" onClick={() => load(from, to)} className="k-fc-btn-ghost" disabled={loading}><FiRefreshCw size={14} /> {loading ? 'Loading…' : 'Refresh'}</button>} />
+
+      <div className="k-pr-toolbar">
+        <div className="k-pr-quick" role="group" aria-label="Quick periods">
+          {quick.map(q => (
+            <button key={q.key} type="button" aria-pressed={activeQuick === q.key}
+              className={`k-pr-qchip${activeQuick === q.key ? ' is-on' : ''}`}
+              onClick={() => { setFrom(q.from); setTo(q.to); }}>{q.label}</button>
+          ))}
+        </div>
+        <div className="k-pr-dates">
+          <label>From <input type="date" value={from} max={to || todayISO()} onChange={e => e.target.value && setFrom(e.target.value)} /></label>
+          <label>to <input type="date" value={to} min={from || undefined} max={todayISO()} onChange={e => e.target.value && setTo(e.target.value)} /></label>
         </div>
       </div>
 
-      {/* Filters */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, marginBottom: 14, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
-        <Field label="From">
-          <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp} />
-        </Field>
-        <Field label="To">
-          <input type="date" value={to} onChange={e => setTo(e.target.value)} style={inp} />
-        </Field>
-        <div style={{ flex: 1 }} />
-        <button
-          onClick={load}
-          disabled={loading}
-          style={{ padding: '9px 16px', background: '#0ea5e9', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}
-        >
-          <FiRefreshCw /> {loading ? 'Loading…' : 'Run'}
-        </button>
-      </div>
-
-      {error && (
-        <div style={{ padding: 14, background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca', borderRadius: 8, marginBottom: 16 }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="k-pr-error" role="alert">{error}</div>}
+      {!data && loading && <div className="k-pr-loading" role="status">Loading…</div>}
 
       {data && (
         <>
-          {/* Headline tile */}
-          <div style={{ background: 'linear-gradient(135deg,#075985,#0369a1)', color: '#fff', borderRadius: 12, padding: '22px 24px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, opacity: 0.8, fontWeight: 700 }}>Group Net Profit</div>
-              <div style={{ fontSize: 30, fontWeight: 800, marginTop: 2 }}>{fmtSign(groupNet)}{fmtK(Math.abs(groupNet))}</div>
-              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 4 }}>
-                Branch Net {fmtK(branchNetTotal)} − HQ Overhead {fmtK(data.hq_overhead?.total)}
+          <section className="k-pr-kpis" aria-label="Group headline figures">
+            <div className="k-pr-kpi is-main">
+              <span>Group net profit</span>
+              <strong>{money(g.groupNet, true)}</strong>
+              <em>branches <b>{money(g.branchNet, true)}</b> − HQ overhead <b>{money(g.hqOverhead)}</b></em>
+            </div>
+            <div className="k-pr-kpi">
+              <span>Group sales</span>
+              <strong>{money(g.sales)}</strong>
+              <div className="k-pr-split" aria-hidden="true">
+                <div className="is-shop" style={{ width: `${shopPct}%` }} />
+                <div className="is-fuel" style={{ width: `${100 - shopPct}%` }} />
               </div>
+              <em><i className="k-pr-key is-shop" /> Shop {money(g.shopSales)} · <i className="k-pr-key is-fuel" /> Fuel {money(g.fuelSales)}</em>
             </div>
-            <div style={{ textAlign: 'right', fontSize: 11, opacity: 0.85 }}>
-              <div>{data.from} → {data.to}</div>
-              <div style={{ marginTop: 4 }}>Reporting currency: {data.reporting_currency}</div>
+            <div className="k-pr-kpi">
+              <span>Group gross profit</span>
+              <strong className={g.gross < 0 ? 'is-neg' : ''}>{money(g.gross, true)}</strong>
+              <em>{g.grossMargin == null ? 'no sales in this period' : <><b>{(g.grossMargin * 100).toFixed(1)}%</b> of sales</>}</em>
             </div>
-          </div>
+            <div className="k-pr-kpi">
+              <span>Fuel margin per litre</span>
+              <strong>{g.perLitre != null ? <>{money(g.perLitre, true)}<small> / L</small></> : '—'}</strong>
+              <em>{g.litres > 0 ? <>on <b>{fmtL(g.litres, 0)}</b> across {g.branches.filter(b => b.litres > 0).length} {g.branches.filter(b => b.litres > 0).length === 1 ? 'branch' : 'branches'}</> : 'no closed shifts in this period'}</em>
+            </div>
+          </section>
 
-          {/* Main table */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
-            <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead style={{ background: '#f9fafb' }}>
-                <tr>
-                  <th style={{ ...th, width: 32 }} />
-                  <th style={th}>Branch</th>
-                  <th style={{ ...th, textAlign: 'right' }}>Revenue</th>
-                  <th style={{ ...th, textAlign: 'right' }}>COGS</th>
-                  <th style={{ ...th, textAlign: 'right' }}>Gross Profit</th>
-                  <th style={{ ...th, textAlign: 'right' }}>Expenses (PV)</th>
-                  <th style={{ ...th, textAlign: 'right' }}>Net</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.branches.map(b => {
-                  const isOpen = !!expanded[b.slug];
-                  return (
-                    <React.Fragment key={b.slug}>
-                      <tr
-                        style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }}
-                        onClick={() => toggle(b.slug)}
-                      >
-                        <td style={{ ...td, textAlign: 'center', color: '#0ea5e9' }}>
-                          {isOpen ? <FiChevronDown /> : <FiChevronRight />}
-                        </td>
-                        <td style={{ ...td, fontWeight: 700 }}>{b.name}</td>
-                        <td style={numTd}>{fmtK(b.totals.revenue)}</td>
-                        <td style={numTd}>{fmtK(b.totals.cogs)}</td>
-                        <td style={{ ...numTd, color: parseFloat(b.totals.gross) >= 0 ? '#047857' : '#b91c1c' }}>{fmtK(b.totals.gross)}</td>
-                        <td style={{ ...numTd, color: '#b45309' }}>{fmtK(b.totals.pv)}</td>
-                        <td style={{ ...numTd, fontWeight: 700, color: b.totals.net >= 0 ? '#047857' : '#b91c1c' }}>{fmtSign(b.totals.net)}{fmtK(Math.abs(b.totals.net))}</td>
-                      </tr>
-                      {isOpen && b.daily
-                        .filter(d => (d.revenue || d.cogs || d.gross || d.pv || d.net))
-                        .map(d => (
-                        <tr key={`${b.slug}-${d.date}`} style={{ background: '#fafafa', borderBottom: '1px solid #f3f4f6' }}>
-                          <td />
-                          <td style={{ ...td, paddingLeft: 32, color: '#6b7280', fontFamily: 'monospace', fontSize: 12 }}>{d.date}</td>
-                          <td style={{ ...numTd, color: '#6b7280' }}>{fmtK(d.revenue)}</td>
-                          <td style={{ ...numTd, color: '#6b7280' }}>{fmtK(d.cogs)}</td>
-                          <td style={{ ...numTd, color: parseFloat(d.gross) >= 0 ? '#047857' : '#b91c1c' }}>{fmtK(d.gross)}</td>
-                          <td style={{ ...numTd, color: '#b45309' }}>{fmtK(d.pv)}</td>
-                          <td style={{ ...numTd, color: '#374151' }}>{fmtSign(d.net)}{fmtK(Math.abs(d.net))}</td>
+          <section className="k-pr-card">
+            <header><h3>By branch</h3><span>tap a branch for its days</span></header>
+            <div className="k-pr-scroll">
+              <table className="k-pr-pl k-hq-pl">
+                <thead>
+                  <tr>
+                    <th scope="col">Branch</th>
+                    <th scope="col"><FiShoppingBag aria-hidden="true" /> Shop sales</th>
+                    <th scope="col"><FiDroplet aria-hidden="true" /> Fuel sales</th>
+                    <th scope="col">Gross profit</th>
+                    <th scope="col">Expenses</th>
+                    <th scope="col" className="is-station">Net profit</th>
+                    <th scope="col">Fuel / litre</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {g.branches.map(b => {
+                    const open = !!expanded[b.slug];
+                    const raw = (data.branches || []).find(x => x.slug === b.slug);
+                    const days = open ? branchDays(raw) : [];
+                    return (
+                      <React.Fragment key={b.slug}>
+                        <tr className="k-hq-branch">
+                          <th scope="row">
+                            <button type="button" className="k-hq-toggle" aria-expanded={open} onClick={() => toggle(b.slug)}>
+                              {open ? <FiChevronDown aria-hidden="true" /> : <FiChevronRight aria-hidden="true" />} {b.name}
+                            </button>
+                            {!b.hasFuel && <small className="k-hq-tag">shop only</small>}
+                          </th>
+                          <td><Money v={b.shopSales} /></td>
+                          <td>{b.hasFuel ? <Money v={b.fuelSales} /> : <span className="k-pr-na">—</span>}</td>
+                          <td><Money v={b.gross} signed /></td>
+                          <td><Money v={b.expenses} /></td>
+                          <td className="is-station"><Money v={b.net} signed /></td>
+                          <td>{b.perLitre != null ? <><Money v={b.perLitre} signed /><small className="k-hq-l"> / L</small></> : <span className="k-pr-na">—</span>}</td>
                         </tr>
-                      ))}
-                    </React.Fragment>
-                  );
-                })}
-                {/* Sub-totals row */}
-                <tr style={{ background: '#f9fafb', borderTop: '2px solid #e5e7eb' }}>
-                  <td />
-                  <td style={{ ...td, fontWeight: 700, color: '#0f172a' }}>Branch Net Total</td>
-                  <td colSpan={4} />
-                  <td style={{ ...numTd, fontWeight: 800, color: '#047857' }}>{fmtSign(branchNetTotal)}{fmtK(Math.abs(branchNetTotal))}</td>
-                </tr>
-                {/* HQ overhead row */}
-                <tr style={{ borderTop: '1px solid #e5e7eb' }}>
-                  <td />
-                  <td style={{ ...td, color: '#b91c1c', fontWeight: 700 }}>
-                    HQ Overhead <span style={{ fontWeight: 400, fontSize: 11, color: '#6b7280' }}>(Payment Vouchers)</span>
-                  </td>
-                  <td colSpan={4} />
-                  <td style={{ ...numTd, color: '#b91c1c', fontWeight: 700 }}>−{fmtK(data.hq_overhead?.total)}</td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr style={{ background: '#ecfdf5', borderTop: '2px solid #059669' }}>
-                  <td />
-                  <td style={{ ...td, fontWeight: 800, fontSize: 15, color: '#065f46' }}>Group Net Profit</td>
-                  <td colSpan={4} />
-                  <td style={{ ...numTd, fontWeight: 800, fontSize: 16, color: groupNet >= 0 ? '#065f46' : '#b91c1c' }}>
-                    {fmtSign(groupNet)}{fmtK(Math.abs(groupNet))}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+                        {open && (days.length ? days.map(d => (
+                          <tr key={`${b.slug}-${d.date}`} className="k-hq-day">
+                            <th scope="row">{d.date}</th>
+                            <td><Money v={d.shopSales} /></td>
+                            <td>{b.hasFuel ? <Money v={d.fuelSales} /> : <span className="k-pr-na">—</span>}</td>
+                            <td><Money v={d.gross} signed /></td>
+                            <td><Money v={d.expenses} /></td>
+                            <td className="is-station"><Money v={d.net} signed /></td>
+                            <td>{d.perLitre != null ? <><Money v={d.perLitre} signed /><small className="k-hq-l"> / L</small></> : <span className="k-pr-na">—</span>}</td>
+                          </tr>
+                        )) : (
+                          <tr className="k-hq-day"><th scope="row" colSpan={7}>No activity in this period.</th></tr>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                  <tr className="is-total">
+                    <th scope="row">All branches</th>
+                    <td><Money v={g.shopSales} /></td>
+                    <td><Money v={g.fuelSales} /></td>
+                    <td><Money v={g.gross} signed /></td>
+                    <td><Money v={g.expenses} /></td>
+                    <td className="is-station"><Money v={g.branchNet} signed /></td>
+                    <td>{g.perLitre != null ? <><Money v={g.perLitre} signed /><small className="k-hq-l"> / L</small></> : <span className="k-pr-na">—</span>}</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><span className="k-pr-op" aria-hidden="true">−</span>HQ overhead <small className="k-hq-l">(HQ payment vouchers)</small></th>
+                    <td colSpan={4} />
+                    <td className="is-station"><Money v={-g.hqOverhead} signed /></td>
+                    <td />
+                  </tr>
+                  <tr className="is-total">
+                    <th scope="row"><span className="k-pr-op" aria-hidden="true">=</span>Group net profit</th>
+                    <td colSpan={4} />
+                    <td className="is-station"><Money v={g.groupNet} signed /></td>
+                    <td />
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            {(g.credit > 0 || g.noFuel.length > 0) && (
+              <div className="k-pr-notes">
+                {g.credit > 0 && <p><FiInfo aria-hidden="true" /> <b>{money(g.credit)}</b> of credit-ticket fuel is shown under Fuel, not Shop, across the branches. Their stored shop sales held it with no cost behind it, so it is counted once, with its cost.</p>}
+                {g.noFuel.length > 0 && <p><FiInfo aria-hidden="true" /> Shop figures only for <b>{g.noFuel.join(', ')}</b>: no forecourt records could be read there.</p>}
+              </div>
+            )}
+          </section>
 
-          <div style={{ marginTop: 10, fontSize: 11, color: '#6b7280', lineHeight: 1.55 }}>
-            Click a branch row to expand daily rows. Days with no activity are hidden inside the drilldown.
-          </div>
+          <section className="k-pr-card">
+            <header><h3>Fuel by grade, all branches</h3><span>litres from closed shifts · testing litres excluded</span></header>
+            {g.grades.length === 0 ? (
+              <p className="k-pr-empty">No closed shifts in this period.</p>
+            ) : (
+              <div className="k-pr-scroll">
+                <table className="k-pr-grades">
+                  <thead>
+                    <tr>
+                      <th scope="col">Grade</th><th scope="col">Litres</th><th scope="col">Sales</th>
+                      <th scope="col">Cost</th><th scope="col">Margin</th><th scope="col" className="k-pr-pl-col">Margin per litre</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {g.grades.map(x => (
+                      <tr key={x.key}>
+                        <th scope="row">
+                          <span className="k-pr-dot" style={{ background: x.color || '#64748b' }} aria-hidden="true" />
+                          {x.name}{x.estimated_litres > 0 && <sup title="Partly costed at today's average cost">*</sup>}
+                          <small>{x.branches} {x.branches === 1 ? 'branch' : 'branches'}</small>
+                        </th>
+                        <td>{fmtL(x.litres, 2)}</td>
+                        <td>{money(x.revenue)}</td>
+                        <td>{money(x.cost)}</td>
+                        <td><span className={`k-pr-money${x.margin < 0 ? ' is-neg' : ''}`}>{money(x.margin, true)}</span></td>
+                        <td className="k-pr-pl-col">
+                          <span className="k-pr-plw">
+                            <span className="k-pr-bar" aria-hidden="true"><span style={{ width: `${marginBar(x.margin_per_litre, bestPerLitre)}%`, background: x.color || '#64748b' }} /></span>
+                            <b className={x.margin_per_litre < 0 ? 'is-neg' : ''}>{money(x.margin_per_litre, true)}<small> / L</small></b>
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {g.estimatedLitres > 0 && (
+              <div className="k-pr-notes">
+                <p><FiInfo aria-hidden="true" /> <b>* {fmtL(g.estimatedLitres, 2)}</b> closed before fuel costs were frozen at shift close, so it is costed at each branch's average cost today.</p>
+              </div>
+            )}
+          </section>
         </>
       )}
     </div>
   );
 }
-
-function Field({ label, children }) {
-  return (
-    <div>
-      <label style={{ display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 }}>{label}</label>
-      {children}
-    </div>
-  );
-}
-
-const inp   = { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', minWidth: 160 };
-const th    = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
-const td    = { padding: '10px 12px', color: '#0f172a' };
-const numTd = { ...td, textAlign: 'right', fontFamily: 'ui-monospace, "SF Mono", Consolas, monospace', fontSize: 12.5 };

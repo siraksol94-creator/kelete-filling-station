@@ -117,3 +117,22 @@ test('only people who can open the Profit Report may read it', async () => {
   const r = await app.request('GET', `/api/fuel-profit?from=${today}&to=${today}`, { token: staff.tokens.att1 });
   assert.equal(r.status, 403, r.text);
 });
+
+test('HQ drill-down: the day-by-day figures add up to the period totals', () => {
+  const { fuelProfit } = require('../services/fuelProfit');
+  const p = fuelProfit(app.db, { from: today, to: today, daily: true });
+  assert.equal(p.daily.length, 1);
+  const d = p.daily[0];
+  assert.equal(d.date, today);
+  assert.deepEqual([d.litres, d.revenue, d.cost, d.cash_variance, d.gross_profit, d.credit_in_shop],
+    [p.totals.litres, p.totals.revenue, p.totals.cost, p.totals.cash_variance, p.totals.gross_profit, p.credit_in_shop]);
+  assert.equal(fuelProfit(app.db, { from: today, to: today }).daily, undefined, 'only when asked for');
+});
+
+test('HQ: a branch database without forecourt tables makes fuelProfit throw (HQ then shows shop only)', () => {
+  const Database = require('better-sqlite3');
+  const bare = new Database(':memory:');
+  const { fuelProfit } = require('../services/fuelProfit');
+  assert.throws(() => fuelProfit(bare, { from: today, to: today, daily: true }));
+  bare.close();
+});
