@@ -382,6 +382,13 @@
    "covers": "UX",
    "what": "Decision 2026-11-20: blind cash count on the Kwacha Cash/MoMo/Bank book. A new report's counted boxes start empty (were pre-filled with the expected amounts, so a report could be saved without counting and always balanced); each card shows its expected figure and Balanced/Over/Short only once its box is typed; the day's Total Expected and Difference tiles wait until the count is saved; Save asks for every shown method (0 allowed). Saved reports open as counted (a method saved as 0 shows 0). Auto-deposit confirmation is an in-app box. Kit header with day and cashier; differences shown as −K50.00; inherited contrast failures fixed. Other currency setups keep the pre-fill. No backend, data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 52,
+   "subject": "Fix: cash receipt totals count each receipt once per method on a Kwacha book (fuel day receipt was counted again as Bank) (for review)",
+   "covers": "Fix",
+   "what": "On a Kwacha book, cash receipts are read from their Cash/MoMo/Bank method columns whenever they have any, else from the usd/fra/k slots. The old slots-first reading counted the fuel day receipt's whole total again as Bank (its total lives in k_amount) and its bank swipes as MoMo, and swapped MoMo/Bank for customer-payment receipts: K1,830 of receipts read K2,780. Applied to GET /api/cash-receipts/stats and the Cash Receipt screen's rows, totals and edit form (ux/receiptModel.js). Multi-currency books unchanged. No data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [
