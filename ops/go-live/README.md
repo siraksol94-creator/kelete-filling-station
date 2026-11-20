@@ -264,6 +264,7 @@ automatically at start-up, once, each in its own transaction.
 | 48 | UX-14 | Sales Report: headline, how they paid, sales through the day, clearer rows, quiet Reverse; Reset-to-today error fixed | — |
 | 49 | Perf | Sales Report loads only the dates on screen; invoice search runs on the server | — |
 | 50 | Fix | MoMo and Bank drawer expenses counted once (Cash Report, voucher totals) | — |
+| 51 | UX-15 | Cash Report: blind count, in-app confirm, kit header, readable colours | — |
 
 Before tagging, on the test machine:
 
