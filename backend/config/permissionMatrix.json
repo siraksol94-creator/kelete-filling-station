@@ -445,7 +445,6 @@
     "accounting/profit-report",
     "accounting/shareholders",
     "approvals/discounts",
-    "dashboard",
     "fuel/cash-report",
     "fuel/fleet",
     "fuel/pumps",
@@ -2039,9 +2038,7 @@
     "Sales",
     "Store"
    ],
-   "allAccess": true,
    "screens": [
-    "dashboard",
     "pos",
     "store/empty-vouchers"
    ]
@@ -3733,7 +3730,6 @@
     "accounting/profit-report",
     "accounting/shareholders",
     "approvals/discounts",
-    "dashboard",
     "fuel/cash-report",
     "fuel/fleet",
     "fuel/pumps",
@@ -3793,7 +3789,6 @@
     "accounting/profit-report",
     "accounting/shareholders",
     "approvals/discounts",
-    "dashboard",
     "fuel/cash-report",
     "fuel/fleet",
     "fuel/pumps",

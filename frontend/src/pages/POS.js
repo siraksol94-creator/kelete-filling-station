@@ -13,7 +13,6 @@ import { isTerminal58, buildReceipt58 } from '../utils/receipt58';
 import TerminalPayWindow, { TerminalQtyWindow } from '../components/TerminalPay';
 import { matchTokens } from '../utils/tokenSearch';
 import { businessToday } from '../utils/businessDate';
-import { quickCash } from '../ux/posModel';
 
 // 2026-08-30 — thousand separators on printed receipt figures. 306,000.00
 // reads at a glance; 306000.00 has to be counted. Fixed en-US grouping so a
@@ -2989,7 +2988,7 @@ const POS = () => {
                       {product.category_name}
                     </span>
                     <h3>{product.name}</h3>
-                    <p className="stock-info" style={isLowStock ? { color: '#b91c1c', fontWeight: 700 } : undefined}>
+                    <p className="stock-info" style={isLowStock ? { color: '#dc2626', fontWeight: 700 } : undefined}>
                       In Stock: {formatStockForProduct(salesBalance, product, { showBaseInParens: false })}
                       {isLowStock && <span style={{ marginLeft: 6, fontSize: 10, background: '#dc2626', color: '#fff', padding: '1px 6px', borderRadius: 8, fontWeight: 700 }}>LOW</span>}
                     </p>
@@ -3671,22 +3670,18 @@ const POS = () => {
           <Portal>
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 520, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' }} onClick={e => e.stopPropagation()}>
-              <div className="k-pos-payhead">
+              <div style={{ padding: '18px 22px', background: 'linear-gradient(135deg,#1d4ed8,#1e40af)', color: '#fff', borderRadius: '14px 14px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <h3>Payment</h3>
-                  <div className="k-pos-payhead-sub">Walk-in sale — collect payment in any combination of methods</div>
+                  <h3 style={{ margin: 0 }}>Payment</h3>
+                  <div style={{ fontSize: 12, opacity: 0.9, marginTop: 2 }}>Walk-in sale — collect payment in any combination of methods</div>
                 </div>
-                <div className="k-pos-payhead-total">
-                  <span>To pay</span>
-                  <strong>{money(total)}</strong>
-                </div>
-                <button type="button" aria-label="Close payment" onClick={() => { setPayModal(null); customerChannel.current?.postMessage({ type: 'cart_update', items: cart, total }); }} className="k-pos-payhead-x"><FiX size={20} /></button>
+                <button onClick={() => { setPayModal(null); customerChannel.current?.postMessage({ type: 'cart_update', items: cart, total }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff' }}><FiX size={20} /></button>
               </div>
 
               <div style={{ padding: 22 }}>
                 {/* This sale */}
-                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 13 }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#991b1b', textTransform: 'uppercase', marginBottom: 8 }}>This Sale</div>
+                <div style={{ background: '#eff6ff', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 13 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#1d4ed8', textTransform: 'uppercase', marginBottom: 8 }}>This Sale</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
                     <span style={{ color: '#374151' }}>Subtotal</span>
                     <span>{money(subtotal)}</span>
@@ -3720,9 +3715,9 @@ const POS = () => {
                       </button>
                     )}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px dashed #fca5a5', marginTop: 4, paddingTop: 8, fontWeight: 700 }}>
-                    <span style={{ color: '#7f1d1d' }}>Sale Total</span>
-                    <span style={{ fontWeight: 800, color: '#7f1d1d' }}>{money(total)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px dashed #c7d2fe', marginTop: 4, paddingTop: 8, fontWeight: 700 }}>
+                    <span style={{ color: '#1e3a8a' }}>Sale Total</span>
+                    <span style={{ fontWeight: 800, color: '#1e3a8a' }}>{money(total)}</span>
                   </div>
                   {/* v1.13.128h — Sale Date backdating input removed from the
                       payment modal per user request. Backend sale_date still
@@ -3766,20 +3761,6 @@ const POS = () => {
                           style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Bank</button>
                       )}
                     </div>
-                    {/* UX-12 — "customer gave": one tap fills Cash with a
-                        round note amount; Change Due below does the rest. */}
-                    {!isDual && (
-                      <div className="k-pos-gave">
-                        <span className="k-pos-gave-label">Customer gave</span>
-                        {quickCash(total).map((amt, i) => (
-                          <button key={amt} type="button"
-                            className={`k-pos-gave-btn${Math.abs(parseFloat(payModal.cash || 0) - amt) < 0.005 && !(parseFloat(payModal.momo || 0) > 0) && !(parseFloat(payModal.bank || 0) > 0) ? ' is-on' : ''}`}
-                            onClick={() => setPayModal({ ...payModal, cash: amt.toFixed(2), momo: '0', bank: '0' })}>
-                            {i === 0 ? 'Exact' : money(amt)}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                     {/* Cash FRA — only on dual-currency branches (kassumbalesa1).
                         Customer pays in FRA, we convert to the primary currency
                         at the SELL_RATE so it adds to "Paying Now Total" cleanly. */}
@@ -3805,7 +3786,7 @@ const POS = () => {
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 13 }}>
                       <span style={{ color: '#6b7280' }}>Paying Now Total</span>
-                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#991b1b' : '#6b7280' }}>{money(payNow)}</span>
+                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#6b7280' }}>{money(payNow)}</span>
                     </div>
                   </div>
                 </div>
@@ -3857,7 +3838,7 @@ const POS = () => {
                       }}
                       onBlur={e => lookupTpin(e.target.value)}
                       placeholder="e.g. 1001710705"
-                      style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${payModal.buyerTpin ? '#b91c1c' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, letterSpacing: 1, color: '#111827', boxSizing: 'border-box' }}
+                      style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${payModal.buyerTpin ? '#2563eb' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, letterSpacing: 1, color: '#111827', boxSizing: 'border-box' }}
                     />
                     <button
                       type="button"
@@ -3866,9 +3847,9 @@ const POS = () => {
                       title="Verify TPIN with ZRA"
                       style={{
                         padding: '0 12px',
-                        border: '1.5px solid #b91c1c',
+                        border: '1.5px solid #2563eb',
                         borderRadius: 6,
-                        background: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#b91c1c' : '#e5e7eb',
+                        background: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#2563eb' : '#e5e7eb',
                         color: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#fff' : '#9ca3af',
                         fontSize: 12,
                         fontWeight: 700,
@@ -3902,7 +3883,7 @@ const POS = () => {
                           saving: false,
                           error: null,
                         })}
-                        style={{ padding: '4px 10px', border: '1.5px solid #b91c1c', borderRadius: 6, background: '#b91c1c', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                        style={{ padding: '4px 10px', border: '1.5px solid #2563eb', borderRadius: 6, background: '#2563eb', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                         + Register this customer
                       </button>
                     </div>
@@ -3922,7 +3903,7 @@ const POS = () => {
                           saving: false,
                           error: null,
                         })}
-                        style={{ padding: '4px 10px', border: '1.5px solid #b91c1c', borderRadius: 6, background: '#b91c1c', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                        style={{ padding: '4px 10px', border: '1.5px solid #2563eb', borderRadius: 6, background: '#2563eb', color: '#fff', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                         + Register this customer
                       </button>
                     </div>
@@ -4010,12 +3991,10 @@ const POS = () => {
                     Change USD and Change FRA inputs so the cashier records what
                     was physically handed back. Net Remaining surfaces under-given
                     change (e.g. customer wants it kept on account). */}
-                <div className={`k-pos-change ${enoughPaid ? 'is-ok' : 'is-due'}`}>
-                  <div className="k-pos-change-row" aria-live="polite">
-                    <span className="k-pos-change-label">
-                      {enoughPaid ? (changeNow > 0.001 ? 'Change due' : 'Paid exactly — no change') : 'Balance due'}
-                    </span>
-                    <span className="k-pos-change-amt">
+                <div style={{ background: enoughPaid ? '#f0fdf4' : '#fef2f2', borderRadius: 10, padding: 14, fontSize: 13, border: `1px solid ${enoughPaid ? '#bbf7d0' : '#fecaca'}` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+                    <span style={{ fontWeight: 700, color: enoughPaid ? '#166534' : '#991b1b' }}>{enoughPaid ? 'Change Due' : 'Balance Due'}</span>
+                    <span style={{ fontWeight: 800, fontSize: 16, color: enoughPaid ? '#15803d' : '#dc2626' }}>
                       {money(enoughPaid ? changeNow : balanceDue)}
                     </span>
                   </div>
