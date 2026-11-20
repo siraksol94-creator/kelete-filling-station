@@ -396,6 +396,13 @@
    "covers": "UX",
    "what": "Light reskin of the remaining Sales screens via one class (k-lg): dark kit page header, white stat cards with tinted icons, slate table headers, tabular figures; VAT report header band. Sales Inventory: Total Diff and Profit columns showed '$' (now K); inherited low-contrast text colours darkened. Markup and logic otherwise unchanged. No backend, data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 54,
+   "subject": "Docs: go-live checks expect schema version 13 after migrations 12 and 13 (for review)",
+   "covers": "Docs",
+   "what": "ops/go-live/README.md: the upgrade rehearsal, [migrate] log and schema-status checks now expect version 13 (migrations 12 and 13 were added after the README was written). No code changes.",
+   "migrations": []
   }
  ],
  "migrations": [
