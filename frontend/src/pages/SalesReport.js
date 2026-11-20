@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { getPossibleDuplicates, dismissPossibleDuplicate, getOrders, getOrder, reverseOrder, reverseOrderItem, getSettings, getOrderProductSummary, getProductBreakdown, printReport, printReceipt, getSalesCashiers, getCategories, getMainCategories, createDebitNote, getOrderDebitNotes, retryOrderZra, markCnPrinted } from '../services/api';
 import ExportButtons from '../components/ExportButtons';
 import CategoryFilter from '../components/CategoryFilter';
-import { FiFileText, FiDollarSign, FiShoppingCart, FiCalendar, FiEye, FiRotateCcw, FiX, FiPrinter, FiDownload, FiRefreshCw, FiAlertTriangle, FiSearch } from 'react-icons/fi';
+import { FiFileText, FiShoppingCart, FiEye, FiRotateCcw, FiX, FiPrinter, FiDownload, FiRefreshCw, FiAlertTriangle, FiSearch } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -15,6 +15,9 @@ import fmtInvoiceNo from '../utils/fmtInvoiceNo';
 import InvoiceNo from '../components/InvoiceNo';
 import Portal from '../utils/Portal';
 import QRCode from 'qrcode';
+import { PageHero } from '../ux/ForecourtKit';
+import { quickRanges } from '../ux/profitModel';
+import { salesByHour, hourLabel, payMix, paidBy } from '../ux/salesModel';
 
 // 2026-08-30 — thousand separators on printed receipt figures. 306,000.00
 // reads at a glance; 306000.00 has to be counted. Fixed en-US grouping so a
@@ -1916,395 +1919,201 @@ const SalesReport = () => {
 
   return (
     <div className="page-content">
-      <div className="page-header">
-        <div>
-          <h1>{t('salesReport')}</h1>
-          <p>{t('salesReportSubtitle')}</p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-          {/* v1.13.43 — universal Excel/CSV/PDF export (ZRA checklist #30).
-              v1.13.116 — PDF hidden here; the richer Export PDF button
-              below replaces it (avoids two competing PDF flows). */}
-          {/* 2026-09-01 — by ITEM, not by transaction. Export PDF and Print
-              Report have produced a Sales-by-Item layout since v1.13.116
-              while these two still emitted the invoice list, so the same
-              button row handed out two different reports. The user asked for
-              one answer: what was sold. Sorted by revenue, same order as the
-              PDF, so the three exports agree line for line. */}
-          <ExportButtons
-            rows={[...itemSummary].sort((a, b) =>
-              parseFloat(b.total_revenue || 0) - parseFloat(a.total_revenue || 0))}
-            filename={`sales-by-item_${dateFrom}${dateFrom !== dateTo ? '_to_' + dateTo : ''}`}
-            sheetName="Sales by Item"
-            showPdf={false}
-            columns={[
-              { key: 'product_name',  label: 'Product',   format: v => v || '-' },
-              { key: 'category_name', label: 'Category',  format: v => v || '-' },
-              // Quantity and price are converted to the product's default unit
-              // so the sheet reads in Boxes where the screen says Boxes, rather
-              // than in whatever base unit the sale happened to be stored in.
-              { key: 'total_qty',     label: 'Qty Sold',  format: (_, r) => {
-                  const d = displayInDefaultUnit(r.total_qty, r);
-                  return Number(d.qty || 0).toFixed(2);
-                } },
-              { key: 'unit',          label: 'Unit',      format: (_, r) =>
-                  displayPriceInDefaultUnit(r.avg_price, r).unit || r.unit || '' },
-              { key: 'avg_price',     label: 'Avg Price', format: (_, r) =>
-                  Number(displayPriceInDefaultUnit(r.avg_price, r).price || 0).toFixed(2) },
-              { key: 'total_revenue', label: 'Revenue',   format: v => Number(v || 0).toFixed(2) },
-            ]}
-            pdfOptions={{
-              title: 'Sales by Item',
-              subtitle: dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`,
-              businessName,
-            }}
-          />
-          {/* v1.13.92 — reverted v1.13.91 removal; both PDF exports live
-              side-by-side again per user request. */}
-          <button
-            onClick={handleExportPDF}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-          >
-            <FiFileText size={15} /> Export PDF
-          </button>
-          <button
-            onClick={handleThermalReport}
-            title="Print the by-item figures on the 80mm till roll"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', backgroundColor: '#7c3aed', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-          >
-            <FiPrinter size={15} /> Thermal
-          </button>
-          <button
-            onClick={handlePrintReport}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 20px', borderRadius: 10, border: 'none', backgroundColor: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
-          >
-            <FiPrinter size={15} /> {t('printReport')}
-          </button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <style>{`
-        .sr-date-box:focus-within {
-          border-color: #2563eb !important;
-          box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-        }
-        .sr-date-input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: 0.6; }
-        .sr-clear-btn {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 10px 20px;
-          background: linear-gradient(135deg, #f87171, #dc2626);
-          color: #fff; border: none; border-radius: 10px;
-          cursor: pointer; font-size: 13px; font-weight: 700;
-          box-shadow: 0 3px 10px rgba(220,38,38,0.25);
-          transition: transform 0.15s, box-shadow 0.15s;
-          white-space: nowrap; align-self: flex-end;
-        }
-        .sr-clear-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(220,38,38,0.4);
-        }
-        .sr-clear-btn:active { transform: scale(0.97); }
-      `}</style>
-
-      <div className="card" style={{ marginBottom: 24, padding: '18px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <FiCalendar style={{ color: '#2563eb', fontSize: 16 }} />
-          <span style={{ fontWeight: 700, fontSize: 14, color: '#1e3a5f' }}>{t('filterByDate')}</span>
-          {(dateFrom || dateTo) && (
-            <span style={{
-              marginLeft: 6, padding: '2px 10px', borderRadius: 20,
-              background: '#eff6ff', color: '#2563eb',
-              fontSize: 11, fontWeight: 600, border: '1px solid #bfdbfe'
-            }}>
-              {dateFrom === dateTo && dateFrom
-                ? dateFrom === today ? t('today') : dateFrom
-                : `${dateFrom || '...'} → ${dateTo || '...'}`}
-            </span>
-          )}
-        </div>
-
-        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-          {/* From Date */}
-          <div style={{ flex: '0 0 auto' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: 12, fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {t('from')}
-            </label>
-            <div className="sr-date-box" style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              border: '1.5px solid #e5e7eb', borderRadius: 10,
-              padding: '9px 14px', background: '#f8faff',
-              transition: 'border-color 0.15s, box-shadow 0.15s'
-            }}>
-              <FiCalendar style={{ color: '#2563eb', flexShrink: 0 }} />
-              <input
-                type="date" value={dateFrom}
-                onChange={e => setDateFrom(e.target.value)}
-                className="sr-date-input"
-                style={{ border: 'none', outline: 'none', fontSize: 14, background: 'transparent', fontWeight: 500, color: '#1e293b', cursor: 'pointer' }}
-              />
-            </div>
-          </div>
-
-          {/* Arrow separator */}
-          <div style={{ paddingBottom: 10, color: '#6b7280', fontSize: 18, fontWeight: 300, flexShrink: 0 }}>→</div>
-
-          {/* To Date */}
-          <div style={{ flex: '0 0 auto' }}>
-            <label style={{ display: 'block', marginBottom: 6, fontSize: 12, fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              {t('to')}
-            </label>
-            <div className="sr-date-box" style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              border: '1.5px solid #e5e7eb', borderRadius: 10,
-              padding: '9px 14px', background: '#f8faff',
-              transition: 'border-color 0.15s, box-shadow 0.15s'
-            }}>
-              <FiCalendar style={{ color: '#2563eb', flexShrink: 0 }} />
-              <input
-                type="date" value={dateTo}
-                onChange={e => setDateTo(e.target.value)}
-                className="sr-date-input"
-                style={{ border: 'none', outline: 'none', fontSize: 14, background: 'transparent', fontWeight: 500, color: '#1e293b', cursor: 'pointer' }}
-              />
-            </div>
-          </div>
-
-          {/* User Filter */}
-          {users.length > 1 && (
-            <div style={{ flex: '0 0 auto' }}>
-              <label style={{ display: 'block', marginBottom: 6, fontSize: 12, fontWeight: 600, color: '#374151', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {t('cashier')}
-              </label>
-              <select
-                value={userFilter}
-                onChange={e => setUserFilter(e.target.value)}
-                style={{ padding: '9px 14px', border: '1.5px solid #e5e7eb', borderRadius: 10, fontSize: 14, background: '#f8faff', color: '#1e293b', fontWeight: 500 }}
-              >
-                <option value="all">{t('allCashiers')}</option>
-                {users.map(u => (
-                  <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Clear Filter button */}
-          <button className="sr-clear-btn" onClick={() => { setDateFrom(today); setDateTo(today); setDeviceFilter('all'); setInvoiceInput(''); setInvoiceSearch(''); }}>
-            <FiX size={14} /> {t('resetToToday')}
-          </button>
-        </div>
-
-        {/* 2026-09-23 — search by either invoice number. Sits under the date
-            row rather than in it: while a search is running the dates do not
-            apply, and putting it alongside them would suggest they combine. */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
-          <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: 420 }}>
-            <FiSearch size={15} style={{ position: 'absolute', left: 11, top: 11, color: '#64748b' }} />
-            <input
-              value={invoiceInput}
-              onChange={e => setInvoiceInput(e.target.value)}
-              onKeyDown={e => {
-                // Enter searches, Escape abandons. Anyone typing a number reaches
-                // for Enter before they reach for the mouse.
-                if (e.key === 'Enter') setInvoiceSearch(invoiceInput);
-                if (e.key === 'Escape') { setInvoiceInput(''); setInvoiceSearch(''); }
+      <PageHero icon={<FiShoppingCart />} title={t('salesReport')} subtitle={t('salesReportSubtitle')}
+        actions={<>
+          <div className="k-sr-exports">
+            <ExportButtons
+              rows={[...itemSummary].sort((a, b) =>
+                parseFloat(b.total_revenue || 0) - parseFloat(a.total_revenue || 0))}
+              filename={`sales-by-item_${dateFrom}${dateFrom !== dateTo ? '_to_' + dateTo : ''}`}
+              sheetName="Sales by Item"
+              showPdf={false}
+              columns={[
+                { key: 'product_name',  label: 'Product',   format: v => v || '-' },
+                { key: 'category_name', label: 'Category',  format: v => v || '-' },
+                // Quantity and price are converted to the product's default unit
+                // so the sheet reads in Boxes where the screen says Boxes, rather
+                // than in whatever base unit the sale happened to be stored in.
+                { key: 'total_qty',     label: 'Qty Sold',  format: (_, r) => {
+                    const d = displayInDefaultUnit(r.total_qty, r);
+                    return Number(d.qty || 0).toFixed(2);
+                  } },
+                { key: 'unit',          label: 'Unit',      format: (_, r) =>
+                    displayPriceInDefaultUnit(r.avg_price, r).unit || r.unit || '' },
+                { key: 'avg_price',     label: 'Avg Price', format: (_, r) =>
+                    Number(displayPriceInDefaultUnit(r.avg_price, r).price || 0).toFixed(2) },
+                { key: 'total_revenue', label: 'Revenue',   format: v => Number(v || 0).toFixed(2) },
+              ]}
+              pdfOptions={{
+                title: 'Sales by Item',
+                subtitle: dateFrom === dateTo ? dateFrom : `${dateFrom} → ${dateTo}`,
+                businessName,
               }}
-              placeholder="Search by invoice number"
-              style={{ width: '100%', padding: '9px 34px 9px 34px', border: '1px solid #d1d5db',
-                       borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }}
             />
-            {invoiceInput && (
-              <button onClick={() => { setInvoiceInput(''); setInvoiceSearch(''); }} title="Clear"
-                style={{ position: 'absolute', right: 6, top: 6, background: 'none', border: 0,
-                         cursor: 'pointer', color: '#64748b', padding: 4, lineHeight: 1 }}>
-                <FiX size={15} />
-              </button>
-            )}
           </div>
-          <button
-            onClick={() => setInvoiceSearch(invoiceInput)}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px',
-                     background: '#C8102E', color: '#fff', border: 'none', borderRadius: 8,
-                     cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
-            <FiSearch size={14} /> Search
-          </button>
-          {invoiceQuery && (
-            <span style={{ fontSize: 12.5, color: '#C8102E', background: '#fef2f2',
-                           border: '1px solid #fecaca', borderRadius: 7, padding: '6px 11px' }}>
-              {filtered.length === 0
-                ? 'Nothing matches that number.'
-                : `${filtered.length} match${filtered.length === 1 ? '' : 'es'} — all dates searched.`}
-            </span>
-          )}
-        </div>
-      </div>
+          <button type="button" className="k-fc-btn-ghost" onClick={handleExportPDF}><FiFileText size={14} /> Export PDF</button>
+          <button type="button" className="k-fc-btn-ghost" onClick={handleThermalReport} title="Print the by-item figures on the 80mm till roll"><FiPrinter size={14} /> Thermal</button>
+          <button type="button" className="k-fc-btn-hero" onClick={handlePrintReport}><FiPrinter size={15} /> {t('printReport')}</button>
+        </>} />
 
-      {/* Summary Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 16,
-        marginBottom: 24
-      }}>
-        {/* Total Revenue (accrual — all sales billed) */}
-        <div style={{
-          borderRadius: 14, padding: '20px 22px',
-          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-          color: '#fff', boxShadow: '0 4px 16px rgba(37,99,235,0.3)',
-          display: 'flex', alignItems: 'center', gap: 16, position: 'relative', overflow: 'hidden'
-        }}>
-          <div style={{ position: 'absolute', right: -12, top: -12, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <FiDollarSign size={22} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{t('totalRevenue')}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{curSym}{(parseFloat(totalRevenue)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            {/* v1.10.101 — over-collected label hidden on Liquor. The
-                concept only applies where the cashier can *choose* to keep
-                surplus in a specific currency drawer (Kassumbalesa tri-
-                currency). On Liquor branches change always goes back to
-                the customer physically; there's no "kept" amount. Historical
-                pre-v1.10.81 orders may still carry classifier values in
-                overpaid_kept_amt but they no longer represent till reality. */}
-            {!isLiquorStyle && totalOverpaidAsUSD > 0.005 && (
-              <div style={{ fontSize: 11, opacity: 0.9, marginTop: 3, color: '#fef3c7' }}>
-                + Over-collected ≈ {curSym}{totalOverpaidAsUSD.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
-                {' '}
-                <span style={{ opacity: 0.8 }}>
-                  ({totalOverpaidUSD > 0 ? `USD ${totalOverpaidUSD.toFixed(2)}` : ''}
-                  {totalOverpaidFRA > 0 ? `${totalOverpaidUSD > 0 ? ' · ' : ''}FRA ${totalOverpaidFRA.toFixed(0)}` : ''}
-                  {totalOverpaidK   > 0 ? `${(totalOverpaidUSD > 0 || totalOverpaidFRA > 0) ? ' · ' : ''}K ${totalOverpaidK.toFixed(0)}` : ''})
+      {/* Period, cashier, invoice search */}
+      {(() => {
+        const quick = quickRanges(today);
+        const activeQuick = !invoiceQuery && quick.find(q => q.from === dateFrom && q.to === dateTo)?.key;
+        const pick = (q) => {
+          setDateFrom(q.from); setDateTo(q.to);
+          // "Today" keeps the old Reset-to-today behaviour: search and device cleared too.
+          // (The old button also called setDeviceFilter, which never existed here — it threw before clearing the search.)
+          if (q.key === 'today') { setInvoiceInput(''); setInvoiceSearch(''); }
+        };
+        return (
+          <div className="k-sr-filters">
+            <div className="k-pr-toolbar">
+              <div className="k-pr-quick" role="group" aria-label="Quick periods">
+                {quick.map(q => (
+                  <button key={q.key} type="button" aria-pressed={activeQuick === q.key}
+                    className={`k-pr-qchip${activeQuick === q.key ? ' is-on' : ''}`} onClick={() => pick(q)}>{q.label}</button>
+                ))}
+              </div>
+              <div className="k-pr-dates">
+                <label>{t('from')} <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} /></label>
+                <label>{t('to')} <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} /></label>
+                {users.length > 1 && (
+                  <label>{t('cashier')}
+                    <select value={userFilter} onChange={e => setUserFilter(e.target.value)}>
+                      <option value="all">{t('allCashiers')}</option>
+                      {users.map(u => (
+                        <option key={u.id} value={u.id}>{u.first_name} {u.last_name}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </div>
+            </div>
+            {/* The invoice search sits on its own row: while it runs the dates
+                do not apply (it searches everything loaded). */}
+            <div className="k-sr-search-row">
+              <label className="k-cb-search k-sr-search">
+                <FiSearch aria-hidden="true" />
+                <span className="k-sr-only">Search by invoice number</span>
+                <input
+                  value={invoiceInput}
+                  onChange={e => setInvoiceInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') setInvoiceSearch(invoiceInput);
+                    if (e.key === 'Escape') { setInvoiceInput(''); setInvoiceSearch(''); }
+                  }}
+                  placeholder="Search by invoice number (ZRA or ours)"
+                />
+                {invoiceInput && (
+                  <button type="button" className="k-sr-clear" onClick={() => { setInvoiceInput(''); setInvoiceSearch(''); }} aria-label="Clear search"><FiX size={14} /></button>
+                )}
+              </label>
+              <button type="button" className="k-sr-go" onClick={() => setInvoiceSearch(invoiceInput)}><FiSearch size={14} /> Search</button>
+              {invoiceQuery && (
+                <span className={`k-sr-found${filtered.length === 0 ? ' is-none' : ''}`} role="status">
+                  {filtered.length === 0
+                    ? 'Nothing matches that number.'
+                    : `${filtered.length} match${filtered.length === 1 ? '' : 'es'} — all dates searched.`}
                 </span>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Headline */}
+      {(() => {
+        const m = (v) => `${curSym}${(parseFloat(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const mix = isLiquorStyle
+          ? payMix([
+              { key: 'cash', label: 'Cash', amount: totalCashReceived },
+              ...((methodShown('momo') || (parseFloat(totalMomoReceived) || 0) > 0.004) ? [{ key: 'momo', label: 'MoMo', amount: totalMomoReceived }] : []),
+              ...((methodShown('bank') || (parseFloat(totalBankReceived) || 0) > 0.004) ? [{ key: 'bank', label: 'Bank', amount: totalBankReceived }] : []),
+              { key: 'credit', label: 'On account', amount: totalCreditSales },
+            ])
+          : null;
+        const reversed = filtered.length - activeOrders.length;
+        return (
+          <section className="k-sr-kpis" aria-label="Sales figures">
+            <div className="k-pr-kpi is-main">
+              <span>{t('totalRevenue')}</span>
+              <strong>{m(totalRevenue)}</strong>
+              <em><b>{activeOrders.length}</b> {activeOrders.length === 1 ? 'sale' : 'sales'}{reversed > 0 ? <> · <b>{reversed}</b> reversed</> : null}{activeOrders.length > 0 ? <> · average <b>{m(totalRevenue / activeOrders.length)}</b></> : null}</em>
+              {/* Over-collected applies only to tri-currency branches (see v1.10.81). */}
+              {!isLiquorStyle && totalOverpaidAsUSD > 0.005 && (
+                <em>+ over-collected ≈ <b>{m(totalOverpaidAsUSD)}</b></em>
+              )}
+            </div>
+            <div className="k-pr-kpi k-sr-paid">
+              <span>How they paid</span>
+              {isLiquorStyle ? (
+                <>
+                  <div className="k-sr-mix" aria-hidden="true">
+                    {mix.parts.map(p => <div key={p.key} className={`is-${p.key}`} style={{ width: `${p.share * 100}%` }} />)}
+                  </div>
+                  <ul className="k-sr-mixlist">
+                    {mix.parts.length === 0 && <li className="is-empty">No sales yet</li>}
+                    {mix.parts.map(p => (
+                      <li key={p.key}><i className={`k-sr-key is-${p.key}`} aria-hidden="true" /> {p.label}<b>{m(p.amount)}</b></li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <ul className="k-sr-mixlist">
+                  {showUSD && <li>USD<b>${(parseFloat(totalUsdReceived) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b></li>}
+                  {showFRA && <li>FRA<b>{(parseFloat(totalFraReceived) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</b></li>}
+                  {showK && <li>K<b>{(parseFloat(totalKReceived) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}</b></li>}
+                  <li className="is-total">≈ total<b>{m(totalCashSales)}</b></li>
+                </ul>
+              )}
+            </div>
+            <div className="k-pr-kpi">
+              <span>{t('creditSales')}</span>
+              <strong>{m(totalCreditSales)}</strong>
+              <em>{t('chargedToAccount')}</em>
+            </div>
+            <div className="k-pr-kpi">
+              <span>{t('totalDiscounts')}</span>
+              <strong className={totalDiscount > 0 ? 'is-neg' : ''}>{m(totalDiscount)}</strong>
+              <em>{t('givenToCustomers')}</em>
+            </div>
+            {/* v1.13.50 margin tile — hidden with the other margin figures (2026-09-01). */}
+            {SHOW_MARGIN_COLUMNS && (
+              <div className="k-pr-kpi">
+                <span>Profit</span>
+                <strong>{m(totalProfit)}</strong>
+                <em>COGS {m(totalCogs)}</em>
               </div>
             )}
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>{activeOrders.length} order(s){filtered.length > activeOrders.length ? ` · ${filtered.length - activeOrders.length} reversed` : ''}</div>
-          </div>
-        </div>
+          </section>
+        );
+      })()}
 
-        {/* Cash Sales — v1.8.1 triple currency. Each row is net cash received
-            in that currency (paid − change given), in the currency's own
-            units. Kelete is cash-only; no card / MoMo / bank to break out. */}
-        <div style={{
-          borderRadius: 14, padding: '16px 18px',
-          background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-          color: '#fff', boxShadow: '0 4px 16px rgba(22,163,74,0.3)',
-          position: 'relative', overflow: 'hidden'
-        }}>
-          <div style={{ position: 'absolute', right: -12, top: -12, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ fontSize: 11, fontWeight: 700, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{t('cashSales')}</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {/* v1.9.27 — Liquor branches break Cash Sales by method
-                (Cash / MoMo / Bank); Kelete multi-currency branches break
-                by currency (USD/FRA/K). The bottom ≈ total line stays. */}
-            {isLiquorStyle ? (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span style={{ fontSize: 11, opacity: 0.8 }}>Cash</span>
-                  <span style={{ fontSize: 17, fontWeight: 800 }}>{curSym}{(parseFloat(totalCashReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-                </div>
-                {/* 2026-09-11 — a hidden method shows only if money sits on it. */}
-                {(methodShown('momo') || (parseFloat(totalMomoReceived) || 0) > 0.004) && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 11, opacity: 0.8 }}>MoMo</span>
-                    <span style={{ fontSize: 17, fontWeight: 800 }}>{curSym}{(parseFloat(totalMomoReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-                  </div>
-                )}
-                {(methodShown('bank') || (parseFloat(totalBankReceived) || 0) > 0.004) && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 11, opacity: 0.8 }}>Bank</span>
-                    <span style={{ fontSize: 17, fontWeight: 800 }}>{curSym}{(parseFloat(totalBankReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                {showUSD && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 11, opacity: 0.8 }}>USD</span>
-                    <span style={{ fontSize: 17, fontWeight: 800 }}>${(parseFloat(totalUsdReceived)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-                  </div>
-                )}
-                {showFRA && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 11, opacity: 0.8 }}>FRA</span>
-                    <span style={{ fontSize: 17, fontWeight: 800 }}>{(parseFloat(totalFraReceived)||0).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
-                  </div>
-                )}
-                {showK && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: 11, opacity: 0.8 }}>K</span>
-                    <span style={{ fontSize: 17, fontWeight: 800 }}>{(parseFloat(totalKReceived)||0).toLocaleString(undefined,{maximumFractionDigits:0})}</span>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div style={{ fontSize: 10, opacity: 0.7, marginTop: 6, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 4 }}>
-            ≈ {curSym}{(parseFloat(totalCashSales)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} total
-          </div>
-        </div>
-
-        {/* Credit Sales (unpaid portion that became receivable) */}
-        <div style={{
-          borderRadius: 14, padding: '20px 22px',
-          background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-          color: '#fff', boxShadow: '0 4px 16px rgba(217,119,6,0.3)',
-          display: 'flex', alignItems: 'center', gap: 16, position: 'relative', overflow: 'hidden'
-        }}>
-          <div style={{ position: 'absolute', right: -12, top: -12, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <FiFileText size={22} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{t('creditSales')}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{curSym}{(parseFloat(totalCreditSales)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>{t('chargedToAccount')}</div>
-          </div>
-        </div>
-
-        {/* Total Discounts (kept as 4th — useful context) */}
-        <div style={{
-          borderRadius: 14, padding: '20px 22px',
-          background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-          color: '#fff', boxShadow: '0 4px 16px rgba(220,38,38,0.3)',
-          display: 'flex', alignItems: 'center', gap: 16, position: 'relative', overflow: 'hidden'
-        }}>
-          <div style={{ position: 'absolute', right: -12, top: -12, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <FiDollarSign size={22} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{t('totalDiscounts')}</div>
-            <div style={{ fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{curSym}{(parseFloat(totalDiscount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>{t('givenToCustomers')}</div>
-          </div>
-        </div>
-
-        {/* v1.13.50 — Profit tile: revenue minus per-sale COGS (frozen at
-            time of each sale via stock_movements.cost_at_sale).
-            2026-09-01 — hidden with the rest of the margin figures. It was the
-            most visible of them: a 24px number in a green tile at the top of a
-            page every cashier opens. */}
-        {SHOW_MARGIN_COLUMNS && <div style={{
-          borderRadius: 14, padding: '20px 22px',
-          background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-          color: '#fff', boxShadow: '0 4px 16px rgba(5,150,105,0.3)',
-          display: 'flex', alignItems: 'center', gap: 16, position: 'relative', overflow: 'hidden'
-        }}>
-          <div style={{ position: 'absolute', right: -12, top: -12, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-          <div style={{ width: 48, height: 48, borderRadius: 12, background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <FiDollarSign size={22} />
-          </div>
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Profit</div>
-            <div style={{ fontSize: 24, fontWeight: 800, lineHeight: 1 }}>{curSym}{(parseFloat(totalProfit)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 3 }}>COGS {curSym}{(parseFloat(totalCogs)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-          </div>
-        </div>}
-
-      </div>
+      {/* Through the day — when the sales came in (count and value per hour). */}
+      {!invoiceQuery && (() => {
+        const day = salesByHour(filtered);
+        if (day.hours.length < 2) return null;
+        const m = (v) => `${curSym}${(parseFloat(v) || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        return (
+          <section className="k-pr-card k-sr-day">
+            <header>
+              <h3>Through the day</h3>
+              <span>busiest: <b>{hourLabel(day.busiest.hour)}–{hourLabel(day.busiest.hour + 1)}</b> · {day.busiest.count} {day.busiest.count === 1 ? 'sale' : 'sales'} · {m(day.busiest.total)}{dateFrom !== dateTo ? ' (all days in the period added up)' : ''}</span>
+            </header>
+            <ol className="k-sr-hours">
+              {day.hours.map(h => (
+                <li key={h.hour} className={h.hour === day.busiest.hour ? 'is-top' : ''}
+                  title={`${hourLabel(h.hour)}–${hourLabel(h.hour + 1)}: ${h.count} ${h.count === 1 ? 'sale' : 'sales'}, ${m(h.total)}`}>
+                  <span className="k-sr-bar"><span style={{ height: `${day.max > 0 ? Math.max(h.total > 0 ? 4 : 0, (h.total / day.max) * 100) : 0}%` }} /></span>
+                  <small>{hourLabel(h.hour)}</small>
+                </li>
+              ))}
+            </ol>
+            <p className="k-sr-only">{day.hours.map(h => `${hourLabel(h.hour)}: ${h.count} sales, ${m(h.total)}`).join('; ')}</p>
+          </section>
+        );
+      })()}
 
       {/* v1.13.155 — possible duplicates. Sits above the tabs so it is seen
           before the day is closed, not found afterwards. Renders nothing at
@@ -2369,22 +2178,16 @@ const SalesReport = () => {
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 16, borderBottom: '2px solid #e5e7eb' }}>
+      <div className="k-fc-tabs" role="tablist" aria-label="Sales Report">
         {[
           { key: 'transactions', label: t('transactions') },
           { key: 'byItem', label: t('byItem') },
           { key: 'byPayment', label: t('byPayment') },
         ].map(tab => (
           <button
-            key={tab.key}
+            key={tab.key} type="button" role="tab" aria-selected={activeTab === tab.key}
+            className={`k-fc-tab${activeTab === tab.key ? ' is-on' : ''}`}
             onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: '10px 22px', border: 'none', background: 'none',
-              cursor: 'pointer', fontSize: 14, fontWeight: 700,
-              color: activeTab === tab.key ? '#2563eb' : '#6b7280',
-              borderBottom: activeTab === tab.key ? '3px solid #2563eb' : '3px solid transparent',
-              marginBottom: -2, transition: 'color 0.15s',
-            }}
           >
             {tab.label}
           </button>
@@ -2404,7 +2207,7 @@ const SalesReport = () => {
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No sales records found.</div>
         ) : (
           <div className="table-container">
-            <table className="data-table">
+            <table className="data-table k-sr-table">
               <thead>
                 <tr>
                   {/* 2026-09-03 — Receipt Number and ZRA Receipt merged into
@@ -2414,15 +2217,14 @@ const SalesReport = () => {
                       a column on a table that already scrolls sideways. */}
                   <th>Invoice No</th>
                   <th>{t('date')}</th>
-                  <th>{t('subtotal')}</th>
-                  <th>{t('discount')}</th>
-                  <th>Total</th>
+                  <th>Customer</th>
+                  <th>Paid by</th>
+                  <th className="k-sr-num">Total</th>
                   {SHOW_MARGIN_COLUMNS && <th>COGS</th>}
                   {SHOW_MARGIN_COLUMNS && <th>Profit</th>}
-                  <th>Amount Received</th>
-                  <th>Change</th>
+                  <th className="k-sr-num">Received</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th><span className="k-sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -2460,15 +2262,18 @@ const SalesReport = () => {
                         </InvoiceNo>
                       </td>
                       <td>{formatDate(order.created_at)}</td>
-                      <td>{curSym}{(parseFloat(parseFloat(order.subtotal))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                      <td style={{ color: parseFloat(order.discount) > 0 ? '#dc2626' : '#374151' }}>
-                        {parseFloat(order.discount) > 0 ? `-${curSym}${(parseFloat(parseFloat(order.discount))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : `${curSym}0.00`}
+                      <td className="k-sr-cust">{order.customer_name || 'Walk-in'}</td>
+                      <td>{(() => { const pb = paidBy(order); return <span className={`k-sr-pay is-${pb.tone}`}>{pb.label}</span>; })()}</td>
+                      <td className="k-sr-num">
+                        <strong>{curSym}{(parseFloat(order.total_amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong>
+                        {parseFloat(order.discount) > 0 && <small className="k-sr-disc">−{curSym}{(parseFloat(order.discount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} discount</small>}
                       </td>
-                      <td><strong>{curSym}{(parseFloat(parseFloat(order.total_amount))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
                       {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b45309' }}>{curSym}{rowCogs.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
                       {SHOW_MARGIN_COLUMNS && <td style={{ color: rowProfit >= 0 ? '#059669' : '#dc2626', fontWeight: 600 }}>{curSym}{rowProfit.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
-                      <td>{curSym}{(parseFloat(parseFloat(order.amount_received || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                      <td style={{ color: '#15803d' }}>{curSym}{(parseFloat(parseFloat(order.change_amount || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                      <td className="k-sr-num">
+                        {curSym}{(parseFloat(order.amount_received || 0)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
+                        {parseFloat(order.change_amount || 0) > 0.004 && <small>change {curSym}{(parseFloat(order.change_amount)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</small>}
+                      </td>
                       <td>
                         <span className={`badge ${order.status === 'Reversed' ? 'badge-danger' : order.status === 'Partial' ? 'badge-warning' : 'badge-success'}`}>
                           {order.status}
@@ -2477,28 +2282,28 @@ const SalesReport = () => {
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
                           <button
+                            type="button" className="k-sr-act"
                             onClick={() => handleView(order.id)}
                             title="View Details"
-                            style={{ padding: '5px 10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                           >
                             <FiEye size={13} /> View
                           </button>
                           {/* POS small terminal only: print without opening View. */}
                           {isTerminal58() && (
                             <button
+                              type="button" className="k-sr-act"
                               onClick={() => handleQuickPrint(order.id)}
                               title="Print receipt"
-                              style={{ padding: '5px 10px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                             >
                               <FiPrinter size={13} /> Print
                             </button>
                           )}
                           {hasPermission('SalesReport:Delete') && (
                             <button
+                              type="button" className="k-sr-act is-danger"
                               onClick={() => handleReverse(order)}
                               disabled={order.status === 'Reversed'}
                               title="Reverse Order"
-                              style={{ padding: '5px 10px', background: order.status === 'Reversed' ? '#e5e7eb' : '#dc2626', color: order.status === 'Reversed' ? '#6b7280' : '#fff', border: 'none', borderRadius: 6, cursor: order.status === 'Reversed' ? 'not-allowed' : 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                             >
                               <FiRotateCcw size={13} /> Reverse
                             </button>
@@ -2536,8 +2341,6 @@ const SalesReport = () => {
                       ? parseFloat(order.total_amount || 0)
                       : parseFloat(order.partial_refund_amount || 0);
                     const neg = (n) => -Math.abs(parseFloat(n) || 0);
-                    const negSubtotal   = -Math.abs(cnAmountRaw);
-                    const negDiscount   = 0;
                     const negTotal      = -Math.abs(cnAmountRaw);
                     // Rough proportional profit hit — full-reverse wipes
                     // full profit; partial wipes proportional slice. Best
@@ -2554,26 +2357,25 @@ const SalesReport = () => {
                         <td>
                           <div style={{ lineHeight: 1.25 }}>
                             <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#b91c1c' }}>{cnZraRcpt}</div>
-                            <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>{cnKeleteRef}</div>
+                            <div style={{ fontSize: 11, color: '#475569', marginTop: 1 }}>{cnKeleteRef}</div>
                           </div>
                         </td>
                         <td>{formatDate(cnDate)}</td>
-                        <td style={{ color: '#b91c1c' }}>−{curSym}{Math.abs(negSubtotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                        <td style={{ color: '#374151' }}>{negDiscount > 0 ? `-${curSym}${negDiscount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}` : `${curSym}0.00`}</td>
-                        <td style={{ color: '#b91c1c' }}><strong>−{curSym}{Math.abs(negTotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+                        <td className="k-sr-cust">{order.customer_name || 'Walk-in'}</td>
+                        <td><span className="k-sr-pay is-cn">Refund</span></td>
+                        <td className="k-sr-num k-sr-neg"><strong>−{curSym}{Math.abs(negTotal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
                         {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b45309' }}>{curSym}0.00</td>}
                         {SHOW_MARGIN_COLUMNS && <td style={{ color: '#b91c1c', fontWeight: 600 }}>−{curSym}{Math.abs(negProfit).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>}
-                        <td style={{ color: '#b91c1c' }}>−{curSym}{Math.abs(negReceived).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                        <td style={{ color: '#6b7280' }}>{curSym}0.00</td>
+                        <td className="k-sr-num k-sr-neg">−{curSym}{Math.abs(negReceived).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
                         <td>
                           <span className="badge badge-danger" style={{ background: '#fee2e2', color: '#b91c1c', borderColor: '#fca5a5' }}>Credit Note</span>
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
                             <button
+                              type="button" className="k-sr-act"
                               onClick={() => handleView(order.id, { asCn: true })}
                               title="View CN Details"
-                              style={{ padding: '5px 10px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
                             >
                               <FiEye size={13} /> View
                             </button>
