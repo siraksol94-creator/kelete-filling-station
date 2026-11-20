@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { receiptSplit } from '../ux/receiptModel';
 import { getCashReceipts, getCashReceiptStats, createCashReceipt, updateCashReceipt, deleteCashReceipt, getSettings, isHqHost } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -116,9 +117,8 @@ const CashReceipt = () => {
     // cash/bank/momo (treated as USD/FRA/K respectively for old rows
     // that pre-date the triple-currency split), then to legacy amount
     // as a USD bucket so the form is always editable.
-    const usd = parseFloat(r.usd_amount || r.cash_amount || 0) || 0;
-    const fra = parseFloat(r.fra_amount || r.bank_amount || 0) || 0;
-    const k   = parseFloat(r.k_amount   || r.momo_amount || 0) || 0;
+    // 2026-11-20 — read once per method (ux/receiptModel.js).
+    const { u: usd, f: fra, k } = receiptSplit(r, isLiquorStyle);
     const splitsSum = usd + fra + k;
     const legacy = parseFloat(r.amount || 0) || 0;
     setForm({
@@ -416,10 +416,10 @@ const CashReceipt = () => {
                 // is a no-op for them — the Cash Book aggregator's
                 // double-count fear from v1.10.46 no longer applies because
                 // we prefer the mirror when it's non-zero.
-                const pf = (v) => parseFloat(v || 0) || 0;
-                const ru = pf(r.usd_amount) > 0 ? pf(r.usd_amount) : pf(r.cash_amount);
-                const rf = pf(r.fra_amount) > 0 ? pf(r.fra_amount) : pf(isLiquorStyle ? r.momo_amount : r.bank_amount);
-                const rk = pf(r.k_amount)   > 0 ? pf(r.k_amount)   : pf(isLiquorStyle ? r.bank_amount : r.momo_amount);
+                // 2026-11-20 — one rule for every receipt (ux/receiptModel.js):
+                // the fuel day receipt keeps its total in k_amount too, which
+                // the old reading showed again as Bank.
+                const { u: ru, f: rf, k: rk } = receiptSplit(r, isLiquorStyle);
                 const dash = <span style={{ color: '#cbd5e1' }}>—</span>;
                 // v1.10.45 — Liquor total = sum of the three slots (all K).
                 const liquorTotal = ru + rf + rk;
@@ -490,10 +490,9 @@ const CashReceipt = () => {
                   // prefer usd/fra/k when populated, else fall back to the
                   // legacy cash/bank/momo columns (which is what
                   // customerPayments.js's mintReceipt fills on Liquor AR).
-                  const pf = (v) => parseFloat(v || 0) || 0;
-                  const pickU = (r) => pf(r.usd_amount) > 0 ? pf(r.usd_amount) : pf(r.cash_amount);
-                  const pickF = (r) => pf(r.fra_amount) > 0 ? pf(r.fra_amount) : pf(isLiquorStyle ? r.momo_amount : r.bank_amount);
-                  const pickK = (r) => pf(r.k_amount)   > 0 ? pf(r.k_amount)   : pf(isLiquorStyle ? r.bank_amount : r.momo_amount);
+                  const pickU = (r) => receiptSplit(r, isLiquorStyle).u;
+                  const pickF = (r) => receiptSplit(r, isLiquorStyle).f;
+                  const pickK = (r) => receiptSplit(r, isLiquorStyle).k;
                   const tu = filteredReceipts.reduce((s, r) => s + pickU(r), 0);
                   const tf = filteredReceipts.reduce((s, r) => s + pickF(r), 0);
                   const tk = filteredReceipts.reduce((s, r) => s + pickK(r), 0);

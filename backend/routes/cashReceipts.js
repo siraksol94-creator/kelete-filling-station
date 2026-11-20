@@ -30,9 +30,30 @@ router.get('/stats', auth, readOnlyGuard, (req, res) => {
     // v1.8.31 — per-currency totals. Same CASE-WHEN pattern as PV stats
     // (v1.8.25): prefer new usd/fra/k columns, fall back to legacy
     // cash/bank/momo on rows where new columns are 0.
-    const usdExpr = `COALESCE(SUM(CASE WHEN COALESCE(usd_amount,0) > 0 THEN usd_amount ELSE COALESCE(cash_amount,0) END), 0)`;
-    const fraExpr = `COALESCE(SUM(CASE WHEN COALESCE(fra_amount,0) > 0 THEN fra_amount ELSE COALESCE(bank_amount,0) END), 0)`;
-    const kExpr   = `COALESCE(SUM(CASE WHEN COALESCE(k_amount,  0) > 0 THEN k_amount   ELSE COALESCE(momo_amount,0) END), 0)`;
+    // 2026-11-20 — on a Kwacha book (Cash / Mobile Money / Bank) the three
+    // figures are the METHODS: usd = Cash, fra = Mobile Money, k = Bank. Every
+    // writer there fills the method columns (Cash Receipt form, fuel day
+    // receipt, customer payments), but not the slots the same way — the fuel
+    // receipt keeps its whole total in k_amount, a customer payment leaves the
+    // slots at 0 — so reading slots first counted a fuel day's total again as
+    // "Bank" and its swipes as MoMo. A receipt with any method amount is read
+    // from the methods; one without (slots only, e.g. some HQ receipts) from
+    // its slots. A multi-currency book keeps the old per-column reading.
+    let kwachaBook = true;
+    try {
+      const bs = db.prepare('SELECT currency_mode FROM business_settings LIMIT 1').get();
+      if (bs && String(bs.currency_mode || 'K').toUpperCase() !== 'K') kwachaBook = false;
+    } catch (_) { /* no settings row yet — a Kelete book is Kwacha */ }
+    const HAS_METHODS = '(COALESCE(cash_amount,0) + COALESCE(momo_amount,0) + COALESCE(bank_amount,0) > 0)';
+    const usdExpr = kwachaBook
+      ? `COALESCE(SUM(CASE WHEN ${HAS_METHODS} THEN COALESCE(cash_amount,0) ELSE COALESCE(usd_amount,0) END), 0)`
+      : `COALESCE(SUM(CASE WHEN COALESCE(usd_amount,0) > 0 THEN usd_amount ELSE COALESCE(cash_amount,0) END), 0)`;
+    const fraExpr = kwachaBook
+      ? `COALESCE(SUM(CASE WHEN ${HAS_METHODS} THEN COALESCE(momo_amount,0) ELSE COALESCE(fra_amount,0) END), 0)`
+      : `COALESCE(SUM(CASE WHEN COALESCE(fra_amount,0) > 0 THEN fra_amount ELSE COALESCE(bank_amount,0) END), 0)`;
+    const kExpr = kwachaBook
+      ? `COALESCE(SUM(CASE WHEN ${HAS_METHODS} THEN COALESCE(bank_amount,0) ELSE COALESCE(k_amount,0) END), 0)`
+      : `COALESCE(SUM(CASE WHEN COALESCE(k_amount,  0) > 0 THEN k_amount   ELSE COALESCE(momo_amount,0) END), 0)`;
     const totalsRow = (whereExtra, params) => db.prepare(
       `SELECT ${usdExpr} AS usd, ${fraExpr} AS fra, ${kExpr} AS k
        FROM cash_receipts WHERE deleted_at IS NULL AND tenant_id = ?${whereExtra}`
