@@ -32,7 +32,7 @@ const statusBadge = (status) => {
     'Paid': { bg: '#dcfce7', fg: '#15803d' },
     'Partial': { bg: '#fef3c7', fg: '#b45309' },
     'Unpaid': { bg: '#fee2e2', fg: '#b91c1c' },
-    'No Sales': { bg: '#f3f4f6', fg: '#6b7280' },
+    'No Sales': { bg: '#f1f5f9', fg: '#64748b' },
     'OnHold': { bg: '#fee2e2', fg: '#b91c1c' },
   };
   return map[status] || map['No Sales'];
@@ -177,23 +177,23 @@ const AccountReceivables = () => {
       ? `${filterFrom || '—'} to ${filterTo || '—'}`
       : 'All Time';
     const rowsHtml = receivablesRows.map((r, idx) => `
-      <tr style="border-bottom:1px solid #ddd;background:${idx % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${idx % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:8px 10px;font-size:10.5px">${idx + 1}</td>
         <td style="padding:8px 10px;font-weight:700">${r.name}</td>
         <td style="padding:8px 10px">${r.phone || '—'}</td>
         <td style="padding:8px 10px;text-align:right">${parseFloat(r.credit_limit) > 0 ? '$' + fmtPlain(r.credit_limit) : '—'}</td>
         <td style="padding:8px 10px;text-align:right">${r._opening > 0 ? '$' + fmtPlain(r._opening) : '—'}</td>
-        <td style="padding:8px 10px;text-align:right">$${fmtPlain(r._sold)}</td>
-        <td style="padding:8px 10px;text-align:right;font-weight:600">$${fmtPlain(r._paid)}</td>
-        <td style="padding:8px 10px;text-align:right;font-weight:700">$${fmtPlain(Math.abs(r._balance))}${r._balance < -0.01 ? ' (owed)' : r._balance > 0.01 ? ' (advance)' : ''}</td>
+        <td style="padding:8px 10px;text-align:right">${curSym}${fmtPlain(r._sold)}</td>
+        <td style="padding:8px 10px;text-align:right;font-weight:600">${curSym}${fmtPlain(r._paid)}</td>
+        <td style="padding:8px 10px;text-align:right;font-weight:700">${curSym}${fmtPlain(Math.abs(r._balance))}${r._balance < -0.01 ? ' (owed)' : r._balance > 0.01 ? ' (advance)' : ''}</td>
         <td style="padding:8px 10px">${r._status === 'OnHold' ? 'On Hold' : r._status}</td>
       </tr>`).join('');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
-      tfoot td{padding:10px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
+      tfoot td{padding:10px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -228,13 +228,13 @@ const AccountReceivables = () => {
             <th style="text-align:right">Total Sales</th><th style="text-align:right">Total Paid</th>
             <th style="text-align:right">Balance</th><th>Status</th>
           </tr></thead>
-          <tbody>${rowsHtml || `<tr><td colspan="9" style="padding:24px;text-align:center;color:#666">No receivables for this period.</td></tr>`}</tbody>
+          <tbody>${rowsHtml || `<tr><td colspan="9" style="padding:24px;text-align:center;color:#475569">No receivables for this period.</td></tr>`}</tbody>
           ${receivablesRows.length > 0 ? `<tfoot><tr>
             <td colspan="4">TOTAL — ${receivablesRows.length} Customer${receivablesRows.length !== 1 ? 's' : ''}</td>
-            <td style="text-align:right">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._opening, 0))}</td>
-            <td style="text-align:right">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._sold, 0))}</td>
-            <td style="text-align:right">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._paid, 0))}</td>
-            <td style="text-align:right;font-size:13px">$${fmtPlain(receivablesRows.reduce((s, r) => s + r._balance, 0))} (net)</td>
+            <td style="text-align:right">${curSym}${fmtPlain(receivablesRows.reduce((s, r) => s + r._opening, 0))}</td>
+            <td style="text-align:right">${curSym}${fmtPlain(receivablesRows.reduce((s, r) => s + r._sold, 0))}</td>
+            <td style="text-align:right">${curSym}${fmtPlain(receivablesRows.reduce((s, r) => s + r._paid, 0))}</td>
+            <td style="text-align:right;font-size:13px">${curSym}${fmtPlain(receivablesRows.reduce((s, r) => s + r._balance, 0))} (net)</td>
             <td></td>
           </tr></tfoot>` : ''}
         </table>
@@ -248,7 +248,7 @@ const AccountReceivables = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${biz} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -614,7 +614,7 @@ const AccountReceivables = () => {
                         <div className="k-ar-sub">
                           ≈ {r._outstandingFra > 0.01 && <>FRA {Math.round(r._outstandingFra).toLocaleString()}</>}
                           {r._outstandingFra > 0.01 && r._outstandingK > 0.01 && ' · '}
-                          {r._outstandingK > 0.01 && <>K {Math.round(r._outstandingK).toLocaleString()}</>}
+                          {r._outstandingK > 0.01 && <>K{Math.round(r._outstandingK).toLocaleString()}</>}
                         </div>
                       )}
                       {segTotal > 0 && (
@@ -701,12 +701,12 @@ const AccountReceivables = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 460, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
               <div>
                 <h3 style={{ margin: 0 }}>
                   {paymentModal.customer._balance < -0.01 ? 'Record Payment' : 'Receive Down Payment'}
                 </h3>
-                <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>
+                <div style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>
                   From <strong>{paymentModal.customer.name}</strong>
                   {paymentModal.customer._balance < -0.01 ? (
                     <>
@@ -717,7 +717,7 @@ const AccountReceivables = () => {
                           {' ≈ '}
                           {paymentModal.customer._outstandingFra > 0.01 && <>FRA {Math.round(paymentModal.customer._outstandingFra).toLocaleString()}</>}
                           {paymentModal.customer._outstandingFra > 0.01 && paymentModal.customer._outstandingK > 0.01 && ' · '}
-                          {paymentModal.customer._outstandingK > 0.01 && <>K {Math.round(paymentModal.customer._outstandingK).toLocaleString()}</>}
+                          {paymentModal.customer._outstandingK > 0.01 && <>K{Math.round(paymentModal.customer._outstandingK).toLocaleString()}</>}
                           {' (at sale-time rate)'}
                         </span>
                       )}
@@ -725,7 +725,7 @@ const AccountReceivables = () => {
                   ) : <> · advance (credit applied to future credit sales)</>}
                 </div>
               </div>
-              <button onClick={() => setPaymentModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={18} /></button>
+              <button onClick={() => setPaymentModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={18} /></button>
             </div>
             <div style={{ padding: 22, display: 'grid', gap: 12 }}>
               {/* v1.8.56 — per-receipt FX rate (defaults to live rate, editable).
@@ -752,7 +752,7 @@ const AccountReceivables = () => {
                         <input type="number" min="0" step="0.01" value={paymentForm.sell_rate}
                           onChange={e => setPaymentForm({ ...paymentForm, sell_rate: e.target.value })}
                           placeholder={SELL_RATE > 0 ? String(SELL_RATE) : '0'}
-                          style={{ width: '100%', padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, fontWeight: 600, boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '6px 8px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontWeight: 600, boxSizing: 'border-box' }} />
                       </div>
                     )}
                     {hasK && (
@@ -761,7 +761,7 @@ const AccountReceivables = () => {
                         <input type="number" min="0" step="0.01" value={paymentForm.sell_rate_k}
                           onChange={e => setPaymentForm({ ...paymentForm, sell_rate_k: e.target.value })}
                           placeholder={SELL_RATE_K > 0 ? String(SELL_RATE_K) : '0'}
-                          style={{ width: '100%', padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, fontWeight: 600, boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '6px 8px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontWeight: 600, boxSizing: 'border-box' }} />
                       </div>
                     )}
                   </div>
@@ -775,7 +775,7 @@ const AccountReceivables = () => {
                   MoMo→fra_amount, Bank→k_amount — keeps the receipt row
                   compatible with the existing customer_payments schema and
                   Cash Book split logic. */}
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
                 Amount Paid{isLiquorStyle ? ' (split across methods)' : ' (split across currencies)'}
               </div>
               {(() => {
@@ -801,7 +801,7 @@ const AccountReceivables = () => {
                           value={paymentForm[f.key]}
                           onChange={e => setPaymentForm({ ...paymentForm, [f.key]: e.target.value })}
                           placeholder={f.placeholder}
-                          style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(paymentForm[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(paymentForm[f.key] || 0) > 0 ? f.color : '#374151', boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(paymentForm[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(paymentForm[f.key] || 0) > 0 ? f.color : '#334155', boxSizing: 'border-box' }} />
                       </div>
                     ))}
                   </div>
@@ -817,9 +817,9 @@ const AccountReceivables = () => {
                 if (isLiquorStyle) {
                   const totalK = usd + fra + kAmt;
                   return (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13 }}>
-                      <span style={{ color: '#6b7280' }}>Total</span>
-                      <span style={{ fontWeight: 800, color: totalK > 0 ? '#1d4ed8' : '#6b7280' }}>{fmt(totalK)}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13 }}>
+                      <span style={{ color: '#64748b' }}>Total</span>
+                      <span style={{ fontWeight: 800, color: totalK > 0 ? '#1d4ed8' : '#64748b' }}>{fmt(totalK)}</span>
                     </div>
                   );
                 }
@@ -829,9 +829,9 @@ const AccountReceivables = () => {
                 const kAsUsd   = sellRateK > 0 ? kAmt / sellRateK : 0;
                 const totalUsd = usd + fraAsUsd + kAsUsd;
                 return (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13 }}>
-                    <span style={{ color: '#6b7280' }}>Total (≈ USD)</span>
-                    <span style={{ fontWeight: 800, color: totalUsd > 0 ? '#1d4ed8' : '#6b7280' }}>{fmt(totalUsd)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13 }}>
+                    <span style={{ color: '#64748b' }}>Total (≈ USD)</span>
+                    <span style={{ fontWeight: 800, color: totalUsd > 0 ? '#1d4ed8' : '#64748b' }}>{fmt(totalUsd)}</span>
                   </div>
                 );
               })()}
@@ -848,8 +848,8 @@ const AccountReceivables = () => {
                 <input value={paymentForm.notes} onChange={e => setPaymentForm({ ...paymentForm, notes: e.target.value })} />
               </div>
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button onClick={() => setPaymentModal(null)} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setPaymentModal(null)} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
               <button onClick={savePayment} style={{ padding: '8px 18px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>Record</button>
             </div>
           </div>
@@ -952,7 +952,7 @@ const AccountReceivables = () => {
         const prevEom  = iso(new Date(now.getFullYear(), now.getMonth(), 0));
         const windowLabel = stFrom || stTo ? `${stFrom || '—'} to ${stTo || '—'}` : 'All time';
 
-        const balColor = (v) => (v > 0.01 ? '#dc2626' : v < -0.01 ? '#16a34a' : '#374151');
+        const balColor = (v) => (v > 0.01 ? '#dc2626' : v < -0.01 ? '#16a34a' : '#334155');
         const signed   = (v) => `${v < -0.01 ? '−' : ''}${money(v)}`;
         const verdict  = finalBal > 0.01 ? 'Customer owes you:' : finalBal < -0.01 ? 'Customer is in credit (advance):' : 'Account is square';
         const pill = (kind) => (
@@ -976,15 +976,15 @@ const AccountReceivables = () => {
             </tr>` : '';
 
           const bodyRows = rows.length === 0
-            ? `<tr><td colspan="7" style="padding:20px;text-align:center;color:#9ca3af">No transactions in this window.</td></tr>`
+            ? `<tr><td colspan="7" style="padding:20px;text-align:center;color:#94a3b8">No transactions in this window.</td></tr>`
             : rows.map(r => `
-              <tr style="border-bottom:1px solid #eee">
-                <td style="padding:5px 9px;color:#374151;white-space:nowrap">${esc(fmtD(r.date))}</td>
-                <td style="padding:5px 9px;color:#6b7280;font-family:monospace;font-size:9.5px">${esc(r.doc)}</td>
+              <tr style="border-bottom:1px solid #f1f5f9">
+                <td style="padding:5px 9px;color:#334155;white-space:nowrap">${esc(fmtD(r.date))}</td>
+                <td style="padding:5px 9px;color:#64748b;font-family:monospace;font-size:9.5px">${esc(r.doc)}</td>
                 <td style="padding:5px 9px"><span style="${pillCss(r.kind)}">${r.kind}</span></td>
-                <td style="padding:5px 9px;color:${r.kind === 'PAY' ? '#6b7280' : '#000'};font-weight:${r.kind === 'PAY' ? '400' : '700'}">${esc(r.reference) || '—'}</td>
-                <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.debit > 0 ? '#dc2626' : '#d1d5db'}">${r.debit > 0 ? `+${money(r.debit)}` : ''}</td>
-                <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.credit < 0 ? '#15803d' : '#d1d5db'}">${r.credit < 0 ? `−${money(r.credit)}` : ''}</td>
+                <td style="padding:5px 9px;color:${r.kind === 'PAY' ? '#64748b' : '#000'};font-weight:${r.kind === 'PAY' ? '400' : '700'}">${esc(r.reference) || '—'}</td>
+                <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.debit > 0 ? '#dc2626' : '#cbd5e1'}">${r.debit > 0 ? `+${money(r.debit)}` : ''}</td>
+                <td style="padding:5px 9px;text-align:right;font-family:monospace;color:${r.credit < 0 ? '#15803d' : '#cbd5e1'}">${r.credit < 0 ? `−${money(r.credit)}` : ''}</td>
                 <td style="padding:5px 9px;text-align:right;font-family:monospace;font-weight:600;color:${balColor(r.balance)}">${signed(r.balance)}</td>
               </tr>`).join('');
 
@@ -993,9 +993,9 @@ const AccountReceivables = () => {
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Age analysis (as of today)</div>
               <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;font-size:10px;text-align:center">
                 ${ageCells.map(([l, v]) => `
-                  <div style="border:1px solid #ddd;padding:6px;background:${v > 0.01 ? '#fef2f2' : '#fff'}">
-                    <div style="font-size:9px;color:#6b7280;font-weight:600">${l}</div>
-                    <div style="font-size:11px;font-weight:700;color:${v > 0.01 ? '#dc2626' : '#6b7280'};font-family:monospace">${money(v)}</div>
+                  <div style="border:1px solid #e2e8f0;padding:6px;background:${v > 0.01 ? '#fef2f2' : '#fff'}">
+                    <div style="font-size:9px;color:#64748b;font-weight:600">${l}</div>
+                    <div style="font-size:11px;font-weight:700;color:${v > 0.01 ? '#dc2626' : '#64748b'};font-family:monospace">${money(v)}</div>
                   </div>`).join('')}
               </div>
             </div>` : '';
@@ -1004,8 +1004,8 @@ const AccountReceivables = () => {
             <style>@page{size:A4 landscape;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
             body{font-family:"Segoe UI",Arial,sans-serif;font-size:11px;color:#000}
             table{width:100%;border-collapse:collapse}
-            th{padding:6px 10px;font-weight:700;color:#000;border-bottom:2px solid #000;font-size:10px;background:#f0f0f0;text-align:left}
-            tfoot td{padding:7px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+            th{padding:6px 10px;font-weight:700;color:#000;border-bottom:2px solid #000;font-size:10px;background:#f1f5f9;text-align:left}
+            tfoot td{padding:7px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
             </style></head><body>
             <div style="border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-start">
               <div>
@@ -1023,7 +1023,7 @@ const AccountReceivables = () => {
               </div>
             </div>
 
-            <div style="font-size:9px;color:#6b7280;margin-bottom:10px">
+            <div style="font-size:9px;color:#64748b;margin-bottom:10px">
               Convention: sales and the opening balance in Debit (+), payments in Credit (−). Balance is signed: positive = customer owes you, negative = customer is in credit.
             </div>
 
@@ -1068,7 +1068,7 @@ const AccountReceivables = () => {
                   <div style="font-size:8px;text-align:center">Name / Signature / Date</div>
                 </div>`).join('')}
             </div>
-            <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
+            <div style="border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between">
               <span style="font-size:8px">${esc(biz)} — Confidential</span>
               <span style="font-size:8px">Printed: ${esc(printedAt)}</span>
             </div>
@@ -1081,29 +1081,29 @@ const AccountReceivables = () => {
 
         const presetBtn = { padding: '4px 10px', borderRadius: 6, border: '1px solid #bfdbfe', fontSize: 11, background: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', fontWeight: 600 };
         const th = (align, color) => ({ textAlign: align, padding: '8px 10px', fontWeight: 700, color });
-        const docLink = { background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#2563eb', textDecoration: 'underline', fontFamily: 'monospace', fontSize: 11 };
+        const docLink = { background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#2563eb', textDecoration: 'underline', fontFamily: 'var(--k-font-mono)', fontSize: 11 };
 
         return (
           <Portal>
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 1200, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>{cust.name}</h2>
-                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Customer account breakdown</p>
+                  <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>Customer account breakdown</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <button onClick={handleStatementPrint}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 7, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                     <FiPrinter size={13} /> Print
                   </button>
-                  <button onClick={() => setStatementModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+                  <button onClick={() => setStatementModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
                 </div>
               </div>
 
               <div style={{ padding: '18px 24px' }}>
                 {/* Statement header */}
-                <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: '14px 16px', marginBottom: 12, fontSize: 12 }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '14px 16px', marginBottom: 12, fontSize: 12 }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                     <div>
                       <div><strong>Statement Date:</strong> {fmtD(todayIso)}</div>
@@ -1112,26 +1112,26 @@ const AccountReceivables = () => {
                       {cust.tpin && <div><strong>TPIN:</strong> {cust.tpin}</div>}
                     </div>
                     <div>
-                      <div style={{ color: '#6b7280' }}>Convention: sales and the opening balance in Debit (+), payments in Credit (−).</div>
-                      <div style={{ color: '#6b7280' }}>Balance is signed: positive = customer owes you, negative = customer is in credit.</div>
+                      <div style={{ color: '#64748b' }}>Convention: sales and the opening balance in Debit (+), payments in Credit (−).</div>
+                      <div style={{ color: '#64748b' }}>Balance is signed: positive = customer owes you, negative = customer is in credit.</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Statement window */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 12px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#6b7280' }}>Statement window:</span>
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>From</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '8px 12px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#64748b' }}>Statement window:</span>
+                  <span style={{ fontSize: 11, color: '#64748b' }}>From</span>
                   <input type="date" value={stFrom} max={stTo || todayIso} onChange={e => setStFrom(e.target.value)}
-                    style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12 }} />
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>To</span>
+                    style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12 }} />
+                  <span style={{ fontSize: 11, color: '#64748b' }}>To</span>
                   <input type="date" value={stTo} min={stFrom || undefined} max={todayIso} onChange={e => setStTo(e.target.value)}
-                    style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12 }} />
+                    style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12 }} />
                   <button onClick={() => { setStFrom(som); setStTo(todayIso); }} style={presetBtn}>This Month</button>
                   <button onClick={() => { setStFrom(prevSom); setStTo(prevEom); }} style={presetBtn}>Last Month</button>
                   <button onClick={() => { setStFrom(''); setStTo(''); }}
-                    style={{ ...presetBtn, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontWeight: 400 }}>All Time</button>
-                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280' }}>
+                    style={{ ...presetBtn, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 400 }}>All Time</button>
+                  <span style={{ marginLeft: 'auto', fontSize: 11, color: '#64748b' }}>
                     {stFrom || stTo ? windowLabel : 'Showing all time'}
                   </span>
                 </div>
@@ -1139,7 +1139,7 @@ const AccountReceivables = () => {
                 {/* The ledger */}
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5, marginBottom: 14 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb', borderBottom: '2px solid #cbd5e1' }}>
+                    <tr style={{ background: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
                       <th style={th('left')}>Date</th>
                       <th style={th('left')}>Doc #</th>
                       <th style={th('left')}>Type</th>
@@ -1156,35 +1156,35 @@ const AccountReceivables = () => {
                           Balance brought forward (before {fmtD(stFrom)})
                         </td>
                         <td colSpan={2}></td>
-                        <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 700, color: balColor(bf) }}>{signed(bf)}</td>
+                        <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 700, color: balColor(bf) }}>{signed(bf)}</td>
                       </tr>
                     )}
                     {rows.length === 0 && (
-                      <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: '#6b7280' }}>No transactions in this window.</td></tr>
+                      <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: '#64748b' }}>No transactions in this window.</td></tr>
                     )}
                     {rows.map(r => {
                       const p = pill(r.kind);
                       return (
                         <tr key={r.key} style={{ borderBottom: '1px solid #f1f5f9', background: r.kind === 'OB' ? '#fffbeb' : undefined }}>
-                          <td style={{ padding: '6px 10px', color: '#374151', whiteSpace: 'nowrap' }}>{fmtD(r.date)}</td>
+                          <td style={{ padding: '6px 10px', color: '#334155', whiteSpace: 'nowrap' }}>{fmtD(r.date)}</td>
                           {/* A sale, and a payment taken at the till, open the
                               order. A receipt number is plain text. */}
-                          <td style={{ padding: '6px 10px', fontFamily: 'monospace', fontSize: 11 }}>
+                          <td style={{ padding: '6px 10px', fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>
                             {r.orderId
                               ? <button onClick={() => openOrderDetail(r.orderId)} title="View order details" style={docLink}>{r.doc}</button>
-                              : <span style={{ color: '#6b7280' }}>{r.doc}</span>}
+                              : <span style={{ color: '#64748b' }}>{r.doc}</span>}
                           </td>
                           <td style={{ padding: '6px 10px' }}>
                             <span style={{ background: p.bg, color: p.fg, padding: '1px 7px', borderRadius: 3, fontSize: 10, fontWeight: 700 }}>{r.kind}</span>
                           </td>
-                          <td style={{ padding: '6px 10px', color: r.kind === 'PAY' ? '#6b7280' : '#111827', fontWeight: r.kind === 'PAY' ? 400 : 700 }}>{r.reference || '—'}</td>
-                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: r.debit > 0 ? '#dc2626' : '#d1d5db' }}>
+                          <td style={{ padding: '6px 10px', color: r.kind === 'PAY' ? '#64748b' : '#0f172a', fontWeight: r.kind === 'PAY' ? 400 : 700 }}>{r.reference || '—'}</td>
+                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: r.debit > 0 ? '#dc2626' : '#cbd5e1' }}>
                             {r.debit > 0 ? `+${money(r.debit)}` : ''}
                           </td>
-                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', color: r.credit < 0 ? '#15803d' : '#d1d5db' }}>
+                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: r.credit < 0 ? '#15803d' : '#cbd5e1' }}>
                             {r.credit < 0 ? `−${money(r.credit)}` : ''}
                           </td>
-                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 600, color: balColor(r.balance) }}>
+                          <td style={{ padding: '6px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 600, color: balColor(r.balance) }}>
                             {signed(r.balance)}
                           </td>
                         </tr>
@@ -1192,18 +1192,18 @@ const AccountReceivables = () => {
                     })}
                   </tbody>
                   <tfoot>
-                    <tr style={{ background: '#f9fafb', borderTop: '2px solid #cbd5e1', fontWeight: 700 }}>
+                    <tr style={{ background: '#f8fafc', borderTop: '2px solid #cbd5e1', fontWeight: 700 }}>
                       <td colSpan={4} style={{ padding: '8px 10px', textAlign: 'right' }}>Totals</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#dc2626' }}>+{money(totalDebit)}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: '#15803d' }}>−{money(totalCredit)}</td>
-                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'monospace', color: balColor(finalBal) }}>{signed(finalBal)}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#dc2626' }}>+{money(totalDebit)}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>−{money(totalCredit)}</td>
+                      <td style={{ padding: '8px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: balColor(finalBal) }}>{signed(finalBal)}</td>
                     </tr>
                   </tfoot>
                 </table>
 
                 {/* Where the account stands */}
-                <div style={{ background: finalBal > 0.01 ? '#fef2f2' : finalBal < -0.01 ? '#f0fdf4' : '#f9fafb',
-                              border: `1px solid ${finalBal > 0.01 ? '#fecaca' : finalBal < -0.01 ? '#bbf7d0' : '#e5e7eb'}`,
+                <div style={{ background: finalBal > 0.01 ? '#fef2f2' : finalBal < -0.01 ? '#f0fdf4' : '#f8fafc',
+                              border: `1px solid ${finalBal > 0.01 ? '#fecaca' : finalBal < -0.01 ? '#bbf7d0' : '#e2e8f0'}`,
                               borderRadius: 8, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
                   <span style={{ fontWeight: 700, fontSize: 14 }}>{verdict}</span>
                   <span style={{ fontWeight: 800, fontSize: 18, color: balColor(finalBal) }}>{money(finalBal)}</span>
@@ -1211,13 +1211,13 @@ const AccountReceivables = () => {
 
                 {/* Age analysis — only while the customer owes something */}
                 {allBal > 0.01 && (
-                  <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: '12px 14px', marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Age analysis (as of today)</div>
+                  <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px', marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Age analysis (as of today)</div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8, fontSize: 12 }}>
                       {ageCells.map(([label, val]) => (
-                        <div key={label} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: '8px 10px', textAlign: 'center', background: val > 0.01 ? '#fef2f2' : '#fff' }}>
-                          <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 600 }}>{label}</div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: val > 0.01 ? '#dc2626' : '#6b7280', fontFamily: 'monospace' }}>{money(val)}</div>
+                        <div key={label} style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 10px', textAlign: 'center', background: val > 0.01 ? '#fef2f2' : '#fff' }}>
+                          <div style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>{label}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: val > 0.01 ? '#dc2626' : '#64748b', fontFamily: 'var(--k-font-mono)' }}>{money(val)}</div>
                         </div>
                       ))}
                     </div>
@@ -1235,15 +1235,15 @@ const AccountReceivables = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 640, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 22px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 22px', borderBottom: '1px solid #e2e8f0' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{orderDetail.data?.order_number ? fmtInvoiceNo(orderDetail.data.order_number) : 'Order'}</h3>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Sale details</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>Sale details</p>
               </div>
-              <button onClick={() => setOrderDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+              <button onClick={() => setOrderDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
             </div>
             <div style={{ padding: '18px 22px' }}>
-              {orderDetail.loading && <div style={{ color: '#6b7280', fontSize: 13 }}>Loading…</div>}
+              {orderDetail.loading && <div style={{ color: '#64748b', fontSize: 13 }}>Loading…</div>}
               {orderDetail.error && <div style={{ color: '#dc2626', fontSize: 13 }}>{orderDetail.error}</div>}
               {orderDetail.data && (() => {
                 const o = orderDetail.data;
@@ -1258,52 +1258,52 @@ const AccountReceivables = () => {
                 return (
                   <>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14, fontSize: 13 }}>
-                      <div><span style={{ color: '#6b7280' }}>Date: </span><strong>{(o.created_at || '').slice(0, 10)}</strong></div>
-                      <div><span style={{ color: '#6b7280' }}>Customer: </span><strong>{o.customer_name || 'Walk-in'}</strong></div>
-                      <div><span style={{ color: '#6b7280' }}>Cashier: </span><strong>{o.created_by_name || '—'}</strong></div>
-                      <div><span style={{ color: '#6b7280' }}>Status: </span><strong>{o.status || 'Active'}</strong></div>
+                      <div><span style={{ color: '#64748b' }}>Date: </span><strong>{(o.created_at || '').slice(0, 10)}</strong></div>
+                      <div><span style={{ color: '#64748b' }}>Customer: </span><strong>{o.customer_name || 'Walk-in'}</strong></div>
+                      <div><span style={{ color: '#64748b' }}>Cashier: </span><strong>{o.created_by_name || '—'}</strong></div>
+                      <div><span style={{ color: '#64748b' }}>Status: </span><strong>{o.status || 'Active'}</strong></div>
                     </div>
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 14 }}>
                       <thead>
-                        <tr style={{ background: '#f9fafb' }}>
-                          <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e5e7eb' }}>Item</th>
-                          <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e5e7eb' }}>Qty</th>
-                          <th style={{ textAlign: 'left',  padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e5e7eb' }}>Unit</th>
-                          <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e5e7eb' }}>Price</th>
-                          <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e5e7eb' }}>Total</th>
+                        <tr style={{ background: '#f8fafc' }}>
+                          <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>Item</th>
+                          <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>Qty</th>
+                          <th style={{ textAlign: 'left',  padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>Unit</th>
+                          <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>Price</th>
+                          <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600, borderBottom: '1px solid #e2e8f0' }}>Total</th>
                         </tr>
                       </thead>
                       <tbody>
                         {items.map((it, i) => (
-                          <tr key={i} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                          <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                             <td style={{ padding: '7px 10px' }}>{it.product_name}</td>
-                            <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{(parseFloat(parseFloat(it.quantity))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                            <td style={{ padding: '7px 10px', color: '#6b7280' }}>{it.unit || '—'}</td>
-                            <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace' }}>{fmt(it.unit_price)}</td>
-                            <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'monospace', fontWeight: 600 }}>{fmt(it.total_price)}</td>
+                            <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{(parseFloat(parseFloat(it.quantity))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                            <td style={{ padding: '7px 10px', color: '#64748b' }}>{it.unit || '—'}</td>
+                            <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>{fmt(it.unit_price)}</td>
+                            <td style={{ padding: '7px 10px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', fontWeight: 600 }}>{fmt(it.total_price)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                     {/* Totals + payment breakdown */}
-                    <div style={{ background: '#f9fafb', borderRadius: 8, padding: '12px 14px', fontSize: 13 }}>
+                    <div style={{ background: '#f8fafc', borderRadius: 8, padding: '12px 14px', fontSize: 13 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                        <span style={{ color: '#6b7280' }}>Subtotal</span><span>{fmt(o.subtotal)}</span>
+                        <span style={{ color: '#64748b' }}>Subtotal</span><span>{fmt(o.subtotal)}</span>
                       </div>
                       {parseFloat(o.discount) > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                          <span style={{ color: '#6b7280' }}>Discount</span><span>−{fmt(o.discount)}</span>
+                          <span style={{ color: '#64748b' }}>Discount</span><span>−{fmt(o.discount)}</span>
                         </div>
                       )}
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontWeight: 700, fontSize: 14 }}>
                         <span>Total</span><span>{fmt(sale)}</span>
                       </div>
-                      <div style={{ borderTop: '1px dashed #d1d5db', paddingTop: 8, marginTop: 4 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Payment</div>
+                      <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: 8, marginTop: 4 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Payment</div>
                         {c > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#15803d' }}>Cash</span><span>{fmt(c)}</span></div>}
                         {m > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#f59e0b' }}>Mobile Money</span><span>{fmt(m)}</span></div>}
                         {b > 0 && <div style={{ display: 'flex', justifyContent: 'space-between' }}><span style={{ color: '#2563eb' }}>Bank</span><span>{fmt(b)}</span></div>}
-                        {tendered === 0 && <div style={{ color: '#6b7280' }}>Full credit — nothing tendered at till</div>}
+                        {tendered === 0 && <div style={{ color: '#64748b' }}>Full credit — nothing tendered at till</div>}
                         {change > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#1d4ed8' }}><span>Change given</span><span>{fmt(change)}</span></div>}
                         {credit > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4, color: '#dc2626', fontWeight: 700 }}><span>On credit (AR)</span><span>{fmt(credit)}</span></div>}
                       </div>
@@ -1312,8 +1312,8 @@ const AccountReceivables = () => {
                 );
               })()}
             </div>
-            <div style={{ padding: '12px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={() => setOrderDetail(null)} style={{ padding: '8px 18px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 7, cursor: 'pointer', fontWeight: 600 }}>Close</button>
+            <div style={{ padding: '12px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
+              <button onClick={() => setOrderDetail(null)} style={{ padding: '8px 18px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 7, cursor: 'pointer', fontWeight: 600 }}>Close</button>
             </div>
           </div>
         </div>

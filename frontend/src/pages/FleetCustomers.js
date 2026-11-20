@@ -8,6 +8,7 @@ import { S } from './fuelStyles';
 import { useAuth } from '../context/AuthContext';
 import FleetMergePanel from '../components/FleetMergePanel';
 import { useDialog } from '../ux/ForecourtKit';   // UX-10: in-app confirm / alert
+import { fmtK } from '../ux/forecourt';
 
 const emptyCust = { name: '', company: '', phone: '', email: '', address: '', credit_limit: 0, status: 'Active' };
 const emptyVeh = { registration: '', make: '', model: '', driver_name: '', driver_phone: '', status: 'Active' };
@@ -70,28 +71,28 @@ export default function FleetCustomers() {
             <thead><tr><th style={S.th}>Name</th><th style={S.th}>Company</th><th style={{ ...S.th, textAlign: 'right' }}>Credit Limit</th><th style={{ ...S.th, textAlign: 'right' }}>Balance</th><th style={S.th}></th></tr></thead>
             <tbody>
               {rows.map(r => (
-                <tr key={r.id} onClick={() => openCustomer(r)} style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: selected?.id === r.id ? '#eff6ff' : undefined }}>
+                <tr key={r.id} onClick={() => openCustomer(r)} style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer', background: selected?.id === r.id ? '#eff6ff' : undefined }}>
                   <td style={S.td}><strong>{r.name}</strong></td>
                   <td style={S.td}>{r.company || '-'}</td>
-                  <td style={S.tdR}>K {Number(r.credit_limit).toFixed(2)}</td>
-                  <td style={{ ...S.tdR, color: r.current_balance > 0 ? '#dc2626' : '#111' }}>K {Number(r.current_balance).toFixed(2)}</td>
+                  <td style={S.tdR}>{fmtK(r.credit_limit)}</td>
+                  <td style={{ ...S.tdR, color: r.current_balance > 0 ? '#dc2626' : '#0f172a' }}>{fmtK(r.current_balance)}</td>
                   <td style={S.td}><FiChevronRight /></td>
                 </tr>
               ))}
-              {rows.length === 0 && <tr><td colSpan={5} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No fleet customers yet.</td></tr>}
+              {rows.length === 0 && <tr><td colSpan={5} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No fleet customers yet.</td></tr>}
             </tbody>
           </table>
         </div>
 
         {selected && (
           <div style={S.card}>
-            <div style={{ padding: 16, borderBottom: '1px solid #f3f4f6', background: '#f9fafb', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ padding: 16, borderBottom: '1px solid #f1f5f9', background: '#f8fafc', display: 'flex', justifyContent: 'space-between' }}>
               <div>
                 <strong style={{ fontSize: 16 }}>{selected.name}</strong>
-                {selected.company && <div style={{ color: '#6b7280', fontSize: 13 }}>{selected.company}</div>}
-                <div style={{ fontSize: 13, marginTop: 6, color: '#374151' }}>
-                  Phone: {selected.phone || '-'} &nbsp;|&nbsp; Credit: K {Number(selected.credit_limit).toFixed(2)} &nbsp;|&nbsp;
-                  Owing: <strong style={{ color: selected.current_balance > 0 ? '#dc2626' : '#111' }}>K {Number(selected.current_balance).toFixed(2)}</strong>
+                {selected.company && <div style={{ color: '#64748b', fontSize: 13 }}>{selected.company}</div>}
+                <div style={{ fontSize: 13, marginTop: 6, color: '#334155' }}>
+                  Phone: {selected.phone || '-'} &nbsp;|&nbsp; Credit: {fmtK(selected.credit_limit)} &nbsp;|&nbsp;
+                  Owing: <strong style={{ color: selected.current_balance > 0 ? '#dc2626' : '#0f172a' }}>{fmtK(selected.current_balance)}</strong>
                 </div>
               </div>
               <div>
@@ -99,7 +100,7 @@ export default function FleetCustomers() {
                 <button onClick={() => removeCust(selected)} style={S.iconBtnDanger}><FiTrash2 /></button>
               </div>
             </div>
-            <div style={{ padding: 12, borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: 12, borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <strong>Vehicles</strong>
               <button onClick={() => setVehForm({ ...emptyVeh })} style={S.btnSecondary}><FiPlus /> Add Vehicle</button>
             </div>
@@ -107,7 +108,7 @@ export default function FleetCustomers() {
               <thead><tr><th style={S.th}>Reg</th><th style={S.th}>Make/Model</th><th style={S.th}>Driver</th><th style={S.th}></th></tr></thead>
               <tbody>
                 {(selected.vehicles || []).map(v => (
-                  <tr key={v.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                  <tr key={v.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                     <td style={S.td}><strong>{v.registration}</strong></td>
                     <td style={S.td}>{[v.make, v.model].filter(Boolean).join(' ') || '-'}</td>
                     <td style={S.td}>{v.driver_name || '-'}{v.driver_phone ? ` (${v.driver_phone})` : ''}</td>
@@ -117,7 +118,7 @@ export default function FleetCustomers() {
                     </td>
                   </tr>
                 ))}
-                {(selected.vehicles || []).length === 0 && <tr><td colSpan={4} style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No vehicles</td></tr>}
+                {(selected.vehicles || []).length === 0 && <tr><td colSpan={4} style={{ padding: 16, textAlign: 'center', color: '#64748b', fontSize: 13 }}>No vehicles</td></tr>}
               </tbody>
             </table>
           </div>

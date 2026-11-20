@@ -595,7 +595,7 @@ const Layout = () => {
       (Array.isArray(products) ? products : products.data || [])
         .filter(p => matchTokens(searchQuery, p.name, p.code, p.barcode))
         .slice(0, 4)
-        .forEach(p => results.push({ type: 'Product', label: p.name, sub: `K ${p.selling_price ?? ''}`, path: '/stock/items' }));
+        .forEach(p => results.push({ type: 'Product', label: p.name, sub: `K${p.selling_price ?? ''}`, path: '/stock/items' }));
       (Array.isArray(customers) ? customers : customers.data || [])
         .filter(c => matchTokens(searchQuery, c.name, c.phone, c.email))
         .slice(0, 3)
@@ -1385,7 +1385,7 @@ const Layout = () => {
         {/* Top Header */}
         <div className="top-header">
           <div className="top-header-left">
-            <button className="sidebar-toggle k-burger" onClick={() => isPhoneViewport() ? setMobileOpen(o => !o) : setCollapsed(!collapsed)} style={{ marginRight: 8, color: '#374151' }}
+            <button className="sidebar-toggle k-burger" onClick={() => isPhoneViewport() ? setMobileOpen(o => !o) : setCollapsed(!collapsed)} style={{ marginRight: 8, color: '#334155' }}
               aria-label={mobileOpen ? 'Close menu' : (collapsed ? 'Show the full menu' : 'Menu: show icons only')}
               aria-expanded={isPhoneViewport() ? mobileOpen : !collapsed}
               title={collapsed ? 'Show the full menu' : 'Icons only'}>
@@ -1396,7 +1396,7 @@ const Layout = () => {
           <div className="top-header-right">
             <div ref={searchRef} style={{ position: 'relative' }}>
               <div className="search-bar">
-                <FiSearch style={{ color: '#6b7280' }} />
+                <FiSearch style={{ color: '#64748b' }} />
                 <input
                   type="text"
                   placeholder={t('search')}
@@ -1406,23 +1406,23 @@ const Layout = () => {
                 />
               </div>
               {searchOpen && (
-                <div style={{ position: 'absolute', top: '110%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 1000, overflow: 'hidden', minWidth: 280 }}>
+                <div style={{ position: 'absolute', top: '110%', left: 0, right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 1000, overflow: 'hidden', minWidth: 280 }}>
                   {searchResults.map((r, i) => (
                     <div
                       key={i}
                       onClick={() => handleSearchSelect(r.path)}
                       style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', borderBottom: i < searchResults.length - 1 ? '1px solid #f1f5f9' : 'none' }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
                       onMouseLeave={e => e.currentTarget.style.background = '#fff'}
                     >
                       <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 4, background: `${typeColor(r.type)}18`, color: typeColor(r.type), minWidth: 56, textAlign: 'center', flex: '0 0 auto' }}>{r.type}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         {/* A note can be a sentence, so it wraps to two lines
                             and stops rather than pushing the row wider. */}
-                        <div style={{ fontSize: 14, fontWeight: 500, color: '#111827',
+                        <div style={{ fontSize: 14, fontWeight: 500, color: '#0f172a',
                                       display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
                                       overflow: 'hidden' }}>{r.label}</div>
-                        {r.sub && <div style={{ fontSize: 12, color: '#6b7280' }}>{r.sub}</div>}
+                        {r.sub && <div style={{ fontSize: 12, color: '#64748b' }}>{r.sub}</div>}
                       </div>
                     </div>
                   ))}
@@ -1439,11 +1439,11 @@ const Layout = () => {
               style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 width: 36, height: 36, padding: 0,
-                border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff',
-                cursor: 'pointer', color: '#374151',
+                border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff',
+                cursor: 'pointer', color: '#334155',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#1f2937'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#374151'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#1e293b'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#334155'; }}
             >
               <FiRefreshCw size={16} />
             </button>
@@ -1452,15 +1452,15 @@ const Layout = () => {
             <div ref={langRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowLangMenu(p => !p)}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#374151' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#334155' }}
               >
-                <FiGlobe size={15} style={{ color: '#6b7280' }} />
+                <FiGlobe size={15} style={{ color: '#64748b' }} />
                 <span>{currentLang.flag}</span>
                 <span>{currentLang.label}</span>
-                <FiChevronDown size={13} style={{ color: '#6b7280' }} />
+                <FiChevronDown size={13} style={{ color: '#64748b' }} />
               </button>
               {showLangMenu && (
-                <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 999, minWidth: 160, overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 999, minWidth: 160, overflow: 'hidden' }}>
                   {LANGUAGES.map(lang => (
                     <div
                       key={lang.code}
@@ -1469,9 +1469,9 @@ const Layout = () => {
                         display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px',
                         cursor: 'pointer', fontSize: 13, fontWeight: language === lang.code ? 600 : 400,
                         background: language === lang.code ? '#f0f9ff' : '#fff',
-                        color: language === lang.code ? '#2563eb' : '#374151',
+                        color: language === lang.code ? '#2563eb' : '#334155',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = language === lang.code ? '#f0f9ff' : '#f9fafb'}
+                      onMouseEnter={e => e.currentTarget.style.background = language === lang.code ? '#f0f9ff' : '#f8fafc'}
                       onMouseLeave={e => e.currentTarget.style.background = language === lang.code ? '#f0f9ff' : '#fff'}
                     >
                       <span style={{ fontSize: 18 }}>{lang.flag}</span>
@@ -1508,7 +1508,7 @@ const Layout = () => {
         <div role="status" aria-live="polite"
           onClick={() => { const id = chatToast.conversation_id; setChatToast(null); navigate(`/messages?c=${id}`); }}
           style={{ position: 'fixed', right: 18, bottom: 18, zIndex: 4000, width: 330, maxWidth: 'calc(100vw - 36px)',
-                   background: '#fff', border: '1px solid #e3e7ef', borderLeft: '4px solid #13306b', borderRadius: 12,
+                   background: '#fff', border: '1px solid #e2e8f0', borderLeft: '4px solid #13306b', borderRadius: 12,
                    boxShadow: '0 12px 30px rgba(15,23,42,0.18)', padding: '12px 14px', cursor: 'pointer',
                    display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <FiMessageSquare style={{ color: '#13306b', marginTop: 3, flex: '0 0 auto' }} />
@@ -1562,7 +1562,7 @@ const Layout = () => {
                 ? `/pos/cash-report?req=${expenseReq.sync_id}&date=${expenseReq.date || ''}&cashier=${cashierId}`
                 : `/accounting/payment-vouchers?req=${expenseReq.sync_id}`);
             }}
-              style={{ background: meta.bg, border: '1px solid #e3e7ef', borderLeft: `4px solid ${meta.line}`, borderRadius: 12,
+              style={{ background: meta.bg, border: '1px solid #e2e8f0', borderLeft: `4px solid ${meta.line}`, borderRadius: 12,
                        boxShadow: '0 12px 30px rgba(15,23,42,0.18)', padding: '12px 14px',
                        cursor: st === 'approved' ? 'pointer' : 'default', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
               <FiCreditCard style={{ color: meta.line, marginTop: 3, flex: '0 0 auto' }} />
@@ -1624,29 +1624,29 @@ const Layout = () => {
                             maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', textAlign: 'center' }}>
                 <img src={keleteLogo} alt="Red Sea"
                   style={{ display: 'block', width: 64, height: 64, objectFit: 'contain', margin: '0 auto 10px' }} />
-                <div style={{ fontSize: 13, color: '#6b7280', letterSpacing: 1, textTransform: 'uppercase' }}>{title}</div>
+                <div style={{ fontSize: 13, color: '#64748b', letterSpacing: 1, textTransform: 'uppercase' }}>{title}</div>
                 <div style={{ fontSize: 44, fontWeight: 800, color: '#15803d', lineHeight: 1.1, margin: '4px 0 2px' }}>{rows.length}</div>
-                <div style={{ fontSize: 14, color: '#374151', marginBottom: 16 }}>
+                <div style={{ fontSize: 14, color: '#334155', marginBottom: 16 }}>
                   {hq ? 'confirmed by depots, waiting for a GRN' : 'waiting to be received at this depot'}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, textAlign: 'left', marginBottom: 18 }}>
                   {shown.map((r) => (
-                    <div key={r.key} style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', background: '#f9fafb' }}>
+                    <div key={r.key} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px', background: '#f8fafc' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, fontSize: 13 }}>
                         <span style={{ fontWeight: 700, color: '#0f172a' }}>{r.kind === 'stock' ? 'From HQ' : r.kind === 'grn' ? 'Confirmed' : 'Transfer'} · {r.ref}</span>
-                        <span style={{ color: '#6b7280', whiteSpace: 'nowrap' }}>{r.date}</span>
+                        <span style={{ color: '#64748b', whiteSpace: 'nowrap' }}>{r.date}</span>
                       </div>
-                      <div style={{ fontSize: 13, color: '#374151', marginTop: 2 }}>
+                      <div style={{ fontSize: 13, color: '#334155', marginTop: 2 }}>
                         {r.kind === 'stock' ? r.from : `From ${r.from}`} · {r.items}
                       </div>
                     </div>
                   ))}
-                  {more > 0 && <div style={{ fontSize: 13, color: '#6b7280', textAlign: 'center' }}>+{more} more</div>}
+                  {more > 0 && <div style={{ fontSize: 13, color: '#64748b', textAlign: 'center' }}>+{more} more</div>}
                 </div>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <button type="button" onClick={() => { setNoticePhase('later'); setCornerClosed(false); }}
-                    style={{ flex: '1 1 120px', padding: '12px 16px', borderRadius: 10, border: '1.5px solid #d1d5db', background: '#fff',
-                             color: '#374151', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+                    style={{ flex: '1 1 120px', padding: '12px 16px', borderRadius: 10, border: '1.5px solid #cbd5e1', background: '#fff',
+                             color: '#334155', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
                     Later
                   </button>
                   {transfers.length > 0 && (
@@ -1704,7 +1704,7 @@ const Layout = () => {
               <div key={a.path} title="Drag to move"
                 // A drag that ends on the card must not also open the page.
                 onClick={() => { if (movedRef.current) { movedRef.current = false; return; } openPath(a.path); }}
-                style={{ background: '#fff', border: '1px solid #e3e7ef', borderLeft: '4px solid #15803d', borderRadius: 12,
+                style={{ background: '#fff', border: '1px solid #e2e8f0', borderLeft: '4px solid #15803d', borderRadius: 12,
                          boxShadow: '0 12px 30px rgba(15,23,42,0.18)', padding: '12px 14px', cursor: 'pointer',
                          display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                 {a.path === '/stock/transfers?tab=incoming'
@@ -1733,21 +1733,21 @@ const Layout = () => {
           <div onClick={e => e.stopPropagation()}
             style={{ width: 360, maxWidth: '92vw', background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 20px 50px rgba(0,0,0,0.25)' }}>
             <div style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>{passcodeGate.label}</div>
-            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>Enter the admin passcode to continue.</div>
+            <div style={{ fontSize: 12, color: '#64748b', marginBottom: 16 }}>Enter the admin passcode to continue.</div>
             <input
               type="password" autoFocus
               value={passcodeGate.value}
               onChange={e => setPasscodeGate(prev => ({ ...prev, value: e.target.value, error: '' }))}
               onKeyDown={e => { if (e.key === 'Enter') submitPasscode(); if (e.key === 'Escape') setPasscodeGate(null); }}
               placeholder="Passcode"
-              style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: passcodeGate.error ? '2px solid #ef4444' : '1.5px solid #d1d5db', fontSize: 16, letterSpacing: 4, textAlign: 'center', fontFamily: 'monospace', outline: 'none', boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: passcodeGate.error ? '2px solid #ef4444' : '1.5px solid #cbd5e1', fontSize: 16, letterSpacing: 4, textAlign: 'center', fontFamily: 'var(--k-font-mono)', outline: 'none', boxSizing: 'border-box' }}
             />
             {passcodeGate.error && (
               <div style={{ color: '#dc2626', fontSize: 12, marginTop: 6, fontWeight: 600 }}>{passcodeGate.error}</div>
             )}
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
               <button onClick={() => setPasscodeGate(null)}
-                style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
               <button onClick={submitPasscode}
                 style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none', background: '#1d4ed8', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>Continue</button>
             </div>

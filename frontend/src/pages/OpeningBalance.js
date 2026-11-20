@@ -301,7 +301,7 @@ const OpeningBalance = () => {
   .co   { font-size: 13pt; font-weight: 700; letter-spacing: 0.3px; }
   .doc  { font-size: 10.5pt; font-weight: 700; margin-top: 1.5mm;
           display: flex; justify-content: space-between; align-items: baseline; }
-  .meta { font-size: 8.5pt; color: #333; margin-top: 1.5mm;
+  .meta { font-size: 8.5pt; color: #334155; margin-top: 1.5mm;
           display: flex; justify-content: space-between; }
   table { width: 100%; border-collapse: collapse; table-layout: fixed; }
   thead { display: table-header-group; }
@@ -310,19 +310,19 @@ const OpeningBalance = () => {
           border-bottom: 1.2pt solid #000; padding: 2mm 1.5mm; text-align: left;
           vertical-align: bottom; }
   th.n  { text-align: right; }
-  td    { border-bottom: 0.4pt solid #bbb; padding: 2.1mm 1.5mm; height: 7mm;
+  td    { border-bottom: 0.4pt solid #cbd5e1; padding: 2.1mm 1.5mm; height: 7mm;
           vertical-align: middle; overflow: hidden; }
   td.n  { text-align: right; font-variant-numeric: tabular-nums; }
-  td.code { font-size: 8pt; color: #444; }
+  td.code { font-size: 8pt; color: #334155; }
   .warn { font-weight: 700; }
-  .write { background: #f0f0f0; border-left: 0.4pt solid #bbb; }
+  .write { background: #f1f5f9; border-left: 0.4pt solid #cbd5e1; }
   tr.sect td { background: #000; color: #fff; font-weight: 700; font-size: 8pt;
                letter-spacing: 1px; text-transform: uppercase; height: auto;
                padding: 1.8mm 1.5mm; border: none; }
   .sign { margin-top: 8mm; font-size: 9pt; break-inside: avoid; page-break-inside: avoid; }
   .sign div { margin-bottom: 6mm; }
   .rule { display: inline-block; border-bottom: 0.6pt solid #000; }
-  .empty { text-align: center; padding: 20mm; color: #666; }
+  .empty { text-align: center; padding: 20mm; color: #475569; }
 </style></head><body>
   <div class="head">
     <div class="co">RED SEA IMPORT AND EXPORT ZAMBIA LTD</div>
@@ -395,7 +395,7 @@ const OpeningBalance = () => {
         style={{
           width: '100%', padding: opts.prefix ? '11px 12px 11px 28px' : '11px 12px',
           borderRadius: 8, fontSize: 16, fontWeight: 700,
-          border: `2px solid ${opts.border || '#e5e7eb'}`,
+          border: `2px solid ${opts.border || '#e2e8f0'}`,
           background: opts.bg || '#fff', color: '#0f172a', outline: 'none',
           boxSizing: 'border-box', textAlign: 'right',
         }} />
@@ -403,7 +403,7 @@ const OpeningBalance = () => {
   );
 
   const label = (text, extra) => (
-    <label style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+    <label style={{ fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
       <span>{text}</span>{extra}
     </label>
   );
@@ -422,12 +422,12 @@ const OpeningBalance = () => {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={handlePrintSheet} disabled={loading || products.length === 0}
             title={dirtyIds.size > 0 ? 'Save your changes first - the sheet prints what the database holds' : 'Print an A4 sheet to check stock and prices against the depot'}
-            style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: loading || products.length === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', cursor: loading || products.length === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
             <FiPrinter size={14} /> Print Sheet
           </button>
           {dirtyIds.size > 0 && (
             <button onClick={handleDiscard} disabled={saving}
-              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <FiRefreshCw size={14} /> Discard
             </button>
           )}
@@ -449,13 +449,13 @@ const OpeningBalance = () => {
         <div style={{ position: 'relative', flex: '0 0 360px' }}>
           <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search product name or code…"
-            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
+            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: '#374151', cursor: 'pointer', fontWeight: 600 }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: '#334155', cursor: 'pointer', fontWeight: 600 }}>
           <input type="checkbox" checked={onlyUnset} onChange={e => setOnlyUnset(e.target.checked)} />
           Only items with no balance yet
         </label>
-        <div style={{ fontSize: 12, color: '#6b7280' }}>
+        <div style={{ fontSize: 12, color: '#64748b' }}>
           {filteredProducts.length} of {products.length} products · <strong>{declared}</strong> already declared
         </div>
       </div>
@@ -475,10 +475,10 @@ const OpeningBalance = () => {
             return (
               <div key={p.id} style={{
                 background: '#fff',
-                border: `1.5px solid ${isDirty ? '#f59e0b' : '#e5e7eb'}`,
+                border: `1.5px solid ${isDirty ? '#f59e0b' : '#e2e8f0'}`,
                 borderRadius: 12, padding: 14, boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
               }}>
-                <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
+                <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e2e8f0' }}>
                   <div style={{ fontWeight: 700, color: '#0f172a', fontSize: 14, lineHeight: 1.2 }}>{p.name}</div>
                   <div style={{ fontSize: 11, color: '#64748b', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span>{p.code}</span>
@@ -507,7 +507,7 @@ const OpeningBalance = () => {
                         placeholder: '0',
                         onFocus: () => { setEditingKey(qKey); setEditingRaw(num(qty[p.id]) === 0 ? '' : String(num(qty[p.id]))); },
                         onBlur:  () => { setEditingKey(null); setEditingRaw(''); },
-                        border: isDirty ? '#f59e0b' : '#e5e7eb',
+                        border: isDirty ? '#f59e0b' : '#e2e8f0',
                         bg: isDirty ? '#fffbeb' : '#fff',
                       })}
                   </div>
@@ -520,7 +520,7 @@ const OpeningBalance = () => {
                         prefix: curSym,
                         onFocus: () => { setEditingKey(cKey); setEditingRaw(num(cost[p.id]) === 0 ? '' : num(cost[p.id]).toFixed(2)); },
                         onBlur:  () => { setEditingKey(null); setEditingRaw(''); },
-                        border: isDirty ? '#f59e0b' : '#e5e7eb',
+                        border: isDirty ? '#f59e0b' : '#e2e8f0',
                         bg: isDirty ? '#fffbeb' : '#fff',
                       })}
                   </div>
@@ -553,7 +553,7 @@ const OpeningBalance = () => {
                             prefix: curSym,
                             onFocus: () => { setEditingKey(cellKey); setEditingRaw(displayValue); },
                             onBlur:  () => { setEditingKey(null); setEditingRaw(''); },
-                            border: isDirty ? '#f59e0b' : (isDefault ? '#93c5fd' : '#e5e7eb'),
+                            border: isDirty ? '#f59e0b' : (isDefault ? '#93c5fd' : '#e2e8f0'),
                             bg: isDirty ? '#fffbeb' : (isDefault ? '#eff6ff' : '#fff'),
                           })}
                         </div>

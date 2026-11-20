@@ -95,7 +95,7 @@ export default function HqProducts() {
       </div>
 
       {/* Filters */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12, marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12, marginBottom: 12, display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: '1 1 240px' }}>
           <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
           <input type="text" value={q}
@@ -103,10 +103,10 @@ export default function HqProducts() {
             onKeyDown={e => { if (e.key === 'Enter') refresh(); }}
             onBlur={refresh}
             placeholder="Search by name…"
-            style={{ width: '100%', padding: '8px 10px 8px 30px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '8px 10px 8px 30px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' }} />
         </div>
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-          style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff' }}>
+          style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff' }}>
           <option value="">All status</option>
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
@@ -121,7 +121,7 @@ export default function HqProducts() {
         }}>{toast.text}</div>
       )}
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
@@ -147,7 +147,7 @@ export default function HqProducts() {
                   try { const arr = r.units_json ? JSON.parse(r.units_json) : []; packCount = Array.isArray(arr) ? Math.max(0, arr.length - 1) : 0; } catch {}
                   return (
                     <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9', opacity: r.status === 'Inactive' ? 0.55 : 1 }}>
-                      <td style={{ ...td, fontFamily: 'monospace', fontSize: 12 }}>{r.code || '—'}</td>
+                      <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>{r.code || '—'}</td>
                       <td style={{ ...td, fontWeight: 600 }}>{r.name}</td>
                       <td style={td}>{r.category_name || '—'}</td>
                       <td style={td}>{r.unit}</td>
@@ -283,7 +283,7 @@ function ProductForm({ existing, onClose, onSaved, onError }) {
   return (
     <div style={overlay}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(720px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>{existing ? 'Edit Product' : 'New Product'}</h3>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>×</button>
         </div>
@@ -366,7 +366,7 @@ function ProductForm({ existing, onClose, onSaved, onError }) {
             <strong>HQ-owned fields only.</strong> Branches CANNOT edit these. Each branch sets its own <b>Cost / Selling / Min stock / Status / Opening stock / Notes</b>. The product stays hidden from a branch's POS until the branch sets a selling price.
           </div>
         </div>
-        <div style={{ padding: 14, borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <div style={{ padding: 14, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose} style={{ padding: '10px 18px', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
           <button onClick={submit} disabled={submitting}
             style={{ padding: '10px 22px',
@@ -385,11 +385,11 @@ function DetailModal({ data, onClose }) {
   return (
     <div style={overlay}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(720px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h3 style={{ margin: 0 }}>{p.name}</h3>
             <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-              {p.code ? <span style={{ fontFamily: 'monospace' }}>{p.code} · </span> : null}
+              {p.code ? <span style={{ fontFamily: 'var(--k-font-mono)' }}>{p.code} · </span> : null}
               {p.category_name || 'no category'} · {p.unit}
             </div>
           </div>
@@ -459,7 +459,7 @@ function Stat({ label, value }) {
 }
 
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 };
-const inp = { width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '8px 10px', fontSize: 10, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '6px 10px', color: '#0f172a' };
 const btnIcon = (color) => ({

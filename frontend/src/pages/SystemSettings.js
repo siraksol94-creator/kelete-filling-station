@@ -461,7 +461,7 @@ const SystemSettings = () => {
                 <Row admin title="Deposit to" help="Where this depot's deposits go, manual and Auto deposit. HQ by default. Pick a main depot (e.g. Kabwe) and that depot confirms them and books the money; HQ does not see them. Deposits already sent keep going where they were sent.">
                   <select aria-label="Deposit to" value={form.depositTo || ''}
                     onChange={e => set('depositTo')(e.target.value)}
-                    style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 200 }}>
+                    style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 200 }}>
                     <option value="">HQ</option>
                     {depotChoices.map(b => <option key={b.slug} value={b.slug}>{b.name || b.slug}</option>)}
                     {form.depositTo && !depotChoices.some(b => b.slug === form.depositTo) && (
@@ -513,7 +513,7 @@ const SystemSettings = () => {
                       value={passcode} placeholder={passcodeSet ? 'Set — type to replace' : 'At least 4 characters'}
                       autoComplete="new-password" data-keep-case
                       onChange={e => setPasscode(e.target.value)}
-                      style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 220 }} />
+                      style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, background: '#fff', minWidth: 220 }} />
                     <button type="button" className="ss-btn" disabled={savingPasscode || passcode.trim().length < 4}
                       onClick={() => handleSavePasscode(passcode.trim())}>
                       {savingPasscode ? 'Saving…' : 'Save passcode'}
@@ -735,11 +735,11 @@ const SystemSettings = () => {
               <FiAlertTriangle size={28} color="#dc2626" />
             </div>
             <h3 style={{ margin: '0 0 8px', fontSize: 20 }}>Factory Reset?</h3>
-            <p style={{ color: '#6b7280', fontSize: 14, margin: '0 0 24px' }}>
+            <p style={{ color: '#64748b', fontSize: 14, margin: '0 0 24px' }}>
               This will permanently delete <strong>all data</strong> on this device — orders, products, GRN, SIV, customers, suppliers — and disconnect from cloud. This <strong>cannot be undone</strong>.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button onClick={() => setResetStep(0)} style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+              <button onClick={() => setResetStep(0)} style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
               <button onClick={() => setResetStep(2)} style={{ padding: '10px 24px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>Yes, Continue</button>
             </div>
           </div>
@@ -752,7 +752,7 @@ const SystemSettings = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 16, padding: '36px 40px', maxWidth: 400, width: '90%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: 18 }}>Delete Company Settings?</h3>
-            <p style={{ color: '#6b7280', fontSize: 14, margin: '0 0 24px' }}>
+            <p style={{ color: '#64748b', fontSize: 14, margin: '0 0 24px' }}>
               Do you also want to delete the company name, phone number, and email?
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -762,7 +762,7 @@ const SystemSettings = () => {
               <button onClick={() => doFactoryReset(false)} disabled={factoryResetting} style={{ padding: '12px', background: '#f97316', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
                 {factoryResetting ? 'Resetting...' : 'No — Keep Company Settings'}
               </button>
-              <button onClick={() => setResetStep(0)} disabled={factoryResetting} style={{ padding: '10px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+              <button onClick={() => setResetStep(0)} disabled={factoryResetting} style={{ padding: '10px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
             </div>
           </div>
         </div>

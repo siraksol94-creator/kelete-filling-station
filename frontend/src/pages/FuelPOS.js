@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FiDollarSign, FiTruck, FiSmartphone, FiCreditCard, FiCheck, FiX } from 'react-icons/fi';
 import { getNozzles, getFleetCustomers, getFleetCustomer, createFuelSale, getFuelSales, getCurrentShift } from '../services/fuelApi';
 import { S } from './fuelStyles';
+import { fmtK } from '../ux/forecourt';
 
 const PAYMENT_METHODS = [
   { key: 'Cash',   label: 'Cash',   icon: <FiDollarSign /> },
@@ -81,7 +82,7 @@ export default function FuelPOS() {
     <div style={S.page} className="k-page">
       <div style={S.header} className="k-page-header">
         <h2 style={S.h2}><FiDollarSign /> Fuel POS</h2>
-        <div style={{ fontSize: 13, color: '#6b7280' }}>
+        <div style={{ fontSize: 13, color: '#64748b' }}>
           {shift ? <>Active shift: <strong>{shift.attendant_name}</strong></> : <span style={{ color: '#dc2626' }}>No active shift</span>}
         </div>
       </div>
@@ -90,7 +91,7 @@ export default function FuelPOS() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div style={S.card}>
-          <div style={{ padding: 16, borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}><strong>New Fuel Sale</strong></div>
+          <div style={{ padding: 16, borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}><strong>New Fuel Sale</strong></div>
           <form onSubmit={submit} style={{ padding: 20 }}>
             {err && <div style={{ ...S.errBox, margin: 0, marginBottom: 16 }}>{err}</div>}
 
@@ -104,7 +105,7 @@ export default function FuelPOS() {
                   const groups = {};
                   for (const n of nozzles) {
                     const key = n.grade_name || '-';
-                    (groups[key] ||= { color: n.grade_color || '#374151', items: [] }).items.push(n);
+                    (groups[key] ||= { color: n.grade_color || '#334155', items: [] }).items.push(n);
                   }
                   // Petrol-first ordering: reverse-alphabetical puts P before D.
                   // Covers Petrol → Paraffin → Diesel for most common grades.
@@ -113,7 +114,7 @@ export default function FuelPOS() {
                     <optgroup key={gradeName} label={gradeName.toUpperCase()}>
                       {groups[gradeName].items.map(n => (
                         <option key={n.id} value={n.id} style={{ color: groups[gradeName].color, fontWeight: 600 }}>
-                          {n.pump_code}-{n.code} @ K {Number(n.price_per_litre || 0).toFixed(2)}/L
+                          {n.pump_code}-{n.code} @ {fmtK(n.price_per_litre || 0)}/L
                         </option>
                       ))}
                     </optgroup>
@@ -141,8 +142,8 @@ export default function FuelPOS() {
               {PAYMENT_METHODS.map(pm => (
                 <button key={pm.key} type="button" onClick={() => setPayment(pm.key)} style={{
                   padding: 12, border: 0, borderRadius: 8, cursor: 'pointer', fontWeight: 500,
-                  background: payment === pm.key ? '#2563eb' : '#f3f4f6',
-                  color: payment === pm.key ? '#fff' : '#111',
+                  background: payment === pm.key ? '#2563eb' : '#f1f5f9',
+                  color: payment === pm.key ? '#fff' : '#0f172a',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 }}>{pm.icon}<span style={{ fontSize: 12 }}>{pm.label}</span></button>
               ))}
@@ -170,11 +171,11 @@ export default function FuelPOS() {
               </div>
             )}
 
-            <div style={{ marginTop: 20, padding: 16, background: '#f9fafb', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ color: '#6b7280' }}>
-                {effLitres.toFixed(2)} L @ K {ppl.toFixed(2)}/L
+            <div style={{ marginTop: 20, padding: 16, background: '#f8fafc', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ color: '#64748b' }}>
+                {effLitres.toFixed(2)} L @ K{ppl.toFixed(2)}/L
               </div>
-              <div style={{ fontSize: 28, fontWeight: 700 }}>K {effAmount.toFixed(2)}</div>
+              <div style={{ fontSize: 28, fontWeight: 700 }}>{fmtK(effAmount)}</div>
             </div>
 
             <button type="submit" disabled={saving || !selectedNoz || !(effLitres > 0)} style={{ ...S.btnPrimary, width: '100%', marginTop: 16, fontSize: 16, padding: 14, justifyContent: 'center' }}>
@@ -184,7 +185,7 @@ export default function FuelPOS() {
         </div>
 
         <div style={S.card}>
-          <div style={{ padding: 16, borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}><strong>Recent Sales</strong></div>
+          <div style={{ padding: 16, borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}><strong>Recent Sales</strong></div>
           <table style={S.table}>
             <thead><tr>
               <th style={S.th}>#</th><th style={S.th}>Nozzle</th><th style={S.th}>Grade</th>
@@ -194,16 +195,16 @@ export default function FuelPOS() {
             </tr></thead>
             <tbody>
               {recent.map(s => (
-                <tr key={s.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                  <td style={{ ...S.td, fontSize: 12, color: '#6b7280' }}>{s.sale_number}</td>
+                <tr key={s.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ ...S.td, fontSize: 12, color: '#64748b' }}>{s.sale_number}</td>
                   <td style={S.td}>{s.pump_code}-{s.nozzle_code}</td>
-                  <td style={S.td}><span style={S.pill(s.grade_color || '#6b7280')}>{s.grade_name}</span></td>
+                  <td style={S.td}><span style={S.pill(s.grade_color || '#64748b')}>{s.grade_name}</span></td>
                   <td style={S.tdR}>{Number(s.litres).toFixed(2)}</td>
-                  <td style={S.tdR}><strong>K {Number(s.total).toFixed(2)}</strong></td>
+                  <td style={S.tdR}><strong>{fmtK(s.total)}</strong></td>
                   <td style={S.td}>{s.payment_method}</td>
                 </tr>
               ))}
-              {recent.length === 0 && <tr><td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No sales yet.</td></tr>}
+              {recent.length === 0 && <tr><td colSpan={6} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No sales yet.</td></tr>}
             </tbody>
           </table>
         </div>

@@ -103,7 +103,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
       const mainId = item.main_category_id || '__unassigned__';
       const main = allMains.find(m => String(m.id) === String(item.main_category_id));
       const name = main ? main.name : 'Uncategorized';
-      const color = main ? main.color : '#6b7280';
+      const color = main ? main.color : '#64748b';
       if (!map.has(mainId)) map.set(mainId, { name, color, value: 0, items: 0 });
       const entry = map.get(mainId);
       entry.value += parseFloat(item.store_balance) * parseFloat(item.avg_cost_price || item.cost_price || 0);
@@ -149,22 +149,22 @@ const Inventory = ({ viewLocation = 'store' }) => {
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(titleText)}</title>
       <style>
         @page { size: A4 landscape; margin: 8mm; }
-        body { font-family: Arial, sans-serif; color: #111827; font-size: 11px; }
+        body { font-family: Arial, sans-serif; color: #0f172a; font-size: 11px; }
         h1 { font-size: 18px; margin: 0; }
-        .meta { font-size: 10px; color: #6b7280; margin: 4px 0 10px; }
+        .meta { font-size: 10px; color: #64748b; margin: 4px 0 10px; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f3f4f6; text-align: left; padding: 6px 8px; border-bottom: 1px solid #d1d5db; font-size: 10px; }
-        td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
+        th { background: #f1f5f9; text-align: left; padding: 6px 8px; border-bottom: 1px solid #cbd5e1; font-size: 10px; }
+        td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; }
         td.r { text-align: right; }
-        tr:nth-child(even) td { background: #fafafa; }
-        .footer { margin-top: 10px; font-size: 9px; color: #9ca3af; display: flex; justify-content: space-between; }
+        tr:nth-child(even) td { background: #f8fafc; }
+        .footer { margin-top: 10px; font-size: 9px; color: #94a3b8; display: flex; justify-content: space-between; }
       </style>
       </head><body>
         <h1>${esc(titleText)}</h1>
         <div class="meta">${esc(subtitleText)} · ${esc(filterLine)} · ${filtered.length} item${filtered.length === 1 ? '' : 's'}</div>
         <table>
           <thead><tr><th>${esc(t('code'))}</th><th>${esc(t('product'))}</th><th>${esc(t('category'))}</th><th class="r">${esc(t('openingBalance'))}</th><th class="r">${esc(t('totalIn'))}</th><th class="r">${esc(t('totalOut'))}</th><th class="r">${esc(t('storeBalance'))}</th><th class="r">${esc(t('minStock'))}</th><th class="r">${esc(t('balanceValue'))}</th><th>${esc(t('status'))}</th></tr></thead>
-          <tbody>${rows || '<tr><td colspan="10" style="text-align:center;padding:20px;color:#9ca3af">No items</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="10" style="text-align:center;padding:20px;color:#94a3b8">No items</td></tr>'}</tbody>
         </table>
         <div class="footer"><span>${esc(titleText)}</span><span>Printed: ${esc(printedAt)}</span></div>
       </body></html>`;
@@ -213,7 +213,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
 
       <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div className="search-input-container" style={{ flex: '2 1 200px', marginBottom: 0 }}>
-          <FiSearch style={{ color: '#6b7280' }} />
+          <FiSearch style={{ color: '#64748b' }} />
           <input type="text" placeholder={t('searchByProductOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="filter-select" value={filter} onChange={e => setFilter(e.target.value)}>
@@ -221,14 +221,14 @@ const Inventory = ({ viewLocation = 'store' }) => {
           <option value="Low Stock">{t('lowStock')}</option>
         </select>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{t('from')}</label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{t('from')}</label>
           <input type="date" value={from} max={to || todayStr} onChange={e => setFrom(e.target.value)}
-            style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13 }} />
+            style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', whiteSpace: 'nowrap' }}>{t('to')}</label>
+          <label style={{ fontSize: 12, fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>{t('to')}</label>
           <input type="date" value={to} min={from || undefined} max={todayStr} onChange={e => setTo(e.target.value)}
-            style={{ padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13 }} />
+            style={{ padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13 }} />
         </div>
         <button onClick={handleApply}
           style={{ padding: '8px 18px', background: '#166534', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
@@ -236,7 +236,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
         </button>
         {(from || to || selMainIds !== null || selCatIds !== null || search || filter !== 'All Items') && (
           <button onClick={handleClear}
-            style={{ padding: '8px 14px', background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
+            style={{ padding: '8px 14px', background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, whiteSpace: 'nowrap' }}>
             {t('clear')}
           </button>
         )}
@@ -247,12 +247,12 @@ const Inventory = ({ viewLocation = 'store' }) => {
           {subtotalsByMain.map(s => (
             <div key={s.name} style={{
               padding: '6px 12px', borderRadius: 8,
-              background: (s.color || '#6b7280') + '15',
-              border: `1px solid ${(s.color || '#6b7280')}40`,
+              background: (s.color || '#64748b') + '15',
+              border: `1px solid ${(s.color || '#64748b')}40`,
               fontSize: 12,
             }}>
               <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
-              <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
+              <span style={{ marginLeft: 6, color: '#334155', fontWeight: 600 }}>
                 {s.items} item{s.items !== 1 ? 's' : ''} · {curSym}{s.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </span>
             </div>
@@ -276,7 +276,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
           </thead>
           <tbody>
             {filtered.length === 0 ? (
-              <tr><td colSpan={isSalesView ? 11 : 10} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>{t('noData')}</td></tr>
+              <tr><td colSpan={isSalesView ? 11 : 10} style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>{t('noData')}</td></tr>
             ) : filtered.map(item => {
               const storeBalance = parseFloat(item.store_balance);
               const openingBalance = parseFloat(item.opening_balance || 0);
@@ -300,7 +300,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
                   <td style={{ color: '#15803d', fontWeight: 500 }}>{inDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {inDisp.unit}</td>
                   <td style={{ color: '#dc2626', fontWeight: 500 }}>{outDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {outDisp.unit}</td>
                   {isSalesView && (
-                    <td style={{ color: transitQty > 0 ? '#0e7490' : '#6b7280', fontWeight: transitQty > 0 ? 600 : 400 }}
+                    <td style={{ color: transitQty > 0 ? '#0e7490' : '#64748b', fontWeight: transitQty > 0 ? 600 : 400 }}
                         title={transitQty > 0 ? 'PENDING outgoing transfers awaiting receiver confirmation' : undefined}>
                       {transitQty > 0
                         ? `${transitDisp.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${transitDisp.unit}`

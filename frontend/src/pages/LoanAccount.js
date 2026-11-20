@@ -294,9 +294,9 @@ const LoanAccount = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 14, padding: 12, background: '#f9fafb', borderRadius: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>Status:</span>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff' }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 14, padding: 12, background: '#f8fafc', borderRadius: 10 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Status:</span>
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff' }}>
           <option value="All">All</option>
           <option value="Active">Active</option>
           <option value="Paid Off">Paid Off</option>
@@ -318,7 +318,7 @@ const LoanAccount = () => {
           </thead>
           <tbody>
             {loans.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No loans recorded.</td></tr>
+              <tr><td colSpan={8} style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No loans recorded.</td></tr>
             ) : loans.map(l => {
               const ss = STATUS_STYLE[l.status] || STATUS_STYLE.Active;
               return (
@@ -332,7 +332,7 @@ const LoanAccount = () => {
                   <td><span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: ss.bg, color: ss.color, border: `1px solid ${ss.border}` }}>{l.status}</span></td>
                   <td style={{ textAlign: 'center' }}>
                     <button onClick={() => openDetail(l)} title="View / Record transaction" style={{ background: 'none', border: 'none', color: '#0369a1', cursor: 'pointer', padding: 4 }}><FiEye /></button>
-                    {canEdit && <button onClick={() => openEditLoan(l)} title="Edit loan" style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 4 }}><FiEdit2 /></button>}
+                    {canEdit && <button onClick={() => openEditLoan(l)} title="Edit loan" style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}><FiEdit2 /></button>}
                     {canDelete && <button onClick={() => handleDeleteLoan(l)} title="Delete" style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 4 }}><FiTrash2 /></button>}
                   </td>
                 </tr>
@@ -407,7 +407,7 @@ const LoanAccount = () => {
                 {!editLoanId && (
                   <>
                     <div className="form-group" style={{ marginTop: 6 }}>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                         Money Received (split across methods) *
                       </label>
                       {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
@@ -423,12 +423,12 @@ const LoanAccount = () => {
                               value={loanForm[f.key]}
                               onChange={e => setLoanForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                               placeholder="0.00"
-                              style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(loanForm[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(loanForm[f.key] || 0) > 0 ? f.color : '#374151', boxSizing: 'border-box' }} />
+                              style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(loanForm[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(loanForm[f.key] || 0) > 0 ? f.color : '#334155', boxSizing: 'border-box' }} />
                           </div>
                         ))}
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
-                        <span style={{ color: '#6b7280' }}>Total received</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
+                        <span style={{ color: '#64748b' }}>Total received</span>
                         <span style={{ fontWeight: 800, color: '#1d4ed8' }}>
                           {curSym}{(parseFloat(loanForm.disb_cash || 0) + parseFloat(loanForm.disb_bank || 0) + parseFloat(loanForm.disb_momo || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </span>
@@ -465,22 +465,22 @@ const LoanAccount = () => {
               </div>
               <div className="modal-body">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
-                  <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Principal</div><div style={{ fontWeight: 700, marginTop: 3 }}>{curSym}{parseFloat(detailLoan.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
-                  <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Outstanding</div><div style={{ fontWeight: 700, marginTop: 3, color: detailLoan.outstanding > 0 ? '#dc2626' : '#15803d' }}>{curSym}{parseFloat(detailLoan.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
-                  <div><div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Interest Rate</div><div style={{ fontWeight: 700, marginTop: 3 }}>{detailLoan.interest_rate > 0 ? `${detailLoan.interest_rate}%` : '—'}</div></div>
+                  <div><div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Principal</div><div style={{ fontWeight: 700, marginTop: 3 }}>{curSym}{parseFloat(detailLoan.principal_amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
+                  <div><div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Outstanding</div><div style={{ fontWeight: 700, marginTop: 3, color: detailLoan.outstanding > 0 ? '#dc2626' : '#15803d' }}>{curSym}{parseFloat(detailLoan.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
+                  <div><div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Interest Rate</div><div style={{ fontWeight: 700, marginTop: 3 }}>{detailLoan.interest_rate > 0 ? `${detailLoan.interest_rate}%` : '—'}</div></div>
                 </div>
 
                 {hasPermission('LoanAccount:Add') && (
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: 10, background: '#f9fafb', borderRadius: 8 }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 14, padding: 10, background: '#f8fafc', borderRadius: 8 }}>
                     <button className="btn btn-primary" style={{ background: '#16a34a' }} onClick={() => openTxForm('Disbursement')}>+ Disbursement</button>
                     <button className="btn btn-primary" style={{ background: '#dc2626' }} onClick={() => openTxForm('Principal')}>+ Principal Payment</button>
                     <button className="btn btn-primary" style={{ background: '#f59e0b' }} onClick={() => openTxForm('Interest')}>+ Interest Payment</button>
                   </div>
                 )}
 
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                    <thead style={{ background: '#f9fafb' }}>
+                    <thead style={{ background: '#f8fafc' }}>
                       <tr>
                         <th style={{ padding: '8px 10px', textAlign: 'left' }}>TXN #</th>
                         <th style={{ padding: '8px 10px', textAlign: 'left' }}>DATE</th>
@@ -492,18 +492,18 @@ const LoanAccount = () => {
                     </thead>
                     <tbody>
                       {(detailLoan.transactions || []).length === 0 ? (
-                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30, color: '#6b7280' }}>No transactions yet. Click + Disbursement to record the loan being received.</td></tr>
+                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: 30, color: '#64748b' }}>No transactions yet. Click + Disbursement to record the loan being received.</td></tr>
                       ) : detailLoan.transactions.map(tx => {
                         const ts = TX_TYPE_STYLE[tx.type] || TX_TYPE_STYLE.Disbursement;
                         const sign = tx.type === 'Disbursement' ? '+' : '−';
                         const color = tx.type === 'Disbursement' ? '#16a34a' : (tx.type === 'Interest' ? '#92400e' : '#dc2626');
                         return (
-                          <tr key={tx.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                          <tr key={tx.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                             <td style={{ padding: '8px 10px', fontWeight: 600 }}>{tx.transaction_number}</td>
                             <td style={{ padding: '8px 10px' }}>{formatDate(tx.date)}</td>
                             <td style={{ padding: '8px 10px' }}><span style={{ padding: '2px 8px', borderRadius: 12, fontSize: 10, fontWeight: 700, background: ts.bg, color: ts.color, border: `1px solid ${ts.border}` }}>{tx.type}</span></td>
                             <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color }}>{sign}{curSym}{parseFloat(tx.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                            <td style={{ padding: '8px 10px', color: '#6b7280' }}>{tx.description || '—'}</td>
+                            <td style={{ padding: '8px 10px', color: '#64748b' }}>{tx.description || '—'}</td>
                             {canDelete && (
                               <td style={{ padding: '8px 10px', textAlign: 'center' }}>
                                 <button onClick={() => handleDeleteTx(tx)} title="Delete" style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 2 }}><FiTrash2 size={14} /></button>
@@ -548,7 +548,7 @@ const LoanAccount = () => {
                 </div>
 
                 <div className="form-group">
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>Amount (split across methods)</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Amount (split across methods)</label>
                   {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
                   <div style={{ display: 'grid', gridTemplateColumns: `repeat(${1 + ((methodShown('bank') || parseFloat(txForm.bank_amount || 0) > 0) ? 1 : 0) + ((methodShown('momo') || parseFloat(txForm.momo_amount || 0) > 0) ? 1 : 0)}, 1fr)`, gap: 10 }}>
                     {[
@@ -561,12 +561,12 @@ const LoanAccount = () => {
                         <input type="number" min="0" step="0.01" value={txForm[f.key]}
                           onChange={e => setTxForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                           placeholder="0.00"
-                          style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(txForm[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(txForm[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, boxSizing: 'border-box' }} />
                       </div>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
-                    <span style={{ color: '#6b7280' }}>Total</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
+                    <span style={{ color: '#64748b' }}>Total</span>
                     <span style={{ fontWeight: 800, color: '#1d4ed8' }}>{curSym}{(parseFloat(txForm.cash_amount || 0) + parseFloat(txForm.bank_amount || 0) + parseFloat(txForm.momo_amount || 0)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 </div>

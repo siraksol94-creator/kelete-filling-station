@@ -135,7 +135,7 @@ const CostPrices = ({ readOnly = false }) => {
 
   const th = { padding: '10px 12px', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4 };
   const td = { padding: '8px 12px', fontSize: 13, color: '#0f172a' };
-  const inp = { width: 110, padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, textAlign: 'right' };
+  const inp = { width: 110, padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, textAlign: 'right' };
 
   return (
     <div style={{ padding: '0 0 24px' }}>
@@ -150,16 +150,16 @@ const CostPrices = ({ readOnly = false }) => {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={load} disabled={loading}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 14px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 14px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             <FiRefreshCw size={14} /> Reload
           </button>
           {!readOnly && <button onClick={handleSave} disabled={saving || dirty.size === 0}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: dirty.size ? '#C8102E' : '#e5e7eb', color: dirty.size ? '#fff' : '#6b7280', border: 'none', borderRadius: 8, cursor: dirty.size ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: dirty.size ? '#C8102E' : '#e2e8f0', color: dirty.size ? '#fff' : '#64748b', border: 'none', borderRadius: 8, cursor: dirty.size ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
             <FiSave size={14} /> {saving ? 'Saving…' : `Save${dirty.size ? ` (${dirty.size})` : ''}`}
           </button>}
           {!readOnly && <button onClick={() => setPushOpen(true)} disabled={pushable.length === 0}
             title={pushable.length === 0 ? 'Set at least one cost first' : 'Send these costs to depots'}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: pushable.length ? '#0f172a' : '#e5e7eb', color: pushable.length ? '#fff' : '#6b7280', border: 'none', borderRadius: 8, cursor: pushable.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: pushable.length ? '#0f172a' : '#e2e8f0', color: pushable.length ? '#fff' : '#64748b', border: 'none', borderRadius: 8, cursor: pushable.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
             <FiUploadCloud size={14} /> Sync C.P. to depots
           </button>}
         </div>
@@ -175,7 +175,7 @@ const CostPrices = ({ readOnly = false }) => {
         <div style={{ position: 'relative', flex: '1 1 260px', maxWidth: 380 }}>
           <FiSearch size={14} style={{ position: 'absolute', left: 10, top: 10, color: '#64748b' }} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or code…"
-            style={{ width: '100%', padding: '8px 10px 8px 30px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '8px 10px 8px 30px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
         </div>
         <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13, color: '#334155', cursor: 'pointer' }}>
           <input type="checkbox" checked={onlyMissing} onChange={e => setOnlyMissing(e.target.checked)} />
@@ -186,7 +186,7 @@ const CostPrices = ({ readOnly = false }) => {
         </div>
       </div>
 
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead style={{ background: '#f8fafc' }}>
             <tr>
@@ -221,7 +221,7 @@ const CostPrices = ({ readOnly = false }) => {
                           : <span style={{ color: '#cbd5e1' }}>not set</span>)
                       : <input type="number" step="0.01" min="0" value={costs[r.sync_id] ?? ''}
                           onChange={e => setCosts(c => ({ ...c, [r.sync_id]: e.target.value }))}
-                          style={{ ...inp, borderColor: changed ? '#C8102E' : '#d1d5db' }} />}
+                          style={{ ...inp, borderColor: changed ? '#C8102E' : '#cbd5e1' }} />}
                   </td>
                   {/* Shown so it is obvious when a real delivery has already
                       set a cost — from then on C.P. is not what reports use. */}
@@ -240,7 +240,7 @@ const CostPrices = ({ readOnly = false }) => {
           style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background: '#fff', borderRadius: 14, width: 'min(520px, 100%)', maxHeight: '88vh', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h3 style={{ margin: 0, fontSize: 16 }}>Send {pushable.length} cost{pushable.length === 1 ? '' : 's'} to…</h3>
               <button onClick={() => setPushOpen(false)} style={{ background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: 'pointer' }}>×</button>
             </div>
@@ -251,16 +251,16 @@ const CostPrices = ({ readOnly = false }) => {
               </div>
               <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
                 <button onClick={() => setPushTo(depots.map(d => d.slug))}
-                  style={{ padding: '6px 12px', fontSize: 12.5, borderRadius: 7, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Select all</button>
+                  style={{ padding: '6px 12px', fontSize: 12.5, borderRadius: 7, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}>Select all</button>
                 <button onClick={() => setPushTo([])}
-                  style={{ padding: '6px 12px', fontSize: 12.5, borderRadius: 7, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer' }}>Clear</button>
+                  style={{ padding: '6px 12px', fontSize: 12.5, borderRadius: 7, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}>Clear</button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
                 {depots.map(d => {
                   const on = pushTo.includes(d.slug);
                   return (
                     <label key={d.slug}
-                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 11px', border: `1px solid ${on ? '#C8102E' : '#e5e7eb'}`, background: on ? '#fef2f2' : '#fff', borderRadius: 9, cursor: 'pointer', fontSize: 13 }}>
+                      style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '9px 11px', border: `1px solid ${on ? '#C8102E' : '#e2e8f0'}`, background: on ? '#fef2f2' : '#fff', borderRadius: 9, cursor: 'pointer', fontSize: 13 }}>
                       <input type="checkbox" checked={on}
                         onChange={() => setPushTo(s => on ? s.filter(x => x !== d.slug) : [...s, d.slug])} />
                       {branchLabel(d)}
@@ -269,11 +269,11 @@ const CostPrices = ({ readOnly = false }) => {
                 })}
               </div>
             </div>
-            <div style={{ padding: '14px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+            <div style={{ padding: '14px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button onClick={() => setPushOpen(false)}
-                style={{ padding: '10px 16px', borderRadius: 9, border: '1px solid #d1d5db', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
+                style={{ padding: '10px 16px', borderRadius: 9, border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>Cancel</button>
               <button onClick={doPush} disabled={pushing || pushTo.length === 0}
-                style={{ padding: '10px 18px', borderRadius: 9, border: 'none', background: pushTo.length ? '#0f172a' : '#e5e7eb', color: pushTo.length ? '#fff' : '#6b7280', cursor: pushTo.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '10px 18px', borderRadius: 9, border: 'none', background: pushTo.length ? '#0f172a' : '#e2e8f0', color: pushTo.length ? '#fff' : '#64748b', cursor: pushTo.length ? 'pointer' : 'not-allowed', fontSize: 13, fontWeight: 700 }}>
                 {pushing ? 'Sending…' : `Send to ${pushTo.length || 'no'} depot${pushTo.length === 1 ? '' : 's'}`}
               </button>
             </div>

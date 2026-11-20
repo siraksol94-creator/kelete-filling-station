@@ -10,7 +10,7 @@ import TrendBars from './TrendBars';
 import { ProgressBar, VarianceBadge } from './components';
 import { takingsSplit, niceMax, shiftSteps, alerts } from './stationMetrics';
 
-const K = (n) => `K ${Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const K = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.abs(Number(n || 0)).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const L = (n) => `${Math.round(Number(n || 0)).toLocaleString('en-ZM')} L`;
 
 function Card({ icon, title, action, onAction, children, className = '' }) {

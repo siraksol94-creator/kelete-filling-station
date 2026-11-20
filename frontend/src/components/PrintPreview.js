@@ -23,7 +23,7 @@ const PrintPreview = ({ html, onClose }) => {
             <button onClick={handlePrint} style={{ padding: '7px 18px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
               <FiPrinter size={14} /> Print
             </button>
-            <button onClick={onClose} style={{ padding: '7px 12px', background: '#374151', color: '#64748b', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button onClick={onClose} style={{ padding: '7px 12px', background: '#334155', color: '#64748b', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
               <FiX size={14} /> Close
             </button>
           </div>

@@ -81,7 +81,7 @@ export default function HqSalesReport() {
       </div>
 
       {/* ── Filters ──────────────────────────────────────────────────── */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 14, marginBottom: 16, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
         <Field label="From">
           <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={inp} />
         </Field>
@@ -152,7 +152,7 @@ export default function HqSalesReport() {
           </div>
 
           {/* ── One tile per depot ───────────────────────────────────── */}
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#5b6478', margin: '0 0 10px' }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#475569', margin: '0 0 10px' }}>
             Depots · busiest first
           </div>
           {tiles.length === 0 ? (
@@ -172,7 +172,7 @@ export default function HqSalesReport() {
                       textAlign: 'left', cursor: 'pointer', font: 'inherit',
                       borderRadius: 14, padding: '12px 14px', minHeight: 132,
                       display: 'flex', flexDirection: 'column', gap: 6,
-                      border: quiet ? '1px solid #e2e6ee' : 'none',
+                      border: quiet ? '1px solid #e2e8f0' : 'none',
                       background: quiet ? '#fff' : `linear-gradient(150deg, ${NAVY_DEEP}, ${NAVY})`,
                       color: quiet ? '#64748b' : '#fff',
                       boxShadow: quiet ? 'none' : '0 4px 14px rgba(11,31,74,0.18)',
@@ -191,7 +191,7 @@ export default function HqSalesReport() {
                         : `${fmtInt(d.orders)} orders${d.credit_sales > 0.004 ? ` · ${fmtMoney(d.credit_sales)} credit` : ''}`}
                     </div>
                     <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ flex: 1, height: 4, borderRadius: 4, background: quiet ? '#eef2f7' : 'rgba(255,255,255,0.18)', overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 4, borderRadius: 4, background: quiet ? '#f1f5f9' : 'rgba(255,255,255,0.18)', overflow: 'hidden' }}>
                         <div style={{ width: `${Math.round(d.share * 100)}%`, height: '100%', background: top ? RED : (quiet ? '#cbd5e1' : '#fff') }} />
                       </div>
                       <span style={{ fontSize: 10.5, fontWeight: 700, whiteSpace: 'nowrap' }}>{(d.share * 100).toFixed(1)}%</span>
@@ -216,6 +216,6 @@ function Field({ label, children }) {
   );
 }
 
-const inp  = { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, background: '#fff', minWidth: 160 };
-const card = { background: '#fff', border: '1px solid #e2e6ee', borderRadius: 14, padding: '14px 16px' };
+const inp  = { padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, background: '#fff', minWidth: 160 };
+const card = { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, padding: '14px 16px' };
 const kLbl = (color) => ({ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color });

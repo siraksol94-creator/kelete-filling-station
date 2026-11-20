@@ -106,7 +106,7 @@ export default function HqConfirmGrn() {
       ) : purchases.length === 0 ? (
         <p style={{ color: '#64748b', fontStyle: 'italic' }}><FiInbox /> Nothing waiting for generation.</p>
       ) : (
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
           <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ background: '#f8fafc' }}>
               <tr>
@@ -122,7 +122,7 @@ export default function HqConfirmGrn() {
             <tbody>
               {purchases.map(p => (
                 <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{p.purchase_number}</td>
+                  <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{p.purchase_number}</td>
                   <td style={td}>{p.confirmed_branch_slug || '—'}</td>
                   <td style={td}>{p.supplier_name || '—'}</td>
                   <td style={td}>
@@ -288,10 +288,10 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 1000, maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 17 }}>Generate GRN from {purchase.purchase_number}</h3>
-            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>
+            <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>
               Supplier: {purchase.supplier_name || '—'} · Invoice #: {purchase.supplier_invoice_number || '—'}
               {purchase.invoice_attachment && (
                 <> · <a href={branchUploadUrl(purchase.confirmed_branch_slug, purchase.invoice_attachment)} target="_blank" rel="noopener noreferrer" style={{ color: '#1d4ed8' }}>view invoice</a></>
@@ -301,7 +301,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
               Confirmed by {purchase.confirmed_by_branch_name || '—'} · {purchase.confirmed_at_branch ? new Date(purchase.confirmed_at_branch).toLocaleString() : ''}
             </p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4, fontSize: 20 }}>×</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4, fontSize: 20 }}>×</button>
         </div>
 
         <div style={{ padding: '20px 24px' }}>
@@ -329,13 +329,13 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                     <td style={{ ...td, textAlign: 'right' }}>
                       <input type="number" min="0" step="any" value={r.quantity}
                         onChange={e => updateLine(idx, 'quantity', e.target.value)}
-                        style={{ width: 90, padding: '5px 8px', border: '1px solid #d1d5db', borderRadius: 5, fontSize: 12, textAlign: 'right' }} />
+                        style={{ width: 90, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 5, fontSize: 12, textAlign: 'right' }} />
                     </td>
                     <td style={{ ...td, color: '#475569' }}>{r.unit || '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <input type="number" min="0" step="0.01" value={r.unit_price}
                         onChange={e => updateLine(idx, 'unit_price', e.target.value)}
-                        style={{ width: 90, padding: '5px 8px', border: '1px solid #d1d5db', borderRadius: 5, fontSize: 12, textAlign: 'right' }} />
+                        style={{ width: 90, padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 5, fontSize: 12, textAlign: 'right' }} />
                     </td>
                     <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#15803d' }}>{fmtMoney(line)}</td>
                   </tr>
@@ -343,7 +343,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
               })}
             </tbody>
             <tfoot>
-              <tr style={{ borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
+              <tr style={{ borderTop: '2px solid #e2e8f0', background: '#f8fafc' }}>
                 <td colSpan={5} style={{ ...td, textAlign: 'right', fontWeight: 700 }}>Items subtotal</td>
                 <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: '#15803d' }}>{fmtMoney(total)}</td>
               </tr>
@@ -351,16 +351,16 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
           </table>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>Notes (optional)</label>
+            <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>Notes (optional)</label>
             <input value={notes} onChange={e => setNotes(e.target.value)}
               placeholder="Truck #, driver, additional context…"
-              style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
+              style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }} />
           </div>
 
           {/* v1.13.35 — Credit Notes are branch-authored (in the Receipt
               Confirmation modal at the branch). HQ sees them read-only
               here; the backend re-reads the drafts on /generate. */}
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: '14px 16px', marginBottom: 16, background: '#fafbfc' }}>
+          <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '14px 16px', marginBottom: 16, background: '#f8fafc' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Credit Notes (from branch)</div>
@@ -383,7 +383,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
               const derivedAmt = cnAmount(c);
               const cnItems = Array.isArray(c.items) ? c.items : [];
               return (
-                <div key={ci} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 14px', marginBottom: 8 }}>
+                <div key={ci} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 14px', marginBottom: 8 }}>
                   <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'baseline' }}>
                       <span style={{ padding: '2px 10px', borderRadius: 12, background: '#dbeafe', color: '#1d4ed8', fontSize: 11, fontWeight: 700 }}>{c.reason}</span>
@@ -393,7 +393,7 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
                     <strong style={{ color: '#b45309', fontSize: 13 }}>−{fmtMoney(derivedAmt)}</strong>
                   </div>
                   {stock && cnItems.length > 0 && (
-                    <div style={{ marginTop: 8, padding: '6px 8px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12 }}>
+                    <div style={{ marginTop: 8, padding: '6px 8px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 12 }}>
                       {cnItems.map((it, ii) => (
                         <div key={ii} style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 0' }}>
                           <span>{it.product_name} <span style={{ color: '#64748b' }}>· {it.unit || '—'}</span></span>
@@ -437,9 +437,9 @@ function GenerateGrnModal({ purchase, items, extras, creditNotes, onClose, onGen
 
         <div style={{ padding: '0 24px 20px', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
           <button onClick={onClose}
-            style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+            style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
           <button onClick={handleSave} disabled={saving}
-            style={{ padding: '10px 28px', background: saving ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+            style={{ padding: '10px 28px', background: saving ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
             {saving ? 'Generating…' : 'Generate GRN'}
           </button>
         </div>

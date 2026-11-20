@@ -192,9 +192,9 @@ const BranchPrices = () => {
   }
 
   const th = { textAlign: 'left', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.5,
-               textTransform: 'uppercase', color: '#6b7280', padding: '10px 12px',
-               borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' };
-  const td = { padding: '8px 12px', borderBottom: '1px solid #f3f4f6', fontSize: 13.5 };
+               textTransform: 'uppercase', color: '#64748b', padding: '10px 12px',
+               borderBottom: '1px solid #e2e8f0', whiteSpace: 'nowrap' };
+  const td = { padding: '8px 12px', borderBottom: '1px solid #f1f5f9', fontSize: 13.5 };
 
   return (
     <div className="page-content">
@@ -211,7 +211,7 @@ const BranchPrices = () => {
         <div style={{ display: 'flex', gap: 8 }}>
           {dirty.size > 0 && (
             <button onClick={discard} disabled={saving}
-              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <FiRefreshCw size={14} /> Discard
             </button>
           )}
@@ -232,9 +232,9 @@ const BranchPrices = () => {
 
       {/* Branch picker on top, the way Liquor does it. */}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', margin: '14px 0 10px', flexWrap: 'wrap' }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>Branch</label>
+        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Branch</label>
         <select value={branch} onChange={e => setBranch(e.target.value)} disabled={saving}
-          style={{ padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13.5, fontWeight: 600, background: '#fff', minWidth: 220 }}>
+          style={{ padding: '10px 12px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13.5, fontWeight: 600, background: '#fff', minWidth: 220 }}>
           {branches.length === 0 && <option value="">— no branches —</option>}
           {branches.map(b => <option key={b.slug} value={b.slug}>{b.name || b.business_name || b.slug}</option>)}
         </select>
@@ -242,15 +242,15 @@ const BranchPrices = () => {
         <div style={{ position: 'relative', flex: '0 0 320px' }}>
           <FiSearch style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search name or code…"
-            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e5e7eb', fontSize: 13, background: '#fff', outline: 'none' }} />
+            style={{ width: '100%', padding: '10px 12px 10px 36px', borderRadius: 10, border: '1.5px solid #e2e8f0', fontSize: 13, background: '#fff', outline: 'none' }} />
         </div>
 
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 600, color: '#374151', cursor: 'pointer' }}>
+        <label style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 12.5, fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
           <input type="checkbox" checked={onlyDiff} onChange={e => setOnlyDiff(e.target.checked)} />
           Only prices that differ from HQ
         </label>
 
-        <div style={{ fontSize: 12, color: '#6b7280' }}>
+        <div style={{ fontSize: 12, color: '#64748b' }}>
           {visible.length} of {rows.length} · <strong>{differing}</strong> differ from HQ
         </div>
       </div>
@@ -269,7 +269,7 @@ const BranchPrices = () => {
           {rows.length === 0 ? 'This branch has no items.' : 'Nothing matches.'}
         </div>
       ) : (
-        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e5e7eb', overflowX: 'auto' }}>
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #e2e8f0', overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 720 }}>
             <thead>
               <tr>
@@ -302,12 +302,12 @@ const BranchPrices = () => {
                 const key = r.sync_id;
                 return (
                   <tr key={key} style={{ background: isDirty ? '#fffbeb' : 'transparent' }}>
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12, color: '#6b7280', whiteSpace: 'nowrap' }}>{r.code}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12, color: '#64748b', whiteSpace: 'nowrap' }}>{r.code}</td>
                     <td style={{ ...td, fontWeight: 600, color: '#0f172a' }}>
                       {r.name}
                       {r.unit && <span style={{ color: '#64748b', fontWeight: 400, fontSize: 11.5 }}> / {r.unit}</span>}
                     </td>
-                    <td style={{ ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#6b7280' }}>
+                    <td style={{ ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: '#64748b' }}>
                       {hq === null ? '—' : `${curSym}${money(hq)}`}
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>
@@ -324,8 +324,8 @@ const BranchPrices = () => {
                         placeholder="0.00"
                         style={{ width: 120, padding: '7px 10px', borderRadius: 8, textAlign: 'right',
                                  fontSize: 14, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-                                 border: `2px solid ${isDirty ? '#f59e0b' : '#e5e7eb'}`,
-                                 background: isDirty ? '#fff' : '#fafafa', color: '#0f172a', outline: 'none' }} />
+                                 border: `2px solid ${isDirty ? '#f59e0b' : '#e2e8f0'}`,
+                                 background: isDirty ? '#fff' : '#f8fafc', color: '#0f172a', outline: 'none' }} />
                     </td>
                     <td style={{ ...td, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontWeight: 700,
                                  color: d === null ? '#64748b' : (Math.abs(d) < 0.005 ? '#64748b' : (d > 0 ? '#15803d' : '#b91c1c')) }}>
@@ -350,12 +350,12 @@ const BranchPrices = () => {
           <div onClick={e => e.stopPropagation()}
             style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 620, maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 60px rgba(0,0,0,0.25)' }}>
 
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
                   Push {pushable.length} price{pushable.length > 1 ? 's' : ''}
                 </div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
                   Just saved at {branchLabel}. Choose where else they apply.
                 </div>
               </div>
@@ -366,22 +366,22 @@ const BranchPrices = () => {
             </div>
 
             <div style={{ padding: '14px 20px', overflowY: 'auto' }}>
-              <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10, padding: '10px 12px', marginBottom: 14, maxHeight: 132, overflowY: 'auto' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px', marginBottom: 14, maxHeight: 132, overflowY: 'auto' }}>
                 {pushable.map(p => (
                   <div key={p.sync_id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12.5, padding: '3px 0', color: '#334155' }}>
-                    <span><span style={{ fontFamily: 'monospace', color: '#64748b' }}>{p.code}</span> {p.name}</span>
+                    <span><span style={{ fontFamily: 'var(--k-font-mono)', color: '#64748b' }}>{p.code}</span> {p.name}</span>
                     <strong style={{ fontVariantNumeric: 'tabular-nums' }}>{curSym}{money(p.base_price)}</strong>
                   </div>
                 ))}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>Depots</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Depots</span>
                 <span style={{ display: 'inline-flex', gap: 8 }}>
                   <button onClick={() => setPushTo(depots.map(d => d.slug))}
                     style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>Select all</button>
                   <button onClick={() => setPushTo([])}
-                    style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>None</button>
+                    style={{ background: 'none', border: 'none', color: '#64748b', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>None</button>
                 </span>
               </div>
 
@@ -391,7 +391,7 @@ const BranchPrices = () => {
                   return (
                     <label key={d.slug}
                       style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                               border: `1.5px solid ${on ? '#2563eb' : '#e5e7eb'}`, background: on ? '#eff6ff' : '#fff', color: on ? '#1d4ed8' : '#334155' }}>
+                               border: `1.5px solid ${on ? '#2563eb' : '#e2e8f0'}`, background: on ? '#eff6ff' : '#fff', color: on ? '#1d4ed8' : '#334155' }}>
                       <input type="checkbox" checked={on}
                         onChange={e => setPushTo(prev => e.target.checked
                           ? [...prev, d.slug]
@@ -411,9 +411,9 @@ const BranchPrices = () => {
               </div>
             </div>
 
-            <div style={{ padding: '14px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ padding: '14px 20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => setPushOpen(false)} disabled={pushing}
-                style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
+                style={{ padding: '10px 18px', borderRadius: 10, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                 Cancel
               </button>
               <button onClick={doMultiPush} disabled={pushing || pushTo.length === 0}

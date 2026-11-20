@@ -15,7 +15,7 @@ const NAVY = '#13306b';
 const NAVY_DEEP = '#0b1f4a';
 const INK = '#0f172a';
 const MUTED = '#64748b';
-const LINE = '#e6e9f0';
+const LINE = '#e2e8f0';
 
 const K = (n) => {
   const v = Number(n) || 0;

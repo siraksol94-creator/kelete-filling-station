@@ -6,8 +6,8 @@ const STATE_CONFIG = {
   checking: { color: '#f59e0b', label: 'Checking...' },
   offline:  { color: '#ef4444', label: 'Offline' },
   error:    { color: '#ef4444', label: 'Sync Error' },
-  idle:     { color: '#6b7280', label: 'Local Only' },
-  unknown:  { color: '#6b7280', label: '...' },
+  idle:     { color: '#64748b', label: 'Local Only' },
+  unknown:  { color: '#64748b', label: '...' },
 };
 
 const POLL_INTERVAL = 5_000;
@@ -61,8 +61,8 @@ const SyncStatus = () => {
     >
       <div style={{
         display: 'flex', alignItems: 'center', gap: 6, cursor: 'default',
-        padding: '5px 10px', borderRadius: 20, background: '#f9fafb',
-        border: '1px solid #e5e7eb',
+        padding: '5px 10px', borderRadius: 20, background: '#f8fafc',
+        border: '1px solid #e2e8f0',
       }}>
         <span style={{
           width: 8, height: 8, borderRadius: '50%',
@@ -70,26 +70,26 @@ const SyncStatus = () => {
           boxShadow: status.state === 'syncing' || status.state === 'checking'
             ? `0 0 0 3px ${cfg.color}33` : 'none',
         }} />
-        <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{cfg.label}</span>
+        <span style={{ fontSize: 12, color: '#334155', fontWeight: 500 }}>{cfg.label}</span>
       </div>
 
       {showTooltip && (
         <div style={{
           position: 'absolute', top: '110%', right: 0, zIndex: 1000,
-          background: '#1f2937', color: '#f9fafb', fontSize: 11,
+          background: '#1e293b', color: '#f8fafc', fontSize: 11,
           padding: '6px 10px', borderRadius: 6, whiteSpace: 'nowrap',
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           minWidth: 160,
         }}>
           <div style={{ fontWeight: 600, marginBottom: 2 }}>Cloud Sync</div>
           {status.lastSynced && (
-            <div style={{ color: '#d1d5db' }}>Last synced: {formatTime(status.lastSynced)}</div>
+            <div style={{ color: '#cbd5e1' }}>Last synced: {formatTime(status.lastSynced)}</div>
           )}
           {status.error && (
             <div style={{ color: '#fca5a5', marginTop: 2 }}>Error: {status.error}</div>
           )}
           {status.state === 'idle' && (
-            <div style={{ color: '#d1d5db' }}>Not registered — go to Setup</div>
+            <div style={{ color: '#cbd5e1' }}>Not registered — go to Setup</div>
           )}
           {status.state !== 'idle' && (
             <button
@@ -97,7 +97,7 @@ const SyncStatus = () => {
               disabled={resyncing}
               style={{
                 marginTop: 6, width: '100%', padding: '3px 0',
-                background: resyncing ? '#374151' : '#3b82f6',
+                background: resyncing ? '#334155' : '#3b82f6',
                 color: '#fff', border: 'none', borderRadius: 4,
                 cursor: resyncing ? 'not-allowed' : 'pointer', fontSize: 11,
               }}

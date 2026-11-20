@@ -113,8 +113,8 @@ const Suppliers = () => {
 
   const set = (field) => (e) => setForm(prev => ({ ...prev, [field]: e.target.value }));
   const filtered = suppliers.filter(s => matchTokens(search, s.name, s.phone, s.email, s.address));
-  const inputStyle = { width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' };
-  const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 };
+  const inputStyle = { width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 };
 
   return (
     <div className="page-content">
@@ -144,12 +144,12 @@ const Suppliers = () => {
       </div>
 
       <div className="search-input-container">
-        <FiSearch style={{ color: '#6b7280' }} />
+        <FiSearch style={{ color: '#64748b' }} />
         <input type="text" placeholder={t('searchSuppliers')} value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
       {filtered.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+        <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
           {search ? t('noSuppliersMatch') : t('noSuppliersYet')}
         </div>
       ) : (
@@ -187,12 +187,12 @@ const Suppliers = () => {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 17 }}>{editingId ? `${t('edit')} ${t('supplier')}` : `${t('newEntry')} ${t('supplier')}`}</h3>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Fill in the supplier details below</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>Fill in the supplier details below</p>
               </div>
-              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', padding: 4 }}><FiX size={20} /></button>
+              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', padding: 4 }}><FiX size={20} /></button>
             </div>
 
             <div style={{ padding: '20px 24px' }}>
@@ -235,11 +235,11 @@ const Suppliers = () => {
               )}
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button onClick={() => setShowForm(false)} style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
+                <button onClick={() => setShowForm(false)} style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
                   {t('cancel')}
                 </button>
                 <button onClick={handleSave} disabled={saving}
-                  style={{ padding: '10px 28px', background: saving ? '#9ca3af' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+                  style={{ padding: '10px 28px', background: saving ? '#94a3b8' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
                   {saving ? t('saving') : editingId ? `${t('edit')} ${t('supplier')}` : `${t('newEntry')} ${t('supplier')}`}
                 </button>
               </div>

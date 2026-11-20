@@ -177,7 +177,7 @@ const StockAdjustment = () => {
       {/* Table */}
       <div className="data-table-container">
         {adjustments.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
             {t('noData')}
           </div>
         ) : (
@@ -220,11 +220,11 @@ const StockAdjustment = () => {
                           title="Edit"
                           style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            color: '#6b7280', padding: 4, borderRadius: 6,
+                            color: '#64748b', padding: 4, borderRadius: 6,
                             display: 'inline-flex', alignItems: 'center', transition: 'color 0.15s',
                           }}
                           onMouseEnter={e => e.currentTarget.style.color = '#2563eb'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                         >
                           <FiEdit2 size={15} />
                         </button>
@@ -235,11 +235,11 @@ const StockAdjustment = () => {
                           title="Delete"
                           style={{
                             background: 'none', border: 'none', cursor: 'pointer',
-                            color: '#6b7280', padding: 4, borderRadius: 6,
+                            color: '#64748b', padding: 4, borderRadius: 6,
                             display: 'inline-flex', alignItems: 'center', transition: 'color 0.15s',
                           }}
                           onMouseEnter={e => e.currentTarget.style.color = '#dc2626'}
-                          onMouseLeave={e => e.currentTarget.style.color = '#9ca3af'}
+                          onMouseLeave={e => e.currentTarget.style.color = '#94a3b8'}
                         >
                           <FiTrash2 size={15} />
                         </button>
@@ -259,26 +259,26 @@ const StockAdjustment = () => {
           <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
 
             {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 17 }}>{editId ? 'Edit Adjustment' : t('newAdjustment')}</h3>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Adjust product stock level manually</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>Adjust product stock level manually</p>
               </div>
-              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+              <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
             </div>
 
             <div style={{ padding: '20px 24px' }}>
 
               {/* Product */}
               <div style={{ marginBottom: 16 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                   {t('product')} <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <select
                   value={productId}
                   onChange={e => setProductId(e.target.value)}
                   disabled={!!editId}
-                  style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: editId ? '#f9fafb' : '#fff' }}
+                  style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, background: editId ? '#f8fafc' : '#fff' }}
                 >
                   <option value="">— Select Product —</option>
                   {products.map(p => (
@@ -286,8 +286,8 @@ const StockAdjustment = () => {
                   ))}
                 </select>
                 {selectedProduct && (
-                  <div style={{ marginTop: 6, padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 12, color: '#6b7280' }}>
-                    {t('storeBalance')}: <strong style={{ color: '#374151' }}>{formatStockForProduct(selectedProduct.store_balance, selectedProduct)}</strong>
+                  <div style={{ marginTop: 6, padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 12, color: '#64748b' }}>
+                    {t('storeBalance')}: <strong style={{ color: '#334155' }}>{formatStockForProduct(selectedProduct.store_balance, selectedProduct)}</strong>
                   </div>
                 )}
               </div>
@@ -295,7 +295,7 @@ const StockAdjustment = () => {
               {/* Type & Quantity */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                     {t('type')} <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -303,9 +303,9 @@ const StockAdjustment = () => {
                       type="button"
                       onClick={() => setAdjustmentType('increase')}
                       style={{
-                        flex: 1, padding: '9px 0', border: `2px solid ${adjustmentType === 'increase' ? '#16a34a' : '#e5e7eb'}`,
+                        flex: 1, padding: '9px 0', border: `2px solid ${adjustmentType === 'increase' ? '#16a34a' : '#e2e8f0'}`,
                         borderRadius: 8, background: adjustmentType === 'increase' ? '#dcfce7' : '#fff',
-                        color: adjustmentType === 'increase' ? '#15803d' : '#6b7280',
+                        color: adjustmentType === 'increase' ? '#15803d' : '#64748b',
                         cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4
                       }}
                     >
@@ -315,9 +315,9 @@ const StockAdjustment = () => {
                       type="button"
                       onClick={() => setAdjustmentType('decrease')}
                       style={{
-                        flex: 1, padding: '9px 0', border: `2px solid ${adjustmentType === 'decrease' ? '#dc2626' : '#e5e7eb'}`,
+                        flex: 1, padding: '9px 0', border: `2px solid ${adjustmentType === 'decrease' ? '#dc2626' : '#e2e8f0'}`,
                         borderRadius: 8, background: adjustmentType === 'decrease' ? '#fee2e2' : '#fff',
-                        color: adjustmentType === 'decrease' ? '#dc2626' : '#6b7280',
+                        color: adjustmentType === 'decrease' ? '#dc2626' : '#64748b',
                         cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4
                       }}
                     >
@@ -326,7 +326,7 @@ const StockAdjustment = () => {
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
                     {t('quantity')} <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
@@ -334,7 +334,7 @@ const StockAdjustment = () => {
                     placeholder="0"
                     value={quantity}
                     onChange={e => setQuantity(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
@@ -352,36 +352,36 @@ const StockAdjustment = () => {
               {/* Reason & Date */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{t('reason')}</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>{t('reason')}</label>
                   <select
                     value={reason}
                     onChange={e => setReason(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, background: '#fff' }}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, background: '#fff' }}
                   >
                     <option value="">— Select Reason —</option>
                     {reasons.map(r => <option key={r} value={r}>{r}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{t('date')}</label>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>{t('date')}</label>
                   <input
                     type="date"
                     value={date}
                     onChange={e => setDate(e.target.value)}
-                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
                   />
                 </div>
               </div>
 
               {/* Notes */}
               <div style={{ marginBottom: 20 }}>
-                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>{t('notes')}</label>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 6 }}>{t('notes')}</label>
                 <input
                   type="text"
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   placeholder="Additional details..."
-                  style={{ width: '100%', padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
                 />
               </div>
 
@@ -394,7 +394,7 @@ const StockAdjustment = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
                 <button
                   onClick={() => setShowForm(false)}
-                  style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}
+                  style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}
                 >
                   {t('cancel')}
                 </button>
@@ -403,7 +403,7 @@ const StockAdjustment = () => {
                   disabled={saving}
                   style={{
                     padding: '10px 28px',
-                    background: saving ? '#9ca3af' : adjustmentType === 'increase' ? '#16a34a' : '#dc2626',
+                    background: saving ? '#94a3b8' : adjustmentType === 'increase' ? '#16a34a' : '#dc2626',
                     color: '#fff', border: 'none', borderRadius: 8,
                     cursor: saving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600
                   }}

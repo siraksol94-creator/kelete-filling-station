@@ -158,7 +158,7 @@ const AccountPayables = () => {
     const balance = totalPaid + totalCredits - totalPurchases;
 
     const cnRows = (breakdown.credits || []).map((c, i) => `
-      <tr style="border-bottom:1px solid #ddd;background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:8px 12px">${c.credit_note_number}</td>
         <td style="padding:8px 12px">${formatDate(c.date)}</td>
         <td style="padding:8px 12px">${c.reason}</td>
@@ -167,14 +167,14 @@ const AccountPayables = () => {
       </tr>`).join('');
 
     const grnRows = (breakdown.grns || []).map((g, i) => `
-      <tr style="border-bottom:1px solid #ddd;background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:8px 12px">${g.grn_number}</td>
         <td style="padding:8px 12px">${formatDate(g.date)}</td>
         <td style="padding:8px 12px;text-align:right;font-weight:600">K${fmt(parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0))}</td>
       </tr>`).join('');
 
     const pmtRows = (breakdown.payments || []).map((p, i) => `
-      <tr style="border-bottom:1px solid #ddd;background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:8px 12px">${p.payment_number}</td>
         <td style="padding:8px 12px">${formatDate(p.date)}</td>
         <td style="padding:8px 12px">${p.description || '—'}</td>
@@ -185,8 +185,8 @@ const AccountPayables = () => {
       <style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 12px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
-      tfoot td{padding:9px 12px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      th{padding:8px 12px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
+      tfoot td{padding:9px 12px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
       </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -242,12 +242,12 @@ const AccountPayables = () => {
 
       ${breakdown.grn_credits?.length > 0 ? `
       <h3 style="font-size:11px;font-weight:700;margin-bottom:2px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1.5px solid #000;padding-bottom:4px">Returns already deducted from the GRNs above</h3>
-      <div style="font-size:9.5px;color:#444;margin:4px 0 8px">For reference only - each GRN is listed at its value after these credits.</div>
-      <div style="border:1px solid #666;margin-bottom:20px">
-        <table style="font-size:11px;color:#444">
+      <div style="font-size:9.5px;color:#334155;margin:4px 0 8px">For reference only - each GRN is listed at its value after these credits.</div>
+      <div style="border:1px solid #475569;margin-bottom:20px">
+        <table style="font-size:11px;color:#334155">
           <thead><tr><th>CN #</th><th>Date</th><th>Reason</th><th>GRN</th><th style="text-align:right">Amount</th></tr></thead>
           <tbody>${(breakdown.grn_credits || []).map((c, i) => `
-            <tr style="background:${i % 2 ? '#fafafa' : '#fff'}">
+            <tr style="background:${i % 2 ? '#f8fafc' : '#fff'}">
               <td style="padding:8px 12px">${c.credit_note_number || ''}</td>
               <td style="padding:8px 12px">${formatDate(c.date)}</td>
               <td style="padding:8px 12px">${c.reason || ''}</td>
@@ -260,7 +260,7 @@ const AccountPayables = () => {
       <div style="border:2px solid #000;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
         <div>
           <span style="font-weight:700;font-size:14px">${balance > 0.01 ? 'Over Paid:' : balance < -0.01 ? 'Outstanding:' : 'Outstanding Balance:'}</span>
-          ${totalCredits > 0.01 ? `<div style="font-size:9.5px;margin-top:3px;color:#444">Purchases ${curSym}${fmt(totalPurchases)} − Paid ${curSym}${fmt(totalPaid)} − Credits ${curSym}${fmt(totalCredits)}</div>` : ''}
+          ${totalCredits > 0.01 ? `<div style="font-size:9.5px;margin-top:3px;color:#334155">Purchases ${curSym}${fmt(totalPurchases)} − Paid ${curSym}${fmt(totalPaid)} − Credits ${curSym}${fmt(totalCredits)}</div>` : ''}
         </div>
         <span style="font-weight:800;font-size:18px;color:${balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#000'}">${balance < 0 ? '−' : ''}${curSym}${fmt(Math.abs(balance))}</span>
       </div>
@@ -274,7 +274,7 @@ const AccountPayables = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${biz} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -295,14 +295,14 @@ const AccountPayables = () => {
     const addr = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join('  |  ');
     const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
     const rows = payables.map((p,idx) => `
-      <tr style="border-bottom:1px solid #ddd;background:${idx%2===1?'#f9f9f9':'#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${idx%2===1?'#f8fafc':'#fff'}">
         <td style="padding:8px 10px;font-size:10.5px">${idx+1}</td>
         <td style="padding:8px 10px;font-weight:700">${p.supplier_name}</td>
         <td style="padding:8px 10px">${p.phone||'—'}</td>
         <td style="padding:8px 10px;text-align:center">${p.grn_count}</td>
         <td style="padding:8px 10px;text-align:right">${curSym}${fmt(p.total_purchases)}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:600">${curSym}${fmt(p.total_paid)}</td>
-        <td style="padding:8px 10px;text-align:right;color:${parseFloat(p.total_credits||0)>0?'#0369a1':'#6b7280'}">${parseFloat(p.total_credits||0)>0?(curSym+fmt(p.total_credits)):'—'}</td>
+        <td style="padding:8px 10px;text-align:right;color:${parseFloat(p.total_credits||0)>0?'#0369a1':'#64748b'}">${parseFloat(p.total_credits||0)>0?(curSym+fmt(p.total_credits)):'—'}</td>
         <td style="padding:8px 10px;text-align:right;font-weight:700">${curSym}${fmt(Math.abs(parseFloat(p.balance) || 0))}${parseFloat(p.balance) > 0.01 ? ' (owed)' : parseFloat(p.balance) < -0.01 ? ' (advance)' : ''}</td>
         <td style="padding:8px 10px">${p.status}</td>
       </tr>`).join('');
@@ -310,8 +310,8 @@ const AccountPayables = () => {
       @page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
-      tfoot td{padding:10px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
+      tfoot td{padding:10px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -365,7 +365,7 @@ const AccountPayables = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${biz} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -423,20 +423,20 @@ const AccountPayables = () => {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
-        border: '1px solid #e5e7eb', borderRadius: 10,
+        border: '1px solid #e2e8f0', borderRadius: 10,
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('from')}</span>
           <input type="date" value={filterFrom} max={filterTo || _todayStr}
             onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }} />
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('to')}</span>
           <input type="date" value={filterTo} min={filterFrom || undefined} max={_todayStr}
             onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }} />
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }} />
         </div>
         {/* Quick presets */}
         <button onClick={() => { setFilterFrom(_firstOfMonth); setFilterTo(_todayStr); }}
@@ -444,10 +444,10 @@ const AccountPayables = () => {
           {t('thisMonth')}
         </button>
         <button onClick={() => { setFilterFrom(''); setFilterTo(''); }}
-          style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}>
+          style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0', fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer' }}>
           {t('allTime')}
         </button>
-        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 11, color: '#64748b' }}>
           {filterFrom || filterTo
             ? `${filterFrom || '—'} ${t('to')} ${filterTo || '—'}`
             : t('showingAllTime')}
@@ -455,7 +455,7 @@ const AccountPayables = () => {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e5e7eb' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e2e8f0' }}>
         {[
           { key: 'payables', label: t('payables') },
           { key: 'payments', label: t('payments') },
@@ -464,7 +464,7 @@ const AccountPayables = () => {
             style={{
               padding: '10px 18px', background: 'none', border: 'none',
               borderBottom: tab === t.key ? '3px solid #1d4ed8' : '3px solid transparent',
-              color: tab === t.key ? '#1d4ed8' : '#6b7280',
+              color: tab === t.key ? '#1d4ed8' : '#64748b',
               fontWeight: tab === t.key ? 700 : 500, fontSize: 13.5,
               cursor: 'pointer', marginBottom: -2,
             }}>
@@ -505,7 +505,7 @@ const AccountPayables = () => {
           </thead>
           <tbody>
             {payables.length === 0 ? (
-              <tr><td colSpan="10" style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>{t('noSuppliersInLedger')}</td></tr>
+              <tr><td colSpan="10" style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>{t('noSuppliersInLedger')}</td></tr>
             ) : payables.map(p => (
               <tr key={p.id}>
                 <td>
@@ -513,7 +513,7 @@ const AccountPayables = () => {
                     {p.supplier_name} <FiChevronRight size={13} />
                   </button>
                 </td>
-                <td style={{ color: '#6b7280' }}>{p.phone || '—'}</td>
+                <td style={{ color: '#64748b' }}>{p.phone || '—'}</td>
                 <td style={{ textAlign: 'center' }}>{p.grn_count}</td>
                 {(() => {
                   // v1.10.79 — display each supplier's totals in THEIR
@@ -530,10 +530,10 @@ const AccountPayables = () => {
                     <>
                       <td>{fmtCcy(parseFloat(p.total_purchases))}</td>
                       <td style={{ color: '#15803d' }}>{fmtCcy(parseFloat(p.total_paid))}</td>
-                      <td style={{ color: parseFloat(p.total_credits || 0) > 0 ? '#0369a1' : '#6b7280' }}>
+                      <td style={{ color: parseFloat(p.total_credits || 0) > 0 ? '#0369a1' : '#64748b' }}>
                         {parseFloat(p.total_credits || 0) > 0 ? fmtCcy(parseFloat(p.total_credits)) : '—'}
                       </td>
-                      <td style={{ color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#374151', fontWeight: 600 }}>
+                      <td style={{ color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#334155', fontWeight: 600 }}>
                         {bal < 0 ? '−' : ''}{fmtCcy(bal)}
                       </td>
                     </>
@@ -562,7 +562,7 @@ const AccountPayables = () => {
           <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'center' }}>
             <input type="text" placeholder={t('searchBySupplierOrRef')} value={paymentSearch}
               onChange={e => setPaymentSearch(e.target.value)}
-              style={{ flex: 1, padding: '10px 12px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
+              style={{ flex: 1, padding: '10px 12px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
             {/* v1.13.43 — universal export (ZRA #30) */}
             <ExportButtons
               rows={apPayments}
@@ -596,21 +596,21 @@ const AccountPayables = () => {
                     p.payment_number, p.description
                   ));
                   if (rows.length === 0) {
-                    return <tr><td colSpan="6" style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>No payments recorded.</td></tr>;
+                    return <tr><td colSpan="6" style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>No payments recorded.</td></tr>;
                   }
                   const total = rows.reduce((s, p) => s + parseFloat(p.amount || 0), 0);
                   return <>
                     {rows.map(p => (
                       <tr key={p.id}>
                         <td>{formatDate(p.date)}</td>
-                        <td style={{ color: '#6b7280', fontSize: 12 }}>{p.payment_number || '—'}</td>
+                        <td style={{ color: '#64748b', fontSize: 12 }}>{p.payment_number || '—'}</td>
                         <td style={{ fontWeight: 600 }}>{p.supplier_name_resolved || p.supplier_name || '—'}</td>
-                        <td style={{ color: '#6b7280' }}>{p.paid_from || '—'}</td>
-                        <td style={{ color: '#6b7280' }}>{p.description || '—'}</td>
+                        <td style={{ color: '#64748b' }}>{p.paid_from || '—'}</td>
+                        <td style={{ color: '#64748b' }}>{p.description || '—'}</td>
                         <td style={{ textAlign: 'right', fontWeight: 700, color: '#15803d' }}>K{parseFloat(p.amount).toLocaleString()}</td>
                       </tr>
                     ))}
-                    <tr style={{ background: '#f9fafb', fontWeight: 700 }}>
+                    <tr style={{ background: '#f8fafc', fontWeight: 700 }}>
                       <td colSpan="5">TOTAL — {rows.length} payment(s)</td>
                       <td style={{ textAlign: 'right', color: '#15803d' }}>K{total.toLocaleString()}</td>
                     </tr>
@@ -627,32 +627,32 @@ const AccountPayables = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 640, maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, background: '#fff', zIndex: 1 }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>{breakdown.supplier?.supplier_name || breakdown.supplier?.name}</h2>
-                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#6b7280' }}>Supplier account breakdown</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#64748b' }}>Supplier account breakdown</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button onClick={handleBreakdownPrint} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 7, border: 'none', background: '#dc2626', color: '#fff', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                   <FiPrinter size={13} /> Print
                 </button>
-                <button onClick={() => setBreakdown(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+                <button onClick={() => setBreakdown(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
               </div>
             </div>
 
             <div style={{ padding: '18px 24px' }}>
               {loadingBreakdown ? (
-                <div style={{ textAlign: 'center', color: '#6b7280', padding: 32 }}>Loading...</div>
+                <div style={{ textAlign: 'center', color: '#64748b', padding: 32 }}>Loading...</div>
               ) : (
                 <>
                   {/* GRNs */}
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Purchases (GRN)</h3>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#334155', marginBottom: 10 }}>Purchases (GRN)</h3>
                   {breakdown.grns?.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 18 }}>No purchases yet.</p>
+                    <p style={{ fontSize: 13, color: '#64748b', marginBottom: 18 }}>No purchases yet.</p>
                   ) : (
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
                       <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                           <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>GRN #</th>
                           <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Date</th>
                           <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600 }}>Amount</th>
@@ -660,8 +660,8 @@ const AccountPayables = () => {
                       </thead>
                       <tbody>
                         {breakdown.grns.map(g => (
-                          <tr key={g.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                            <td style={{ padding: '7px 10px', color: '#6b7280' }}>{g.grn_number}</td>
+                          <tr key={g.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '7px 10px', color: '#64748b' }}>{g.grn_number}</td>
                             <td style={{ padding: '7px 10px' }}>{formatDate(g.date)}</td>
                             <td style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600 }}>K{(parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                           </tr>
@@ -675,13 +675,13 @@ const AccountPayables = () => {
                   )}
 
                   {/* Payments */}
-                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#374151', marginBottom: 10 }}>Payments Made (AP)</h3>
+                  <h3 style={{ fontSize: 14, fontWeight: 700, color: '#334155', marginBottom: 10 }}>Payments Made (AP)</h3>
                   {breakdown.payments?.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 18 }}>No payments yet.</p>
+                    <p style={{ fontSize: 13, color: '#64748b', marginBottom: 18 }}>No payments yet.</p>
                   ) : (
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
                       <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                           <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Ref #</th>
                           <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Date</th>
                           <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Description</th>
@@ -692,39 +692,39 @@ const AccountPayables = () => {
                       <tbody>
                         {breakdown.payments.map(p => (
                           editingPayment?.id === p.id ? (
-                            <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6', background: '#fffbeb' }}>
-                              <td style={{ padding: '7px 10px', color: '#6b7280', fontSize: 12 }}>{p.payment_number}</td>
+                            <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9', background: '#fffbeb' }}>
+                              <td style={{ padding: '7px 10px', color: '#64748b', fontSize: 12 }}>{p.payment_number}</td>
                               <td style={{ padding: '4px 6px' }}>
                                 <input type="date" value={editingPayment.date} onChange={e => setEditingPayment(ep => ({ ...ep, date: e.target.value }))}
-                                  style={{ padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, width: '100%' }} />
+                                  style={{ padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12, width: '100%' }} />
                               </td>
                               <td style={{ padding: '4px 6px' }}>
                                 <input type="text" value={editingPayment.description} onChange={e => setEditingPayment(ep => ({ ...ep, description: e.target.value }))}
-                                  style={{ padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, width: '100%' }} />
+                                  style={{ padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12, width: '100%' }} />
                               </td>
                               <td style={{ padding: '4px 6px' }}>
                                 <input type="number" value={editingPayment.amount} onChange={e => setEditingPayment(ep => ({ ...ep, amount: e.target.value }))}
-                                  style={{ padding: '4px 6px', border: '1px solid #d1d5db', borderRadius: 4, fontSize: 12, width: 80, textAlign: 'right' }} />
+                                  style={{ padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 4, fontSize: 12, width: 80, textAlign: 'right' }} />
                               </td>
                               <td style={{ padding: '4px 6px', whiteSpace: 'nowrap' }}>
                                 <button onClick={handleSaveEdit} disabled={editSaving} style={{ background: '#16a34a', color: '#fff', border: 'none', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontSize: 12, marginRight: 4 }}>
                                   {editSaving ? '...' : <FiSave size={12} />}
                                 </button>
-                                <button onClick={() => { setEditingPayment(null); setEditError(''); }} style={{ background: '#f3f4f6', border: 'none', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontSize: 12 }}>
+                                <button onClick={() => { setEditingPayment(null); setEditError(''); }} style={{ background: '#f1f5f9', border: 'none', borderRadius: 4, padding: '3px 8px', cursor: 'pointer', fontSize: 12 }}>
                                   <FiX size={12} />
                                 </button>
                               </td>
                             </tr>
                           ) : (
-                          <tr key={p.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                            <td style={{ padding: '7px 10px', color: '#6b7280' }}>{p.payment_number}</td>
+                          <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '7px 10px', color: '#64748b' }}>{p.payment_number}</td>
                             <td style={{ padding: '7px 10px' }}>{formatDate(p.date)}</td>
-                            <td style={{ padding: '7px 10px', color: '#6b7280' }}>{p.description || '—'}</td>
+                            <td style={{ padding: '7px 10px', color: '#64748b' }}>{p.description || '—'}</td>
                             <td style={{ padding: '7px 10px', textAlign: 'right', color: '#15803d', fontWeight: 600 }}>K{parseFloat(p.amount).toLocaleString()}</td>
                             <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>
                               {hasPermission('AccountPayables:Edit') && (
                               <button onClick={() => { setEditingPayment({ id: p.id, amount: p.amount, date: p.date, description: p.description || '', paid_from: p.paid_from || '' }); setEditError(''); }}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280', marginRight: 6 }}>
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginRight: 6 }}>
                                 <FiEdit2 size={13} />
                               </button>
                               )}
@@ -774,7 +774,7 @@ const AccountPayables = () => {
                                   background: cn.reason === 'Discount' ? '#dcfce7' : '#dbeafe',
                                   color: cn.reason === 'Discount' ? '#166534' : '#1d4ed8' }}>{cn.reason}</span>
                               </td>
-                              <td style={{ padding: '7px 10px', color: '#6b7280' }}>{cn.reference || '—'}</td>
+                              <td style={{ padding: '7px 10px', color: '#64748b' }}>{cn.reference || '—'}</td>
                               <td style={{ padding: '7px 10px', textAlign: 'right', color: '#0369a1', fontWeight: 600 }}>
                                 {curSym}{parseFloat(cn.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </td>
@@ -806,7 +806,7 @@ const AccountPayables = () => {
                     // balance < 0 = we still owe.
                     const balance = totalPaid + totalCredits - totalPurchases;
                     return (
-                      <div style={{ background: balance > 0.01 ? '#f0fdf4' : balance < -0.01 ? '#fef2f2' : '#f9fafb', border: `1px solid ${balance > 0.01 ? '#bbf7d0' : balance < -0.01 ? '#fecaca' : '#e5e7eb'}`, borderRadius: 8, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ background: balance > 0.01 ? '#f0fdf4' : balance < -0.01 ? '#fef2f2' : '#f8fafc', border: `1px solid ${balance > 0.01 ? '#bbf7d0' : balance < -0.01 ? '#fecaca' : '#e2e8f0'}`, borderRadius: 8, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <span style={{ fontWeight: 700, fontSize: 14 }}>
                             {balance > 0.01 ? 'Over Paid:' : balance < -0.01 ? 'Outstanding:' : 'Outstanding Balance:'}
@@ -817,7 +817,7 @@ const AccountPayables = () => {
                             </div>
                           )}
                         </div>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#374151' }}>{balance < 0 ? '−' : ''}{curSym}{Math.abs(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#334155' }}>{balance < 0 ? '−' : ''}{curSym}{Math.abs(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     );
                   })()}
@@ -850,7 +850,7 @@ const AccountPayables = () => {
             </div>
           </div>
 
-          <div id="ap-list-document" style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}>
+          <div id="ap-list-document" style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}>
             {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, #991b1b 0%, #dc2626 100%)', padding: '28px 44px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
@@ -870,10 +870,10 @@ const AccountPayables = () => {
               {/* Stat chips */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
                 {[
-                  { label: 'Total Purchases', value: curSym + parseFloat(stats.totalPurchases).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
+                  { label: 'Total Purchases', value: curSym + parseFloat(stats.totalPurchases).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
                   { label: 'Total Paid',       value: curSym + parseFloat(stats.totalPaid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),      bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
                   { label: 'Outstanding',      value: curSym + parseFloat(stats.outstanding).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),    bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
-                  { label: 'Suppliers',        value: stats.suppliers,                                                                                  bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
+                  { label: 'Suppliers',        value: stats.suppliers,                                                                                  bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
                 ].map(chip => (
                   <div key={chip.label} style={{ padding: '12px 16px', borderRadius: 10, background: chip.bg, border: `1.5px solid ${chip.border}`, textAlign: 'center' }}>
                     <div style={{ fontSize: 9.5, letterSpacing: 0.8, textTransform: 'uppercase', color: '#64748b', fontWeight: 600, marginBottom: 6 }}>{chip.label}</div>
@@ -894,10 +894,10 @@ const AccountPayables = () => {
                   </thead>
                   <tbody>
                     {payables.map((p, idx) => (
-                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
+                      <tr key={p.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                        <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700 }}>{p.supplier_name}</td>
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{p.phone || '—'}</td>
+                        <td style={{ padding: '8px 12px', color: '#64748b' }}>{p.phone || '—'}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'center' }}>{p.grn_count}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right' }}>{curSym}{parseFloat(p.total_purchases).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', color: '#15803d', fontWeight: 600 }}>{curSym}{parseFloat(p.total_paid).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
@@ -905,12 +905,12 @@ const AccountPayables = () => {
                         {(() => {
                           const bal = -parseFloat(p.balance || 0);
                           return (
-                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#374151' }}>
+                            <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#334155' }}>
                               {bal < 0 ? '−' : ''}{curSym}{Math.abs(bal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
                           );
                         })()}
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{p.status}</td>
+                        <td style={{ padding: '8px 12px', color: '#64748b' }}>{p.status}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -954,7 +954,7 @@ const AccountPayables = () => {
 // highlighted figure.
 function RollupCard({ icon, label, value, color, highlight }) {
   return (
-    <div style={{ background: '#fff', border: `1px solid ${highlight ? color : '#e5e7eb'}`, borderRadius: 10, padding: 14 }}>
+    <div style={{ background: '#fff', border: `1px solid ${highlight ? color : '#e2e8f0'}`, borderRadius: 10, padding: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, color, fontSize: 12, fontWeight: 600 }}>
         {icon} <span>{label}</span>
       </div>

@@ -244,7 +244,7 @@ const StockReconciliation = () => {
         : `<span style="display:inline-block;border-bottom:1px solid #000;min-width:60px;height:14px"></span>`;
       const variance = hasPhysical ? lineVariance(p, c) : null;
       const varianceCell = variance == null
-        ? `<span style="color:#999">—</span>`
+        ? `<span style="color:#64748b">—</span>`
         : `<span style="font-weight:700;color:${variance < 0 ? '#b91c1c' : variance > 0 ? '#15803d' : '#000'}">${variance > 0 ? '+' : ''}${fmt(variance)} ${p.unit}</span>`;
       const reasonCell = c.reason
         ? c.reason
@@ -256,16 +256,16 @@ const StockReconciliation = () => {
       // amber when transit > 0, matching the on-screen behaviour.
       const systemDisplay = formatStockForProduct(netSysQty, p, { showBaseInParens: false });
       const transitDisplay = transitQty > 0 ? formatStockForProduct(transitQty, p, { showBaseInParens: false }) : '—';
-      return `<tr style="background:${idx % 2 === 1 ? '#f5f5f5' : '#fff'};border-bottom:1px solid #ddd">
+      return `<tr style="background:${idx % 2 === 1 ? '#f1f5f9' : '#fff'};border-bottom:1px solid #e2e8f0">
         <td style="padding:6px 8px;color:#000;font-size:10px">${idx + 1}</td>
         <td style="padding:6px 8px;font-size:10px;font-family:monospace">${p.code || '—'}</td>
         <td style="padding:6px 8px;font-weight:600;font-size:10.5px">${p.name}</td>
         <td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:10.5px;color:${transitQty > 0 ? '#b45309' : '#000'};font-weight:${transitQty > 0 ? 700 : 400}">${systemDisplay}</td>
-        <td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:10.5px;color:${transitQty > 0 ? '#0e7490' : '#999'}">${transitDisplay}</td>
+        <td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:10.5px;color:${transitQty > 0 ? '#0e7490' : '#64748b'}">${transitDisplay}</td>
         <td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:10.5px">${physicalCell}</td>
         <td style="padding:6px 8px;text-align:center;font-size:10px">${c.unit || p.unit}</td>
         <td style="padding:6px 8px;text-align:right;font-family:monospace;font-size:10px">${varianceCell}</td>
-        <td style="padding:6px 8px;font-size:10px;color:#444">${reasonCell}</td>
+        <td style="padding:6px 8px;font-size:10px;color:#334155">${reasonCell}</td>
       </tr>`;
     }).join('');
 
@@ -278,9 +278,9 @@ const StockReconciliation = () => {
       @page{size:A4 portrait;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:7px 8px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10px;background:#f0f0f0;text-align:left}
+      th{padding:7px 8px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10px;background:#f1f5f9;text-align:left}
       td{font-size:10.5px}
-      tfoot td{padding:8px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      tfoot td{padding:8px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -305,7 +305,7 @@ const StockReconciliation = () => {
             <div style="font-size:13px;font-weight:800">${val}</div>
           </div>`).join('')}
       </div>
-      ${notes ? `<div style="margin-bottom:10px;padding:8px 10px;border:1px solid #888;background:#fafafa;font-size:10.5px"><strong>Notes:</strong> ${notes}</div>` : ''}
+      ${notes ? `<div style="margin-bottom:10px;padding:8px 10px;border:1px solid #64748b;background:#f8fafc;font-size:10.5px"><strong>Notes:</strong> ${notes}</div>` : ''}
       <div style="border:1.5px solid #000;margin-bottom:14px">
         <table>
           <thead><tr>
@@ -331,7 +331,7 @@ const StockReconciliation = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:6px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between">
         <span style="font-size:9px;color:#000">${businessName} — Confidential</span>
         <span style="font-size:9px;color:#000">Printed: ${printedAt}</span>
       </div>
@@ -425,13 +425,13 @@ const StockReconciliation = () => {
   // Rendered inside the map before the first zero row when open, and after the
   // last in-stock row when closed — either way it sits between them.
   const zeroDivider = (
-    <tr key="__zero-divider" style={{ background: '#f9fafb', borderTop: '2px solid #e5e7eb', borderBottom: '1px solid #e5e7eb' }}>
+    <tr key="__zero-divider" style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0', borderBottom: '1px solid #e2e8f0' }}>
       <td colSpan={7} style={{ padding: '9px 14px' }}>
         <button type="button" onClick={() => setShowZero(v => !v)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5, fontWeight: 700, color: '#6b7280' }}>
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 12.5, fontWeight: 700, color: '#64748b' }}>
           {showZero ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
           Zero stock — {zeroStockProducts.length} item{zeroStockProducts.length === 1 ? '' : 's'}
-          <span style={{ fontWeight: 500, color: '#6b7280' }}>
+          <span style={{ fontWeight: 500, color: '#64748b' }}>
             {showZero ? '· hide' : '· not printed, open to count anyway'}
           </span>
         </button>
@@ -455,7 +455,7 @@ const StockReconciliation = () => {
             </button>
             <button onClick={printWorksheet} disabled={printingSheet || inStockProducts.length === 0}
               title="Print a thermal worksheet for the warehouse — items in stock only"
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, cursor: printingSheet || inStockProducts.length === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: printingSheet || inStockProducts.length === 0 ? 0.55 : 1 }}>
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 16px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, cursor: printingSheet || inStockProducts.length === 0 ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600, opacity: printingSheet || inStockProducts.length === 0 ? 0.55 : 1 }}>
               <FiPrinter size={14} /> {printingSheet ? 'Printing…' : 'Print Sheet'}
             </button>
             <button onClick={postCount} disabled={posting || countedCount === 0}
@@ -476,26 +476,26 @@ const StockReconciliation = () => {
       {tab === 'count' && (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
           <div>
-            <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>{t('location')}</label>
-            <div style={{ display: 'inline-flex', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+            <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>{t('location')}</label>
+            <div style={{ display: 'inline-flex', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
               {['sales', 'store'].map(loc => (
                 <button key={loc} onClick={() => setLocation(loc)}
-                  style={{ padding: '8px 18px', border: 'none', background: location === loc ? '#1e40af' : '#fff', color: location === loc ? '#fff' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>
+                  style={{ padding: '8px 18px', border: 'none', background: location === loc ? '#1e40af' : '#fff', color: location === loc ? '#fff' : '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>
                   {loc} Floor
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>{t('countDate')}</label>
+            <label style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 4 }}>{t('countDate')}</label>
             <input type="date" value={countDate} onChange={e => setCountDate(e.target.value)}
-              style={{ padding: '7px 10px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13 }} />
+              style={{ padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13 }} />
           </div>
         </div>
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', borderBottom: '2px solid #e5e7eb', marginBottom: 16 }}>
+      <div style={{ display: 'flex', borderBottom: '2px solid #e2e8f0', marginBottom: 16 }}>
         {[
           { key: 'count', label: 'Count', icon: <FiCheckCircle size={14} /> },
           { key: 'history', label: `History (${history.length})`, icon: <FiClock size={14} /> },
@@ -516,38 +516,38 @@ const StockReconciliation = () => {
           </div>
 
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchProducts')}
-            style={{ width: '100%', padding: '9px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '9px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, marginBottom: 10, boxSizing: 'border-box' }} />
 
           <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder={t('notesOptional')}
-            style={{ width: '100%', padding: '8px 14px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, marginBottom: 12, boxSizing: 'border-box' }} />
+            style={{ width: '100%', padding: '8px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, marginBottom: 12, boxSizing: 'border-box' }} />
 
           <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb' }}>Product</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb', width: 180 }}>System Qty</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb', width: 120 }} title="Pending outgoing transfers (base units). Subtracted from System when computing Variance.">Transit</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb', width: 140 }}>Physical Qty</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb', width: 130 }}>Unit</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb', width: 110 }}>Variance</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb', width: 180 }}>Reason</th>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0' }}>Product</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0', width: 180 }}>System Qty</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#0e7490', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0', width: 120 }} title="Pending outgoing transfers (base units). Subtracted from System when computing Variance.">Transit</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0', width: 140 }}>Physical Qty</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0', width: 130 }}>Unit</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0', width: 110 }}>Variance</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0', width: 180 }}>Reason</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredProducts.length === 0 ? (
-                  <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No products.</td></tr>
+                  <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>No products.</td></tr>
                 ) : visibleProducts.map((p, vi) => {
                   const c = counts[p.id] || {};
                   const variance = lineVariance(p, c);
-                  const varianceClass = variance == null ? '' : variance > 0.0001 ? '#16a34a' : variance < -0.0001 ? '#dc2626' : '#6b7280';
+                  const varianceClass = variance == null ? '' : variance > 0.0001 ? '#16a34a' : variance < -0.0001 ? '#dc2626' : '#64748b';
                   return (
                     <React.Fragment key={p.id}>
                     {vi === inStockProducts.length && zeroDivider}
-                    <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '8px 14px' }}>
-                        <div style={{ fontWeight: 500, color: '#111827' }}>{p.name}</div>
-                        <div style={{ fontSize: 11, color: '#6b7280' }}>{p.code || '—'}</div>
+                        <div style={{ fontWeight: 500, color: '#0f172a' }}>{p.name}</div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>{p.code || '—'}</div>
                       </td>
                       {(() => {
                         // v1.13.7 — System Qty column shows (system − transit)
@@ -561,11 +561,11 @@ const StockReconciliation = () => {
                         const hasTransit = transit > 0;
                         return (
                           <>
-                            <td style={{ padding: '8px 14px', textAlign: 'right', color: hasTransit ? '#b45309' : '#374151', fontWeight: hasTransit ? 600 : 400 }}
+                            <td style={{ padding: '8px 14px', textAlign: 'right', color: hasTransit ? '#b45309' : '#334155', fontWeight: hasTransit ? 600 : 400 }}
                                 title={hasTransit ? `Raw system ${formatStockForProduct(rawSys, p)} − Transit ${formatStockForProduct(transit, p)}` : undefined}>
                               {formatStockForProduct(netSys, p)}
                             </td>
-                            <td style={{ padding: '8px 14px', textAlign: 'right', color: hasTransit ? '#0e7490' : '#6b7280', fontWeight: hasTransit ? 600 : 400 }}>
+                            <td style={{ padding: '8px 14px', textAlign: 'right', color: hasTransit ? '#0e7490' : '#64748b', fontWeight: hasTransit ? 600 : 400 }}>
                               {hasTransit ? formatStockForProduct(transit, p) : '—'}
                             </td>
                           </>
@@ -575,18 +575,18 @@ const StockReconciliation = () => {
                         <input type="number" min="0" step="1" placeholder="—"
                           value={c.physical_qty ?? ''}
                           onChange={e => updateCount(p.id, 'physical_qty', e.target.value)}
-                          style={{ width: '100%', padding: '7px 8px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, textAlign: 'right', boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '7px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, textAlign: 'right', boxSizing: 'border-box' }} />
                       </td>
                       <td style={{ padding: '8px 6px' }}>
                         {(() => {
                           const units = unitsForProductFE(p);
                           if (units.length <= 1) {
-                            return <div style={{ padding: '7px 8px', color: '#6b7280', fontSize: 13 }}>{p.unit}</div>;
+                            return <div style={{ padding: '7px 8px', color: '#64748b', fontSize: 13 }}>{p.unit}</div>;
                           }
                           return (
                             <select value={c.unit || p.unit}
                               onChange={e => updateCount(p.id, 'unit', e.target.value)}
-                              style={{ width: '100%', padding: '7px 6px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' }}>
+                              style={{ width: '100%', padding: '7px 6px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' }}>
                               {units.map(u => (
                                 <option key={u.name} value={u.name}>
                                   {u.name}{u.is_base ? '' : ` (1=${u.conv})`}
@@ -625,7 +625,7 @@ const StockReconciliation = () => {
                         <input type="text" placeholder="(optional)"
                           value={c.reason || ''}
                           onChange={e => updateCount(p.id, 'reason', e.target.value)}
-                          style={{ width: '100%', padding: '7px 8px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 12, boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '7px 8px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 12, boxSizing: 'border-box' }} />
                       </td>
                     </tr>
                     </React.Fragment>
@@ -643,14 +643,14 @@ const StockReconciliation = () => {
         <>
           {/* Filter pills */}
           <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Show:</span>
+            <span style={{ fontSize: 12, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Show:</span>
             {['all', 'sales', 'store'].map(opt => (
               <button key={opt} onClick={() => setHistoryFilter(opt)}
                 style={{
                   padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                  border: historyFilter === opt ? '1.5px solid #1e40af' : '1px solid #e5e7eb',
+                  border: historyFilter === opt ? '1.5px solid #1e40af' : '1px solid #e2e8f0',
                   background: historyFilter === opt ? '#dbeafe' : '#fff',
-                  color: historyFilter === opt ? '#1e40af' : '#6b7280',
+                  color: historyFilter === opt ? '#1e40af' : '#64748b',
                   cursor: 'pointer', textTransform: 'capitalize'
                 }}>
                 {opt === 'all' ? 'All Locations' : `${opt} Floor`}
@@ -673,33 +673,33 @@ const StockReconciliation = () => {
 
             return (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, marginBottom: 14 }}>
-                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Reconciliations</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: '#111827', marginTop: 4 }}>{totals.count}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>{totals.itemsTotal} items counted</div>
+                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Reconciliations</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>{totals.count}</div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{totals.itemsTotal} items counted</div>
                 </div>
-                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Net Variance Value</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: totals.total > 0 ? '#15803d' : totals.total < 0 ? '#dc2626' : '#111827', marginTop: 4 }}>
+                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Net Variance Value</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: totals.total > 0 ? '#15803d' : totals.total < 0 ? '#dc2626' : '#0f172a', marginTop: 4 }}>
                     {totals.total > 0 ? '+' : ''}${(parseFloat(totals.total)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>positive = found extra · negative = shrinkage</div>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>positive = found extra · negative = shrinkage</div>
                 </div>
-                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
+                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: 11, color: '#15803d', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Surplus</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d', marginTop: 4 }}>+{curSym}{(parseFloat(positiveTotal)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                 </div>
-                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb' }}>
+                <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: 11, color: '#dc2626', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>Shrinkage</div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: '#dc2626', marginTop: 4 }}>−{curSym}{(parseFloat(Math.abs(negativeTotal))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
                 </div>
                 {historyFilter === 'all' && Object.keys(totals.byLoc).length > 1 && (
-                  <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e5e7eb', gridColumn: 'span 2' }}>
-                    <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>By Location</div>
+                  <div style={{ background: '#fff', borderRadius: 10, padding: 14, border: '1px solid #e2e8f0', gridColumn: 'span 2' }}>
+                    <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>By Location</div>
                     {Object.entries(totals.byLoc).map(([loc, val]) => (
                       <div key={loc} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                        <span style={{ color: '#374151', textTransform: 'capitalize' }}>{loc} Floor</span>
-                        <span style={{ fontWeight: 600, color: val > 0 ? '#15803d' : val < 0 ? '#dc2626' : '#6b7280' }}>
+                        <span style={{ color: '#334155', textTransform: 'capitalize' }}>{loc} Floor</span>
+                        <span style={{ fontWeight: 600, color: val > 0 ? '#15803d' : val < 0 ? '#dc2626' : '#64748b' }}>
                           {val > 0 ? '+' : ''}{curSym}{(parseFloat(val)||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                         </span>
                       </div>
@@ -712,28 +712,28 @@ const StockReconciliation = () => {
 
         <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
           {history.length === 0 ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No past reconciliations for this filter.</div>
+            <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>No past reconciliations for this filter.</div>
           ) : (
             <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb' }}>Date</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb' }}>Location</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb' }}>Counted By</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb' }}>Items</th>
-                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e5e7eb' }}>Variance Value</th>
-                  <th style={{ padding: '11px 14px', width: 80, borderBottom: '1px solid #e5e7eb' }}></th>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0' }}>Date</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0' }}>Location</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'left', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0' }}>Counted By</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0' }}>Items</th>
+                  <th style={{ padding: '11px 14px', textAlign: 'right', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, borderBottom: '1px solid #e2e8f0' }}>Variance Value</th>
+                  <th style={{ padding: '11px 14px', width: 80, borderBottom: '1px solid #e2e8f0' }}></th>
                 </tr>
               </thead>
               <tbody>
                 {history.map(h => (
                   <React.Fragment key={h.id}>
-                    <tr style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer' }} onClick={() => expandRow(h.id)}>
+                    <tr style={{ borderBottom: '1px solid #f1f5f9', cursor: 'pointer' }} onClick={() => expandRow(h.id)}>
                       <td style={{ padding: '10px 14px', fontWeight: 500 }}>{h.count_date}</td>
                       <td style={{ padding: '10px 14px', textTransform: 'capitalize' }}>{h.location}</td>
-                      <td style={{ padding: '10px 14px', color: '#6b7280' }}>{h.created_by_name || '—'}</td>
+                      <td style={{ padding: '10px 14px', color: '#64748b' }}>{h.created_by_name || '—'}</td>
                       <td style={{ padding: '10px 14px', textAlign: 'right' }}>{h.item_count}</td>
-                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: parseFloat(h.variance_value || 0) > 0 ? '#15803d' : parseFloat(h.variance_value || 0) < 0 ? '#dc2626' : '#6b7280' }}>
+                      <td style={{ padding: '10px 14px', textAlign: 'right', fontWeight: 600, color: parseFloat(h.variance_value || 0) > 0 ? '#15803d' : parseFloat(h.variance_value || 0) < 0 ? '#dc2626' : '#64748b' }}>
                         {(() => {
                           const v = parseFloat(h.variance_value || 0);
                           if (v < 0) return `−${curSym}${(parseFloat(Math.abs(v))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -751,38 +751,38 @@ const StockReconciliation = () => {
                     </tr>
                     {expandedId === h.id && (
                       <tr>
-                        <td colSpan={6} style={{ padding: '0 14px 12px', background: '#f9fafb' }}>
+                        <td colSpan={6} style={{ padding: '0 14px 12px', background: '#f8fafc' }}>
                           {!detail[h.id] ? (
-                            <div style={{ padding: 12, color: '#6b7280', fontSize: 12 }}>Loading…</div>
+                            <div style={{ padding: 12, color: '#64748b', fontSize: 12 }}>Loading…</div>
                           ) : (
                             <div style={{ paddingTop: 8 }}>
                               {detail[h.id].notes && (
-                                <div style={{ fontSize: 12, color: '#374151', marginBottom: 8 }}>
+                                <div style={{ fontSize: 12, color: '#334155', marginBottom: 8 }}>
                                   <strong>Notes:</strong> {detail[h.id].notes}
                                 </div>
                               )}
                               <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                                 <thead>
                                   <tr style={{ background: '#fff' }}>
-                                    <th style={{ padding: '7px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Product</th>
-                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e5e7eb' }}>System</th>
-                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e5e7eb' }}>Physical</th>
-                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e5e7eb' }}>Variance</th>
-                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e5e7eb' }}>Cost</th>
-                                    <th style={{ padding: '7px 10px', textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>Reason</th>
+                                    <th style={{ padding: '7px 10px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Product</th>
+                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>System</th>
+                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Physical</th>
+                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Variance</th>
+                                    <th style={{ padding: '7px 10px', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>Cost</th>
+                                    <th style={{ padding: '7px 10px', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>Reason</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {(detail[h.id].items || []).map(it => (
-                                    <tr key={it.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                    <tr key={it.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                       <td style={{ padding: '6px 10px' }}>{it.product_name}</td>
                                       <td style={{ padding: '6px 10px', textAlign: 'right' }}>{formatStock(it.system_qty, it.product_unit, it.alt_unit, it.conversion_factor)}</td>
                                       <td style={{ padding: '6px 10px', textAlign: 'right' }}>{(parseFloat(parseFloat(it.physical_qty))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {it.unit}</td>
-                                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600, color: parseFloat(it.variance_base) > 0 ? '#15803d' : parseFloat(it.variance_base) < 0 ? '#dc2626' : '#6b7280' }}>
+                                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: 600, color: parseFloat(it.variance_base) > 0 ? '#15803d' : parseFloat(it.variance_base) < 0 ? '#dc2626' : '#64748b' }}>
                                         {parseFloat(it.variance_base) > 0 ? '+' : ''}{(parseFloat(parseFloat(it.variance_base))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {it.product_unit}
                                       </td>
-                                      <td style={{ padding: '6px 10px', textAlign: 'right', color: '#6b7280' }}>{curSym}{(parseFloat(parseFloat(it.cost_at_count))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-                                      <td style={{ padding: '6px 10px', color: '#6b7280' }}>{it.reason || '—'}</td>
+                                      <td style={{ padding: '6px 10px', textAlign: 'right', color: '#64748b' }}>{curSym}{(parseFloat(parseFloat(it.cost_at_count))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+                                      <td style={{ padding: '6px 10px', color: '#64748b' }}>{it.reason || '—'}</td>
                                     </tr>
                                   ))}
                                 </tbody>

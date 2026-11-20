@@ -192,51 +192,51 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
     boxShadow: '0 20px 60px rgba(0,0,0,0.1)',
   };
   const inputStyle = {
-    width: '100%', padding: '10px 12px', border: '1px solid #d1d5db',
+    width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1',
     borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box',
   };
   const labelStyle = {
-    display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6,
+    display: 'block', fontSize: 13, fontWeight: 500, color: '#334155', marginBottom: 6,
   };
   const primaryBtn = (disabled) => ({
-    width: '100%', padding: '12px', background: disabled ? '#9ca3af' : '#dc2626',
+    width: '100%', padding: '12px', background: disabled ? '#94a3b8' : '#dc2626',
     color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600,
     cursor: disabled ? 'not-allowed' : 'pointer', marginBottom: 12,
   });
   const secondaryBtn = {
     width: '100%', padding: '10px', background: 'transparent',
-    color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8,
+    color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 8,
     fontSize: 14, cursor: 'pointer',
   };
 
   const logo = (
     <div style={{ textAlign: 'center', marginBottom: 32 }}>
       <div style={{ fontSize: 48, marginBottom: 12 }}>⛽</div>
-      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#111827' }}>Kelete</h1>
-      <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: 14 }}>Cloud Sync Setup</p>
+      <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0f172a' }}>Kelete</h1>
+      <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 14 }}>Cloud Sync Setup</p>
     </div>
   );
 
   // ── Already configured ────────────────────────────────────────────────────
   if (alreadyConfigured) {
-    const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f3f4f6' };
-    const keyStyle = { fontSize: 13, color: '#6b7280', fontWeight: 500 };
-    const valStyle = { fontSize: 13, color: '#111827', fontWeight: 600, textAlign: 'right' };
+    const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #f1f5f9' };
+    const keyStyle = { fontSize: 13, color: '#64748b', fontWeight: 500 };
+    const valStyle = { fontSize: 13, color: '#0f172a', fontWeight: 600, textAlign: 'right' };
     return (
       <div style={pageStyle}>
         <div style={{ ...cardStyle, maxWidth: 480 }}>
           <div style={{ textAlign: 'center', marginBottom: 24 }}>
             <div style={{ fontSize: 40, marginBottom: 8 }}>✅</div>
-            <h2 style={{ margin: '0 0 4px', color: '#111827' }}>Cloud Sync Active</h2>
-            <p style={{ color: '#6b7280', fontSize: 13, margin: 0 }}>This device is registered and syncing with the cloud.</p>
+            <h2 style={{ margin: '0 0 4px', color: '#0f172a' }}>Cloud Sync Active</h2>
+            <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>This device is registered and syncing with the cloud.</p>
           </div>
-          <div style={{ background: '#f9fafb', borderRadius: 10, padding: '4px 16px', marginBottom: 20 }}>
+          <div style={{ background: '#f8fafc', borderRadius: 10, padding: '4px 16px', marginBottom: 20 }}>
             <div style={rowStyle}><span style={keyStyle}>Business Email</span><span style={valStyle}>{identity?.email ?? '—'}</span></div>
             <div style={rowStyle}><span style={keyStyle}>Subdomain</span><span style={valStyle}>{subdomain || '—'}</span></div>
             <div style={rowStyle}><span style={keyStyle}>Branch</span><span style={valStyle}>{identity?.branchName ?? '—'}</span></div>
             <div style={rowStyle}>
               <span style={keyStyle}>License Expires</span>
-              <span style={{ ...valStyle, color: identity?.isExpired ? '#dc2626' : identity?.daysRemaining <= 14 ? '#d97706' : '#111827' }}>
+              <span style={{ ...valStyle, color: identity?.isExpired ? '#dc2626' : identity?.daysRemaining <= 14 ? '#d97706' : '#0f172a' }}>
                 {identity?.expiresAt ? `${identity.expiresAt.substring(0, 10)} (${identity.daysRemaining}d remaining)` : '—'}
               </span>
             </div>
@@ -245,7 +245,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
           {existingBranchCode && (
             <div style={{ background: '#fff1f1', border: '1px solid #fecaca', borderRadius: 10, padding: '14px 20px', marginBottom: 24, textAlign: 'center' }}>
               <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600, marginBottom: 4 }}>BRANCH CODE — share when adding a new PC to this branch</div>
-              <div style={{ fontSize: 32, fontFamily: 'monospace', fontWeight: 700, letterSpacing: '6px', color: '#991b1b' }}>{existingBranchCode}</div>
+              <div style={{ fontSize: 32, fontFamily: 'var(--k-font-mono)', fontWeight: 700, letterSpacing: '6px', color: '#991b1b' }}>{existingBranchCode}</div>
             </div>
           )}
           {/* v1.8.42 — recovery action. Clears the "synced=0" flag on
@@ -295,7 +295,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               setTimeout(() => { setUpdateStatus(s => s === 'checking' ? 'idle' : s); window.electronAPI.removeUpdateNotAvailableListener(handler); }, 15000);
             }}
             disabled={updateStatus === 'checking'}
-            style={{ width: '100%', padding: '10px', background: 'transparent', color: updateStatus === 'latest' ? '#15803d' : '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 14, cursor: updateStatus === 'checking' ? 'not-allowed' : 'pointer' }}
+            style={{ width: '100%', padding: '10px', background: 'transparent', color: updateStatus === 'latest' ? '#15803d' : '#64748b', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 14, cursor: updateStatus === 'checking' ? 'not-allowed' : 'pointer' }}
           >
             {updateStatus === 'checking' ? 'Checking for updates...' : updateStatus === 'latest' ? '✓ You are on the latest version' : 'Check for Updates'}
           </button>
@@ -310,7 +310,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
       <div style={pageStyle}>
         <div style={{ ...cardStyle, maxWidth: 500 }}>
           {logo}
-          <p style={{ textAlign: 'center', color: '#6b7280', fontSize: 14, marginBottom: 28 }}>
+          <p style={{ textAlign: 'center', color: '#64748b', fontSize: 14, marginBottom: 28 }}>
             How do you want to set up this PC?
           </p>
           <div style={{ display: 'flex', gap: 16, marginBottom: 12 }}>
@@ -325,7 +325,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               <div style={{ fontSize: 12, color: '#15803d', marginTop: 4 }}>Add this PC to an existing branch</div>
             </button>
           </div>
-          <p style={{ textAlign: 'center', fontSize: 11, color: '#6b7280', marginTop: 16, marginBottom: 0 }}>
+          <p style={{ textAlign: 'center', fontSize: 11, color: '#64748b', marginTop: 16, marginBottom: 0 }}>
             You can update sync settings later from Settings → Cloud Sync
           </p>
         </div>
@@ -346,7 +346,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Your Subdomain</label>
               <input type="text" required value={slug} onChange={e => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="kelete" style={inputStyle} />
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Lowercase letters, numbers and hyphens only</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Lowercase letters, numbers and hyphens only</div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Branch Name</label>
@@ -354,7 +354,7 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             </div>
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>License Key</label>
-              <input type="text" required value={licenseKey} onChange={e => setLicenseKey(e.target.value.toUpperCase())} placeholder="KELETE-XXXX-XXXX-XXXX" style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '1px' }} />
+              <input type="text" required value={licenseKey} onChange={e => setLicenseKey(e.target.value.toUpperCase())} placeholder="KELETE-XXXX-XXXX-XXXX" style={{ ...inputStyle, fontFamily: 'var(--k-font-mono)', letterSpacing: '1px' }} />
             </div>
             {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626' }}>{error}</div>}
             <button type="submit" disabled={loading} style={primaryBtn(loading)}>
@@ -370,12 +370,12 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
   // ── Create Admin (Step 2) ─────────────────────────────────────────────────
   if (mode === 'createAdmin') {
     const pwInputStyle = { ...inputStyle, paddingRight: 44 };
-    const eyeBtn = { position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#6b7280', padding: 0 };
-    const readonlyStyle = { ...inputStyle, background: '#f3f4f6', color: '#6b7280', cursor: 'default' };
+    const eyeBtn = { position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#64748b', padding: 0 };
+    const readonlyStyle = { ...inputStyle, background: '#f1f5f9', color: '#64748b', cursor: 'default' };
     const chipStyle = (active) => ({
       display: 'inline-block', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', margin: '3px',
-      background: active ? '#dc2626' : '#f3f4f6', color: active ? '#fff' : '#374151',
-      border: active ? '1px solid #dc2626' : '1px solid #e5e7eb',
+      background: active ? '#dc2626' : '#f1f5f9', color: active ? '#fff' : '#334155',
+      border: active ? '1px solid #dc2626' : '1px solid #e2e8f0',
     });
     return (
       <div style={pageStyle}>
@@ -430,12 +430,12 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
             {/* Permissions */}
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Permissions</label>
-              <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: '10px 12px', background: '#fafafa' }}>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 12px', background: '#f8fafc' }}>
                 {ALL_PERMISSIONS.map(p => (
                   <span key={p} style={chipStyle(adminPermissions.includes(p))} onClick={() => togglePermission(p)}>{p}</span>
                 ))}
               </div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Click to toggle. Leave empty for no module restrictions.</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Click to toggle. Leave empty for no module restrictions.</div>
             </div>
             {/* Status — read-only */}
             <div style={{ marginBottom: 24 }}>
@@ -467,16 +467,16 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                 <input type="text" required value={joinSlug} onChange={e => setJoinSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))} placeholder="mybusiness" style={{ ...inputStyle, borderRadius: '8px 0 0 8px', flex: 1 }} />
               </div>
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>Same subdomain as the other PC in this branch</div>
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>Same subdomain as the other PC in this branch</div>
             </div>
             <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Branch Code</label>
-              <input type="text" required value={branchCode} onChange={e => setBranchCode(e.target.value.toUpperCase())} placeholder="e.g. A1B2C3D4" maxLength={8} style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '4px', fontSize: 18, textAlign: 'center' }} />
-              <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>8-character code — find it on the other PC under Settings → Cloud Sync</div>
+              <input type="text" required value={branchCode} onChange={e => setBranchCode(e.target.value.toUpperCase())} placeholder="e.g. A1B2C3D4" maxLength={8} style={{ ...inputStyle, fontFamily: 'var(--k-font-mono)', letterSpacing: '4px', fontSize: 18, textAlign: 'center' }} />
+              <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>8-character code — find it on the other PC under Settings → Cloud Sync</div>
             </div>
             <div style={{ marginBottom: 24 }}>
               <label style={labelStyle}>License Key</label>
-              <input type="text" required value={joinLicenseKey} onChange={e => setJoinLicenseKey(e.target.value.toUpperCase())} placeholder="KELETE-XXXX-XXXX-XXXX" style={{ ...inputStyle, fontFamily: 'monospace', letterSpacing: '1px' }} />
+              <input type="text" required value={joinLicenseKey} onChange={e => setJoinLicenseKey(e.target.value.toUpperCase())} placeholder="KELETE-XXXX-XXXX-XXXX" style={{ ...inputStyle, fontFamily: 'var(--k-font-mono)', letterSpacing: '1px' }} />
             </div>
             {error && <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '10px 14px', marginBottom: 16, fontSize: 13, color: '#dc2626' }}>{error}</div>}
             <button type="submit" disabled={loading} style={primaryBtn(loading)}>
@@ -496,12 +496,12 @@ const Setup = ({ onComplete, startAtCreateAdmin = false }) => {
         <div style={{ ...cardStyle, textAlign: 'center' }}>
           {logo}
           <div style={{ fontSize: 40, marginBottom: 20 }}>⏳</div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1f2937', marginBottom: 10 }}>Syncing Branch Data</h2>
-          <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24, lineHeight: 1.6 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: '#1e293b', marginBottom: 10 }}>Syncing Branch Data</h2>
+          <p style={{ fontSize: 14, color: '#64748b', marginBottom: 24, lineHeight: 1.6 }}>
             Please wait while your branch data is being downloaded from the cloud.<br />
             You will be taken to the login screen automatically.
           </p>
-          <div style={{ width: '100%', height: 6, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden' }}>
+          <div style={{ width: '100%', height: 6, background: '#f1f5f9', borderRadius: 99, overflow: 'hidden' }}>
             <div style={{ height: '100%', background: '#dc2626', borderRadius: 99, animation: 'progress 6s linear forwards' }} />
           </div>
           <style>{`@keyframes progress { from { width: 0% } to { width: 100% } }`}</style>

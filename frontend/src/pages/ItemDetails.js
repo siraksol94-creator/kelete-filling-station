@@ -62,7 +62,7 @@ const catBadgeStyle = (cat) => {
     'Processed': { background: '#e0f2fe', color: '#075985', border: '1px solid #7dd3fc' },
   };
   return {
-    ...(map[cat] || { background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db' }),
+    ...(map[cat] || { background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1' }),
     padding: '2px 8px', borderRadius: 12, fontSize: 10.5, fontWeight: 600, display: 'inline-block',
   };
 };
@@ -80,7 +80,7 @@ const BarcodePreview = ({ form }) => {
   return (
     <div style={{ marginTop: 16, padding: '12px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
       <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Live Preview</div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, fontFamily: 'monospace', fontSize: 15 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, fontFamily: 'var(--k-font-mono)', fontSize: 15 }}>
         {sample.split('').map((char, i) => {
           const isCode   = i >= numStart && i < numStart + numLen;
           const isWeight = qLen > 0 && i >= qStart && i < qStart + qLen;
@@ -610,8 +610,8 @@ const ItemDetails = () => {
   };
 
   const setBF = (field) => (e) => setBarcodeForm(prev => ({ ...prev, [field]: e.target.value }));
-  const inputSt = { width: '100%', padding: '7px 10px', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
-  const labelSt = { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 4 };
+  const inputSt = { width: '100%', padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
+  const labelSt = { display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 4 };
 
   // ── Print preview stats — follow the filter ──
   const lowStockItems = filtered.filter(i => parseFloat(i.store_balance || 0) <= parseFloat(i.min_stock || 0));
@@ -624,7 +624,7 @@ const ItemDetails = () => {
       const main = dbMainCategories.find(m => String(m.id) === String(item.main_category_id));
       const key = main ? main.id : '__unassigned__';
       const name = main ? main.name : 'Uncategorized';
-      const color = main ? main.color : '#6b7280';
+      const color = main ? main.color : '#64748b';
       if (!map.has(key)) map.set(key, { name, color, count: 0, totalSell: 0 });
       const entry = map.get(key);
       entry.count += 1;
@@ -642,7 +642,7 @@ const ItemDetails = () => {
 
     const rows = items.map((item, idx) => {
       const isLow = parseFloat(item.store_balance || 0) <= parseFloat(item.min_stock || 0);
-      return `<tr style="border-bottom:1px solid #ddd;background:${isLow ? '#f5f5f5' : idx % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      return `<tr style="border-bottom:1px solid #e2e8f0;background:${isLow ? '#f1f5f9' : idx % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:7px 10px;font-size:10.5px">${idx + 1}</td>
         <td style="padding:7px 10px;font-weight:700;font-family:monospace;font-size:11px">${item.code || '—'}</td>
         <td style="padding:7px 10px;font-weight:500">${item.name}</td>
@@ -659,8 +659,8 @@ const ItemDetails = () => {
       @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10px;background:#f0f0f0;text-align:left}
-      tfoot td{padding:9px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      th{padding:8px 10px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10px;background:#f1f5f9;text-align:left}
+      tfoot td{padding:9px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
     </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -716,7 +716,7 @@ const ItemDetails = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${bizName} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -738,12 +738,12 @@ const ItemDetails = () => {
   // screen READ-ONLY: HQ is still the only place a C.P. can be set, but a depot
   // can now see what its own costs are, and which of its items have none.
   const tabStrip = (
-    <div style={{ display: 'flex', gap: 4, borderBottom: '2px solid #e5e7eb', marginBottom: 16 }}>
+    <div style={{ display: 'flex', gap: 4, borderBottom: '2px solid #e2e8f0', marginBottom: 16 }}>
       {[['items', t('itemDetailsTitle')], ['cost', 'Cost Price (C.P.)']].map(([key, label]) => (
         <button key={key} type="button" onClick={() => setTab(key)}
           style={{ padding: '10px 22px', border: 'none', background: 'none', cursor: 'pointer',
                    fontSize: 14, fontWeight: 700, marginBottom: -2,
-                   color: tab === key ? '#C8102E' : '#6b7280',
+                   color: tab === key ? '#C8102E' : '#64748b',
                    borderBottom: tab === key ? '3px solid #C8102E' : '3px solid transparent' }}>
           {label}
         </button>
@@ -776,7 +776,7 @@ const ItemDetails = () => {
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           {!isBranch && (
-            <button onClick={handleDownloadSample} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            <button onClick={handleDownloadSample} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 16px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               <FiDownload size={14} /> {t('sampleCSV')}
             </button>
           )}
@@ -795,9 +795,9 @@ const ItemDetails = () => {
           )}
           <button
             onClick={handlePrint}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#374151', transition: 'all 0.15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = '#6b7280'; e.currentTarget.style.background = '#f9fafb'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e5e7eb'; e.currentTarget.style.background = '#fff'; }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#334155', transition: 'all 0.15s' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#64748b'; e.currentTarget.style.background = '#f8fafc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.background = '#fff'; }}
           >
             <FiPrinter size={16} /> {t('print')}
           </button>
@@ -908,7 +908,7 @@ const ItemDetails = () => {
       <div className="phone-only" style={{ marginBottom: 10 }}>
         <div className="nowrap-row" style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
           <div className="search-input-container" style={{ flex: 1, minWidth: 0, margin: 0 }}>
-            <FiSearch style={{ color: '#6b7280' }} />
+            <FiSearch style={{ color: '#64748b' }} />
             <input type="text" placeholder={t('searchByItemOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           {isHqHost() && (
@@ -918,7 +918,7 @@ const ItemDetails = () => {
             </button>
           )}
           <button onClick={handlePrint} title={t('print')} aria-label={t('print')}
-            style={{ width: 38, height: 38, flexShrink: 0, background: '#fff', color: '#374151', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 38, height: 38, flexShrink: 0, background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
             <FiPrinter />
           </button>
           {!isBranch && hasPermission('Items:Add') && (
@@ -946,7 +946,7 @@ const ItemDetails = () => {
           };
           const chip = (on) => ({
             padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer',
-            border: `1px solid ${on ? '#13306b' : '#e2e6ee'}`, background: on ? '#13306b' : '#fff', color: on ? '#fff' : '#334155',
+            border: `1px solid ${on ? '#13306b' : '#e2e8f0'}`, background: on ? '#13306b' : '#fff', color: on ? '#fff' : '#334155',
           });
           return (
             <div className="cat-filter-row" style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
@@ -961,12 +961,12 @@ const ItemDetails = () => {
           );
         })()}
         <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, color: '#5b6478' }}>
+          <span style={{ fontSize: 12, color: '#475569' }}>
             {filtered.length} item{filtered.length === 1 ? '' : 's'}
             {filtered.length > 0 && <> · avg sell <b style={{ color: '#0f172a' }}>{curSym}{(filtered.reduce((s, i) => s + (parseFloat(i.selling_price) || 0), 0) / filtered.length).toFixed(2)}</b></>}
           </span>
           <button type="button" onClick={() => setShowPhoneFilters(v => !v)}
-            style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, border: '1px solid #e2e6ee', background: showPhoneFilters ? '#e8edf7' : '#fff', color: '#13306b', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12, fontWeight: 700, border: '1px solid #e2e8f0', background: showPhoneFilters ? '#e8edf7' : '#fff', color: '#13306b', cursor: 'pointer', whiteSpace: 'nowrap' }}>
             {showPhoneFilters ? 'Hide filters' : 'Filters'}
           </button>
         </div>
@@ -984,7 +984,7 @@ const ItemDetails = () => {
       </div>
 
       <div className="search-input-container desk-only">
-        <FiSearch style={{ color: '#6b7280' }} />
+        <FiSearch style={{ color: '#64748b' }} />
         <input type="text" placeholder={t('searchByItemOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
@@ -1004,12 +1004,12 @@ const ItemDetails = () => {
           {subtotalsByMain.map(s => (
             <div key={s.name} style={{
               padding: '6px 12px', borderRadius: 8,
-              background: (s.color || '#6b7280') + '15',
-              border: `1px solid ${(s.color || '#6b7280')}40`,
+              background: (s.color || '#64748b') + '15',
+              border: `1px solid ${(s.color || '#64748b')}40`,
               fontSize: 12,
             }}>
               <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
-              <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
+              <span style={{ marginLeft: 6, color: '#334155', fontWeight: 600 }}>
                 {s.count} item{s.count !== 1 ? 's' : ''} · avg {curSym}{s.count > 0 ? (s.totalSell / s.count).toFixed(2) : '0.00'}
               </span>
             </div>
@@ -1030,25 +1030,25 @@ const ItemDetails = () => {
           return (
             <div key={item.id} role={canEdit ? 'button' : undefined} tabIndex={canEdit ? 0 : undefined}
               onClick={canEdit ? () => openEdit(item) : undefined}
-              style={{ background: '#fff', border: '1px solid #e2e6ee', borderRadius: 12, padding: '10px 12px', marginBottom: 8,
+              style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px', marginBottom: 8,
                        cursor: canEdit ? 'pointer' : 'default', opacity: item.status === 'Inactive' ? 0.55 : 1 }}>
               <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
                 <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', minWidth: 0 }}>
                   {item.name}
-                  {item.status === 'Inactive' && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#6b7280' }}>INACTIVE</span>}
+                  {item.status === 'Inactive' && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: '#64748b' }}>INACTIVE</span>}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
+                <div style={{ fontWeight: 700, fontSize: 13, fontFamily: 'var(--k-font-mono)', whiteSpace: 'nowrap' }}>
                   {curSym}{sell.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
               <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 4 }}>
-                <div style={{ fontSize: 11.5, color: '#5b6478', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {main ? main.name : 'Uncategorized'}{item.category_name ? ` · ${item.category_name}` : ''} · <span style={{ fontFamily: 'monospace' }}>{item.code}</span>
+                <div style={{ fontSize: 11.5, color: '#475569', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {main ? main.name : 'Uncategorized'}{item.category_name ? ` · ${item.category_name}` : ''} · <span style={{ fontFamily: 'var(--k-font-mono)' }}>{item.code}</span>
                 </div>
                 {!isHqHost() && (
                   isLow
                     ? <span style={{ flexShrink: 0, fontSize: 10.5, fontWeight: 800, padding: '1px 8px', borderRadius: 999, background: '#fdecec', color: '#9b0008' }}>{stock.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {stock.unit} low</span>
-                    : <span style={{ flexShrink: 0, fontSize: 11.5, color: '#5b6478', whiteSpace: 'nowrap' }}>{stock.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {stock.unit}</span>
+                    : <span style={{ flexShrink: 0, fontSize: 11.5, color: '#475569', whiteSpace: 'nowrap' }}>{stock.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} {stock.unit}</span>
                 )}
               </div>
             </div>
@@ -1078,9 +1078,9 @@ const ItemDetails = () => {
               <tr key={item.id}>
                 <td>
                   {item.image_url ? (
-                    <img src={`${API_BASE}${item.image_url}`} alt={item.name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
+                    <img src={`${API_BASE}${item.image_url}`} alt={item.name} style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 8, border: '1px solid #e2e8f0' }} />
                   ) : (
-                    <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f3f4f6', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d1d5db' }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f1f5f9', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>
                       <FiCamera size={16} />
                     </div>
                   )}
@@ -1089,7 +1089,7 @@ const ItemDetails = () => {
                 <td style={{ fontWeight: 500, opacity: item.status === 'Inactive' ? 0.5 : 1 }}>
                   {item.name}
                   {item.status === 'Inactive' && (
-                    <span style={{ marginLeft: 6, padding: '2px 8px', background: '#f3f4f6', color: '#6b7280', borderRadius: 10, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Inactive</span>
+                    <span style={{ marginLeft: 6, padding: '2px 8px', background: '#f1f5f9', color: '#64748b', borderRadius: 10, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Inactive</span>
                   )}
                 </td>
                 <td><span className={`badge ${getCategoryClass(item.category_name)}`}>{item.category_name}</span></td>
@@ -1101,7 +1101,7 @@ const ItemDetails = () => {
                       <>
                         {disp.name}
                         {extras.length > 0 && (
-                          <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, lineHeight: 1.4 }}>
+                          <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>
                             {extras.map(u => (
                               <div key={u.name}>1 {u.name} = {u.conv} {item.unit}</div>
                             ))}
@@ -1117,7 +1117,7 @@ const ItemDetails = () => {
                   {(() => {
                     const cost = parseFloat(item.avg_cost_price || item.cost_price || 0);
                     const sell = parseFloat(item.selling_price || 0);
-                    if (!(sell > 0)) return <span style={{ color: '#6b7280' }}>—</span>;
+                    if (!(sell > 0)) return <span style={{ color: '#64748b' }}>—</span>;
                     const margin = ((sell - cost) / sell) * 100;
                     const color = margin >= 50 ? '#16a34a' : margin >= 25 ? '#b45309' : '#dc2626';
                     const bg    = margin >= 50 ? '#dcfce7' : margin >= 25 ? '#fef3c7' : '#fee2e2';
@@ -1202,7 +1202,7 @@ const ItemDetails = () => {
               </div>
               {editItem && (
                 <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
-                  {(form.code || editItem.code) && <span style={{ fontFamily: 'monospace' }}>{form.code || editItem.code}</span>}
+                  {(form.code || editItem.code) && <span style={{ fontFamily: 'var(--k-font-mono)' }}>{form.code || editItem.code}</span>}
                   {editItem.category_name && <> · {editItem.category_name}</>}
                   {(form.unit || editItem.unit) && <> · {form.unit || editItem.unit}</>}
                   {editItem.is_hq_owned ? <span style={{ marginLeft: 8, background: '#fef3c7', color: '#92400e', padding: '1px 8px', borderRadius: 8, fontSize: 10, fontWeight: 700, letterSpacing: 0.3 }}>HQ</span> : null}
@@ -1211,7 +1211,7 @@ const ItemDetails = () => {
               {/* Tabs — only when BOTH are visible (branch). HQ sees one
                   panel without tabs. */}
               {(showDetailsTab && showPricingTab) && (
-                <div style={{ display: 'flex', gap: 0, marginTop: 12, borderBottom: '1px solid #e5e7eb' }}>
+                <div style={{ display: 'flex', gap: 0, marginTop: 12, borderBottom: '1px solid #e2e8f0' }}>
                   {[
                     { key: 'details', label: 'Item Details' },
                     { key: 'pricing', label: 'Pricing & Stock' },
@@ -1247,7 +1247,7 @@ const ItemDetails = () => {
                 <div className="form-group">
                   <label>
                     Code <span style={{ color: '#dc2626' }}>*</span>
-                    {!editItem && <span style={{ fontSize: 10.5, fontWeight: 400, color: '#6b7280', marginLeft: 6 }}>or click ⚡ to generate</span>}
+                    {!editItem && <span style={{ fontSize: 10.5, fontWeight: 400, color: '#64748b', marginLeft: 6 }}>or click ⚡ to generate</span>}
                   </label>
                   {/* v1.13.174 — assigned, never typed, on new AND on edit.
                       An existing code is also the ZRA fallback identifier
@@ -1258,7 +1258,7 @@ const ItemDetails = () => {
                     readOnly
                     disabled
                     title="Assigned automatically and cannot be changed"
-                    style={{ width: '100%', background: '#f3f4f6', color: '#374151', fontWeight: 700, letterSpacing: 0.5, cursor: 'not-allowed' }}
+                    style={{ width: '100%', background: '#f1f5f9', color: '#334155', fontWeight: 700, letterSpacing: 0.5, cursor: 'not-allowed' }}
                   />
                 </div>
                 <div className="form-group">
@@ -1286,7 +1286,7 @@ const ItemDetails = () => {
                     ))}
                   </select>
                   {dbUnits.length === 0 && (
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
                       Add units in <strong>Categories and Units → Units</strong> tab.
                     </div>
                   )}
@@ -1472,11 +1472,11 @@ const ItemDetails = () => {
                   and risks tester confusion. Backend + DB are intact —
                   flip the `false &&` guard back on to restore. */}
               {false && (
-              <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, marginTop: 4 }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, marginTop: 4 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#374151' }}>Packaging (larger units)</div>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>Packaging (larger units)</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
                       Base unit is <strong>{form.unit || 'pcs'}</strong>. Add packs/boxes that contain multiple {form.unit || 'pcs'} (e.g. 1 Box = 24 {form.unit || 'pcs'}).
                       &nbsp;Add new units on the <em>Categories and Units</em> page.
                     </div>
@@ -1491,7 +1491,7 @@ const ItemDetails = () => {
                 </div>
 
                 {(form.packagings || []).length === 0 ? (
-                  <div style={{ padding: '12px 14px', background: '#fff', border: '1px dashed #d1d5db', borderRadius: 8, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
+                  <div style={{ padding: '12px 14px', background: '#fff', border: '1px dashed #cbd5e1', borderRadius: 8, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
                     No extra packagings yet — this product is only sold in <strong>{form.unit || 'pcs'}</strong>.
                   </div>
                 ) : (
@@ -1501,7 +1501,7 @@ const ItemDetails = () => {
                       // and any "+ Add Packaging" rows added during this session are fully editable.
                       const lockConv = !!p._locked || hqLocked;
                       return (
-                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1.1fr 1.4fr auto', gap: 8, alignItems: 'end', background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb' }}>
+                        <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 1.1fr 1.4fr auto', gap: 8, alignItems: 'end', background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}>
                           <div className="form-group" style={{ margin: 0 }}>
                             <label style={{ fontSize: 11 }}>Unit Name</label>
                             {(() => {
@@ -1520,7 +1520,7 @@ const ItemDetails = () => {
                                 <select value={p.name || ''}
                                   disabled={lockConv}
                                   onChange={e => setForm(f => ({ ...f, packagings: f.packagings.map((q, i) => i === idx ? { ...q, name: e.target.value } : q) }))}
-                                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: lockConv ? '#f3f4f6' : '#fff' }}>
+                                  style={{ width: '100%', padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: lockConv ? '#f1f5f9' : '#fff' }}>
                                   <option value="">— Select a unit —</option>
                                   {options.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                                   {/* Preserve a custom name typed in older data so it doesn't silently blank out */}
@@ -1540,7 +1540,7 @@ const ItemDetails = () => {
                           </div>
                           <div className="form-group" style={{ margin: 0 }}>
                             <label style={{ fontSize: 11 }}>Order Price ({curSym} / {p.name || 'unit'}) — derived</label>
-                            <div style={{ padding: '8px 10px', background: '#f3f4f6', borderRadius: 6, fontSize: 13, color: '#6b7280', minHeight: 18 }}>
+                            <div style={{ padding: '8px 10px', background: '#f1f5f9', borderRadius: 6, fontSize: 13, color: '#64748b', minHeight: 18 }}>
                               {curSym}{(parseFloat(((parseFloat(form.cost_price) || 0) * (parseFloat(p.conv) || 0)))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                             </div>
                           </div>
@@ -1587,7 +1587,7 @@ const ItemDetails = () => {
                             disabled={lockConv}
                             onClick={() => setForm(f => ({ ...f, packagings: f.packagings.filter((_, i) => i !== idx) }))}
                             title={lockConv ? 'Saved packagings cannot be removed (history depends on them) — click the 🔒 to unlock' : 'Remove this packaging'}
-                            style={{ height: 36, width: 36, background: lockConv ? '#f3f4f6' : '#fee2e2', color: lockConv ? '#6b7280' : '#dc2626', border: 'none', borderRadius: 6, cursor: lockConv ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
+                            style={{ height: 36, width: 36, background: lockConv ? '#f1f5f9' : '#fee2e2', color: lockConv ? '#64748b' : '#dc2626', border: 'none', borderRadius: 6, cursor: lockConv ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 700 }}>
                             ×
                           </button>
                         </div>
@@ -1676,14 +1676,14 @@ const ItemDetails = () => {
 
               {/* Per-packaging opening + price (only when item has packagings). */}
               {(form.packagings || []).length > 0 && (
-                <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, marginTop: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Packaging pricing &amp; opening</div>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, marginTop: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#334155', marginBottom: 8 }}>Packaging pricing &amp; opening</div>
                   <div style={{ display: 'grid', gap: 8 }}>
                     {(form.packagings || []).map((p, idx) => (
-                      <div key={idx} style={{ background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: '#111827', marginBottom: 8 }}>
+                      <div key={idx} style={{ background: '#fff', padding: 10, borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginBottom: 8 }}>
                           {p.name || '(unnamed packaging)'}
-                          <span style={{ marginLeft: 8, color: '#6b7280', fontWeight: 400, fontSize: 11 }}>
+                          <span style={{ marginLeft: 8, color: '#64748b', fontWeight: 400, fontSize: 11 }}>
                             (1 {p.name || 'unit'} = {p.conv || '?'} {form.unit || 'pcs'})
                           </span>
                         </div>
@@ -1864,13 +1864,13 @@ const ItemDetails = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 6 }}>
                   {imagePreview ? (
                     <div style={{ position: 'relative', flexShrink: 0 }}>
-                      <img src={imagePreview} alt="preview" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 10, border: '2px solid #e5e7eb' }} />
+                      <img src={imagePreview} alt="preview" style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 10, border: '2px solid #e2e8f0' }} />
                       <button type="button" onClick={handleRemoveImage} style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', background: '#dc2626', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, padding: 0 }}>
                         <FiX size={11} />
                       </button>
                     </div>
                   ) : (
-                    <div style={{ width: 80, height: 80, borderRadius: 10, border: '2px dashed #d1d5db', background: '#f9fafb', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#6b7280', flexShrink: 0 }}>
+                    <div style={{ width: 80, height: 80, borderRadius: 10, border: '2px dashed #cbd5e1', background: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748b', flexShrink: 0 }}>
                       <FiCamera size={22} />
                       <span style={{ fontSize: 10, marginTop: 4 }}>No photo</span>
                     </div>
@@ -1884,7 +1884,7 @@ const ItemDetails = () => {
                           <FiCamera size={14} /> {imagePreview ? 'Change Photo' : 'Upload Photo'}
                         </label>
                         <input id="product-image-input" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
-                        <p style={{ margin: '6px 0 0', fontSize: 11, color: '#6b7280' }}>JPG, PNG, WEBP · Max 5MB</p>
+                        <p style={{ margin: '6px 0 0', fontSize: 11, color: '#64748b' }}>JPG, PNG, WEBP · Max 5MB</p>
                       </>
                     )}
                   </div>
@@ -1907,15 +1907,15 @@ const ItemDetails = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
           <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px 24px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '20px 24px', borderBottom: '1px solid #e2e8f0' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
                   <FaBarcode style={{ color: '#2563eb', fontSize: 18 }} />
                   <h3 style={{ margin: 0, fontSize: 16 }}>Barcode Scanner Settings</h3>
                 </div>
-                <p style={{ margin: 0, fontSize: 12, color: '#6b7280' }}>{barcodeItem.name} ({barcodeItem.code})</p>
+                <p style={{ margin: 0, fontSize: 12, color: '#64748b' }}>{barcodeItem.name} ({barcodeItem.code})</p>
               </div>
-              <button onClick={() => setShowBarcodeModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#6b7280', padding: 0, lineHeight: 1 }}>×</button>
+              <button onClick={() => setShowBarcodeModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: '#64748b', padding: 0, lineHeight: 1 }}>×</button>
             </div>
             <div style={{ padding: '20px 24px' }}>
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '10px 14px', fontSize: 12, color: '#1e40af', marginBottom: 20 }}>
@@ -1929,12 +1929,12 @@ const ItemDetails = () => {
                   <div>
                     <label style={labelSt}>Start Position (0-indexed)</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_number_start} onChange={setBF('ub_number_start')} />
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 1 → skip first digit</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>e.g. 1 → skip first digit</div>
                   </div>
                   <div>
                     <label style={labelSt}>Code Length (digits)</label>
                     <input style={inputSt} type="number" min="1" value={barcodeForm.ub_number_length} onChange={setBF('ub_number_length')} />
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 6 → read 6 digits</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>e.g. 6 → read 6 digits</div>
                   </div>
                 </div>
               </div>
@@ -1946,24 +1946,24 @@ const ItemDetails = () => {
                   <div>
                     <label style={labelSt}>Start Position</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_quantity_start} onChange={setBF('ub_quantity_start')} />
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 7</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>e.g. 7</div>
                   </div>
                   <div>
                     <label style={labelSt}>Length (0 = none)</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_quantity_length} onChange={setBF('ub_quantity_length')} />
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 5 digits</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>e.g. 5 digits</div>
                   </div>
                   <div>
                     <label style={labelSt}>Decimal At</label>
                     <input style={inputSt} type="number" min="0" value={barcodeForm.ub_decimal_start} onChange={setBF('ub_decimal_start')} />
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 3 }}>e.g. 2 → XX.XXX</div>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>e.g. 2 → XX.XXX</div>
                   </div>
                 </div>
               </div>
               <BarcodePreview form={barcodeForm} />
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
-                <button onClick={() => setShowBarcodeModal(false)} style={{ padding: '9px 20px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
-                <button onClick={saveBarcodeSettings} disabled={barcodeSaving} style={{ padding: '9px 24px', background: barcodeSaving ? '#9ca3af' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: barcodeSaving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+                <button onClick={() => setShowBarcodeModal(false)} style={{ padding: '9px 20px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+                <button onClick={saveBarcodeSettings} disabled={barcodeSaving} style={{ padding: '9px 24px', background: barcodeSaving ? '#94a3b8' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: barcodeSaving ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
                   {barcodeSaving ? 'Saving...' : 'Save Settings'}
                 </button>
               </div>
@@ -2009,7 +2009,7 @@ const ItemDetails = () => {
           {/* A4 Document */}
           <div
             id="print-document"
-            style={{ width: 794, background: '#ffffff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
+            style={{ width: 794, background: '#ffffff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}
           >
             {/* Header Banner */}
             <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%)', padding: '28px 44px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -2061,9 +2061,9 @@ const ItemDetails = () => {
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb' }}>
+                    <tr style={{ background: '#f8fafc' }}>
                       {['#', 'Code', 'Item Name', 'Category', 'Unit', 'Cost Price', 'Selling Price', 'Min. Stock', 'Store Balance'].map((h, i) => (
-                        <th key={h} style={{ padding: '8px 12px', textAlign: i >= 5 ? 'right' : 'left', fontWeight: 600, color: '#6b7280', borderBottom: '1px solid #e5e7eb', fontSize: 10.5, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>{h}</th>
+                        <th key={h} style={{ padding: '8px 12px', textAlign: i >= 5 ? 'right' : 'left', fontWeight: 600, color: '#64748b', borderBottom: '1px solid #e2e8f0', fontSize: 10.5, letterSpacing: 0.3, whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -2071,24 +2071,24 @@ const ItemDetails = () => {
                     {items.map((item, idx) => {
                       const isLow = parseFloat(item.store_balance || 0) <= parseFloat(item.min_stock || 0);
                       return (
-                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: isLow ? '#fff5f5' : idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                          <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
-                          <td style={{ padding: '8px 12px', fontWeight: 700, color: '#374151', fontFamily: 'monospace', fontSize: 11 }}>{item.code}</td>
+                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', background: isLow ? '#fff5f5' : idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                          <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
+                          <td style={{ padding: '8px 12px', fontWeight: 700, color: '#334155', fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>{item.code}</td>
                           <td style={{ padding: '8px 12px', fontWeight: 500, color: '#1e293b' }}>{item.name}</td>
                           <td style={{ padding: '8px 12px' }}>
                             <span style={catBadgeStyle(item.category_name)}>{item.category_name || '—'}</span>
                           </td>
-                          <td style={{ padding: '8px 12px', color: '#374151' }}>{item.unit}</td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace' }}>
+                          <td style={{ padding: '8px 12px', color: '#334155' }}>{item.unit}</td>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)' }}>
                             {curSym}{(parseFloat(parseFloat(item.avg_cost_price || item.cost_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, fontFamily: 'monospace', color: '#1d4ed8' }}>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>
                             {curSym}{(parseFloat(parseFloat(item.selling_price || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'monospace', color: '#6b7280' }}>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#64748b' }}>
                             {(parseFloat(parseFloat(item.min_stock || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}
                           </td>
-                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: isLow ? '#dc2626' : '#15803d' }}>
+                          <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: isLow ? '#dc2626' : '#15803d' }}>
                             {isLow ? '⚠ ' : ''}{(parseFloat(parseFloat(item.store_balance || 0))||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} {item.unit}
                           </td>
                         </tr>
@@ -2097,13 +2097,13 @@ const ItemDetails = () => {
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0' }}>
-                      <td colSpan={5} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11, color: '#374151' }}>
+                      <td colSpan={5} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11, color: '#334155' }}>
                         Total — {items.length} items
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', fontSize: 11 }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>
                         —
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#1d4ed8', fontSize: 11 }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: '#1d4ed8', fontSize: 11 }}>
                         Avg ${items.length > 0 ? (items.reduce((s, i) => s + parseFloat(i.selling_price || 0), 0) / items.length).toFixed(2) : '0.00'}
                       </td>
                       <td colSpan={2} style={{ padding: '10px 12px', textAlign: 'right', fontSize: 11, color: lowStockItems.length > 0 ? '#dc2626' : '#15803d', fontWeight: 600 }}>
@@ -2131,11 +2131,11 @@ const ItemDetails = () => {
               <div style={{ display: 'flex', gap: 20, marginBottom: 20, fontSize: 10.5 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ width: 12, height: 12, background: '#fff5f5', border: '1px solid #fca5a5', borderRadius: 3, display: 'inline-block' }} />
-                  <span style={{ color: '#6b7280' }}>Low / zero stock row</span>
+                  <span style={{ color: '#64748b' }}>Low / zero stock row</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ color: '#dc2626', fontWeight: 700 }}>⚠</span>
-                  <span style={{ color: '#6b7280' }}>Balance at or below minimum</span>
+                  <span style={{ color: '#64748b' }}>Balance at or below minimum</span>
                 </div>
               </div>
 
@@ -2217,17 +2217,17 @@ const ItemDetails = () => {
             <div style={{ fontSize: 18, fontWeight: 700, color: '#b45309', marginBottom: 10 }}>
               Push Prices to All Branches?
             </div>
-            <div style={{ fontSize: 13.5, color: '#374151', lineHeight: 1.55, marginBottom: 8 }}>
+            <div style={{ fontSize: 13.5, color: '#334155', lineHeight: 1.55, marginBottom: 8 }}>
               This will overwrite <strong>ALL branch price overrides</strong> across ALL products.
             </div>
-            <div style={{ fontSize: 12.5, color: '#6b7280', lineHeight: 1.55, marginBottom: 18 }}>
+            <div style={{ fontSize: 12.5, color: '#64748b', lineHeight: 1.55, marginBottom: 18 }}>
               Any custom price a branch has set (e.g. Buseko selling Black Label at K475 instead of the HQ default K480) will be reset to the HQ price.
             </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 onClick={() => setShowBulkPushConfirm(false)}
                 disabled={bulkPushing}
-                style={{ padding: '9px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, cursor: bulkPushing ? 'default' : 'pointer', fontSize: 13, fontWeight: 600 }}>
+                style={{ padding: '9px 16px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, cursor: bulkPushing ? 'default' : 'pointer', fontSize: 13, fontWeight: 600 }}>
                 Cancel
               </button>
               <button
@@ -2344,10 +2344,10 @@ function UnspscPicker({ value, onChange, disabled = false }) {
       {value && !open ? (
         <div
           onClick={disabled ? undefined : () => { setOpen(true); setQuery(''); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#f3f4f6' : '#f0fdf4', minHeight: 38, opacity: disabled ? 0.7 : 1 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#f1f5f9' : '#f0fdf4', minHeight: 38, opacity: disabled ? 0.7 : 1 }}
           title={disabled ? 'HQ-managed classification' : 'Click to change'}>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#166534' }}>{value}</span>
-          <span style={{ fontSize: 13, color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'var(--k-font-mono)', fontSize: 12, fontWeight: 700, color: '#166534' }}>{value}</span>
+          <span style={{ fontSize: 13, color: '#334155', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {selectedName || (nameLookupDone ? '(name not in local cache — code is saved correctly)' : 'loading…')}
           </span>
           {!disabled && (
@@ -2369,26 +2369,26 @@ function UnspscPicker({ value, onChange, disabled = false }) {
       {open && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
-          marginTop: 4, background: '#fff', border: '1px solid #d1d5db',
+          marginTop: 4, background: '#fff', border: '1px solid #cbd5e1',
           borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
           maxHeight: 320, overflowY: 'auto',
         }}>
           {loading ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Searching…</div>
+            <div style={{ padding: 12, fontSize: 12, color: '#64748b', textAlign: 'center' }}>Searching…</div>
           ) : results.length === 0 ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
+            <div style={{ padding: 12, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
               {query ? 'No matches.' : 'Type to search 158,000+ UNSPSC codes.'}
             </div>
           ) : (
             results.map(r => (
               <div key={r.item_cls_cd}
                 onClick={() => pick(r)}
-                style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'baseline', gap: 8 }}
+                style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'baseline', gap: 8 }}
                 onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
                 onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#0e7490', minWidth: 74 }}>{r.item_cls_cd}</span>
-                <span style={{ fontSize: 12, color: '#111827' }}>{r.item_cls_nm}</span>
-                <span style={{ fontSize: 10, color: '#6b7280', marginLeft: 'auto' }}>
+                <span style={{ fontFamily: 'var(--k-font-mono)', fontSize: 11, fontWeight: 700, color: '#0e7490', minWidth: 74 }}>{r.item_cls_cd}</span>
+                <span style={{ fontSize: 12, color: '#0f172a' }}>{r.item_cls_nm}</span>
+                <span style={{ fontSize: 10, color: '#64748b', marginLeft: 'auto' }}>
                   L{r.item_cls_lvl}
                 </span>
               </div>
@@ -2443,10 +2443,10 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
       {value && !open ? (
         <div
           onClick={disabled ? undefined : () => { setOpen(true); setQuery(''); }}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#f3f4f6' : '#f0fdf4', minHeight: 38, opacity: disabled ? 0.7 : 1 }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#f1f5f9' : '#f0fdf4', minHeight: 38, opacity: disabled ? 0.7 : 1 }}
           title={disabled ? 'HQ-managed field' : 'Click to change'}>
-          <span style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#166534' }}>{value}</span>
-          <span style={{ fontSize: 13, color: '#374151', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: 'var(--k-font-mono)', fontSize: 12, fontWeight: 700, color: '#166534' }}>{value}</span>
+          <span style={{ fontSize: 13, color: '#334155', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {selected ? selected.cd_nm : (loading ? '(loading…)' : '(unknown code)')}
           </span>
           {!disabled && (
@@ -2468,25 +2468,25 @@ function ZraCodePicker({ cls, value, onChange, disabled = false, placeholder = '
       {open && !disabled && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
-          marginTop: 4, background: '#fff', border: '1px solid #d1d5db',
+          marginTop: 4, background: '#fff', border: '1px solid #cbd5e1',
           borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
           maxHeight: 320, overflowY: 'auto',
         }}>
           {loading ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>Loading…</div>
+            <div style={{ padding: 12, fontSize: 12, color: '#64748b', textAlign: 'center' }}>Loading…</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: 12, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
+            <div style={{ padding: 12, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
               {options.length === 0 ? 'No codes cached. Sync from ZRA Smart Invoice page first.' : 'No matches.'}
             </div>
           ) : (
             filtered.slice(0, 200).map(o => (
               <div key={o.cd}
                 onClick={() => pick(o)}
-                style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'baseline', gap: 8 }}
+                style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'baseline', gap: 8 }}
                 onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
                 onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-                <span style={{ fontFamily: 'monospace', fontSize: 11, fontWeight: 700, color: '#0e7490', minWidth: 56 }}>{o.cd}</span>
-                <span style={{ fontSize: 12, color: '#111827' }}>{o.cd_nm}</span>
+                <span style={{ fontFamily: 'var(--k-font-mono)', fontSize: 11, fontWeight: 700, color: '#0e7490', minWidth: 56 }}>{o.cd}</span>
+                <span style={{ fontSize: 12, color: '#0f172a' }}>{o.cd_nm}</span>
               </div>
             ))
           )}

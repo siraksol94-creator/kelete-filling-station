@@ -110,7 +110,7 @@ const VatReport = () => {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 20, fontWeight: 700 }}>VAT Transaction Report</div>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>Line-by-line list of VAT-exclusive value, VAT and total for non-reversed sales — for ZRA Ref 9 / attachment 5.</div>
+          <div style={{ fontSize: 13, color: '#64748b' }}>Line-by-line list of VAT-exclusive value, VAT and total for non-reversed sales — for ZRA Ref 9 / attachment 5.</div>
         </div>
         <button onClick={handleExport} disabled={!rows.length} style={{
           background: '#16a34a', color: 'white', border: 'none', borderRadius: 6,
@@ -118,15 +118,15 @@ const VatReport = () => {
         }}>Export to Excel</button>
       </div>
 
-      <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16 }}>
+      <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, marginBottom: 16 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
-            <label style={{ display: 'block', fontSize: 12, color: '#374151', marginBottom: 4 }}>From</label>
-            <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: 6 }} />
+            <label style={{ display: 'block', fontSize: 12, color: '#334155', marginBottom: 4 }}>From</label>
+            <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ padding: 8, border: '1px solid #cbd5e1', borderRadius: 6 }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 12, color: '#374151', marginBottom: 4 }}>To</label>
-            <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: 6 }} />
+            <label style={{ display: 'block', fontSize: 12, color: '#334155', marginBottom: 4 }}>To</label>
+            <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ padding: 8, border: '1px solid #cbd5e1', borderRadius: 6 }} />
           </div>
           <button onClick={fetchReport} disabled={loading} style={{
             background: ACCENT, color: 'white', border: 'none', borderRadius: 6, padding: '10px 20px', fontWeight: 600, cursor: 'pointer',
@@ -138,8 +138,8 @@ const VatReport = () => {
         <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 6, marginBottom: 12 }}>{error}</div>
       )}
 
-      <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>
+      <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontWeight: 600 }}>
           {invoiceCount} invoice{invoiceCount === 1 ? '' : 's'} · {rows.length} line{rows.length === 1 ? '' : 's'}
         </div>
         {/* v1.13.128k — Sticky-header scrollable body. The table scrolls
@@ -161,18 +161,18 @@ const VatReport = () => {
             </thead>
             <tbody>
               {rows.length === 0 && !loading && (
-                <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No transactions in range.</td></tr>
+                <tr><td colSpan={8} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No transactions in range.</td></tr>
               )}
               {rows.map((r, i) => {
                 const cont = isContinuation(i);
                 return (
-                  <tr key={i} style={{ borderBottom: cont ? '1px dotted #f3f4f6' : '1px solid #e5e7eb', background: cont ? '#fbfbfd' : 'white' }}>
-                    <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: cont ? '#d1d5db' : '#111827' }}>{cont ? '↳' : fmtInvoiceNo(r.invoice_number)}</td>
-                    <td style={{ padding: '10px 12px', color: cont ? '#d1d5db' : '#374151' }}>{cont ? '' : fmtDate(r.date)}</td>
-                    <td style={{ padding: '10px 12px', color: cont ? '#d1d5db' : '#374151' }}>{cont ? '' : r.customer_name}</td>
+                  <tr key={i} style={{ borderBottom: cont ? '1px dotted #f1f5f9' : '1px solid #e2e8f0', background: cont ? '#f8fafc' : 'white' }}>
+                    <td style={{ padding: '10px 12px', fontFamily: 'var(--k-font-mono)', color: cont ? '#cbd5e1' : '#0f172a' }}>{cont ? '↳' : fmtInvoiceNo(r.invoice_number)}</td>
+                    <td style={{ padding: '10px 12px', color: cont ? '#cbd5e1' : '#334155' }}>{cont ? '' : fmtDate(r.date)}</td>
+                    <td style={{ padding: '10px 12px', color: cont ? '#cbd5e1' : '#334155' }}>{cont ? '' : r.customer_name}</td>
                     <td style={{ padding: '10px 12px', maxWidth: 320 }}>{r.description}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'center' }} title={CAT_LABEL[r.vat_category] || ''}>
-                      <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', color: '#374151', fontWeight: 700, fontSize: 12 }}>{r.vat_category || '—'}</span>
+                      <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9', color: '#334155', fontWeight: 700, fontSize: 12 }}>{r.vat_category || '—'}</span>
                     </td>
                     <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtMoney(r.vat_excl)}</td>
                     <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtMoney(r.vat_amount)}</td>
@@ -181,11 +181,11 @@ const VatReport = () => {
                 );
               })}
               {rows.length > 0 && (
-                <tr style={{ background: '#f9fafb', fontWeight: 700, position: 'sticky', bottom: 0 }}>
-                  <td colSpan={5} style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb' }}>TOTALS</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb' }}>{fmtMoney(totals.vat_excl)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb' }}>{fmtMoney(totals.vat_amount)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb' }}>{fmtMoney(totals.total_inc)}</td>
+                <tr style={{ background: '#f8fafc', fontWeight: 700, position: 'sticky', bottom: 0 }}>
+                  <td colSpan={5} style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc' }}>TOTALS</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc' }}>{fmtMoney(totals.vat_excl)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc' }}>{fmtMoney(totals.vat_amount)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc' }}>{fmtMoney(totals.total_inc)}</td>
                 </tr>
               )}
             </tbody>

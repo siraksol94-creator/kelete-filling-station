@@ -8,7 +8,7 @@ const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const dayName = (ymd) => { const [y, m, d] = String(ymd).split('-').map(Number); return DAY[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] || ymd; };
 // Axis labels stay short so they fit on a phone: 50,000 → 50k; 1,200,000 → 1.2m.
 const axis = (n) => (n >= 1e6 ? `${+(n / 1e6).toFixed(1)}m` : n >= 1e4 ? `${Math.round(n / 1e3)}k` : Math.round(n).toLocaleString('en-ZM'));
-const k = (n) => `K ${Math.round(n).toLocaleString('en-ZM')}`;
+const k = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.round(Math.abs(Number(n || 0))).toLocaleString('en-ZM')}`;
 
 // On a phone the chart is drawn narrower (not just scaled down), so its
 // labels stay readable.

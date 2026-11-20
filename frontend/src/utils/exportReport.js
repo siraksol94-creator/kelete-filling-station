@@ -97,16 +97,16 @@ export function exportRowsToPdf(rows, columns, filename, opts = {}) {
   }).join('');
 
   const html = `
-    <div style="font-family: Arial, Helvetica, sans-serif; padding: 16px; color: #111;">
+    <div style="font-family: Arial, Helvetica, sans-serif; padding: 16px; color: #0f172a;">
       ${businessName ? `<div style="font-size:14px;font-weight:800;letter-spacing:0.5px;">${escapeHtml(businessName)}</div>` : ''}
       <div style="font-size:16px;font-weight:800;margin-top:4px;">${escapeHtml(title)}</div>
-      ${subtitle ? `<div style="font-size:11px;color:#555;">${escapeHtml(subtitle)}</div>` : ''}
-      <div style="font-size:10px;color:#888;margin-bottom:10px;">Generated ${new Date().toLocaleString()}</div>
+      ${subtitle ? `<div style="font-size:11px;color:#475569;">${escapeHtml(subtitle)}</div>` : ''}
+      <div style="font-size:10px;color:#64748b;margin-bottom:10px;">Generated ${new Date().toLocaleString()}</div>
       <table style="width:100%;border-collapse:collapse;font-size:11px;">
         <thead>
-          <tr style="background:#f2f4f7;">${th}</tr>
+          <tr style="background:#f1f5f9;">${th}</tr>
         </thead>
-        <tbody>${body || `<tr><td colspan="${columns.length}" style="text-align:center;color:#888;padding:12px;">No rows.</td></tr>`}</tbody>
+        <tbody>${body || `<tr><td colspan="${columns.length}" style="text-align:center;color:#64748b;padding:12px;">No rows.</td></tr>`}</tbody>
       </table>
     </div>
   `;
@@ -124,7 +124,7 @@ export function exportRowsToPdf(rows, columns, filename, opts = {}) {
   const table = container.querySelector('table');
   if (table) {
     table.querySelectorAll('th, td').forEach(cell => {
-      cell.style.border = '1px solid #d0d5dd';
+      cell.style.border = '1px solid #cbd5e1';
       cell.style.padding = '4px 6px';
       cell.style.textAlign = 'left';
       cell.style.verticalAlign = 'top';

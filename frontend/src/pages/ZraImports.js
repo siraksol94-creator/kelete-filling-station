@@ -44,7 +44,7 @@ const statusPill = (s) => {
     APPROVED: { bg: '#dcfce7', fg: '#166534', label: 'APPROVED' },
     REJECTED: { bg: '#fee2e2', fg: '#991b1b', label: 'REJECTED' },
   };
-  const s2 = map[s] || { bg: '#e5e7eb', fg: '#374151', label: s || '—' };
+  const s2 = map[s] || { bg: '#e2e8f0', fg: '#334155', label: s || '—' };
   return <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 12, background: s2.bg, color: s2.fg, fontSize: 11, fontWeight: 700 }}>{s2.label}</span>;
 };
 
@@ -161,7 +161,7 @@ const ZraImports = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Import Declarations Queue</h1>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 13 }}>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>
             ASYCUDA import declarations Smart Invoice holds for your TPIN. Approve or reject — both are sent back to ZRA (test T05A).
           </p>
         </div>
@@ -189,18 +189,18 @@ const ZraImports = () => {
             key={f.key}
             onClick={() => setStatus(f.key)}
             style={{
-              padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              padding: '6px 14px', borderRadius: 6, border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: 12, fontWeight: 600,
               background: status === f.key ? '#1d4ed8' : '#fff',
-              color:      status === f.key ? '#fff'    : '#374151',
+              color:      status === f.key ? '#fff'    : '#334155',
             }}
           >{f.label}{f.key && counts[f.key] ? ` (${counts[f.key]})` : ''}</button>
         ))}
       </div>
 
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead style={{ background: '#f9fafb' }}>
+            <thead style={{ background: '#f8fafc' }}>
               <tr>
                 <th style={th}>Pulled</th>
                 <th style={th}>Decl. Date</th>
@@ -216,10 +216,10 @@ const ZraImports = () => {
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Loading…</td></tr>
+                <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#64748b' }}>Loading…</td></tr>
               )}
               {!loading && rows.length === 0 && (
-                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
+                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
                   Nothing here. Click <strong>Pull Imports</strong> to fetch from ZRA.
                   <div style={{ fontSize: 12, marginTop: 6 }}>
                     An empty queue is expected — Red Sea sources 100% locally, so ZRA holds no ASYCUDA declarations for this TPIN.
@@ -227,15 +227,15 @@ const ZraImports = () => {
                 </td></tr>
               )}
               {rows.map(r => (
-                <tr key={r.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <td style={td}>{(r.pulled_at || '').slice(0, 16).replace('T', ' ')}</td>
                   <td style={td}>{r.dcl_de || '—'}</td>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{r.dcl_no || '—'}</td>
+                  <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{r.dcl_no || '—'}</td>
                   <td style={{ ...td, fontWeight: 600 }}>
                     {r.item_nm || r.item_cd || '—'}
-                    <div style={{ fontSize: 10, color: '#6b7280', fontFamily: 'monospace' }}>seq {r.item_seq ?? '—'}</div>
+                    <div style={{ fontSize: 10, color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>seq {r.item_seq ?? '—'}</div>
                   </td>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{r.hs_cd || '—'}</td>
+                  <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{r.hs_cd || '—'}</td>
                   <td style={{ ...td, textAlign: 'right' }}>
                     {num(r.qty)} {r.qty_unit_cd || ''}
                     {r.status === 'APPROVED' && r.approved_qty != null && parseFloat(r.approved_qty) !== parseFloat(r.qty) && (
@@ -248,12 +248,12 @@ const ZraImports = () => {
                     {statusPill(r.status)}
                     {r.hq_purchase_number && (
                       <div style={{ fontSize: 10, marginTop: 2 }}>
-                        <span style={{ color: '#374151' }}>PO </span>
-                        <span style={{ fontFamily: 'monospace', color: '#1d4ed8' }}>{r.hq_purchase_number}</span>
+                        <span style={{ color: '#334155' }}>PO </span>
+                        <span style={{ fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>{r.hq_purchase_number}</span>
                       </div>
                     )}
                     {r.destination_slug && (
-                      <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>→ {r.destination_name || r.destination_slug}</div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>→ {r.destination_name || r.destination_slug}</div>
                     )}
                     {r.error && (
                       <div title={r.error} style={{ fontSize: 10, color: '#991b1b', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -262,7 +262,7 @@ const ZraImports = () => {
                     )}
                   </td>
                   <td style={{ ...td, whiteSpace: 'nowrap' }}>
-                    <button onClick={() => openDetail(r.id)} style={btnIcon('#374151')} title="View / approve / reject">
+                    <button onClick={() => openDetail(r.id)} style={btnIcon('#334155')} title="View / approve / reject">
                       <FiEye size={14} />
                     </button>
                     {r.status === 'NEW' && (
@@ -285,16 +285,16 @@ const ZraImports = () => {
       {detail && (
         <div style={modalBackdrop} onClick={() => setDetail(null)}>
           <div style={modalBody} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: 12, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Import Declaration</div>
+                <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Import Declaration</div>
                 <h3 style={{ margin: '3px 0 0' }}>{detail.item_nm || detail.item_cd || '—'} · {detail.dcl_no || '—'}</h3>
               </div>
-              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#6b7280' }}>×</button>
+              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>×</button>
             </div>
             <div style={{ padding: 20, maxHeight: '70vh', overflowY: 'auto' }}>
               {detail.loading ? (
-                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+                <div style={{ padding: 20, textAlign: 'center', color: '#64748b' }}>Loading…</div>
               ) : (
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 18, fontSize: 12 }}>
@@ -317,12 +317,12 @@ const ZraImports = () => {
                   </div>
 
                   {detail.status === 'NEW' && (
-                    <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
+                    <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid #e2e8f0' }}>
                       <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 12 }}>
                         <div style={{ flex: '1 1 240px' }}>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Destination Branch *</label>
+                          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Destination Branch *</label>
                           <select value={destSlug} onChange={e => setDestSlug(e.target.value)}
-                            style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 13 }}>
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}>
                             <option value="">— select branch —</option>
                             {branchList.map(b => <option key={b.slug} value={b.slug}>{b.name} ({b.slug})</option>)}
                           </select>
@@ -330,14 +330,14 @@ const ZraImports = () => {
                         {/* T05A step 3 — the declared customs quantity may
                             differ from what physically arrived. */}
                         <div style={{ flex: '0 1 180px' }}>
-                          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 4 }}>
-                            Approved Qty * <span style={{ fontWeight: 400, color: '#6b7280' }}>({detail.qty_unit_cd || 'units'})</span>
+                          <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                            Approved Qty * <span style={{ fontWeight: 400, color: '#64748b' }}>({detail.qty_unit_cd || 'units'})</span>
                           </label>
                           <input
                             type="number" min="0.0001" step="any"
                             value={approveQty}
                             onChange={e => setApproveQty(e.target.value)}
-                            style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 13, boxSizing: 'border-box' }}
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13, boxSizing: 'border-box' }}
                           />
                           {parseFloat(approveQty) !== parseFloat(detail.qty) && approveQty !== '' && (
                             <div style={{ fontSize: 10, color: '#b45309', marginTop: 3 }}>
@@ -346,7 +346,7 @@ const ZraImports = () => {
                           )}
                         </div>
                       </div>
-                      <div style={{ fontSize: 11, color: '#6b7280', marginBottom: 12, lineHeight: 1.6 }}>
+                      <div style={{ fontSize: 11, color: '#64748b', marginBottom: 12, lineHeight: 1.6 }}>
                         Approving transmits the decision to ZRA and creates an HQ Purchase for the chosen branch.
                         <strong> No stock moves yet</strong> — the branch confirms received quantity, then HQ generates the GRN.
                       </div>
@@ -359,18 +359,18 @@ const ZraImports = () => {
                           onClick={() => doApprove(detail.id, destSlug, approveQty)}
                           disabled={busyId === detail.id || !destSlug || !(parseFloat(approveQty) > 0)}
                           title={!destSlug ? 'Pick a destination branch first' : undefined}
-                          style={{ padding: '9px 16px', border: 'none', background: (busyId === detail.id || !destSlug || !(parseFloat(approveQty) > 0)) ? '#9ca3af' : '#16a34a', color: '#fff', borderRadius: 8, cursor: (busyId === detail.id || !destSlug) ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 13 }}
+                          style={{ padding: '9px 16px', border: 'none', background: (busyId === detail.id || !destSlug || !(parseFloat(approveQty) > 0)) ? '#94a3b8' : '#16a34a', color: '#fff', borderRadius: 8, cursor: (busyId === detail.id || !destSlug) ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 13 }}
                         >{busyId === detail.id ? 'Approving…' : 'Approve → HQ Purchase'}</button>
                       </div>
                     </div>
                   )}
 
                   {detail.status !== 'NEW' && (
-                    <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid #e5e7eb', fontSize: 12, color: '#374151', lineHeight: 1.8 }}>
+                    <div style={{ marginTop: 8, paddingTop: 16, borderTop: '1px solid #e2e8f0', fontSize: 12, color: '#334155', lineHeight: 1.8 }}>
                       <div>Decision: {statusPill(detail.status)} on {(detail.decided_at || '').slice(0, 16).replace('T', ' ') || '—'}</div>
                       {detail.approved_qty != null && <div>Approved quantity: <strong>{num(detail.approved_qty)}</strong></div>}
-                      {detail.hq_purchase_number && <div>HQ Purchase: <strong style={{ fontFamily: 'monospace' }}>{detail.hq_purchase_number}</strong></div>}
-                      {detail.match_summary && <div style={{ color: '#6b7280' }}>{detail.match_summary}</div>}
+                      {detail.hq_purchase_number && <div>HQ Purchase: <strong style={{ fontFamily: 'var(--k-font-mono)' }}>{detail.hq_purchase_number}</strong></div>}
+                      {detail.match_summary && <div style={{ color: '#64748b' }}>{detail.match_summary}</div>}
                     </div>
                   )}
 
@@ -390,24 +390,24 @@ const ZraImports = () => {
       {rejectPrompt && (
         <div style={modalBackdrop} onClick={() => setRejectPrompt(null)}>
           <div style={{ ...modalBody, maxWidth: 440 }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0' }}>
               <h3 style={{ margin: 0 }}>Reject declaration</h3>
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
                 Unlike a supplier purchase, this <strong>is transmitted to ZRA</strong> — they are waiting on your decision for this declaration.
               </div>
             </div>
             <div style={{ padding: 20 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>Reason</label>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>Reason</label>
               <textarea
                 rows={3}
                 value={rejectPrompt.reason}
                 onChange={e => setRejectPrompt({ ...rejectPrompt, reason: e.target.value })}
                 placeholder="e.g. goods never arrived; declaration belongs to another importer"
-                style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: 8, border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }}
               />
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 14 }}>
                 <button onClick={() => setRejectPrompt(null)}
-                        style={{ padding: '8px 14px', border: '1px solid #e5e7eb', background: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+                        style={{ padding: '8px 14px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Cancel</button>
                 <button onClick={() => doReject(rejectPrompt.id, rejectPrompt.reason)}
                         disabled={busyId === rejectPrompt.id}
                         style={{ padding: '8px 14px', border: 'none', background: '#dc2626', color: '#fff', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
@@ -422,16 +422,16 @@ const ZraImports = () => {
   );
 };
 
-const th = { padding: '10px 12px', textAlign: 'left', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#6b7280', fontWeight: 700 };
-const td = { padding: '10px 12px', color: '#111827' };
+const th = { padding: '10px 12px', textAlign: 'left', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#64748b', fontWeight: 700 };
+const td = { padding: '10px 12px', color: '#0f172a' };
 const btnIcon = (color) => ({ padding: '6px 8px', marginRight: 4, border: `1px solid ${color}33`, background: '#fff', color, borderRadius: 6, cursor: 'pointer' });
 const modalBackdrop = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 };
 const modalBody = { background: '#fff', borderRadius: 12, width: '100%', maxWidth: 900, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' };
 
 const Kv = ({ label, value, mono, bold }) => (
   <div>
-    <div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: 700 }}>{label}</div>
-    <div style={{ fontSize: 13, marginTop: 2, fontFamily: mono ? 'monospace' : 'inherit', fontWeight: bold ? 700 : 400, color: '#111827' }}>{value ?? '—'}</div>
+    <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: 700 }}>{label}</div>
+    <div style={{ fontSize: 13, marginTop: 2, fontFamily: mono ? 'monospace' : 'inherit', fontWeight: bold ? 700 : 400, color: '#0f172a' }}>{value ?? '—'}</div>
   </div>
 );
 

@@ -45,7 +45,7 @@ export const S = {
   statLabel: { fontSize: 11.5, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700 },
   statValue: { fontSize: 24, fontWeight: 800, marginTop: 4, color: '#0f172a', fontVariantNumeric: 'tabular-nums' },
   bar: (pct, color = '#2563eb') => ({
-    height: 8, borderRadius: 4, background: '#e5e7eb', overflow: 'hidden', position: 'relative', marginTop: 8,
+    height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden', position: 'relative', marginTop: 8,
   }),
   barFill: (pct, color = '#2563eb') => ({
     width: `${Math.min(100, Math.max(0, pct))}%`,

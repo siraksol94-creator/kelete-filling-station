@@ -154,15 +154,15 @@ export default function EmptyVouchers() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111827' }}>Empty Vouchers</h1>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#6b7280' }}>
+          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#0f172a' }}>Empty Vouchers</h1>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
             Controller station — record empties returned and issue bearer slips redeemable at POS.
             Physical stock only, doesn't hit Sales Report or Cash Book.
           </p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={load}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 16px', borderRadius: 8, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
             <FiRefreshCw size={14} /> Refresh
           </button>
           <button onClick={openIssue}
@@ -183,12 +183,12 @@ export default function EmptyVouchers() {
 
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14, marginBottom: 18 }}>
-        <div style={{ padding: 14, borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Active vouchers</div>
+        <div style={{ padding: 14, borderRadius: 10, background: '#fff', border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>Active vouchers</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#166534' }}>{activeCount.toLocaleString()}</div>
         </div>
-        <div style={{ padding: 14, borderRadius: 10, background: '#fff', border: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6 }}>Total empties held</div>
+        <div style={{ padding: 14, borderRadius: 10, background: '#fff', border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>Total empties held</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#0e7490' }}>{activeRemaining.toLocaleString()}</div>
           {/* Broken down per empty: a single total across EMPTY ZB, EMPTY
               500ML and crates is not a number anyone can act on. */}
@@ -223,9 +223,9 @@ export default function EmptyVouchers() {
             <button key={s || 'all'}
               onClick={() => setStatusFilter(s)}
               style={{ padding: '7px 14px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                       border: active ? '1.5px solid #111827' : '1.5px solid #e5e7eb',
-                       background: active ? '#111827' : '#fff',
-                       color: active ? '#fff' : '#374151',
+                       border: active ? '1.5px solid #0f172a' : '1.5px solid #e2e8f0',
+                       background: active ? '#0f172a' : '#fff',
+                       color: active ? '#fff' : '#334155',
                        cursor: 'pointer' }}>
               {label}
             </button>
@@ -235,20 +235,20 @@ export default function EmptyVouchers() {
           <FiSearch size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
           <input type="text" value={query} onChange={e => setQuery(e.target.value)}
                  placeholder="Search by voucher #, name, or phone…"
-                 style={{ width: '100%', padding: '9px 12px 9px 32px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
+                 style={{ width: '100%', padding: '9px 12px 9px 32px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
         </div>
       </div>
 
       {/* List */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>Loading…</div>
         ) : rows.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>No vouchers.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>No vouchers.</div>
         ) : (
           <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
-              <tr style={{ background: '#f9fafb', color: '#374151', fontSize: 11, textTransform: 'uppercase' }}>
+              <tr style={{ background: '#f8fafc', color: '#334155', fontSize: 11, textTransform: 'uppercase' }}>
                 <th style={th}>Voucher #</th>
                 <th style={th}>Issued to</th>
                 <th style={{ ...th, textAlign: 'right' }}>Original</th>
@@ -263,10 +263,10 @@ export default function EmptyVouchers() {
                 const meta = STATUS_META[r.status] || STATUS_META.ACTIVE;
                 return (
                   <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ ...td, fontFamily: 'monospace', fontWeight: 700 }}>{r.voucher_number}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontWeight: 700 }}>{r.voucher_number}</td>
                     <td style={td}>
-                      {r.issued_to_name || <span style={{ color: '#6b7280' }}>—</span>}
-                      {r.issued_to_phone && <div style={{ fontSize: 11, color: '#6b7280' }}>{r.issued_to_phone}</div>}
+                      {r.issued_to_name || <span style={{ color: '#64748b' }}>—</span>}
+                      {r.issued_to_phone && <div style={{ fontSize: 11, color: '#64748b' }}>{r.issued_to_phone}</div>}
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>{r.qty_original}</td>
                     <td style={{ ...td, textAlign: 'right', fontWeight: 800, color: r.qty_remaining > 0 ? '#0e7490' : '#64748b' }}>{r.qty_remaining}</td>
@@ -275,13 +275,13 @@ export default function EmptyVouchers() {
                         {meta.label}
                       </span>
                     </td>
-                    <td style={{ ...td, color: '#6b7280', fontSize: 12 }}>
+                    <td style={{ ...td, color: '#64748b', fontSize: 12 }}>
                       {fmtDate(r.issued_at)}
                       {r.issued_by_name && <div style={{ fontSize: 11 }}>by {r.issued_by_name}</div>}
                     </td>
                     <td style={{ ...td, textAlign: 'right' }}>
                       <button onClick={() => openDetail(r)}
-                        style={{ padding: '5px 12px', borderRadius: 6, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                        style={{ padding: '5px 12px', borderRadius: 6, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
                         View
                       </button>
                     </td>
@@ -303,7 +303,7 @@ export default function EmptyVouchers() {
             <div style={{ padding: '18px 22px' }}>
               {issueModal.voucher ? (
                 <>
-                  <pre style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: 14, fontFamily: '"Courier New", monospace', fontSize: 12, whiteSpace: 'pre', overflowX: 'auto' }}>
+                  <pre style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 14, fontFamily: '"Courier New", monospace', fontSize: 12, whiteSpace: 'pre', overflowX: 'auto' }}>
                     {issueModal.slipText}
                   </pre>
                   <button onClick={() => printSlip(issueModal.slipText)}
@@ -358,7 +358,7 @@ export default function EmptyVouchers() {
                 </>
               )}
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => !issueModal.saving && setIssueModal(null)}
                       style={btnSecondary}>
                 {issueModal.voucher ? 'Close' : 'Cancel'}
@@ -382,27 +382,27 @@ export default function EmptyVouchers() {
                          onClose={() => setDetail(null)} />
             <div style={{ padding: '18px 22px', overflowY: 'auto', flex: 1 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14, fontSize: 12 }}>
-                <ProvField label="Issued to">{detail.voucher.issued_to_name || <span style={{ color: '#6b7280' }}>—</span>}</ProvField>
-                <ProvField label="Phone">{detail.voucher.issued_to_phone || <span style={{ color: '#6b7280' }}>—</span>}</ProvField>
+                <ProvField label="Issued to">{detail.voucher.issued_to_name || <span style={{ color: '#64748b' }}>—</span>}</ProvField>
+                <ProvField label="Phone">{detail.voucher.issued_to_phone || <span style={{ color: '#64748b' }}>—</span>}</ProvField>
                 <ProvField label="Issued at">{fmtDate(detail.voucher.issued_at)}</ProvField>
                 <ProvField label="Issued by">{detail.voucher.issued_by_name || '—'}</ProvField>
                 {detail.voucher.notes && <ProvField label="Notes" span>{detail.voucher.notes}</ProvField>}
                 {detail.voucher.status === 'VOID' && (
                   <ProvField label="Void reason" span>
                     <span style={{ color: '#b91c1c' }}>{detail.voucher.void_reason}</span>
-                    <div style={{ fontSize: 11, color: '#6b7280', marginTop: 2 }}>
+                    <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
                       {fmtDate(detail.voucher.void_at)} · by {detail.voucher.void_by_name || '—'}
                     </div>
                   </ProvField>
                 )}
               </div>
-              <h4 style={{ margin: '18px 0 8px', fontSize: 13, fontWeight: 700, color: '#111827' }}>Claim history ({detail.claims.length})</h4>
+              <h4 style={{ margin: '18px 0 8px', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Claim history ({detail.claims.length})</h4>
               {detail.claims.length === 0 ? (
-                <div style={{ padding: 16, textAlign: 'center', color: '#6b7280', fontSize: 12, border: '1px dashed #e5e7eb', borderRadius: 8 }}>No claims yet.</div>
+                <div style={{ padding: 16, textAlign: 'center', color: '#64748b', fontSize: 12, border: '1px dashed #e2e8f0', borderRadius: 8 }}>No claims yet.</div>
               ) : (
                 <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
-                    <tr style={{ background: '#f9fafb', color: '#374151', fontSize: 11, textTransform: 'uppercase' }}>
+                    <tr style={{ background: '#f8fafc', color: '#334155', fontSize: 11, textTransform: 'uppercase' }}>
                       <th style={th}>When</th>
                       <th style={th}>Order</th>
                       <th style={{ ...th, textAlign: 'right' }}>Qty</th>
@@ -413,16 +413,16 @@ export default function EmptyVouchers() {
                     {detail.claims.map(c => (
                       <tr key={c.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                         <td style={td}>{fmtDate(c.claimed_at)}</td>
-                        <td style={{ ...td, fontFamily: 'monospace' }}>{c.order_number ? fmtInvoiceNo(c.order_number) : '—'}</td>
+                        <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{c.order_number ? fmtInvoiceNo(c.order_number) : '—'}</td>
                         <td style={{ ...td, textAlign: 'right', fontWeight: 700, color: '#0e7490' }}>{c.qty_claimed}</td>
-                        <td style={{ ...td, color: '#6b7280' }}>{c.claimed_by_name || '—'}</td>
+                        <td style={{ ...td, color: '#64748b' }}>{c.claimed_by_name || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               )}
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
               <div>
                 {detail.voucher.status === 'ACTIVE' && isAdmin && (
                   <button onClick={() => openVoid(detail.voucher)}
@@ -456,10 +456,10 @@ export default function EmptyVouchers() {
                 </div>
               )}
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => !voidModal.saving && setVoidModal(null)} style={btnSecondary}>Cancel</button>
               <button onClick={submitVoid} disabled={voidModal.saving}
-                      style={{ ...btnPrimary(voidModal.saving), background: voidModal.saving ? '#9ca3af' : '#dc2626' }}>
+                      style={{ ...btnPrimary(voidModal.saving), background: voidModal.saving ? '#94a3b8' : '#dc2626' }}>
                 {voidModal.saving ? 'Voiding…' : 'Confirm Void'}
               </button>
             </div>
@@ -472,17 +472,17 @@ export default function EmptyVouchers() {
 
 // ── Style helpers ─────────────────────────────────────────────────
 const th = { padding: '11px 14px', textAlign: 'left', fontWeight: 700 };
-const td = { padding: '10px 14px', color: '#111827' };
-const inp = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', background: '#fff' };
+const td = { padding: '10px 14px', color: '#0f172a' };
+const inp = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', background: '#fff' };
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 };
 const modal = { background: '#fff', borderRadius: 14, width: '100%' };
-const btnSecondary = { padding: '9px 16px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#374151' };
-const btnPrimary = (busy) => ({ padding: '9px 20px', border: 'none', borderRadius: 8, background: busy ? '#9ca3af' : '#16a34a', color: '#fff', cursor: busy ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700 });
+const btnSecondary = { padding: '9px 16px', border: '1.5px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: '#334155' };
+const btnPrimary = (busy) => ({ padding: '9px 20px', border: 'none', borderRadius: 8, background: busy ? '#94a3b8' : '#16a34a', color: '#fff', cursor: busy ? 'wait' : 'pointer', fontSize: 13, fontWeight: 700 });
 
 function Field({ label, children }) {
   return (
     <div style={{ marginBottom: 12 }}>
-      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</label>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</label>
       {children}
     </div>
   );
@@ -492,19 +492,19 @@ function ProvField({ label, span, children }) {
   return (
     <div style={{ gridColumn: span ? '1 / -1' : undefined }}>
       <div style={{ fontSize: 10, textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: 0.4, marginBottom: 3 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#111827', fontWeight: 600 }}>{children}</div>
+      <div style={{ fontSize: 13, color: '#0f172a', fontWeight: 600 }}>{children}</div>
     </div>
   );
 }
 
 function ModalHeader({ title, subtitle, onClose }) {
   return (
-    <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ padding: '18px 22px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
       <div>
-        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' }}>{title}</h3>
-        {subtitle && <p style={{ margin: '3px 0 0', fontSize: 12, color: '#6b7280' }}>{subtitle}</p>}
+        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a' }}>{title}</h3>
+        {subtitle && <p style={{ margin: '3px 0 0', fontSize: 12, color: '#64748b' }}>{subtitle}</p>}
       </div>
-      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}>
+      <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
         <FiX size={18} />
       </button>
     </div>

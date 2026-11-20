@@ -57,7 +57,7 @@ export default function HqInventoryReport() {
       </div>
 
       {/* Filters */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, marginBottom: 14, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, marginBottom: 14, display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
         <Field label="Branch">
           <select value={branch} onChange={e => setBranch(e.target.value)} style={inp}>
             <option value="all">All branches</option>
@@ -113,7 +113,7 @@ export default function HqInventoryReport() {
         <>
           {/* Rollup + per-branch */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 14, marginBottom: 16 }}>
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
               <h3 style={hd}>Totals</h3>
               <Stat label="Product rows"     value={fmtInt(data.rollup.products)} />
               <Stat label="Total Stock Value" value={fmtMoney(data.rollup.stock_value)} big />
@@ -124,7 +124,7 @@ export default function HqInventoryReport() {
                 </div>
               )}
             </div>
-            <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+            <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
               <h3 style={hd}>By Branch</h3>
               <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead><tr>
@@ -155,7 +155,7 @@ export default function HqInventoryReport() {
           </div>
 
           {/* Flat row list */}
-          <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+          <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
             <h3 style={hd}>Stock Lines ({fmtInt(data.returned_rows)})</h3>
             {data.rows.length === 0 ? (
               <p style={{ color: '#64748b', fontSize: 13, fontStyle: 'italic' }}><FiPackage /> No products match the filters.</p>
@@ -217,7 +217,7 @@ function Stat({ label, value, big, warn }) {
   );
 }
 
-const inp = { padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', minWidth: 160 };
+const inp = { padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff', minWidth: 160 };
 const hd  = { margin: '0 0 10px 0', fontSize: 14, color: '#0f172a' };
 const th  = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '8px 12px', color: '#0f172a' };

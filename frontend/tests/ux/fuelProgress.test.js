@@ -15,16 +15,16 @@ test('variance: balanced only under K0.01; short and over always carry the full 
   const short = varianceState(-0.01);
   assert.equal(short.state, 'short');
   assert.equal(short.amount, -0.01);
-  assert.match(short.label, /Short K 0\.01/);
+  assert.match(short.label, /Short K0\.01/);
   const big = varianceState(-1234.5);
-  assert.equal(big.label, 'Short K 1,234.50');
+  assert.equal(big.label, 'Short K1,234.50');
   assert.equal(big.tone, 'danger');
   const over = varianceState(250);
   assert.equal(over.state, 'over');
-  assert.equal(over.label, 'Over K 250.00');
+  assert.equal(over.label, 'Over K250.00');
   assert.notEqual(over.tone, 'ok', 'an overage is not presented as a success');
   assert.equal(varianceState('not a number').state, 'balanced');
-  assert.equal(formatKwacha(-5), '-K 5.00');
+  assert.equal(formatKwacha(-5), '−K5.00');
 });
 
 test('close checklist: every meter entered and none below its opening', () => {

@@ -157,7 +157,7 @@ export function TraceSearchBox({ trace, style }) {
       {trace.open && list.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 60,
-          marginTop: 4, background: '#fff', border: '1px solid #e5e7eb',
+          marginTop: 4, background: '#fff', border: '1px solid #e2e8f0',
           borderRadius: 10, boxShadow: '0 12px 28px rgba(0,0,0,0.14)', overflow: 'hidden',
           minWidth: 340,
         }}>
@@ -176,11 +176,11 @@ export function TraceSearchBox({ trace, style }) {
                 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                    {inv ? <span style={{ fontFamily: 'monospace' }}>{inv}</span>
+                    {inv ? <span style={{ fontFamily: 'var(--k-font-mono)' }}>{inv}</span>
                          : <span style={{ color: '#b45309' }}>no invoice #</span>}
                     <span style={{ fontWeight: 500, color: '#64748b' }}> · {r.supplier_name || 'Supplier —'}</span>
                   </div>
-                  <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'monospace' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', fontFamily: 'var(--k-font-mono)' }}>
                     {r.purchase_number}{r.grn_number ? ` · ${r.grn_number}` : ''}
                   </div>
                 </div>
@@ -214,7 +214,7 @@ function TraceResult({ r, onClose }) {
           <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
             {nums.length === 0
               ? <span style={{ color: '#b45309' }}>No invoice number recorded yet</span>
-              : <>Invoice <strong style={{ fontFamily: 'monospace', color: '#0f172a' }}>{nums[0]}</strong>
+              : <>Invoice <strong style={{ fontFamily: 'var(--k-font-mono)', color: '#0f172a' }}>{nums[0]}</strong>
                   {nums.length > 1 && (
                     <span style={{ color: '#b45309' }}> · also recorded as {nums.slice(1).join(', ')}</span>
                   )}</>}
@@ -261,7 +261,7 @@ function TraceResult({ r, onClose }) {
                 <span style={{ fontWeight: s.done ? 700 : 500, color: s.warn ? '#991b1b' : s.done ? '#0f172a' : '#64748b' }}>
                   {s.label}
                 </span>
-                <span style={{ color: s.done ? '#64748b' : '#b0bac6' }}>
+                <span style={{ color: s.done ? '#64748b' : '#94a3b8' }}>
                   {s.done
                     ? `${s.at ? ` · ${fmtWhen(s.at)}` : ''}${s.by ? ` · ${s.by}` : ''}${s.detail ? ` · ${s.detail}` : ''}`
                     : ' · pending'}

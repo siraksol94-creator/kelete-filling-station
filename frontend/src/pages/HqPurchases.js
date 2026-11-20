@@ -20,8 +20,8 @@ import { businessToday } from '../utils/businessDate';
 
 // Read-only twins of the entry form's label and input, so the View modal
 // reads as the same screen rather than a different one.
-const vLbl = { display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 };
-const vBox = { padding: '9px 11px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#f8fafc', fontSize: 13, color: '#0f172a', fontWeight: 600, minHeight: 19 };
+const vLbl = { display: 'block', fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, marginBottom: 4 };
+const vBox = { padding: '9px 11px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#f8fafc', fontSize: 13, color: '#0f172a', fontWeight: 600, minHeight: 19 };
 
 const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fmtInt   = (n) => parseFloat(n || 0).toLocaleString();
@@ -139,13 +139,13 @@ export default function HqPurchases() {
             return (
               <button key={v || 'all'} type="button" onClick={() => setStatusFilter(v)}
                 style={{ padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer',
-                         border: `1px solid ${on ? '#13306b' : '#e2e6ee'}`, background: on ? '#13306b' : '#fff', color: on ? '#fff' : '#334155' }}>
+                         border: `1px solid ${on ? '#13306b' : '#e2e8f0'}`, background: on ? '#13306b' : '#fff', color: on ? '#fff' : '#334155' }}>
                 {label}
               </button>
             );
           })}
           <select value={destFilter} onChange={e => setDestFilter(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, border: `1px solid ${destFilter ? '#13306b' : '#e2e6ee'}`, background: '#fff', color: '#334155', flexShrink: 0 }}>
+            style={{ padding: '6px 10px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, border: `1px solid ${destFilter ? '#13306b' : '#e2e8f0'}`, background: '#fff', color: '#334155', flexShrink: 0 }}>
             <option value="">Depot ▾</option>
             {branches.map(b => <option key={b.slug} value={b.slug}>{b.name}</option>)}
           </select>
@@ -154,13 +154,13 @@ export default function HqPurchases() {
               depots actually use this page -- with no way to pick a range. */}
           <span style={{ fontSize: 11, color: '#64748b', flexShrink: 0, marginLeft: 2 }}>From</span>
           <input type="date" value={fromDate} max={toDate || undefined} onChange={e => setFromDate(e.target.value)}
-            style={{ padding: '5px 9px', borderRadius: 999, fontSize: 12, border: `1px solid ${fromDate ? '#13306b' : '#e2e6ee'}`, background: '#fff', color: '#334155', flexShrink: 0 }} />
+            style={{ padding: '5px 9px', borderRadius: 999, fontSize: 12, border: `1px solid ${fromDate ? '#13306b' : '#e2e8f0'}`, background: '#fff', color: '#334155', flexShrink: 0 }} />
           <span style={{ fontSize: 11, color: '#64748b', flexShrink: 0 }}>To</span>
           <input type="date" value={toDate} min={fromDate || undefined} onChange={e => setToDate(e.target.value)}
-            style={{ padding: '5px 9px', borderRadius: 999, fontSize: 12, border: `1px solid ${toDate ? '#13306b' : '#e2e6ee'}`, background: '#fff', color: '#334155', flexShrink: 0 }} />
+            style={{ padding: '5px 9px', borderRadius: 999, fontSize: 12, border: `1px solid ${toDate ? '#13306b' : '#e2e8f0'}`, background: '#fff', color: '#334155', flexShrink: 0 }} />
           {(fromDate || toDate) && (
             <button type="button" onClick={() => { setFromDate(''); setToDate(''); }}
-              style={{ padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0, border: '1px solid #e2e6ee', background: '#fff', color: '#334155' }}>
+              style={{ padding: '6px 13px', borderRadius: 999, fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap', cursor: 'pointer', flexShrink: 0, border: '1px solid #e2e8f0', background: '#fff', color: '#334155' }}>
               Clear
             </button>
           )}
@@ -226,7 +226,7 @@ export default function HqPurchases() {
       <TracePanel trace={trace} />
 
 
-      <div className="phone-bare" style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div className="phone-bare" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {loading && purchases.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : visible.length === 0 ? (
@@ -246,16 +246,16 @@ export default function HqPurchases() {
             {sort.sorted.map(p => (
               <div key={p.id} role="button" tabIndex={0} onClick={() => openDetail(p.id)}
                 onKeyDown={e => { if (e.key === 'Enter') openDetail(p.id); }}
-                style={{ background: '#fff', border: '1px solid #e2e6ee', borderRadius: 12, padding: '10px 12px', marginBottom: 8, cursor: 'pointer' }}>
+                style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px', marginBottom: 8, cursor: 'pointer' }}>
                 <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
                   <div style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {p.invoice_display ? `Inv ${p.invoice_display}` : p.purchase_number} · {p.supplier_name || '—'}
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{fmtMoney(p.total_amount)}</div>
+                  <div style={{ fontWeight: 700, fontSize: 13, fontFamily: 'var(--k-font-mono)', whiteSpace: 'nowrap' }}>{fmtMoney(p.total_amount)}</div>
                 </div>
                 <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 4 }}>
-                  <div style={{ fontSize: 11.5, color: '#5b6478', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {p.dest_count > 1 ? `${p.dest_count} branches` : (p.dest_name || '—')} · {p.date} · <span style={{ fontFamily: 'monospace' }}>{p.purchase_number}</span>
+                  <div style={{ fontSize: 11.5, color: '#475569', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {p.dest_count > 1 ? `${p.dest_count} branches` : (p.dest_name || '—')} · {p.date} · <span style={{ fontFamily: 'var(--k-font-mono)' }}>{p.purchase_number}</span>
                   </div>
                   <div style={{ flexShrink: 0 }}>{statusBadge(p.status)}</div>
                 </div>
@@ -291,11 +291,11 @@ export default function HqPurchases() {
                     {/* Amber, not a dash, when there is no invoice number: on a
                         purchase the depot has already confirmed it means the
                         number never got recorded, which is worth noticing. */}
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12, fontWeight: 700 }}>
                       {p.invoice_display || <span style={{ color: '#b45309', fontFamily: 'inherit', fontWeight: 500 }}>—</span>}
                     </td>
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12, color: '#64748b' }}>{p.grn_number || '—'}</td>
-                    <td style={{ ...td, fontFamily: 'monospace', fontSize: 12 }}>{p.purchase_number}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12, color: '#64748b' }}>{p.grn_number || '—'}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 12 }}>{p.purchase_number}</td>
                     <td style={td}>{p.date}</td>
                     <td style={td}>{p.supplier_name || '—'}</td>
                     <td style={td}>
@@ -848,7 +848,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
     <Portal>
     <div style={overlay}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(1240px, 97vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h3 style={{ margin: 0 }}>
             {editing ? 'HQ Purchase' : 'New HQ Purchase'}
             {editing && (
@@ -881,7 +881,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                   type="button"
                   onClick={() => { setShowAddSupplier(v => !v); setAddSupplierError(''); }}
                   title="Add new HQ supplier"
-                  style={{ padding: '9px 12px', border: '1px solid #e5e7eb', borderRadius: 8, background: showAddSupplier ? '#dcfce7' : '#f9fafb', color: showAddSupplier ? '#15803d' : '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  style={{ padding: '9px 12px', border: '1px solid #e2e8f0', borderRadius: 8, background: showAddSupplier ? '#dcfce7' : '#f8fafc', color: showAddSupplier ? '#15803d' : '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap' }}>
                   + New
                 </button>
               </div>
@@ -893,21 +893,21 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                     <input
                       value={newSupName} onChange={e => setNewSupName(e.target.value)}
                       placeholder="Supplier name *"
-                      style={{ flex: 2, minWidth: 120, padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }}
+                      style={{ flex: 2, minWidth: 120, padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }}
                     />
                     <input
                       value={newSupPhone} onChange={e => setNewSupPhone(e.target.value)}
                       placeholder="Phone (optional)"
-                      style={{ flex: 1, minWidth: 100, padding: '7px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }}
+                      style={{ flex: 1, minWidth: 100, padding: '7px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }}
                     />
                     <button
                       type="button" onClick={handleAddSupplier} disabled={addingSupplier}
-                      style={{ padding: '7px 14px', background: addingSupplier ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: addingSupplier ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
+                      style={{ padding: '7px 14px', background: addingSupplier ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 6, cursor: addingSupplier ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 600 }}>
                       {addingSupplier ? '…' : 'Create'}
                     </button>
                     <button
                       type="button" onClick={() => { setShowAddSupplier(false); setNewSupName(''); setNewSupPhone(''); setAddSupplierError(''); }}
-                      style={{ padding: '7px 10px', background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>
+                      style={{ padding: '7px 10px', background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>
                       Cancel
                     </button>
                   </div>
@@ -968,7 +968,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                     onChange={e => setFxRate(e.target.value)}
                     disabled={!costCurrency || costCurrency === 'USD'}
                     placeholder={costCurrency === 'USD' ? 'n/a — USD already' : costCurrency === 'K' ? 'e.g. 25' : costCurrency === 'FRA' ? 'e.g. 2250' : ''}
-                    style={{ ...inp, background: (!costCurrency || costCurrency === 'USD') ? '#f9fafb' : '#fff' }} />
+                    style={{ ...inp, background: (!costCurrency || costCurrency === 'USD') ? '#f8fafc' : '#fff' }} />
                 </div>
               </div>
               <div style={{ fontSize: 10.5, color: '#78350f', marginTop: 6, fontStyle: 'italic' }}>
@@ -982,7 +982,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
           </div>
 
           <label style={{ ...lbl, fontSize: 13 }}>Items (all delivered to the destination branch chosen above)</label>
-          <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
+          <div style={{ overflowX: 'auto', border: '1px solid #e2e8f0', borderRadius: 8 }}>
             {/* 2026-09-13 — purchase-lines: on a phone each line is a labelled
                 card laid out by index.css from these same cells, so the price,
                 VAT and discount logic below exists once. Labels come from the
@@ -1158,7 +1158,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                       <td style={tdS}>
                         <input type="text" value={it.unit || ''} readOnly tabIndex={-1}
                                title="Comes from the item"
-                               style={{ ...cellInp, background: '#f8fafc', color: '#6b7280', cursor: 'default' }} />
+                               style={{ ...cellInp, background: '#f8fafc', color: '#64748b', cursor: 'default' }} />
                       </td>
                       <td style={tdS}><input type="number" min="0" step="any" value={it.dispatched_qty} onChange={e => updateItem(i, 'dispatched_qty', e.target.value)} style={{ ...cellInp, textAlign: 'right' }} /></td>
                       {/* 2026-09-04 — the RRP the supplier charges VAT on. Filled
@@ -1357,7 +1357,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
           </div>
         </div>
 
-        <div style={{ padding: 14, borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <div style={{ padding: 14, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
           <button onClick={onClose}
             style={{ padding: '10px 18px', background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
             Cancel
@@ -1377,7 +1377,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                      color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', fontWeight: 700 }}>
             {submitting ? 'Saving…' : editing ? 'Raise Purchase' : 'Save Purchase'}
             {/* On a phone the pinned button carries the amount due. */}
-            {!submitting && <span className="phone-only" style={{ fontSize: 11, fontWeight: 600, opacity: 0.9, fontFamily: 'monospace' }}>{fmtMoney(totalAmount)}</span>}
+            {!submitting && <span className="phone-only" style={{ fontSize: 11, fontWeight: 600, opacity: 0.9, fontFamily: 'var(--k-font-mono)' }}>{fmtMoney(totalAmount)}</span>}
           </button>
         </div>
       </div>
@@ -1424,7 +1424,7 @@ function DetailModal({ data, onClose, onChanged, flash }) {
       {/* 2026-09-09 — the same width as the entry form. At 900px the twelve
           columns it now mirrors were cut off mid-table. */}
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(1240px, 97vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h3 style={{ margin: 0 }}>{data.purchase_number}</h3>
             <div style={{ fontSize: 12, color: '#64748b' }}>
@@ -1534,7 +1534,7 @@ function DetailModal({ data, onClose, onChanged, flash }) {
               {items.map(it => {
                 const variance = it.status === 'RECEIVED' && it.received_qty !== it.dispatched_qty;
                 return (
-                  <tr key={it.id} style={{ borderTop: '1px solid #f1f5f9', background: variance ? '#fffbeb' : it.status === 'CANCELLED' ? '#fafafa' : '#fff', opacity: it.status === 'CANCELLED' ? 0.6 : 1 }}>
+                  <tr key={it.id} style={{ borderTop: '1px solid #f1f5f9', background: variance ? '#fffbeb' : it.status === 'CANCELLED' ? '#f8fafc' : '#fff', opacity: it.status === 'CANCELLED' ? 0.6 : 1 }}>
                     <td style={td}>{it.product_name}</td>
                     <td style={{ ...td, color: '#64748b' }}>{it.unit || '—'}</td>
                     <td style={{ ...td, textAlign: 'right' }}>{parseFloat(it.dispatched_qty).toFixed(2)}</td>
@@ -1729,7 +1729,7 @@ function escapeHtml(s) {
 
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 };
 const lbl = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 };
-const inp = { width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
 const cellInp = { width: '100%', padding: '5px 7px', border: '1px solid #e2e8f0', borderRadius: 4, fontSize: 12, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '10px 12px', fontSize: 11, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '8px 12px', color: '#0f172a' };

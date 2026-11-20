@@ -58,9 +58,9 @@ export default function AdminPasswordPrompt({ open, subject, actionLabel = 'Conf
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#b91c1c' }}>
             <FiLock size={20} />
-            <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: '#111827' }}>Admin Authorization Required</h2>
+            <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0, color: '#0f172a' }}>Admin Authorization Required</h2>
           </div>
-          <button type="button" onClick={onCancel} disabled={busy} style={{ background: 'none', border: 'none', cursor: busy ? 'not-allowed' : 'pointer', color: '#6b7280' }}>
+          <button type="button" onClick={onCancel} disabled={busy} style={{ background: 'none', border: 'none', cursor: busy ? 'not-allowed' : 'pointer', color: '#64748b' }}>
             <FiX size={20} />
           </button>
         </div>
@@ -72,11 +72,11 @@ export default function AdminPasswordPrompt({ open, subject, actionLabel = 'Conf
           </div>
         )}
 
-        <p style={{ fontSize: 13, color: '#4b5563', margin: '0 0 12px' }}>
+        <p style={{ fontSize: 13, color: '#475569', margin: '0 0 12px' }}>
           Enter any administrator's password to confirm.
         </p>
 
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Admin Password</label>
+        <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 6 }}>Admin Password</label>
         <input
           ref={inputRef}
           type="password"
@@ -85,7 +85,7 @@ export default function AdminPasswordPrompt({ open, subject, actionLabel = 'Conf
           disabled={busy}
           autoComplete="current-password"
           placeholder="••••••••"
-          style={{ width: '100%', padding: '10px 12px', border: `1px solid ${error ? '#dc2626' : '#d1d5db'}`, borderRadius: 8, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
+          style={{ width: '100%', padding: '10px 12px', border: `1px solid ${error ? '#dc2626' : '#cbd5e1'}`, borderRadius: 8, fontSize: 14, boxSizing: 'border-box', outline: 'none' }}
         />
 
         {error && (
@@ -99,7 +99,7 @@ export default function AdminPasswordPrompt({ open, subject, actionLabel = 'Conf
             type="button"
             onClick={onCancel}
             disabled={busy}
-            style={{ padding: '9px 18px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer' }}
+            style={{ padding: '9px 18px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: busy ? 'not-allowed' : 'pointer' }}
           >
             Cancel
           </button>

@@ -304,11 +304,11 @@ function AppRoutes() {
         <div style={{ background: '#fff', borderRadius: 16, padding: '48px 40px', width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.1)', textAlign: 'center' }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>🔒</div>
           <h1 style={{ color: '#dc2626', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Subdomain Not Registered</h1>
-          <p style={{ color: '#6b7280', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
+          <p style={{ color: '#64748b', fontSize: 14, lineHeight: 1.6, marginBottom: 24 }}>
             This subdomain has not been registered on Kelete.<br />
-            Please contact <strong style={{ color: '#111827' }}>SIDAN IT & Business Solutions</strong> to get your account set up.
+            Please contact <strong style={{ color: '#0f172a' }}>SIDAN IT & Business Solutions</strong> to get your account set up.
           </p>
-          <div style={{ background: '#f9fafb', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#374151' }}>
+          <div style={{ background: '#f8fafc', borderRadius: 10, padding: '12px 16px', fontSize: 13, color: '#334155' }}>
             📞 Contact us to register your business and get started.
           </div>
         </div>
@@ -336,7 +336,7 @@ function AppRoutes() {
           Your Kelete license expired on <strong>{licenseStatus.expiresAt?.substring(0,10)}</strong>.
           Please contact your software provider to renew your license.
         </p>
-        <p style={{ color: '#6b7280', fontSize: 12, marginTop: 24 }}>
+        <p style={{ color: '#64748b', fontSize: 12, marginTop: 24 }}>
           Your data is safe and will be available once the license is renewed.
         </p>
       </div>
@@ -451,9 +451,9 @@ function AppRoutes() {
         <Route path="fuel/grades"        element={<PermRoute adminOnly><FuelGrades /></PermRoute>} />
         <Route path="fuel/fleet"         element={<FleetCustomers />} />
         <Route path="no-access" element={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#6b7280', textAlign: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '60vh', color: '#64748b', textAlign: 'center' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
-            <h2 style={{ margin: '0 0 8px', color: '#111827' }}>No Pages Available</h2>
+            <h2 style={{ margin: '0 0 8px', color: '#0f172a' }}>No Pages Available</h2>
             <p style={{ margin: 0, fontSize: 14 }}>You don't have access to any pages. Contact your administrator.</p>
           </div>
         } />

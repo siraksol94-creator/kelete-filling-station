@@ -178,7 +178,7 @@ const DividendAccount = () => {
     const biz = businessInfo.business_name || 'Business Name';
     const addr = [businessInfo.business_address, businessInfo.business_phone].filter(Boolean).join(' | ');
     const rows = entries.map((r, i) => `
-      <tr style="background:${i%2 ? '#f9f9f9' : '#fff'}">
+      <tr style="background:${i%2 ? '#f8fafc' : '#fff'}">
         <td style="padding:6px 9px">${i+1}</td>
         <td style="padding:6px 9px;font-weight:600">${r.entry_number}</td>
         <td style="padding:6px 9px">${formatDate(r.date)}</td>
@@ -190,7 +190,7 @@ const DividendAccount = () => {
       <style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:7px 9px;font-weight:700;background:#f0f0f0;border-bottom:1.5px solid #000;text-align:left;font-size:10.5px}
+      th{padding:7px 9px;font-weight:700;background:#f1f5f9;border-bottom:1.5px solid #000;text-align:left;font-size:10.5px}
       </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:10px;margin-bottom:14px">
         <div style="font-size:8px;letter-spacing:3px;text-transform:uppercase">Equity Ledger</div>
@@ -257,17 +257,17 @@ const DividendAccount = () => {
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 14, padding: 12, background: '#f9fafb', borderRadius: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: '#374151' }}>Filter by Date:</span>
-        <span style={{ fontSize: 12, color: '#6b7280' }}>From</span>
-        <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12 }} />
-        <span style={{ fontSize: 12, color: '#6b7280' }}>To</span>
-        <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12 }} />
-        <select value={filterShareholder} onChange={e => setFilterShareholder(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff' }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 14, padding: 12, background: '#f8fafc', borderRadius: 10 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>Filter by Date:</span>
+        <span style={{ fontSize: 12, color: '#64748b' }}>From</span>
+        <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12 }} />
+        <span style={{ fontSize: 12, color: '#64748b' }}>To</span>
+        <input type="date" value={filterTo} onChange={e => setFilterTo(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12 }} />
+        <select value={filterShareholder} onChange={e => setFilterShareholder(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff' }}>
           <option value="All">All Shareholders</option>
           {shareholders.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
-        <div style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
+        <div style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>
           {entries.length} entry{entries.length !== 1 ? 'ies' : ''} · Total <strong style={{ color: '#6b21a8' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
         </div>
       </div>
@@ -284,17 +284,17 @@ const DividendAccount = () => {
           </thead>
           <tbody>
             {entries.length === 0 ? (
-              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No dividend entries.</td></tr>
+              <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No dividend entries.</td></tr>
             ) : entries.map(r => (
               <tr key={r.id}>
                 <td style={{ fontWeight: 600 }}>{r.entry_number}</td>
                 <td>{formatDate(r.date)}</td>
                 <td>{r.recipient || '—'}</td>
                 <td style={{ textAlign: 'right', fontWeight: 700, color: '#6b21a8' }}>{curSym}{parseFloat(r.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                <td style={{ color: '#6b7280', fontSize: 12 }}>{r.description || '—'}</td>
+                <td style={{ color: '#64748b', fontSize: 12 }}>{r.description || '—'}</td>
                 <td style={{ textAlign: 'center' }}>
                   <button onClick={() => openView(r)} title="View" style={{ background: 'none', border: 'none', color: '#0369a1', cursor: 'pointer', padding: 4 }}><FiEye /></button>
-                  {canEdit && <button onClick={() => openEdit(r)} title="Edit" style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 4 }}><FiEdit2 /></button>}
+                  {canEdit && <button onClick={() => openEdit(r)} title="Edit" style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}><FiEdit2 /></button>}
                   {canDelete && <button onClick={() => handleDelete(r)} title="Delete" style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 4 }}><FiTrash2 /></button>}
                 </td>
               </tr>
@@ -336,7 +336,7 @@ const DividendAccount = () => {
 
                 {/* Method split */}
                 <div className="form-group">
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                     Amount Paid (split across methods)
                   </label>
                   {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment methods shown. */}
@@ -352,12 +352,12 @@ const DividendAccount = () => {
                           value={form[f.key]}
                           onChange={e => setForm(prev => ({ ...prev, [f.key]: e.target.value }))}
                           placeholder="0.00"
-                          style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(form[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(form[f.key] || 0) > 0 ? f.color : '#374151', boxSizing: 'border-box' }} />
+                          style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(form[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(form[f.key] || 0) > 0 ? f.color : '#334155', boxSizing: 'border-box' }} />
                       </div>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
-                    <span style={{ color: '#6b7280' }}>Total</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
+                    <span style={{ color: '#64748b' }}>Total</span>
                     <span style={{ fontWeight: 800, color: '#6b21a8' }}>
                       {curSym}{(parseFloat(form.cash_amount || 0) + parseFloat(form.bank_amount || 0) + parseFloat(form.momo_amount || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
@@ -396,20 +396,20 @@ const DividendAccount = () => {
               </div>
               <div className="modal-body">
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                  <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Date</strong><div style={{ marginTop: 4 }}>{formatDate(viewEntry.date)}</div></div>
-                  <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Recipient</strong><div style={{ marginTop: 4 }}>{viewEntry.recipient || '—'}</div></div>
-                  <div><strong style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase' }}>Total</strong><div style={{ marginTop: 4, fontWeight: 700, color: '#6b21a8' }}>{curSym}{parseFloat(viewEntry.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
+                  <div><strong style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase' }}>Date</strong><div style={{ marginTop: 4 }}>{formatDate(viewEntry.date)}</div></div>
+                  <div><strong style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase' }}>Recipient</strong><div style={{ marginTop: 4 }}>{viewEntry.recipient || '—'}</div></div>
+                  <div><strong style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase' }}>Total</strong><div style={{ marginTop: 4, fontWeight: 700, color: '#6b21a8' }}>{curSym}{parseFloat(viewEntry.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div></div>
                 </div>
-                <div style={{ background: '#f9fafb', padding: 12, borderRadius: 8, marginBottom: 12 }}>
-                  <div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Method split</div>
+                <div style={{ background: '#f8fafc', padding: 12, borderRadius: 8, marginBottom: 12 }}>
+                  <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Method split</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span>Cash: <strong>{curSym}{parseFloat(viewEntry.cash_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></span>
                     <span>Bank: <strong>{curSym}{parseFloat(viewEntry.bank_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></span>
                     <span>MoMo: <strong>{curSym}{parseFloat(viewEntry.momo_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></span>
                   </div>
                 </div>
-                {viewEntry.description && <div style={{ marginBottom: 12, padding: '10px 12px', background: '#f9fafb', borderLeft: '3px solid #9ca3af', fontSize: 13 }}>{viewEntry.description}</div>}
-                <div style={{ fontSize: 11, color: '#6b7280' }}>Created by {viewEntry.created_by_name || '—'} on {formatDate(viewEntry.created_at?.split(' ')[0])}</div>
+                {viewEntry.description && <div style={{ marginBottom: 12, padding: '10px 12px', background: '#f8fafc', borderLeft: '3px solid #94a3b8', fontSize: 13 }}>{viewEntry.description}</div>}
+                <div style={{ fontSize: 11, color: '#64748b' }}>Created by {viewEntry.created_by_name || '—'} on {formatDate(viewEntry.created_at?.split(' ')[0])}</div>
               </div>
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setViewEntry(null)}>Close</button>

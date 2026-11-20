@@ -21,9 +21,9 @@ const depotLabel = (name) => (name
 // A labelled fact in the View pop-up.
 function Fact({ label, value, mono }) {
   return (
-    <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 8, padding: '8px 10px' }}>
-      <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: 13, color: '#111827', fontWeight: 600, marginTop: 2, fontFamily: mono ? 'monospace' : 'inherit', overflowWrap: 'anywhere' }}>{value}</div>
+    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 10px' }}>
+      <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: 13, color: '#0f172a', fontWeight: 600, marginTop: 2, fontFamily: mono ? 'monospace' : 'inherit', overflowWrap: 'anywhere' }}>{value}</div>
     </div>
   );
 }
@@ -50,7 +50,7 @@ const reasonStyle = (r) => {
     case 'Discount':      return { bg: '#dcfce7', color: '#166534', border: '#86efac' };
     case 'Crate Return':  return { bg: '#dbeafe', color: '#1d4ed8', border: '#bfdbfe' };
     case 'Goods Return':  return { bg: '#ffedd5', color: '#9a3412', border: '#fed7aa' };
-    default:              return { bg: '#f3f4f6', color: '#374151', border: '#d1d5db' };
+    default:              return { bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' };
   }
 };
 
@@ -619,20 +619,20 @@ const CreditNotes = () => {
       </tr>`).join('');
     const html = `<!DOCTYPE html><html><head><title>${cn.credit_note_number}</title><style>
       @page { size: A5; margin: 12mm; }
-      body { font-family: Arial, sans-serif; color: #111; font-size: 11px; }
+      body { font-family: Arial, sans-serif; color: #0f172a; font-size: 11px; }
       h1 { margin: 0 0 4px; font-size: 16px; letter-spacing: 1px; }
-      .meta { font-size: 10px; color: #555; }
+      .meta { font-size: 10px; color: #475569; }
       .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 14px; margin: 14px 0; }
-      .grid div { padding: 5px 8px; background: #f6f6f6; border-radius: 4px; }
-      .grid strong { display: block; font-size: 9px; letter-spacing: 0.5px; color: #555; text-transform: uppercase; }
+      .grid div { padding: 5px 8px; background: #f8fafc; border-radius: 4px; }
+      .grid strong { display: block; font-size: 9px; letter-spacing: 0.5px; color: #475569; text-transform: uppercase; }
       table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10.5px; }
-      th, td { border: 1px solid #d1d5db; padding: 4px 6px; }
-      th { background: #f3f4f6; text-align: left; font-size: 10px; letter-spacing: 0.3px; }
+      th, td { border: 1px solid #cbd5e1; padding: 4px 6px; }
+      th { background: #f1f5f9; text-align: left; font-size: 10px; letter-spacing: 0.3px; }
       .total-row { background: #fef3c7; font-weight: 700; }
       .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 9px; font-weight: 700;
                background: ${reasonBadge.bg}; color: ${reasonBadge.color}; border: 1px solid ${reasonBadge.border}; }
-      .notes { margin-top: 14px; padding: 8px 10px; background: #f9fafb; border-left: 3px solid #9ca3af; font-size: 10.5px; }
-      .footer { margin-top: 22px; display: flex; justify-content: space-between; font-size: 10px; color: #555; }
+      .notes { margin-top: 14px; padding: 8px 10px; background: #f8fafc; border-left: 3px solid #94a3b8; font-size: 10.5px; }
+      .footer { margin-top: 22px; display: flex; justify-content: space-between; font-size: 10px; color: #475569; }
     </style></head><body>
       <h1>SUPPLIER CREDIT NOTE</h1>
       <div class="meta">${cn.credit_note_number} · printed ${new Date().toLocaleString()}</div>
@@ -708,7 +708,7 @@ const CreditNotes = () => {
     ].filter(Boolean).join(' · ') || 'All time, all reasons';
 
     const rowsByDoc = list.map((cn, i) => `
-      <tr style="border-bottom:1px solid #ddd;background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:7px 9px;font-size:10.5px">${i + 1}</td>
         <td style="padding:7px 9px;font-weight:600">${cn.credit_note_number}</td>
         <td style="padding:7px 9px">${formatDate(cn.date)}</td>
@@ -719,7 +719,7 @@ const CreditNotes = () => {
       </tr>`).join('');
 
     const rowsBySup = bySupplier.map((s, i) => `
-      <tr style="border-bottom:1px solid #ddd;background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
+      <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
         <td style="padding:7px 9px;font-size:10.5px">${i + 1}</td>
         <td style="padding:7px 9px;font-weight:700">${s.supplier_name}</td>
         <td style="padding:7px 9px;text-align:center">${s.count}</td>
@@ -767,8 +767,8 @@ const CreditNotes = () => {
       <style>@page{size:A4 portrait;margin:14mm}*{box-sizing:border-box;margin:0;padding:0}
       body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#000}
       table{width:100%;border-collapse:collapse}
-      th{padding:7px 9px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f0f0f0;text-align:left}
-      tfoot td{padding:9px 10px;font-weight:700;background:#f0f0f0;border-top:2px solid #000}
+      th{padding:7px 9px;font-weight:700;color:#000;border-bottom:1.5px solid #000;font-size:10.5px;background:#f1f5f9;text-align:left}
+      tfoot td{padding:9px 10px;font-weight:700;background:#f1f5f9;border-top:2px solid #000}
       </style></head><body>
       <div style="border-bottom:3px solid #000;padding-bottom:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">
         <div>
@@ -799,7 +799,7 @@ const CreditNotes = () => {
             <div style="font-size:9px;text-align:center">Name / Signature / Date</div>
           </div>`).join('')}
       </div>
-      <div style="border-top:1px solid #bbb;padding-top:8px;display:flex;justify-content:space-between">
+      <div style="border-top:1px solid #cbd5e1;padding-top:8px;display:flex;justify-content:space-between">
         <span style="font-size:9px">${biz} — Confidential</span>
         <span style="font-size:9px">Printed: ${printedAt}</span>
       </div>
@@ -835,7 +835,7 @@ const CreditNotes = () => {
         const isExp = expandedCNs.has(cn.id);
         const cache = cnItemsCache[cn.id];
         const baseRow = `
-        <tr style="background:${i % 2 === 1 ? '#f9f9f9' : '#fff'}">
+        <tr style="background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
           <td style="padding:6px 9px;font-weight:600">${cn.credit_note_number}</td>
           <td style="padding:6px 9px">${formatDate(cn.date)}</td>
           <td style="padding:6px 9px">${cn.linked_grn_number ? (cn.linked_grn_number + (cn.linked_is_proposed ? ' (pending)' : '')) : (cn.reference || '—')}</td>
@@ -855,9 +855,9 @@ const CreditNotes = () => {
             </tr>`).join('');
           breakdown = `
             <tr><td colspan="4" style="padding:0">
-              <div style="margin:0 14px 6px 14px;border:1px solid #ccc;background:#fafafa">
+              <div style="margin:0 14px 6px 14px;border:1px solid #cbd5e1;background:#f8fafc">
                 <table style="width:100%;border-collapse:collapse;font-size:10px">
-                  <thead><tr style="background:#eee">
+                  <thead><tr style="background:#f1f5f9">
                     <th style="padding:4px 8px;text-align:left">Product</th>
                     <th style="padding:4px 8px;text-align:right">Qty</th>
                     <th style="padding:4px 8px;text-align:center">Unit</th>
@@ -866,13 +866,13 @@ const CreditNotes = () => {
                   </tr></thead>
                   <tbody>${itemRows}</tbody>
                 </table>
-                ${cache.notes ? `<div style="padding:5px 9px;font-size:10px;color:#444;border-top:1px solid #ddd"><b>Notes:</b> ${cache.notes}</div>` : ''}
+                ${cache.notes ? `<div style="padding:5px 9px;font-size:10px;color:#334155;border-top:1px solid #e2e8f0"><b>Notes:</b> ${cache.notes}</div>` : ''}
               </div>
             </td></tr>`;
         } else if (cache.notes) {
           breakdown = `
             <tr><td colspan="4" style="padding:0">
-              <div style="margin:0 14px 6px 14px;padding:6px 10px;border-left:3px solid #aaa;background:#fafafa;font-size:10.5px;color:#444">
+              <div style="margin:0 14px 6px 14px;padding:6px 10px;border-left:3px solid #94a3b8;background:#f8fafc;font-size:10.5px;color:#334155">
                 <b>Notes:</b> ${cache.notes}
               </div>
             </td></tr>`;
@@ -886,7 +886,7 @@ const CreditNotes = () => {
             <span style="font-weight:800">${curSym}${fmt(sub)}</span>
           </div>
           <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <thead><tr style="background:#f0f0f0;border-bottom:1.5px solid #000">
+            <thead><tr style="background:#f1f5f9;border-bottom:1.5px solid #000">
               <th style="padding:6px 9px;text-align:left">CN #</th>
               <th style="padding:6px 9px;text-align:left">Date</th>
               <th style="padding:6px 9px;text-align:left">Reference</th>
@@ -928,7 +928,7 @@ const CreditNotes = () => {
         <span>GRAND TOTAL — ${cns.length} credit note${cns.length !== 1 ? 's' : ''}</span>
         <span>${curSym}${fmt(total)}</span>
       </div>
-      <div style="margin-top:24px;font-size:10px;color:#555">Printed by ${printedBy}</div>
+      <div style="margin-top:24px;font-size:10px;color:#475569">Printed by ${printedBy}</div>
       </body></html>`;
     const wS = window.open('', '_blank');
     if (!wS) return;
@@ -1007,32 +1007,32 @@ const CreditNotes = () => {
 
       {/* ── Filter bar ─────────────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
-                    padding: '12px 16px', background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 10 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
+                    padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{t('filterByDate')}:</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('from')}</span>
           <input type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('to')}</span>
           <input type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13 }} />
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13 }} />
         </div>
         <select value={filterReason} onChange={e => setFilterReason(e.target.value)}
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 7, fontSize: 13, background: '#fff' }}>
+          style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 7, fontSize: 13, background: '#fff' }}>
           <option value="All">All reasons</option>
           {REASONS.map(r => <option key={r} value={r}>{r}</option>)}
         </select>
         {(filterFrom || filterTo || filterReason !== 'All') && (
           <button onClick={() => { setFilterFrom(''); setFilterTo(''); setFilterReason('All'); }}
-            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}>
+            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0', fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer' }}>
             {t('clear')}
           </button>
         )}
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>
           {list.length} credit note{list.length !== 1 ? 's' : ''}
           {list.length > 0 && (
             <> &nbsp;·&nbsp; Total: <strong style={{ color: '#0369a1' }}>{curSym}{filteredTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong></>
@@ -1041,7 +1041,7 @@ const CreditNotes = () => {
       </div>
 
       {/* ── Tabs: per-document detail vs per-supplier rollup ─────────────── */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e5e7eb' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '2px solid #e2e8f0' }}>
         {[
           { key: 'byDocument', label: 'By Document' },
           { key: 'bySupplier', label: 'By Supplier' },
@@ -1049,7 +1049,7 @@ const CreditNotes = () => {
           <button key={tb.key} onClick={() => setTab(tb.key)}
             style={{ padding: '10px 18px', background: 'none', border: 'none',
                      borderBottom: tab === tb.key ? '3px solid #1d4ed8' : '3px solid transparent',
-                     color: tab === tb.key ? '#1d4ed8' : '#6b7280',
+                     color: tab === tb.key ? '#1d4ed8' : '#64748b',
                      fontWeight: tab === tb.key ? 700 : 500, fontSize: 13.5,
                      cursor: 'pointer', marginBottom: -2 }}>
             {tb.label}
@@ -1060,7 +1060,7 @@ const CreditNotes = () => {
       {/* ── Table ──────────────────────────────────────────────────────────── */}
       <div className="data-table-container">
         {list.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
             No credit notes yet. Use "New Credit Note" to record a supplier discount or crate/bottle return.
           </div>
         ) : tab === 'bySupplier' ? (
@@ -1086,16 +1086,16 @@ const CreditNotes = () => {
                     </button>
                   </td>
                   <td style={{ textAlign: 'center' }}>{s.count}</td>
-                  <td style={{ textAlign: 'right', color: s.discount > 0 ? '#15803d' : '#6b7280' }}>
+                  <td style={{ textAlign: 'right', color: s.discount > 0 ? '#15803d' : '#64748b' }}>
                     {s.discount > 0 ? `${curSym}${s.discount.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', color: s.crate_return > 0 ? '#1d4ed8' : '#6b7280' }}>
+                  <td style={{ textAlign: 'right', color: s.crate_return > 0 ? '#1d4ed8' : '#64748b' }}>
                     {s.crate_return > 0 ? `${curSym}${s.crate_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', color: s.goods_return > 0 ? '#9a3412' : '#6b7280' }}>
+                  <td style={{ textAlign: 'right', color: s.goods_return > 0 ? '#9a3412' : '#64748b' }}>
                     {s.goods_return > 0 ? `${curSym}${s.goods_return.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td style={{ textAlign: 'right', color: s.other > 0 ? '#374151' : '#6b7280' }}>
+                  <td style={{ textAlign: 'right', color: s.other > 0 ? '#334155' : '#64748b' }}>
                     {s.other > 0 ? `${curSym}${s.other.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: '#0369a1' }}>
@@ -1155,7 +1155,7 @@ const CreditNotes = () => {
                         {cn.reason}
                       </span>
                       {!reasonAffectsProfit(cn.reason) && (
-                        <span title="Deposit refund — does not affect Profit Report" style={{ marginLeft: 6, fontSize: 10, color: '#6b7280' }}>
+                        <span title="Deposit refund — does not affect Profit Report" style={{ marginLeft: 6, fontSize: 10, color: '#64748b' }}>
                           (deposit refund)
                         </span>
                       )}
@@ -1176,13 +1176,13 @@ const CreditNotes = () => {
                         </span>
                       ) : <span style={{ color: '#cbd5e1' }}>—</span>}
                     </td>
-                    <td style={{ color: '#6b7280' }}>{cn.linked_grn_number
+                    <td style={{ color: '#64748b' }}>{cn.linked_grn_number
                         ? <span title={cn.linked_is_proposed ? 'Proposed — waiting for HQ to confirm' : 'Attached to this GRN'}>
-                            <span style={{ fontFamily: 'monospace' }}>{cn.linked_grn_number}</span>
+                            <span style={{ fontFamily: 'var(--k-font-mono)' }}>{cn.linked_grn_number}</span>
                             {cn.linked_is_proposed && <span style={{ color: '#b45309' }}> · pending</span>}
                           </span>
                         : (cn.reference || '—')}</td>
-                    <td style={{ fontFamily: 'monospace', color: cn.supplier_invoice_number ? '#111827' : '#cbd5e1' }}>
+                    <td style={{ fontFamily: 'var(--k-font-mono)', color: cn.supplier_invoice_number ? '#0f172a' : '#cbd5e1' }}>
                       {cn.supplier_invoice_number || '—'}
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 600 }}>
@@ -1192,7 +1192,7 @@ const CreditNotes = () => {
                       <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                         <button onClick={() => openView(cn)} disabled={viewLoading}
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 11px',
-                                   borderRadius: 6, border: '1px solid #e5e7eb', background: '#f9fafb', color: '#6b7280', cursor: 'pointer', fontSize: 12 }}>
+                                   borderRadius: 6, border: '1px solid #e2e8f0', background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 12 }}>
                           <FiEye size={12} /> {t('view')}
                         </button>
                           {/* 2026-09-14 — HQ confirms; a depot only sees the status. */}
@@ -1216,8 +1216,8 @@ const CreditNotes = () => {
                         {canEdit && !cn.branch_confirmed_at && !cn.raised_here && (
                           <button onClick={() => openEdit(cn)} title="Edit"
                             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                                     width: 30, height: 30, borderRadius: 6, border: '1px solid #e5e7eb',
-                                     background: '#f9fafb', color: '#6b7280', cursor: 'pointer' }}>
+                                     width: 30, height: 30, borderRadius: 6, border: '1px solid #e2e8f0',
+                                     background: '#f8fafc', color: '#64748b', cursor: 'pointer' }}>
                             <FiEdit2 size={13} />
                           </button>
                         )}
@@ -1255,9 +1255,9 @@ const CreditNotes = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 720, maxHeight: '92vh', overflow: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '16px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 22px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{editMode ? 'Edit' : 'New'} Credit Note</h2>
-              <button onClick={() => { setShowForm(false); resetForm(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+              <button onClick={() => { setShowForm(false); resetForm(); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
             </div>
 
             <div style={{ padding: 22 }}>
@@ -1268,7 +1268,7 @@ const CreditNotes = () => {
                   discounts), and Crate Return is gone from the form only — the
                   Empty Returns page still mints its own. An older note keeps
                   whatever reason it was saved with, and this shows it. */}
-              <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>Reason</label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>Reason</label>
               <div style={{ marginBottom: 16 }}>
                 <span style={{ display: 'inline-block', padding: '7px 14px', borderRadius: 8,
                                border: `1.5px solid ${reasonStyle(reason).border}`,
@@ -1291,20 +1291,20 @@ const CreditNotes = () => {
               {/* Supplier + date */}
               <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 12 }}>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Supplier *</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Supplier *</label>
                   {/* Always a dropdown. Choosing a supplier narrows the
                       invoice list below to that supplier's unpaid GRNs; a
                       credit with no invoice still needs one picked here. */}
                   <select value={supplierId} onChange={e => setSupplierId(e.target.value)}
-                    style={{ width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, background: '#fff', boxSizing: 'border-box' }}>
+                    style={{ width: '100%', padding: '9px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, background: '#fff', boxSizing: 'border-box' }}>
                     <option value="">— Select supplier —</option>
                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>{t('date')}</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>{t('date')}</label>
                   <input type="date" value={date} max={todayStr} onChange={e => setDate(e.target.value || todayStr)}
-                    style={{ width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '9px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
                 </div>
               </div>
 
@@ -1313,8 +1313,8 @@ const CreditNotes = () => {
                   balance, which is what Reference alone used to do. Choosing a
                   GRN is what makes it reduce THAT invoice's payable. */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>
-                  Invoice number <span style={{ textTransform: 'none', fontWeight: 500, color: '#6b7280' }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>
+                  Invoice number <span style={{ textTransform: 'none', fontWeight: 500, color: '#64748b' }}>
                     {editMode && grnSyncId ? '— already attached' : '— optional'}
                   </span>
                 </label>
@@ -1322,19 +1322,19 @@ const CreditNotes = () => {
                   // 2026-09-18 — locked while editing. Which invoice a credit
                   // reduces is not something to change by accident; to move it,
                   // delete the note and raise it against the right invoice.
-                  <div style={{ width: '100%', padding: '9px 10px', border: '1px solid #e5e7eb', borderRadius: 8,
-                                fontSize: 13, boxSizing: 'border-box', background: '#f9fafb', color: '#374151',
+                  <div style={{ width: '100%', padding: '9px 10px', border: '1px solid #e2e8f0', borderRadius: 8,
+                                fontSize: 13, boxSizing: 'border-box', background: '#f8fafc', color: '#334155',
                                 display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontWeight: 600 }}>
                       {editInvoice?.invoice ? `Inv ${editInvoice.invoice}` : (editInvoice?.grn || 'Attached to an invoice')}
                     </span>
                     {editInvoice?.grn && editInvoice?.invoice && (
-                      <span style={{ color: '#6b7280', fontSize: 12 }}>· {editInvoice.grn}</span>
+                      <span style={{ color: '#64748b', fontSize: 12 }}>· {editInvoice.grn}</span>
                     )}
                     {editInvoice?.proposed && (
                       <span style={{ color: '#b45309', fontSize: 11, fontWeight: 700 }}>· WAITING FOR HQ</span>
                     )}
-                    <span style={{ marginLeft: 'auto', color: '#6b7280', fontSize: 11 }}>locked</span>
+                    <span style={{ marginLeft: 'auto', color: '#64748b', fontSize: 11 }}>locked</span>
                   </div>
                 ) : (
                 <select value={grnSyncId} onChange={e => {
@@ -1349,7 +1349,7 @@ const CreditNotes = () => {
                       if (match) setSupplierId(String(match.id));
                     }
                   }}
-                  style={{ width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
+                  style={{ width: '100%', padding: '9px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', background: '#fff' }}>
                   <option value="">— none · lowers the supplier's balance —</option>
                   {linkable.map(g => (
                     // 2026-09-04 — the SUPPLIER'S invoice number leads. That is the
@@ -1385,7 +1385,7 @@ const CreditNotes = () => {
                   </div>
                 )}
                 {supplierId && linkable.length === 0 && (
-                  <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>
+                  <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>
                     No unpaid GRNs for this supplier — a paid invoice cannot take a credit.
                   </div>
                 )}
@@ -1399,7 +1399,7 @@ const CreditNotes = () => {
                     </div>
                     {(invoiceSupplier.credit_notes || []).map(n => (
                       <div key={n.number} style={{ display: 'flex', justifyContent: 'space-between', gap: 10 }}>
-                        <span style={{ fontFamily: 'monospace' }}>{n.number}{n.pending ? ' · awaiting HQ' : ''}</span>
+                        <span style={{ fontFamily: 'var(--k-font-mono)' }}>{n.number}{n.pending ? ' · awaiting HQ' : ''}</span>
                         <span>{curSym}{Number(n.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     ))}
@@ -1427,17 +1427,17 @@ const CreditNotes = () => {
 
               {/* Reference */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Reference</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Reference</label>
                 <input type="text" value={reference} onChange={e => setReference(e.target.value)}
                   placeholder="e.g. driver name, delivery note"
-                  style={{ width: '100%', padding: '9px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
+                  style={{ width: '100%', padding: '9px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }} />
               </div>
 
               {/* Either amount OR item rows depending on reason */}
               {reasonHasItems(reason) ? (
                 <>
                   <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4 }}>
                       {reason === 'Goods Return' ? 'Items returned' : 'Items returned (crates & bottles)'}
                     </label>
                     {reason === 'Crate Return' && defaultDeposit > 0 && (
@@ -1452,13 +1452,13 @@ const CreditNotes = () => {
                       </span>
                     )}
                   </div>
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 10, padding: 8, marginBottom: 8, background: '#fafafa' }}>
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: 8, marginBottom: 8, background: '#f8fafc' }}>
                     {(() => {
                       // Product / Qty / Unit / Value / Total / X
                       const gridCols = '2.2fr 0.7fr 0.9fr 1.0fr 1.2fr 28px';
                       return (
                         <>
-                          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', padding: '4px 4px 6px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: 8, fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', padding: '4px 4px 6px' }}>
                             <span>Product</span>
                             <span style={{ textAlign: 'right' }}>Qty</span>
                             <span style={{ textAlign: 'center' }}>Unit</span>
@@ -1490,25 +1490,25 @@ const CreditNotes = () => {
                                     onPick={(p) => pickRow(idx, p)}
                                     onText={(t) => typeRow(idx, t)}
                                     onClear={() => clearRow(idx)}
-                                    style={{ width: '100%', padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
+                                    style={{ width: '100%', padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
                                 </div>
                                 <input type="number" min="0" step="0.01" value={r.quantity}
                                   onChange={e => updateRow(idx, 'quantity', e.target.value)}
-                                  style={{ padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
+                                  style={{ padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
                                 {rowUnits.length > 1 ? (
                                   <select value={r.unit || ''} onChange={e => updateRow(idx, 'unit', e.target.value)}
-                                    style={{ padding: '7px 6px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }}>
+                                    style={{ padding: '7px 6px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff', minWidth: 0, boxSizing: 'border-box' }}>
                                     {rowUnits.map(u => <option key={u.name} value={u.name}>{u.name}</option>)}
                                   </select>
                                 ) : (
-                                  <span style={{ padding: '7px 6px', fontSize: 12, color: '#6b7280', textAlign: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  <span style={{ padding: '7px 6px', fontSize: 12, color: '#64748b', textAlign: 'center', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                     {r.unit || (rowProduct?.unit || '')}
                                   </span>
                                 )}
                                 <input type="number" min="0" step="0.01" value={r.unit_value}
                                   onChange={e => updateRow(idx, 'unit_value', e.target.value)}
-                                  style={{ padding: '7px 9px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
-                                <span style={{ padding: '7px 4px', fontSize: 12, fontWeight: 700, color: '#374151', textAlign: 'right', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${curSym}${lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>
+                                  style={{ padding: '7px 9px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, textAlign: 'right', background: '#fff', minWidth: 0, boxSizing: 'border-box' }} />
+                                <span style={{ padding: '7px 4px', fontSize: 12, fontWeight: 700, color: '#334155', textAlign: 'right', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={`${curSym}${lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>
                                   {curSym}{lineTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                                 <button type="button" onClick={() => removeRow(idx)} title="Remove row"
@@ -1535,18 +1535,18 @@ const CreditNotes = () => {
                 </>
               ) : (
                 <div style={{ marginBottom: 12 }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Amount * ({curSym})</label>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>Amount * ({curSym})</label>
                   <input type="number" min="0" step="0.01" value={amount} onChange={e => setAmount(e.target.value)}
                     placeholder="0.00"
-                    style={{ width: '100%', padding: '11px 12px', border: '1.5px solid #d1d5db', borderRadius: 8, fontSize: 16, fontWeight: 700, textAlign: 'right', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '11px 12px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 16, fontWeight: 700, textAlign: 'right', boxSizing: 'border-box' }} />
                 </div>
               )}
 
               {/* Notes */}
               <div style={{ marginBottom: 12 }}>
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>{t('notes')}</label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 4 }}>{t('notes')}</label>
                 <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
-                  style={{ width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' }} />
+                  style={{ width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box', resize: 'vertical' }} />
               </div>
 
               {/* Total preview */}
@@ -1612,13 +1612,13 @@ const CreditNotes = () => {
               )}
             </div>
 
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => { setShowForm(false); resetForm(); }}
-                style={{ padding: '10px 18px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                style={{ padding: '10px 18px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 {t('cancel')}
               </button>
               <button onClick={save} disabled={saving || !(supplierId || invoiceSupplier) || formTotal <= 0}
-                style={{ padding: '10px 22px', background: saving || !(supplierId || invoiceSupplier) || formTotal <= 0 ? '#9ca3af' : '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: saving || !(supplierId || invoiceSupplier) || formTotal <= 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
+                style={{ padding: '10px 22px', background: saving || !(supplierId || invoiceSupplier) || formTotal <= 0 ? '#94a3b8' : '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: saving || !(supplierId || invoiceSupplier) || formTotal <= 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}>
                 {saving ? t('saving') : (editMode ? 'Save Changes' : 'Save Credit Note')}
               </button>
             </div>
@@ -1632,12 +1632,12 @@ const CreditNotes = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 560, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '16px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 22px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{viewCN.credit_note_number}</h2>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{formatDate(viewCN.date)} · {viewCN.supplier_name}</div>
+                <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{formatDate(viewCN.date)} · {viewCN.supplier_name}</div>
               </div>
-              <button onClick={() => setViewCN(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+              <button onClick={() => setViewCN(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
             </div>
 
             <div style={{ padding: 22 }}>
@@ -1648,7 +1648,7 @@ const CreditNotes = () => {
                   </span>
                 ); })()}
                 {!reasonAffectsProfit(viewCN.reason) && (
-                  <span style={{ fontSize: 11, color: '#6b7280', alignSelf: 'center' }}>(deposit refund — not income)</span>
+                  <span style={{ fontSize: 11, color: '#64748b', alignSelf: 'center' }}>(deposit refund — not income)</span>
                 )}
               </div>
 
@@ -1663,28 +1663,28 @@ const CreditNotes = () => {
 
               {viewCN.reference && (
                 <div style={{ marginBottom: 12, fontSize: 13 }}>
-                  <strong style={{ color: '#374151' }}>Reference:</strong> <span style={{ color: '#6b7280' }}>{viewCN.reference}</span>
+                  <strong style={{ color: '#334155' }}>Reference:</strong> <span style={{ color: '#64748b' }}>{viewCN.reference}</span>
                 </div>
               )}
 
               {viewCN.items?.length > 0 && (
-                <div style={{ marginBottom: 12, border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ marginBottom: 12, border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
                   <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                    <thead style={{ background: '#f9fafb' }}>
+                    <thead style={{ background: '#f8fafc' }}>
                       <tr>
-                        <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Product</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Qty</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Unit</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Unit Value</th>
-                        <th style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Total</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Product</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Qty</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Unit</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Unit Value</th>
+                        <th style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Total</th>
                       </tr>
                     </thead>
                     <tbody>
                       {viewCN.items.map(it => (
-                        <tr key={it.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                        <tr key={it.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                           <td style={{ padding: '8px 10px' }}>{it.product_name}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right' }}>{parseFloat(it.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                          <td style={{ padding: '8px 10px', textAlign: 'center', color: '#6b7280' }}>{it.unit || it.product_unit || ''}</td>
+                          <td style={{ padding: '8px 10px', textAlign: 'center', color: '#64748b' }}>{it.unit || it.product_unit || ''}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right' }}>{curSym}{parseFloat(it.unit_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                           <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>{curSym}{parseFloat(it.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         </tr>
@@ -1709,7 +1709,7 @@ const CreditNotes = () => {
                 const split = (viewCN.items || []).length > 0 && (vat > 0 || disc > 0);
                 const Line = ({ label, value, hint }) => (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 13, color: '#1e3a8a', padding: '2px 0' }}>
-                    <span>{label}{hint && <span style={{ color: '#6b7280', fontSize: 11, marginLeft: 6 }}>{hint}</span>}</span>
+                    <span>{label}{hint && <span style={{ color: '#64748b', fontSize: 11, marginLeft: 6 }}>{hint}</span>}</span>
                     <span style={{ fontWeight: 600 }}>{curSym}{value.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                   </div>
                 );
@@ -1732,18 +1732,18 @@ const CreditNotes = () => {
               })()}
 
               {viewCN.notes && (
-                <div style={{ padding: '10px 14px', background: '#f9fafb', borderLeft: '3px solid #9ca3af', fontSize: 13, color: '#374151' }}>
+                <div style={{ padding: '10px 14px', background: '#f8fafc', borderLeft: '3px solid #94a3b8', fontSize: 13, color: '#334155' }}>
                   {viewCN.notes}
                 </div>
               )}
 
-              <div style={{ marginTop: 14, fontSize: 11, color: '#6b7280' }}>
+              <div style={{ marginTop: 14, fontSize: 11, color: '#64748b' }}>
                 Prepared by {viewCN.created_by_name || '—'} on {formatDate(viewCN.created_at?.split(' ')[0])}
               </div>
             </div>
 
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button onClick={() => setViewCN(null)} style={{ padding: '10px 18px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setViewCN(null)} style={{ padding: '10px 18px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 {t('close')}
               </button>
               <button onClick={() => handlePrint(viewCN)} style={{ padding: '10px 22px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}>
@@ -1768,10 +1768,10 @@ const CreditNotes = () => {
           <Portal>
             <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
               <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 720, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-                <div style={{ padding: '16px 22px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+                <div style={{ padding: '16px 22px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                   <div style={{ minWidth: 0 }}>
                     <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>{supplierDetail}</h2>
-                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
                       {cns.length} credit note{cns.length !== 1 ? 's' : ''} · {curSym}{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </div>
                   </div>
@@ -1786,31 +1786,31 @@ const CreditNotes = () => {
                         </button>
                       );
                     })()}
-                    <button onClick={() => setSupplierDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}><FiX size={20} /></button>
+                    <button onClick={() => setSupplierDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}><FiX size={20} /></button>
                   </div>
                 </div>
 
                 <div style={{ padding: 22 }}>
                   {groups.length === 0 ? (
-                    <div style={{ padding: 24, textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No credit notes for this supplier in the current filter.</div>
+                    <div style={{ padding: 24, textAlign: 'center', color: '#64748b', fontSize: 13 }}>No credit notes for this supplier in the current filter.</div>
                   ) : groups.map(g => {
                     const sub = g.rows.reduce((s, c) => s + parseFloat(c.amount || 0), 0);
                     const rs = reasonStyle(g.reason);
                     const reasonHasStock = g.reason === 'Crate Return' || g.reason === 'Goods Return';
                     return (
-                      <div key={g.reason} style={{ marginBottom: 16, border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+                      <div key={g.reason} style={{ marginBottom: 16, border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
                         <div style={{ padding: '8px 12px', background: rs.bg, color: rs.color, borderBottom: `1px solid ${rs.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontWeight: 700, fontSize: 13 }}>{g.reason} · {g.rows.length}</span>
                           <span style={{ fontWeight: 800, fontSize: 13 }}>{curSym}{sub.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                         </div>
                         <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                          <thead style={{ background: '#f9fafb' }}>
+                          <thead style={{ background: '#f8fafc' }}>
                             <tr>
-                              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>CN #</th>
-                              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Date</th>
-                              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Reference</th>
-                              <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 700, color: '#6b7280', fontSize: 11 }}>Amount</th>
-                              <th style={{ padding: '7px 10px', textAlign: 'center', fontWeight: 700, color: '#6b7280', fontSize: 11, width: 50 }}>View</th>
+                              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#64748b', fontSize: 11 }}>CN #</th>
+                              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Date</th>
+                              <th style={{ padding: '7px 10px', textAlign: 'left', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Reference</th>
+                              <th style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 700, color: '#64748b', fontSize: 11 }}>Amount</th>
+                              <th style={{ padding: '7px 10px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 11, width: 50 }}>View</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1819,12 +1819,12 @@ const CreditNotes = () => {
                               const cache = cnItemsCache[cn.id];
                               return (
                                 <React.Fragment key={cn.id}>
-                                  <tr style={{ borderTop: '1px solid #f3f4f6', background: isExp ? '#f8fafc' : 'transparent' }}>
+                                  <tr style={{ borderTop: '1px solid #f1f5f9', background: isExp ? '#f8fafc' : 'transparent' }}>
                                     <td style={{ padding: '8px 10px', fontWeight: 600 }}>{cn.credit_note_number}</td>
-                                    <td style={{ padding: '8px 10px', color: '#6b7280' }}>{formatDate(cn.date)}</td>
-                                    <td style={{ padding: '8px 10px', color: '#6b7280' }}>{cn.linked_grn_number
+                                    <td style={{ padding: '8px 10px', color: '#64748b' }}>{formatDate(cn.date)}</td>
+                                    <td style={{ padding: '8px 10px', color: '#64748b' }}>{cn.linked_grn_number
                         ? <span title={cn.linked_is_proposed ? 'Proposed — waiting for HQ to confirm' : 'Attached to this GRN'}>
-                            <span style={{ fontFamily: 'monospace' }}>{cn.linked_grn_number}</span>
+                            <span style={{ fontFamily: 'var(--k-font-mono)' }}>{cn.linked_grn_number}</span>
                             {cn.linked_is_proposed && <span style={{ color: '#b45309' }}> · pending</span>}
                           </span>
                         : (cn.reference || '—')}</td>
@@ -1840,27 +1840,27 @@ const CreditNotes = () => {
                                     <tr style={{ background: '#f8fafc' }}>
                                       <td colSpan={5} style={{ padding: '4px 12px 12px' }}>
                                         {cache?.loading ? (
-                                          <div style={{ padding: 10, fontSize: 11, color: '#6b7280' }}>Loading…</div>
+                                          <div style={{ padding: 10, fontSize: 11, color: '#64748b' }}>Loading…</div>
                                         ) : cache?.error ? (
                                           <div style={{ padding: 10, fontSize: 11, color: '#dc2626' }}>Failed to load: {cache.error}</div>
                                         ) : reasonHasStock && (cache?.items || []).length > 0 ? (
-                                          <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                                          <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
                                             <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11.5 }}>
-                                              <thead style={{ background: '#f3f4f6' }}>
+                                              <thead style={{ background: '#f1f5f9' }}>
                                                 <tr>
-                                                  <th style={{ padding: '6px 9px', textAlign: 'left', fontWeight: 600, color: '#6b7280' }}>Product</th>
-                                                  <th style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600, color: '#6b7280' }}>Qty</th>
-                                                  <th style={{ padding: '6px 9px', textAlign: 'center', fontWeight: 600, color: '#6b7280' }}>Unit</th>
-                                                  <th style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600, color: '#6b7280' }}>Value</th>
-                                                  <th style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600, color: '#6b7280' }}>Total</th>
+                                                  <th style={{ padding: '6px 9px', textAlign: 'left', fontWeight: 600, color: '#64748b' }}>Product</th>
+                                                  <th style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>Qty</th>
+                                                  <th style={{ padding: '6px 9px', textAlign: 'center', fontWeight: 600, color: '#64748b' }}>Unit</th>
+                                                  <th style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>Value</th>
+                                                  <th style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600, color: '#64748b' }}>Total</th>
                                                 </tr>
                                               </thead>
                                               <tbody>
                                                 {cache.items.map(it => (
-                                                  <tr key={it.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                                                  <tr key={it.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                                                     <td style={{ padding: '6px 9px' }}>{it.product_name}</td>
                                                     <td style={{ padding: '6px 9px', textAlign: 'right' }}>{parseFloat(it.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                                                    <td style={{ padding: '6px 9px', textAlign: 'center', color: '#6b7280' }}>{it.unit || it.product_unit || ''}</td>
+                                                    <td style={{ padding: '6px 9px', textAlign: 'center', color: '#64748b' }}>{it.unit || it.product_unit || ''}</td>
                                                     <td style={{ padding: '6px 9px', textAlign: 'right' }}>{curSym}{parseFloat(it.unit_value).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                     <td style={{ padding: '6px 9px', textAlign: 'right', fontWeight: 600 }}>{curSym}{parseFloat(it.total_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                                   </tr>
@@ -1868,17 +1868,17 @@ const CreditNotes = () => {
                                               </tbody>
                                             </table>
                                             {cache.notes && (
-                                              <div style={{ padding: '6px 10px', borderTop: '1px solid #f3f4f6', fontSize: 11, color: '#6b7280' }}>
+                                              <div style={{ padding: '6px 10px', borderTop: '1px solid #f1f5f9', fontSize: 11, color: '#64748b' }}>
                                                 <b>Notes:</b> {cache.notes}
                                               </div>
                                             )}
                                           </div>
                                         ) : cache?.notes ? (
-                                          <div style={{ padding: '8px 12px', borderLeft: '3px solid #9ca3af', background: '#fff', fontSize: 11.5, color: '#374151' }}>
+                                          <div style={{ padding: '8px 12px', borderLeft: '3px solid #94a3b8', background: '#fff', fontSize: 11.5, color: '#334155' }}>
                                             <b>Notes:</b> {cache.notes}
                                           </div>
                                         ) : (
-                                          <div style={{ padding: 10, fontSize: 11, color: '#6b7280' }}>
+                                          <div style={{ padding: 10, fontSize: 11, color: '#64748b' }}>
                                             {reasonHasStock ? 'No items recorded.' : 'No notes.'}
                                           </div>
                                         )}
@@ -1895,12 +1895,12 @@ const CreditNotes = () => {
                   })}
                 </div>
 
-                <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                  <button onClick={() => setSupplierDetail(null)} style={{ padding: '10px 18px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+                <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                  <button onClick={() => setSupplierDetail(null)} style={{ padding: '10px 18px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                     Close
                   </button>
                   <button onClick={() => handlePrintSupplier(supplierDetail)} disabled={cns.length === 0}
-                    style={{ padding: '10px 22px', background: cns.length === 0 ? '#9ca3af' : '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: cns.length === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    style={{ padding: '10px 22px', background: cns.length === 0 ? '#94a3b8' : '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: cns.length === 0 ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <FiPrinter size={14} /> Print
                   </button>
                 </div>

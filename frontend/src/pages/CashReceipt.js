@@ -10,6 +10,7 @@ import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
 import { businessToday } from '../utils/businessDate';
+import { useDialog } from '../ux/ForecourtKit';
 
 const getPaymentColor = (method) => {
   const map = { 'Cash': 'badge-green', 'Card': 'badge-blue', 'Check': 'badge-purple', 'Transfer': 'badge-orange' };
@@ -21,6 +22,7 @@ const todayStr = businessToday();
 const CashReceipt = () => {
   const { hasPermission } = useAuth();
   const { symbol: curSym, isLiquorStyle: rawLiquorStyle, methodShown } = useCurrency();
+  const [dialog, ui] = useDialog();   // in-app boxes instead of browser pop-ups
   // v1.10.68 — HQ is Kelete's Head Office, not a Liquor branch. Regardless
   // of how its tenant settings evaluate (currency_mode='K' +
   // payment_methods='cash_momo_bank' would flip rawLiquorStyle to true),
@@ -142,7 +144,7 @@ const CashReceipt = () => {
     if (usd <= 0 && fra <= 0 && k <= 0) return setFormError('Enter an amount in at least one currency.');
 
     if (editMode) {
-      if (!window.confirm('Are you sure you want to update this record?')) return;
+      if (!(await ui.confirm({ title: 'Update this receipt?', text: 'The saved receipt will be changed to what is on this form.', okLabel: 'Update' }))) return;
     }
     setSaving(true);
     try {
@@ -214,7 +216,7 @@ const CashReceipt = () => {
           await fetchData();
           showToast('Cash Receipt deleted.', 'error');
         } catch (err) {
-          alert(err.response?.data?.error || 'Failed to delete receipt.');
+          ui.alert(err.response?.data?.error || 'Failed to delete receipt.');
         }
       },
     });
@@ -227,13 +229,13 @@ const CashReceipt = () => {
       : 'All Dates';
     const printed = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const chips = [
-      { label: 'Period From',  value: filterFrom ? formatDate(filterFrom) : 'All', bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
-      { label: 'Period To',    value: filterTo   ? formatDate(filterTo)   : 'All', bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
+      { label: 'Period From',  value: filterFrom ? formatDate(filterFrom) : 'All', bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
+      { label: 'Period To',    value: filterTo   ? formatDate(filterTo)   : 'All', bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
       { label: 'Receipts',     value: String(filteredReceipts.length),              bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
       { label: 'Total Amount', value: '$' + fmt2(filteredTotal),                   bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
     ].map(c => `<div style="padding:12px 16px;border-radius:10px;background:${c.bg};border:1.5px solid ${c.border};text-align:center"><div style="font-size:9.5px;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px">${c.label}</div><div style="font-size:16px;font-weight:800;color:${c.color}">${c.value}</div></div>`).join('');
-    const rows = filteredReceipts.map((r, idx) => `<tr style="border-bottom:1px solid #f1f5f9;background:${idx % 2 === 1 ? '#fafafa' : '#fff'}"><td style="padding:8px 12px;color:#9ca3af;font-size:10.5px">${idx + 1}</td><td style="padding:8px 12px;font-weight:700;font-family:monospace;font-size:11px;color:#16a34a">${r.receipt_number}</td><td style="padding:8px 12px;color:#374151">${formatDate(r.date)}</td><td style="padding:8px 12px;font-weight:500">${r.received_from}</td><td style="padding:8px 12px;color:#6b7280">${r.description || '—'}</td><td style="padding:8px 12px;color:#374151">${r.payment_method}</td><td style="padding:8px 12px;text-align:right;font-weight:700;font-family:monospace;color:#16a34a">$${fmt2(r.amount)}</td></tr>`).join('');
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipts</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:794px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#16a34a 100%);padding:28px 44px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:21px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:11px;opacity:0.75">${[biz.business_address, biz.business_phone].filter(Boolean).join('  |  ')}</div></div><div style="text-align:right"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.65;margin-bottom:6px">Cash Receipts</div><div style="font-size:15px;font-weight:700">${dateRange}</div><div style="font-size:10px;opacity:0.6;margin-top:4px">Printed: ${printed}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#16a34a,#2563eb,#a855f7)"></div><div style="padding:26px 44px 36px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">${chips}</div><div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#f0fdf4"><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">#</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Receipt No.</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Date</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Received From</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Description</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Method</th><th style="padding:8px 12px;text-align:right;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Amount</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:#f0fdf4;border-top:2px solid #86efac"><td colspan="6" style="padding:10px 12px;font-weight:700;font-size:11.5px;color:#16a34a">TOTAL — ${filteredReceipts.length} Receipt${filteredReceipts.length !== 1 ? 's' : ''}</td><td style="padding:10px 12px;text-align:right;font-weight:800;font-size:13px;font-family:monospace;color:#16a34a">$${fmt2(filteredTotal)}</td></tr></tfoot></table></div><div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between"><span style="font-size:9.5px;color:#cbd5e1">${biz.business_name || 'Business'} — Confidential</span><span style="font-size:9.5px;color:#cbd5e1">Printed: ${printed}</span></div></div></div></body></html>`;
+    const rows = filteredReceipts.map((r, idx) => `<tr style="border-bottom:1px solid #f1f5f9;background:${idx % 2 === 1 ? '#f8fafc' : '#fff'}"><td style="padding:8px 12px;color:#94a3b8;font-size:10.5px">${idx + 1}</td><td style="padding:8px 12px;font-weight:700;font-family:monospace;font-size:11px;color:#16a34a">${r.receipt_number}</td><td style="padding:8px 12px;color:#334155">${formatDate(r.date)}</td><td style="padding:8px 12px;font-weight:500">${r.received_from}</td><td style="padding:8px 12px;color:#64748b">${r.description || '—'}</td><td style="padding:8px 12px;color:#334155">${r.payment_method}</td><td style="padding:8px 12px;text-align:right;font-weight:700;font-family:monospace;color:#16a34a">$${fmt2(r.amount)}</td></tr>`).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipts</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#0f172a}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:794px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#16a34a 100%);padding:28px 44px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:21px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:11px;opacity:0.75">${[biz.business_address, biz.business_phone].filter(Boolean).join('  |  ')}</div></div><div style="text-align:right"><div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;opacity:0.65;margin-bottom:6px">Cash Receipts</div><div style="font-size:15px;font-weight:700">${dateRange}</div><div style="font-size:10px;opacity:0.6;margin-top:4px">Printed: ${printed}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#16a34a,#2563eb,#a855f7)"></div><div style="padding:26px 44px 36px"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">${chips}</div><div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:11.5px"><thead><tr style="background:#f0fdf4"><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">#</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Receipt No.</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Date</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Received From</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Description</th><th style="padding:8px 12px;text-align:left;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Method</th><th style="padding:8px 12px;text-align:right;font-weight:600;color:#16a34a;border-bottom:1px solid #bbf7d0;font-size:10.5px;white-space:nowrap">Amount</th></tr></thead><tbody>${rows}</tbody><tfoot><tr style="background:#f0fdf4;border-top:2px solid #86efac"><td colspan="6" style="padding:10px 12px;font-weight:700;font-size:11.5px;color:#16a34a">TOTAL — ${filteredReceipts.length} Receipt${filteredReceipts.length !== 1 ? 's' : ''}</td><td style="padding:10px 12px;text-align:right;font-weight:800;font-size:13px;font-family:monospace;color:#16a34a">$${fmt2(filteredTotal)}</td></tr></tfoot></table></div><div style="border-top:1px solid #f1f5f9;padding-top:12px;display:flex;justify-content:space-between"><span style="font-size:9.5px;color:#cbd5e1">${biz.business_name || 'Business'} — Confidential</span><span style="font-size:9.5px;color:#cbd5e1">Printed: ${printed}</span></div></div></div></body></html>`;
     const w = window.open('', '_blank');
     w.document.write(html);
     w.document.close();
@@ -250,8 +252,8 @@ const CashReceipt = () => {
       { label: 'Amount',         value: '$' + fmt2(r.amount),   bg: '#f0fdf4', border: '#86efac', color: '#15803d' },
     ].map(c => `<div style="padding:14px 18px;border-radius:10px;background:${c.bg};border:1.5px solid ${c.border}"><div style="font-size:9px;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;font-weight:600;margin-bottom:6px">${c.label}</div><div style="font-size:15px;font-weight:700;color:${c.color}">${c.value}</div></div>`).join('');
     const descHtml = r.description ? `<div style="padding:12px 16px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#78350f;margin-bottom:24px"><span style="font-weight:700;text-transform:uppercase;font-size:9.5px;letter-spacing:0.8px;margin-right:8px;color:#92400e">Description</span>${r.description}</div>` : '';
-    const sigs = ['Received By', 'Authorized By'].map(label => `<div style="text-align:center"><div style="height:36px;border-bottom:1.5px solid #cbd5e1;margin-bottom:6px"></div><div style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#6b7280">${label}</div><div style="font-size:9px;color:#9ca3af;margin-top:2px">Name / Signature / Date</div></div>`).join('');
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipt ${r.receipt_number}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:600px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#166534 50%,#16a34a 100%);padding:28px 40px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:8px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:8px">Cash Receipt</div><div style="font-size:20px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:10px;opacity:0.7;line-height:1.8">${[biz.business_address, biz.business_phone, biz.business_email].filter(Boolean).join('  ·  ')}</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.55;margin-bottom:8px">Receipt No.</div><div style="font-size:20px;font-weight:900;letter-spacing:1px;font-family:monospace">${r.receipt_number}</div><div style="margin-top:8px;font-size:11px;opacity:0.8">${formatDate(r.date)}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#22c55e,#2563eb,#a855f7)"></div><div style="padding:28px 40px 36px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px">${cards}</div><div style="border:2px solid #86efac;border-radius:12px;padding:18px 24px;background:#f0fdf4;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#15803d;font-weight:700;margin-bottom:4px">Total Amount Received</div><div style="font-size:11px;color:#6b7280">${r.payment_method} · ${r.received_from}</div></div><div style="font-size:28px;font-weight:900;color:#15803d;font-family:monospace">$${fmt2(r.amount)}</div></div>${descHtml}<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px">${sigs}</div></div><div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 40px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#94a3b8">${biz.business_name || 'Business'} — Confidential Document</span><span style="font-size:9px;color:#94a3b8">Printed: ${printed}</span></div></div></body></html>`;
+    const sigs = ['Received By', 'Authorized By'].map(label => `<div style="text-align:center"><div style="height:36px;border-bottom:1.5px solid #cbd5e1;margin-bottom:6px"></div><div style="font-size:9.5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#64748b">${label}</div><div style="font-size:9px;color:#94a3b8;margin-top:2px">Name / Signature / Date</div></div>`).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Cash Receipt ${r.receipt_number}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#0f172a}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="width:600px;margin:0 auto;background:#fff"><div style="background:linear-gradient(135deg,#14532d 0%,#166534 50%,#16a34a 100%);padding:28px 40px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:8px;letter-spacing:3px;text-transform:uppercase;opacity:0.6;margin-bottom:8px">Cash Receipt</div><div style="font-size:20px;font-weight:800;letter-spacing:0.3px;margin-bottom:5px">${biz.business_name || 'Business Name'}</div><div style="font-size:10px;opacity:0.7;line-height:1.8">${[biz.business_address, biz.business_phone, biz.business_email].filter(Boolean).join('  ·  ')}</div></div><div style="text-align:right"><div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;opacity:0.55;margin-bottom:8px">Receipt No.</div><div style="font-size:20px;font-weight:900;letter-spacing:1px;font-family:monospace">${r.receipt_number}</div><div style="margin-top:8px;font-size:11px;opacity:0.8">${formatDate(r.date)}</div></div></div><div style="height:4px;background:linear-gradient(90deg,#f59e0b,#22c55e,#2563eb,#a855f7)"></div><div style="padding:28px 40px 36px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:26px">${cards}</div><div style="border:2px solid #86efac;border-radius:12px;padding:18px 24px;background:#f0fdf4;display:flex;justify-content:space-between;align-items:center;margin-bottom:22px"><div><div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#15803d;font-weight:700;margin-bottom:4px">Total Amount Received</div><div style="font-size:11px;color:#64748b">${r.payment_method} · ${r.received_from}</div></div><div style="font-size:28px;font-weight:900;color:#15803d;font-family:monospace">$${fmt2(r.amount)}</div></div>${descHtml}<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:40px">${sigs}</div></div><div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:10px 40px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:9px;color:#94a3b8">${biz.business_name || 'Business'} — Confidential Document</span><span style="font-size:9px;color:#94a3b8">Printed: ${printed}</span></div></div></body></html>`;
     const w = window.open('', '_blank');
     w.document.write(html);
     w.document.close();
@@ -260,6 +262,7 @@ const CashReceipt = () => {
 
   return (
     <div className="page-content">
+      {dialog}
       <div className="page-header">
         <div>
           <h1>{t('cashReceiptTitle')} (CR)</h1>
@@ -335,37 +338,37 @@ const CashReceipt = () => {
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16,
         padding: '12px 16px', background: '#f8fafc',
-        border: '1px solid #e5e7eb', borderRadius: 10,
+        border: '1px solid #e2e8f0', borderRadius: 10,
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#6b7280' }}>{t('filterByDate')}:</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b' }}>{t('filterByDate')}:</span>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('from')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('from')}</span>
           <input
             type="date" value={filterFrom} max={filterTo || todayStr}
             onChange={e => setFilterFrom(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }}
           />
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: 12, color: '#6b7280' }}>{t('to')}</span>
+          <span style={{ fontSize: 12, color: '#64748b' }}>{t('to')}</span>
           <input
             type="date" value={filterTo} min={filterFrom || undefined} max={todayStr}
             onChange={e => setFilterTo(e.target.value)}
-            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #d1d5db', fontSize: 13, background: '#fff', color: '#374151', cursor: 'pointer' }}
+            style={{ padding: '6px 10px', borderRadius: 7, border: '1px solid #cbd5e1', fontSize: 13, background: '#fff', color: '#334155', cursor: 'pointer' }}
           />
         </div>
 
         {(filterFrom || filterTo) && (
           <button
             onClick={() => { setFilterFrom(''); setFilterTo(''); }}
-            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e5e7eb', fontSize: 12, background: '#fff', color: '#6b7280', cursor: 'pointer' }}
+            style={{ padding: '5px 12px', borderRadius: 7, border: '1px solid #e2e8f0', fontSize: 12, background: '#fff', color: '#64748b', cursor: 'pointer' }}
           >
             {t('clear')}
           </button>
         )}
 
-        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#6b7280' }}>
+        <span style={{ marginLeft: 'auto', fontSize: 12, color: '#64748b' }}>
           {filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''}
           <> &nbsp;·&nbsp; Total: <strong style={{ color: '#15803d' }}>{curSym}{fmt2(filteredTotal)}</strong></>
         </span>
@@ -374,7 +377,7 @@ const CashReceipt = () => {
       {/* ── Receipts Table ──────────────────────────────────────────── */}
       <div className="data-table-container">
         {filteredReceipts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>
+          <div style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>
             {t('noReceiptsInRange')}
           </div>
         ) : (
@@ -428,7 +431,7 @@ const CashReceipt = () => {
                   <td style={{ fontWeight: 500 }}>{r.receipt_number}</td>
                   <td>{formatDate(r.date)}</td>
                   <td>{r.received_from}</td>
-                  <td style={{ color: '#6b7280' }}>{r.description || '—'}</td>
+                  <td style={{ color: '#64748b' }}>{r.description || '—'}</td>
                   <td><span className={`badge ${getPaymentColor(r.payment_method)}`}>{r.payment_method}</span></td>
                   {isLiquorStyle ? (
                     <td style={{ textAlign: 'right', color: liquorTotal > 0 ? '#15803d' : '', fontWeight: liquorTotal > 0 ? 700 : 400 }}>
@@ -447,11 +450,11 @@ const CashReceipt = () => {
                         onClick={() => setViewReceipt(r)}
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
-                          padding: '5px 11px', borderRadius: 6, border: '1px solid #e5e7eb',
-                          background: '#f9fafb', color: '#6b7280', cursor: 'pointer', fontSize: 12, fontWeight: 500,
+                          padding: '5px 11px', borderRadius: 6, border: '1px solid #e2e8f0',
+                          background: '#f8fafc', color: '#64748b', cursor: 'pointer', fontSize: 12, fontWeight: 500,
                         }}
                         onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.color = '#16a34a'; e.currentTarget.style.borderColor = '#86efac'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                       >
                         <FiEye size={12} /> View
                       </button>
@@ -461,11 +464,11 @@ const CashReceipt = () => {
                           title="Edit Receipt"
                           style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: 30, height: 30, borderRadius: 6, border: '1px solid #e5e7eb',
-                            background: '#f9fafb', color: '#6b7280', cursor: 'pointer',
+                            width: 30, height: 30, borderRadius: 6, border: '1px solid #e2e8f0',
+                            background: '#f8fafc', color: '#64748b', cursor: 'pointer',
                           }}
                           onMouseEnter={e => { e.currentTarget.style.background = '#dbeafe'; e.currentTarget.style.color = '#2563eb'; e.currentTarget.style.borderColor = '#bfdbfe'; }}
-                          onMouseLeave={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.color = '#6b7280'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
                         >
                           <FiEdit2 size={13} />
                         </button>
@@ -478,8 +481,8 @@ const CashReceipt = () => {
             </tbody>
             <tfoot>
               {/* v1.8.32 — per-currency footer totals. */}
-              <tr style={{ fontWeight: 700, borderTop: '2px solid #e5e7eb', background: '#f9fafb' }}>
-                <td colSpan={5} style={{ padding: '10px 14px', textAlign: 'right', color: '#374151', fontSize: 13 }}>
+              <tr style={{ fontWeight: 700, borderTop: '2px solid #e2e8f0', background: '#f8fafc' }}>
+                <td colSpan={5} style={{ padding: '10px 14px', textAlign: 'right', color: '#334155', fontSize: 13 }}>
                   Total ({filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''})
                 </td>
                 {(() => {
@@ -553,9 +556,9 @@ const CashReceipt = () => {
                   { label: 'Payment Method', value: viewReceipt.payment_method },
                   { label: 'Amount',         value: `$${fmt2(viewReceipt.amount)}` },
                 ].map(info => (
-                  <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: '#111827' }}>{info.value}</div>
+                  <div key={info.label} style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 }}>{info.label}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{info.value}</div>
                   </div>
                 ))}
               </div>
@@ -582,14 +585,14 @@ const CashReceipt = () => {
                   return (
                     <div style={{
                       flex: 1, padding: '10px 12px',
-                      background: dim ? '#fafafa' : '#fff',
-                      borderRight: '1px solid #e5e7eb',
+                      background: dim ? '#f8fafc' : '#fff',
+                      borderRight: '1px solid #e2e8f0',
                       opacity: dim ? 0.4 : 1,
                     }}>
-                      <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                         {icon} {label}
                       </div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: dim ? '#6b7280' : accent, fontFamily: 'monospace' }}>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: dim ? '#64748b' : accent, fontFamily: 'var(--k-font-mono)' }}>
                         ${fmt2(value)}
                       </div>
                     </div>
@@ -597,19 +600,19 @@ const CashReceipt = () => {
                 };
                 return (
                   <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 10.5, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, paddingLeft: 2 }}>
+                    <div style={{ fontSize: 10.5, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6, paddingLeft: 2 }}>
                       Payment Breakdown
                     </div>
-                    <div style={{ display: 'flex', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                    <div style={{ display: 'flex', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
                       {cell('Cash', '💵', cash, '#16a34a')}
                       {/* 2026-09-11 — a hidden method shows only if this receipt has money on it. */}
                       {(methodShown('bank') || bank > 0.001) && cell('Bank', '🏦', bank, '#2563eb')}
                       {(methodShown('momo') || momo > 0.001) && (
-                      <div style={{ flex: 1, padding: '10px 12px', background: momo > 0.001 ? '#fff' : '#fafafa', opacity: momo > 0.001 ? 1 : 0.4 }}>
-                        <div style={{ fontSize: 10, color: '#6b7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div style={{ flex: 1, padding: '10px 12px', background: momo > 0.001 ? '#fff' : '#f8fafc', opacity: momo > 0.001 ? 1 : 0.4 }}>
+                        <div style={{ fontSize: 10, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
                           📱 MoMo
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: momo > 0.001 ? '#f59e0b' : '#6b7280', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: momo > 0.001 ? '#f59e0b' : '#64748b', fontFamily: 'var(--k-font-mono)' }}>
                           ${fmt2(momo)}
                         </div>
                       </div>
@@ -621,7 +624,7 @@ const CashReceipt = () => {
                           ⚠ Splits don't match amount
                         </span>
                       )}
-                      <span style={{ color: '#6b7280' }}>Total: <strong style={{ color: '#111827' }}>${fmt2(splitSum)}</strong> {!splitMismatch && <span style={{ color: '#15803d' }}>✓</span>}</span>
+                      <span style={{ color: '#64748b' }}>Total: <strong style={{ color: '#0f172a' }}>${fmt2(splitSum)}</strong> {!splitMismatch && <span style={{ color: '#15803d' }}>✓</span>}</span>
                     </div>
                   </div>
                 );
@@ -635,12 +638,12 @@ const CashReceipt = () => {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '14px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '14px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <button
                 onClick={() => printSingleCR(viewReceipt)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #d1d5db', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#9ca3af'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#d1d5db'; }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
               >
                 <FiPrinter size={14} /> Print
               </button>
@@ -648,7 +651,7 @@ const CashReceipt = () => {
                 {hasPermission('CashReceipt:Edit') && (
                   <button
                     onClick={() => { openEdit(viewReceipt); setViewReceipt(null); }}
-                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#374151', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#334155', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}
                   >
                     <FiEdit2 size={13} /> Edit
                   </button>
@@ -707,7 +710,7 @@ const CashReceipt = () => {
                   unchanged (Cash→usd_amount, MoMo→fra_amount,
                   Bank→k_amount). */}
               <div className="form-group">
-                <label style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', marginBottom: 8 }}>
                   Amount Received{isLiquorStyle ? ' (split across methods)' : ''}
                 </label>
                 {/* 2026-09-11 — MoMo / Bank follow System Settings → Payment
@@ -754,10 +757,10 @@ const CashReceipt = () => {
                           title={locked ? 'Clear the other currency to switch — one CR = one currency.' : ''}
                           style={{
                             width: '100%', padding: '8px 10px',
-                            border: `2px solid ${locked ? '#e5e7eb' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#d1d5db')}`,
+                            border: `2px solid ${locked ? '#e2e8f0' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#cbd5e1')}`,
                             borderRadius: 6, fontSize: 14, fontWeight: 600,
-                            color: locked ? '#cbd5e1' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#374151'),
-                            background: locked ? '#f9fafb' : '#fff',
+                            color: locked ? '#cbd5e1' : (parseFloat(form[f.key] || 0) > 0 ? f.color : '#334155'),
+                            background: locked ? '#f8fafc' : '#fff',
                             cursor: locked ? 'not-allowed' : 'text',
                             boxSizing: 'border-box',
                           }} />
@@ -768,8 +771,8 @@ const CashReceipt = () => {
                 {/* v1.10.45 — Liquor total row (all K). Kelete keeps the
                     one-currency-per-CR model so no total row is needed. */}
                 {isLiquorStyle && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
-                    <span style={{ color: '#6b7280' }}>Total</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 13, marginTop: 8 }}>
+                    <span style={{ color: '#64748b' }}>Total</span>
                     <span style={{ fontWeight: 800, color: '#1d4ed8' }}>
                       {curSym}{(
                         (parseFloat(form.usd_amount || 0) || 0)
@@ -827,7 +830,7 @@ const CashReceipt = () => {
           {/* A4 Document */}
           <div
             id="print-document"
-            style={{ width: 600, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}
+            style={{ width: 600, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}
           >
             {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #16a34a 100%)', padding: '28px 40px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -842,7 +845,7 @@ const CashReceipt = () => {
               </div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', opacity: 0.55, marginBottom: 8 }}>Receipt No.</div>
-                <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: 1, fontFamily: 'monospace' }}>{viewReceipt.receipt_number}</div>
+                <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: 1, fontFamily: 'var(--k-font-mono)' }}>{viewReceipt.receipt_number}</div>
                 <div style={{ marginTop: 8, fontSize: 11, opacity: 0.8 }}>{formatDate(viewReceipt.date)}</div>
               </div>
             </div>
@@ -872,9 +875,9 @@ const CashReceipt = () => {
               <div style={{ border: '2px solid #86efac', borderRadius: 12, padding: '18px 24px', background: '#f0fdf4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
                 <div>
                   <div style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#15803d', fontWeight: 700, marginBottom: 4 }}>Total Amount Received</div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>{viewReceipt.payment_method} · {viewReceipt.received_from}</div>
+                  <div style={{ fontSize: 11, color: '#64748b' }}>{viewReceipt.payment_method} · {viewReceipt.received_from}</div>
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: '#15803d', fontFamily: 'monospace' }}>
+                <div style={{ fontSize: 28, fontWeight: 900, color: '#15803d', fontFamily: 'var(--k-font-mono)' }}>
                   ${fmt2(viewReceipt.amount)}
                 </div>
               </div>
@@ -892,8 +895,8 @@ const CashReceipt = () => {
                 {['Received By', 'Authorized By'].map(label => (
                   <div key={label} style={{ textAlign: 'center' }}>
                     <div style={{ height: 36, borderBottom: '1.5px solid #cbd5e1', marginBottom: 6 }} />
-                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#6b7280' }}>{label}</div>
-                    <div style={{ fontSize: 9, color: '#6b7280', marginTop: 2 }}>Name / Signature / Date</div>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 0.5, textTransform: 'uppercase', color: '#64748b' }}>{label}</div>
+                    <div style={{ fontSize: 9, color: '#64748b', marginTop: 2 }}>Name / Signature / Date</div>
                   </div>
                 ))}
               </div>
@@ -924,7 +927,7 @@ const CashReceipt = () => {
             </div>
           </div>
 
-          <div id="cr-list-document" style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}>
+          <div id="cr-list-document" style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}>
             {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, #14532d 0%, #16a34a 100%)', padding: '28px 44px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
@@ -944,8 +947,8 @@ const CashReceipt = () => {
               {/* Stat chips */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
                 {[
-                  { label: 'Period From',    value: filterFrom ? formatDate(filterFrom) : 'All',                                              bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
-                  { label: 'Period To',      value: filterTo   ? formatDate(filterTo)   : 'All',                                              bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
+                  { label: 'Period From',    value: filterFrom ? formatDate(filterFrom) : 'All',                                              bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
+                  { label: 'Period To',      value: filterTo   ? formatDate(filterTo)   : 'All',                                              bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
                   { label: 'Receipts',       value: filteredReceipts.length,                                                                   bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
                   { label: 'Total Amount',   value: '$' + fmt2(filteredTotal),                                                                 bg: '#f0fdf4', color: '#15803d', border: '#86efac' },
                 ].map(chip => (
@@ -968,21 +971,21 @@ const CashReceipt = () => {
                   </thead>
                   <tbody>
                     {filteredReceipts.map((r, idx) => (
-                      <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10.5 }}>{idx + 1}</td>
-                        <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'monospace', fontSize: 11, color: '#15803d' }}>{r.receipt_number}</td>
-                        <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(r.date)}</td>
+                      <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                        <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10.5 }}>{idx + 1}</td>
+                        <td style={{ padding: '8px 12px', fontWeight: 700, fontFamily: 'var(--k-font-mono)', fontSize: 11, color: '#15803d' }}>{r.receipt_number}</td>
+                        <td style={{ padding: '8px 12px', color: '#334155' }}>{formatDate(r.date)}</td>
                         <td style={{ padding: '8px 12px', fontWeight: 500 }}>{r.received_from}</td>
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>{r.description || '—'}</td>
-                        <td style={{ padding: '8px 12px', color: '#374151' }}>{r.payment_method}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'monospace', color: '#15803d' }}>{curSym}{fmt2(r.amount)}</td>
+                        <td style={{ padding: '8px 12px', color: '#64748b' }}>{r.description || '—'}</td>
+                        <td style={{ padding: '8px 12px', color: '#334155' }}>{r.payment_method}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>{curSym}{fmt2(r.amount)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr style={{ background: '#f0fdf4', borderTop: '2px solid #86efac' }}>
                       <td colSpan={6} style={{ padding: '10px 12px', fontWeight: 700, fontSize: 11.5, color: '#15803d' }}>TOTAL — {filteredReceipts.length} Receipt{filteredReceipts.length !== 1 ? 's' : ''}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'monospace', color: '#15803d' }}>{curSym}{fmt2(filteredTotal)}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 800, fontSize: 13, fontFamily: 'var(--k-font-mono)', color: '#15803d' }}>{curSym}{fmt2(filteredTotal)}</td>
                     </tr>
                   </tfoot>
                 </table>

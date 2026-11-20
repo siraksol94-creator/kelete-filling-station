@@ -3,8 +3,8 @@
 import React from 'react';
 import { FiShoppingBag, FiPackage, FiAward, FiAlertCircle, FiPieChart, FiChevronRight } from 'react-icons/fi';
 
-const K = (n) => `K ${Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-const K0 = (n) => `K ${Math.round(Number(n || 0)).toLocaleString('en-ZM')}`;
+const K = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.abs(Number(n || 0)).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const K0 = (n) => `${(Number(n || 0) < 0 ? '−' : '')}K${Math.round(Math.abs(Number(n || 0))).toLocaleString('en-ZM')}`;
 // K138,300 → K138k; K1,284,500 → K1.3m (only for the small donut centre).
 const compactK = (n) => { const v = Number(n || 0); return v >= 1e6 ? `K${(v / 1e6).toFixed(1)}m` : v >= 1e4 ? `K${Math.round(v / 1e3)}k` : `K${Math.round(v)}`; };
 const PALETTE = ['#0e7490', '#b91c1c', '#7c3aed', '#b45309', '#15803d', '#1d4ed8', '#be185d', '#475569'];

@@ -1,6 +1,7 @@
 // UX-3 — a dial for litres sold today per grade (original artwork, SVG).
 // All dials on a screen share one scale (max) so they compare fairly.
 import React from 'react';
+import { fmtK } from './forecourt';
 
 const polar = (cx, cy, r, a) => [cx + r * Math.cos(a), cy + r * Math.sin(a)];
 
@@ -31,7 +32,7 @@ export default function GradeGauge({ grade, max, size = 150 }) {
       <figcaption>
         <span className="k-gauge-value">{fmtL(litres)} <small>L</small></span>
         <span className="k-gauge-name"><i style={{ background: color }} aria-hidden="true" />{grade.name}</span>
-        <span className="k-gauge-amount">K {Number(grade.amount || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        <span className="k-gauge-amount">{fmtK(grade.amount || 0)}</span>
       </figcaption>
     </figure>
   );

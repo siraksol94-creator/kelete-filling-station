@@ -30,8 +30,8 @@ const Register = ({ onRegistered }) => {
     }
   };
 
-  const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box' };
-  const labelStyle = { display: 'block', fontSize: 13, fontWeight: 500, color: '#374151', marginBottom: 6 };
+  const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 14, outline: 'none', boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontSize: 13, fontWeight: 500, color: '#334155', marginBottom: 6 };
   const rowStyle = { display: 'flex', gap: 12, marginBottom: 16 };
 
   return (
@@ -39,8 +39,8 @@ const Register = ({ onRegistered }) => {
       <div style={{ background: '#fff', borderRadius: 16, padding: '48px 40px', width: '100%', maxWidth: 460, boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🍷</div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#111827' }}>Create Your Account</h1>
-          <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: 14 }}>Set up your Kelete administrator account</p>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: '#0f172a' }}>Create Your Account</h1>
+          <p style={{ margin: '6px 0 0', color: '#64748b', fontSize: 14 }}>Set up your Kelete administrator account</p>
         </div>
 
         {error && (
@@ -77,12 +77,12 @@ const Register = ({ onRegistered }) => {
             <input type="password" required value={form.confirm} onChange={set('confirm')} placeholder="Repeat password" style={inputStyle} />
           </div>
 
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', background: loading ? '#9ca3af' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', marginBottom: 12 }}>
+          <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', background: loading ? '#94a3b8' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', marginBottom: 12 }}>
             {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: 11, color: '#6b7280', marginTop: 8, marginBottom: 0 }}>
+        <p style={{ textAlign: 'center', fontSize: 11, color: '#64748b', marginTop: 8, marginBottom: 0 }}>
           You can set up cloud sync later from Settings → Cloud Sync
         </p>
       </div>

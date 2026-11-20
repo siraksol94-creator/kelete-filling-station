@@ -12,7 +12,7 @@ import ShopStock from '../ux/ShopStock';
 import DashTray from '../ux/DashTray';
 import { businessToday } from '../utils/businessDate';
 
-const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#6b7280'];
+const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#64748b'];
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -107,7 +107,7 @@ const Dashboard = () => {
           <div className="stat-icon"><FiDollarSign /></div>
           <div>
             <div className="stat-label">{data.station ? 'Shop sales today' : "Today's Sales"}</div>
-            <div className="stat-value">K {(data.station ? Math.max(0, (data.todaySales || 0) - (data.todayFuelSales || 0)) : data.todaySales)?.toLocaleString()}</div>
+            <div className="stat-value">K{(data.station ? Math.max(0, (data.todaySales || 0) - (data.todayFuelSales || 0)) : data.todaySales)?.toLocaleString()}</div>
           </div>
         </div>
         <div className="stat-card blue">
@@ -121,7 +121,7 @@ const Dashboard = () => {
           <div className="stat-icon"><FiTrendingUp /></div>
           <div>
             <div className="stat-label">Weekly Revenue</div>
-            <div className="stat-value">K {data.weeklyRevenue?.toLocaleString()}</div>
+            <div className="stat-value">K{data.weeklyRevenue?.toLocaleString()}</div>
           </div>
         </div>
         {/* v1.13.156 — was Total Customers. Stock value is what the depot is
@@ -139,7 +139,7 @@ const Dashboard = () => {
           <div style={{ minWidth: 0 }}>
             <div className="stat-label">Stock Value (at cost)</div>
             <div className="stat-value">
-              K {Math.round(data.stockValue?.atCost || 0).toLocaleString()}
+              K{Math.round(data.stockValue?.atCost || 0).toLocaleString()}
             </div>
             {data.stockValue?.itemsWithoutCost > 0 ? (
               <div style={{ fontSize: 11, opacity: 0.85, marginTop: 3 }}>
@@ -147,7 +147,7 @@ const Dashboard = () => {
               </div>
             ) : (
               <div style={{ fontSize: 11, opacity: 0.75, marginTop: 3 }}>
-                at selling K {Math.round(data.stockValue?.atRetail || 0).toLocaleString()}
+                at selling K{Math.round(data.stockValue?.atRetail || 0).toLocaleString()}
               </div>
             )}
           </div>
@@ -160,13 +160,13 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3>{data.station ? 'Takings this week (fuel + shop)' : 'Sales Trend (This Week)'}</h3>
           {data.station ? <TrendBars rows={data.salesTrend} today={today} height={240} /> : salesTrend.length === 0 ? (
-            <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>No sales data yet</div>
+            <div style={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13 }}>No sales data yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={salesTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="date" fontSize={12} stroke="#9ca3af" />
-                <YAxis fontSize={12} stroke="#9ca3af" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="date" fontSize={12} stroke="#94a3b8" />
+                <YAxis fontSize={12} stroke="#94a3b8" />
                 <Tooltip formatter={(value) => [`${curSym} ${value.toLocaleString()}`, 'Sales']} />
                 <Line type="monotone" dataKey="total" stroke="#dc2626" strokeWidth={2} dot={{ fill: '#dc2626', r: 4 }} />
               </LineChart>
@@ -178,7 +178,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3>Sales by Category</h3>
           {categoryData.length === 0 ? (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: 13 }}>No category data yet</div>
+            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: 13 }}>No category data yet</div>
           ) : (
             <>
               <ResponsiveContainer width="100%" height={200}>
@@ -213,7 +213,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3>Top Selling Products</h3>
           {(data.topProducts || []).length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: '#6b7280', fontSize: 13 }}>No sales recorded yet</div>
+            <div style={{ padding: '24px 0', textAlign: 'center', color: '#64748b', fontSize: 13 }}>No sales recorded yet</div>
           ) : (
             data.topProducts.map((product, i) => (
               <div key={i} className="top-product-item">
@@ -222,7 +222,7 @@ const Dashboard = () => {
                   <h4>{product.product_name}</h4>
                   <p>{product.units_sold} units sold</p>
                 </div>
-                <div className="top-product-revenue">K {product.revenue?.toLocaleString()}</div>
+                <div className="top-product-revenue">K{product.revenue?.toLocaleString()}</div>
               </div>
             ))
           )}
@@ -232,7 +232,7 @@ const Dashboard = () => {
         <div className="chart-card">
           <h3><FiAlertTriangle style={{ color: '#ca8a04', marginRight: 6 }} /> Low Stock Alert</h3>
           {(data.lowStock || []).length === 0 ? (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: '#6b7280', fontSize: 13 }}>All stock levels are healthy</div>
+            <div style={{ padding: '24px 0', textAlign: 'center', color: '#64748b', fontSize: 13 }}>All stock levels are healthy</div>
           ) : (
             data.lowStock.map((item, i) => (
               <div key={i} className="low-stock-item">

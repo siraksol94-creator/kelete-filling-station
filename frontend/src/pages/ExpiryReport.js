@@ -49,8 +49,8 @@ export default function ExpiryReport() {
     <div className="page-content">
       {/* Header */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>{t('expiryReport')}</h1>
-        <p style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>GRN items with recorded expiry dates</p>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#0f172a', margin: 0 }}>{t('expiryReport')}</h1>
+        <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>GRN items with recorded expiry dates</p>
       </div>
 
       {/* Summary cards */}
@@ -81,12 +81,12 @@ export default function ExpiryReport() {
       {/* Filters */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ position: 'relative', flex: 1, minWidth: 200 }}>
-          <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} size={15} />
+          <FiSearch style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={15} />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('searchProductOrGRN')}
-            style={{ width: '100%', paddingLeft: 32, padding: '9px 12px 9px 32px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }}
+            style={{ width: '100%', paddingLeft: 32, padding: '9px 12px 9px 32px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, boxSizing: 'border-box' }}
           />
         </div>
         {['all', 'expired', 'soon', 'ok'].map(f => (
@@ -95,9 +95,9 @@ export default function ExpiryReport() {
             onClick={() => setFilter(f)}
             style={{
               padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              background: filter === f ? '#111827' : '#f3f4f6',
-              color:      filter === f ? '#fff'     : '#374151',
-              border:     filter === f ? '1px solid #111827' : '1px solid #e5e7eb',
+              background: filter === f ? '#0f172a' : '#f1f5f9',
+              color:      filter === f ? '#fff'     : '#334155',
+              border:     filter === f ? '1px solid #0f172a' : '1px solid #e2e8f0',
             }}
           >
             {f === 'all' ? 'All' : f === 'expired' ? 'Expired' : f === 'soon' ? '≤30 days' : '>30 days'}
@@ -122,18 +122,18 @@ export default function ExpiryReport() {
       </div>
 
       {/* Table */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>Loading…</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b', fontSize: 14 }}>Loading…</div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>No items found.</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#64748b', fontSize: 14 }}>No items found.</div>
         ) : (
           <div style={{ maxHeight: 520, overflowY: 'auto' }}>
           <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr style={{ background: '#f9fafb', position: 'sticky', top: 0, zIndex: 1 }}>
+              <tr style={{ background: '#f8fafc', position: 'sticky', top: 0, zIndex: 1 }}>
                 {[t('product'), t('grnNumber'), t('dateReceived'), t('quantity'), t('unitCost'), t('expiryDate'), t('status')].map((h, i) => (
-                  <th key={i} style={{ padding: '10px 14px', textAlign: i === 0 || i === 1 || i === 2 || i === 5 || i === 6 ? 'left' : 'right', fontWeight: 600, color: '#6b7280', fontSize: 12, borderBottom: '1px solid #e5e7eb' }}>{h}</th>
+                  <th key={i} style={{ padding: '10px 14px', textAlign: i === 0 || i === 1 || i === 2 || i === 5 || i === 6 ? 'left' : 'right', fontWeight: 600, color: '#64748b', fontSize: 12, borderBottom: '1px solid #e2e8f0' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -141,13 +141,13 @@ export default function ExpiryReport() {
               {filtered.map((row, idx) => {
                 const badge = daysBadge(row.days_remaining);
                 return (
-                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                    <td style={{ padding: '10px 14px', fontWeight: 600, color: '#111827', fontSize: 13 }}>{row.product_name}</td>
-                    <td style={{ padding: '10px 14px', color: '#6b7280', fontSize: 12, fontFamily: 'monospace' }}>{row.grn_number}</td>
-                    <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{row.grn_date}</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151', fontSize: 13 }}>{parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })} {row.unit}</td>
-                    <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'monospace', color: '#374151', fontSize: 13 }}>{parseFloat(row.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td style={{ padding: '10px 14px', color: '#374151', fontSize: 12 }}>{row.expiry_date}</td>
+                  <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                    <td style={{ padding: '10px 14px', fontWeight: 600, color: '#0f172a', fontSize: 13 }}>{row.product_name}</td>
+                    <td style={{ padding: '10px 14px', color: '#64748b', fontSize: 12, fontFamily: 'var(--k-font-mono)' }}>{row.grn_number}</td>
+                    <td style={{ padding: '10px 14px', color: '#334155', fontSize: 12 }}>{row.grn_date}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155', fontSize: 13 }}>{parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })} {row.unit}</td>
+                    <td style={{ padding: '10px 14px', textAlign: 'right', fontFamily: 'var(--k-font-mono)', color: '#334155', fontSize: 13 }}>{parseFloat(row.unit_price).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                    <td style={{ padding: '10px 14px', color: '#334155', fontSize: 12 }}>{row.expiry_date}</td>
                     <td style={{ padding: '10px 14px' }}>
                       {badge && (
                         <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: 12, fontSize: 11.5, fontWeight: 600, background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>

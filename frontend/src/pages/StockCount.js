@@ -221,12 +221,12 @@ const StockCount = () => {
     const rows = items.map((item, idx) => {
       const isCounted = item.counted_qty !== null;
       const diff = item.difference;
-      const diffColor = !isCounted ? '#9ca3af' : diff > 0 ? '#16a34a' : diff < 0 ? '#dc2626' : '#374151';
-      return `<tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#fafafa':'#fff'}">
-        <td style="padding:9px 14px;color:#9ca3af;font-size:10px">${idx+1}</td>
-        <td style="padding:9px 14px;font-weight:500;color:${isCounted?'#111827':'#6b7280'}">${item.product_name}</td>
-        <td style="padding:9px 14px;text-align:right;font-family:monospace;color:#374151">${fmt(item.opening_balance??0)}</td>
-        <td style="padding:9px 14px;text-align:right;font-weight:${isCounted?700:400};font-family:monospace;color:${isCounted?'#15803d':'#6b7280'}">${isCounted?fmt(item.counted_qty):'—'}</td>
+      const diffColor = !isCounted ? '#94a3b8' : diff > 0 ? '#16a34a' : diff < 0 ? '#dc2626' : '#334155';
+      return `<tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#f8fafc':'#fff'}">
+        <td style="padding:9px 14px;color:#94a3b8;font-size:10px">${idx+1}</td>
+        <td style="padding:9px 14px;font-weight:500;color:${isCounted?'#0f172a':'#64748b'}">${item.product_name}</td>
+        <td style="padding:9px 14px;text-align:right;font-family:monospace;color:#334155">${fmt(item.opening_balance??0)}</td>
+        <td style="padding:9px 14px;text-align:right;font-weight:${isCounted?700:400};font-family:monospace;color:${isCounted?'#15803d':'#64748b'}">${isCounted?fmt(item.counted_qty):'—'}</td>
         <td style="padding:9px 14px;text-align:right;font-weight:700;font-family:monospace;color:${diffColor}">${isCounted?(diff>0?`+${fmt(diff)}`:fmt(diff)):'—'}</td>
       </tr>`;
     }).join('');
@@ -234,11 +234,11 @@ const StockCount = () => {
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page{size:A4 portrait;margin:12mm}
       *{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}
+      body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#0f172a}
       table{width:100%;border-collapse:collapse}
       .sig-line{height:40px;border-bottom:1.5px solid #cbd5e1;margin-bottom:6px}
-      .sig-lbl{font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#6b7280;text-align:center}
-      .sig-sub{font-size:9px;color:#9ca3af;margin-top:2px;text-align:center}
+      .sig-lbl{font-size:9px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#64748b;text-align:center}
+      .sig-sub{font-size:9px;color:#94a3b8;margin-top:2px;text-align:center}
       @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
     </style></head><body>
       <div style="background:linear-gradient(135deg,#1e3a5f,#1e40af,#2563eb);padding:30px 44px 24px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start">
@@ -304,7 +304,7 @@ const StockCount = () => {
   const countedCount = items.filter(i => i.counted_qty !== null).length;
   const totalCount = items.length;
 
-  if (loading) return <div style={{ padding: 40, color: '#6b7280' }}>{t('loading')}</div>;
+  if (loading) return <div style={{ padding: 40, color: '#64748b' }}>{t('loading')}</div>;
 
   return (
     <div className="page-content">
@@ -313,7 +313,7 @@ const StockCount = () => {
       <div className="page-header">
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>{t('stockCount')}</h1>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 14 }}>Count physical stock and apply as opening balance</p>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 14 }}>Count physical stock and apply as opening balance</p>
         </div>
         {!activeSession && hasPermission('StockCount:Add') && (
           <button
@@ -330,11 +330,11 @@ const StockCount = () => {
         <div className="card" style={{ marginBottom: 24 }}>
           <h3 style={{ margin: '0 0 16px', fontSize: 15, fontWeight: 600 }}>Sessions</h3>
           {sessions.length === 0 ? (
-            <p style={{ color: '#6b7280', textAlign: 'center', padding: 32 }}>No stock count sessions yet. Create one to get started.</p>
+            <p style={{ color: '#64748b', textAlign: 'center', padding: 32 }}>No stock count sessions yet. Create one to get started.</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr style={{ background: '#f9fafb' }}>
+                <tr style={{ background: '#f8fafc' }}>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Name</th>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Status</th>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Items Counted</th>
@@ -352,15 +352,15 @@ const StockCount = () => {
                     <td style={{ padding: '10px 12px' }}>
                       <span style={{
                         padding: '3px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600,
-                        background: s.status === 'Active' ? '#dcfce7' : '#f3f4f6',
-                        color: s.status === 'Active' ? '#15803d' : '#6b7280',
+                        background: s.status === 'Active' ? '#dcfce7' : '#f1f5f9',
+                        color: s.status === 'Active' ? '#15803d' : '#64748b',
                       }}>
                         {s.status === 'Active' ? <><FiClock size={11} /> Active</> : <><FiCheckCircle size={11} /> Applied</>}
                       </span>
                     </td>
-                    <td style={{ padding: '10px 12px', color: '#374151' }}>{s.item_count}</td>
-                    <td style={{ padding: '10px 12px', color: '#6b7280' }}>{s.created_at?.split('T')[0]}</td>
-                    <td style={{ padding: '10px 12px', color: '#6b7280' }}>{s.created_by_name}</td>
+                    <td style={{ padding: '10px 12px', color: '#334155' }}>{s.item_count}</td>
+                    <td style={{ padding: '10px 12px', color: '#64748b' }}>{s.created_at?.split('T')[0]}</td>
+                    <td style={{ padding: '10px 12px', color: '#64748b' }}>{s.created_by_name}</td>
                   </tr>
                 ))}
               </tbody>
@@ -378,12 +378,12 @@ const StockCount = () => {
               <FiPackage style={{ color: '#15803d' }} />
               <div>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>{activeSession.name}</div>
-                <div style={{ fontSize: 12, color: '#6b7280' }}>{countedCount} of {totalCount} products counted</div>
+                <div style={{ fontSize: 12, color: '#64748b' }}>{countedCount} of {totalCount} products counted</div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               {activeSession.status === 'Applied' && (
-                <span style={{ background: '#f3f4f6', color: '#6b7280', borderRadius: 20, padding: '4px 14px', fontSize: 13, fontWeight: 600 }}>
+                <span style={{ background: '#f1f5f9', color: '#64748b', borderRadius: 20, padding: '4px 14px', fontSize: 13, fontWeight: 600 }}>
                   <FiCheckCircle size={12} /> Applied
                 </span>
               )}
@@ -391,7 +391,7 @@ const StockCount = () => {
                 <button
                   onClick={applyAsOpeningBalance}
                   disabled={applying || countedCount === 0}
-                  style={{ padding: '9px 20px', background: applying ? '#9ca3af' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: applying ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}
+                  style={{ padding: '9px 20px', background: applying ? '#94a3b8' : '#16a34a', color: '#fff', border: 'none', borderRadius: 8, cursor: applying ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}
                 >
                   {applying ? 'Applying...' : 'Apply as Opening Balance'}
                 </button>
@@ -400,22 +400,22 @@ const StockCount = () => {
                 <button
                   onClick={() => setScannerActive(v => !v)}
                   title={scannerActive ? 'Scanner Active — click to disable' : 'Enable barcode scanner'}
-                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: scannerActive ? '#fef3c7' : '#fff', border: `1px solid ${scannerActive ? '#f59e0b' : '#e5e7eb'}`, borderRadius: 8, cursor: 'pointer', fontSize: 14, color: scannerActive ? '#b45309' : '#374151', fontWeight: scannerActive ? 600 : 400 }}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: scannerActive ? '#fef3c7' : '#fff', border: `1px solid ${scannerActive ? '#f59e0b' : '#e2e8f0'}`, borderRadius: 8, cursor: 'pointer', fontSize: 14, color: scannerActive ? '#b45309' : '#334155', fontWeight: scannerActive ? 600 : 400 }}
                 >
-                  <FiZap size={14} style={{ color: scannerActive ? '#f59e0b' : '#6b7280' }} />
+                  <FiZap size={14} style={{ color: scannerActive ? '#f59e0b' : '#64748b' }} />
                   {scannerActive ? 'Scanner Active' : 'Scanner'}
                   {scannerActive && <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block', marginLeft: 2 }} />}
                 </button>
               )}
               <button
                 onClick={handlePrint}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 14, color: '#374151' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 14, color: '#334155' }}
               >
                 <FiPrinter size={14} /> Print
               </button>
               <button
                 onClick={() => { setActiveSession(null); fetchSessions(); }}
-                style={{ padding: '9px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 14, color: '#374151' }}
+                style={{ padding: '9px 16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 14, color: '#334155' }}
               >
                 View All Sessions
               </button>
@@ -448,8 +448,8 @@ const StockCount = () => {
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                 {/* Product search */}
                 <div style={{ flex: 1, position: 'relative' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid #e5e7eb', borderRadius: 8, padding: '9px 12px' }}>
-                    <FiSearch style={{ color: '#6b7280' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid #e2e8f0', borderRadius: 8, padding: '9px 12px' }}>
+                    <FiSearch style={{ color: '#64748b' }} />
                     <input
                       ref={searchRef}
                       type="text"
@@ -497,7 +497,7 @@ const StockCount = () => {
                     {selectedProduct && <FiCheckCircle style={{ color: '#15803d' }} />}
                   </div>
                   {showDropdown && filteredDropdown.length > 0 && (
-                    <div ref={dropdownRef} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #d1d5db', borderRadius: 8, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 2 }}>
+                    <div ref={dropdownRef} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 9999, background: '#fff', border: '1px solid #cbd5e1', borderRadius: 8, maxHeight: 220, overflowY: 'auto', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', marginTop: 2 }}>
                       {filteredDropdown.map((p, idx) => (
                         <div
                           key={p.id}
@@ -506,7 +506,7 @@ const StockCount = () => {
                           style={{ padding: '9px 14px', cursor: 'pointer', fontSize: 13, background: highlightedIdx === idx ? '#f0fdf4' : '#fff', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between' }}
                         >
                           <span style={{ fontWeight: 500 }}>{p.name}</span>
-                          <span style={{ color: '#6b7280', fontSize: 12 }}>Stock: {p.current_stock ?? 0}</span>
+                          <span style={{ color: '#64748b', fontSize: 12 }}>Stock: {p.current_stock ?? 0}</span>
                         </div>
                       ))}
                     </div>
@@ -523,13 +523,13 @@ const StockCount = () => {
                   onChange={e => setQty(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') addItem(); }}
                   placeholder="Quantity"
-                  style={{ width: 120, padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14 }}
+                  style={{ width: 120, padding: '10px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14 }}
                 />
 
                 <button
                   onClick={addItem}
                   disabled={!selectedProduct || !qty}
-                  style={{ padding: '10px 24px', background: (!selectedProduct || !qty) ? '#e5e7eb' : '#dc2626', color: (!selectedProduct || !qty) ? '#6b7280' : '#fff', border: 'none', borderRadius: 8, cursor: (!selectedProduct || !qty) ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}
+                  style={{ padding: '10px 24px', background: (!selectedProduct || !qty) ? '#e2e8f0' : '#dc2626', color: (!selectedProduct || !qty) ? '#64748b' : '#fff', border: 'none', borderRadius: 8, cursor: (!selectedProduct || !qty) ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 14 }}
                 >
                   Add
                 </button>
@@ -542,18 +542,18 @@ const StockCount = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>
                 Product Comparison
-                <span style={{ marginLeft: 10, fontSize: 13, fontWeight: 400, color: '#6b7280' }}>
+                <span style={{ marginLeft: 10, fontSize: 13, fontWeight: 400, color: '#64748b' }}>
                   {countedCount} / {totalCount} counted
                 </span>
               </h3>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div style={{ position: 'relative' }}>
-                  <FiSearch style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} size={14} />
+                  <FiSearch style={{ position: 'absolute', left: 9, top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} size={14} />
                   <input
                     value={tableSearch}
                     onChange={e => setTableSearch(e.target.value)}
                     placeholder="Filter products..."
-                    style={{ paddingLeft: 30, padding: '7px 10px 7px 28px', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 13, width: 180 }}
+                    style={{ paddingLeft: 30, padding: '7px 10px 7px 28px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, width: 180 }}
                   />
                 </div>
                 {['all', 'counted', 'uncounted'].map(f => (
@@ -562,8 +562,8 @@ const StockCount = () => {
                     onClick={() => setFilter(f)}
                     style={{
                       padding: '6px 14px', borderRadius: 20, fontSize: 13, fontWeight: 500, cursor: 'pointer', border: 'none',
-                      background: filter === f ? '#dc2626' : '#f3f4f6',
-                      color: filter === f ? '#fff' : '#374151',
+                      background: filter === f ? '#dc2626' : '#f1f5f9',
+                      color: filter === f ? '#fff' : '#334155',
                     }}
                   >
                     {f === 'all' ? 'All' : f === 'counted' ? 'Counted' : 'Uncounted'}
@@ -575,7 +575,7 @@ const StockCount = () => {
             <div style={{ maxHeight: 480, overflowY: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
               <thead>
-                <tr style={{ background: '#f9fafb', position: 'sticky', top: 0, zIndex: 1 }}>
+                <tr style={{ background: '#f8fafc', position: 'sticky', top: 0, zIndex: 1 }}>
                   <th style={{ textAlign: 'left', padding: '10px 12px', fontWeight: 600 }}>Product</th>
                   <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Store Opening Balance</th>
                   <th style={{ textAlign: 'right', padding: '10px 12px', fontWeight: 600 }}>Counted</th>
@@ -584,21 +584,21 @@ const StockCount = () => {
               </thead>
               <tbody>
                 {filteredItems.length === 0 ? (
-                  <tr><td colSpan="4" style={{ textAlign: 'center', color: '#6b7280', padding: 40 }}>No products found.</td></tr>
+                  <tr><td colSpan="4" style={{ textAlign: 'center', color: '#64748b', padding: 40 }}>No products found.</td></tr>
                 ) : filteredItems.map(item => {
                   const isCounted = item.counted_qty !== null;
                   const diff = item.difference;
                   return (
-                    <tr key={item.product_id} style={{ borderTop: '1px solid #f1f5f9', background: isCounted ? '#fff' : '#fafafa' }}>
-                      <td style={{ padding: '10px 12px', fontWeight: 500, color: isCounted ? '#111827' : '#6b7280' }}>
+                    <tr key={item.product_id} style={{ borderTop: '1px solid #f1f5f9', background: isCounted ? '#fff' : '#f8fafc' }}>
+                      <td style={{ padding: '10px 12px', fontWeight: 500, color: isCounted ? '#0f172a' : '#64748b' }}>
                         {item.product_name}
                         {!isCounted && <span style={{ marginLeft: 8, fontSize: 11, background: '#fee2e2', color: '#dc2626', borderRadius: 10, padding: '2px 8px' }}>Not counted</span>}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#374151' }}>{item.opening_balance ?? 0}</td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: isCounted ? 600 : 400, color: isCounted ? '#15803d' : '#6b7280' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', color: '#334155' }}>{item.opening_balance ?? 0}</td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: isCounted ? 600 : 400, color: isCounted ? '#15803d' : '#64748b' }}>
                         {isCounted ? item.counted_qty : '—'}
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: !isCounted ? '#6b7280' : diff > 0 ? '#15803d' : diff < 0 ? '#dc2626' : '#374151' }}>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 600, color: !isCounted ? '#64748b' : diff > 0 ? '#15803d' : diff < 0 ? '#dc2626' : '#334155' }}>
                         {isCounted ? (diff > 0 ? `+${diff}` : diff) : '—'}
                       </td>
                     </tr>
@@ -618,7 +618,7 @@ const StockCount = () => {
           <div style={{ background: '#fff', borderRadius: 14, padding: '32px 36px', width: 360, textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
             <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
             <h3 style={{ margin: '0 0 6px', fontSize: 18, fontWeight: 700 }}>Authorization Required</h3>
-            <p style={{ margin: '0 0 20px', fontSize: 13, color: '#6b7280' }}>Enter PIN to apply as opening balance</p>
+            <p style={{ margin: '0 0 20px', fontSize: 13, color: '#64748b' }}>Enter PIN to apply as opening balance</p>
             <input
               type="password"
               value={pinValue}
@@ -626,11 +626,11 @@ const StockCount = () => {
               onKeyDown={e => { if (e.key === 'Enter') confirmApply(); }}
               placeholder="Enter PIN"
               autoFocus
-              style={{ width: '100%', padding: '12px 16px', border: `2px solid ${pinError ? '#dc2626' : '#e5e7eb'}`, borderRadius: 8, fontSize: 18, textAlign: 'center', letterSpacing: 6, marginBottom: 8, boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '12px 16px', border: `2px solid ${pinError ? '#dc2626' : '#e2e8f0'}`, borderRadius: 8, fontSize: 18, textAlign: 'center', letterSpacing: 6, marginBottom: 8, boxSizing: 'border-box' }}
             />
             {pinError && <div style={{ color: '#dc2626', fontSize: 13, marginBottom: 12 }}>{pinError}</div>}
             <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
-              <button onClick={() => setShowPin(false)} style={{ flex: 1, padding: '10px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+              <button onClick={() => setShowPin(false)} style={{ flex: 1, padding: '10px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
               <button onClick={confirmApply} style={{ flex: 1, padding: '10px', border: 'none', borderRadius: 8, background: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 600 }}>Confirm</button>
             </div>
           </div>
@@ -644,18 +644,18 @@ const StockCount = () => {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', borderRadius: 12, padding: 28, width: 400 }}>
             <h3 style={{ margin: '0 0 16px', fontSize: 16, fontWeight: 600 }}>New Stock Count Session</h3>
-            <label style={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>Session Name (optional)</label>
+            <label style={{ fontSize: 13, fontWeight: 500, color: '#334155' }}>Session Name (optional)</label>
             <input
               type="text"
               value={newSessionName}
               onChange={e => setNewSessionName(e.target.value)}
               placeholder={`Stock Count ${businessToday()}`}
-              style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, marginTop: 6, marginBottom: 20, boxSizing: 'border-box' }}
+              style={{ width: '100%', padding: '9px 12px', border: '1.5px solid #e2e8f0', borderRadius: 8, fontSize: 14, marginTop: 6, marginBottom: 20, boxSizing: 'border-box' }}
               onKeyDown={e => { if (e.key === 'Enter') createSession(); }}
               autoFocus
             />
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button onClick={() => setShowNewSession(false)} style={{ padding: '9px 18px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+              <button onClick={() => setShowNewSession(false)} style={{ padding: '9px 18px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
               <button onClick={createSession} style={{ padding: '9px 20px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>Create</button>
             </div>
           </div>

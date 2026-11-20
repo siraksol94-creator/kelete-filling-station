@@ -117,22 +117,22 @@ export default function HqOverview() {
               takings and a low-stock badge. Tapping a row opens its figures
               and the Open button. */}
           <div className="phone-only">
-            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#5b6478', margin: '0 0 8px' }}>Branches · today</div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#475569', margin: '0 0 8px' }}>Branches · today</div>
             {sortedBranches.map(b => {
               const open = openSlugs.has(b.slug);
               const bar = rich && !b.error ? branchBars(data.branches).find(x => x.slug === b.slug) : null;
               const low = b.error ? 0 : (parseFloat(b.stock_low_count) || 0);
               return (
-                <div key={b.slug} style={{ background: '#fff', border: '1px solid #e2e6ee', borderRadius: 12, padding: '10px 12px', marginBottom: 8 }}>
+                <div key={b.slug} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px', marginBottom: 8 }}>
                   <div role="button" tabIndex={0} onClick={() => toggleBranch(b.slug)}
                     onKeyDown={e => { if (e.key === 'Enter') toggleBranch(b.slug); }}
                     style={{ cursor: 'pointer' }}>
                     <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 }}>
                       <span style={{ fontWeight: 700, fontSize: 13.5, color: '#0f172a', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{shortBranch(b.name, b.slug)}</span>
-                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{b.error ? '—' : fmtMoney(b.takings ? b.takings.total : b.today.revenue)}</span>
+                      <span style={{ fontWeight: 700, fontSize: 13, fontFamily: 'var(--k-font-mono)', whiteSpace: 'nowrap' }}>{b.error ? '—' : fmtMoney(b.takings ? b.takings.total : b.today.revenue)}</span>
                     </div>
                     <div className="nowrap-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginTop: 3 }}>
-                      <span style={{ fontSize: 11.5, color: b.error ? '#b91c1c' : '#5b6478', minWidth: 0 }}>
+                      <span style={{ fontSize: 11.5, color: b.error ? '#b91c1c' : '#475569', minWidth: 0 }}>
                         {b.error ? b.error : (b.takings ? (b.station || b.takings.fuel > 0 ? `fuel ${fmtMoney(b.takings.fuel)} · shop ${fmtMoney(b.takings.shop)}` : `shop ${fmtMoney(b.takings.shop)}`) : `${fmtInt(b.today.orders)} orders`)}
                         {low > 0 && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, padding: '1px 7px', borderRadius: 999, background: '#fdecec', color: '#9b0008' }}>{fmtInt(low)} low</span>}
                       </span>
@@ -182,7 +182,7 @@ export default function HqOverview() {
           {!rich && <h3 className="desk-only" style={{ margin: '0 0 10px 0', fontSize: 15, color: '#0f172a' }}>Branches</h3>}
           {!rich && <div className="desk-only" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14 }}>
             {(data.branches || []).map(b => (
-              <div key={b.slug} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16 }}>
+              <div key={b.slug} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
                   <div>
                     <h4 style={{ margin: '0 0 2px 0', fontSize: 16, color: '#0f172a' }}>{b.name}</h4>
@@ -241,7 +241,7 @@ function shortBranch(name, slug) {
 
 function RollupCard({ icon, label, value, sub, color, className }) {
   return (
-    <div className={className} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+    <div className={className} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, color, fontSize: 12, fontWeight: 600 }}>
         {icon} <span>{label}</span>
       </div>

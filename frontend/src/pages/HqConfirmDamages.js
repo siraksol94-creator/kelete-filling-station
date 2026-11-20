@@ -78,7 +78,7 @@ export default function HqConfirmDamages() {
         }}>{toast.text}</div>
       )}
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
@@ -89,7 +89,7 @@ export default function HqConfirmDamages() {
               <div key={`${r.branch_slug}-${r.id}`} style={{ border: '1px solid #fde68a', background: '#fffbeb', borderRadius: 10, padding: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#92400e' }}>{r.return_number}</div>
+                    <div style={{ fontFamily: 'var(--k-font-mono)', fontSize: 12, color: '#92400e' }}>{r.return_number}</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 2 }}>
                       {r.branch_name} <span style={{ fontSize: 11, color: '#64748b', fontWeight: 500 }}>({r.branch_slug})</span>
                     </div>
@@ -212,6 +212,6 @@ const btn = (color, outline) => ({
 });
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 };
 const lbl = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 };
-const inp = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '8px 10px', fontSize: 10, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '6px 10px', color: '#0f172a' };

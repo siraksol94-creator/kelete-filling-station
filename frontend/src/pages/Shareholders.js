@@ -147,14 +147,14 @@ const Shareholders = () => {
           </thead>
           <tbody>
             {list.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No shareholders yet. Click "New Shareholder" to add one.</td></tr>
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 40, color: '#64748b' }}>No shareholders yet. Click "New Shareholder" to add one.</td></tr>
             ) : list.map(s => {
               const st = stats.find(x => x.id === s.id) || { total_injected: 0, total_drawn: 0, total_dividends: 0, net_capital: 0 };
               return (
                 <tr key={s.id}>
                   <td style={{ fontWeight: 600 }}>{s.name}</td>
-                  <td style={{ color: '#6b7280', fontSize: 12 }}>{s.email || '—'}</td>
-                  <td style={{ color: '#6b7280', fontSize: 12 }}>{s.phone || '—'}</td>
+                  <td style={{ color: '#64748b', fontSize: 12 }}>{s.email || '—'}</td>
+                  <td style={{ color: '#64748b', fontSize: 12 }}>{s.phone || '—'}</td>
                   <td style={{ textAlign: 'right' }}>{s.share_percentage > 0 ? `${s.share_percentage}%` : '—'}</td>
                   <td style={{ textAlign: 'right', fontWeight: 700, color: st.net_capital >= 0 ? '#15803d' : '#dc2626' }}>
                     {curSym}{parseFloat(st.net_capital).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -163,7 +163,7 @@ const Shareholders = () => {
                     {curSym}{parseFloat(st.total_dividends).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    {hasPermission('Shareholders:Edit') && <button onClick={() => openEdit(s)} title="Edit" style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: 4 }}><FiEdit2 /></button>}
+                    {hasPermission('Shareholders:Edit') && <button onClick={() => openEdit(s)} title="Edit" style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: 4 }}><FiEdit2 /></button>}
                     {hasPermission('Shareholders:Delete') && <button onClick={() => handleDelete(s)} title="Delete" style={{ background: 'none', border: 'none', color: '#dc2626', cursor: 'pointer', padding: 4 }}><FiTrash2 /></button>}
                   </td>
                 </tr>
@@ -200,7 +200,7 @@ const Shareholders = () => {
                 <div className="form-group">
                   <label>Share % (optional)</label>
                   <input type="number" min="0" max="100" step="0.01" value={form.share_percentage} onChange={e => setForm({ ...form, share_percentage: e.target.value })} placeholder="e.g. 50" />
-                  <small style={{ color: '#6b7280', fontSize: 11, display: 'block', marginTop: 4 }}>Used for fair dividend allocation reporting later.</small>
+                  <small style={{ color: '#64748b', fontSize: 11, display: 'block', marginTop: 4 }}>Used for fair dividend allocation reporting later.</small>
                 </div>
                 <div className="form-group">
                   <label>Notes</label>

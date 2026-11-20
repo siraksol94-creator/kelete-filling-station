@@ -154,7 +154,7 @@ export default function FuelGrades() {
                   const m = gradeMargin(form.selling_price, form.cost_price);
                   return !m.unknownCost && Number(form.selling_price) > 0 ? (
                     <div className={`k-gr-live${m.below ? ' is-below' : ''}`} style={{ gridColumn: '1 / -1' }} aria-live="polite">
-                      Margin per litre: <b className="k-fc-num">K {m.perL.toFixed(4)}</b> ({(m.pct * 100).toFixed(1)}% of the price){m.below ? ' — below cost' : ''}
+                      Margin per litre: <b className="k-fc-num">{m.perL < 0 ? '−' : ''}K{Math.abs(m.perL).toFixed(4)}</b> ({(m.pct * 100).toFixed(1)}% of the price){m.below ? ' — below cost' : ''}
                     </div>
                   ) : null;
                 })()}

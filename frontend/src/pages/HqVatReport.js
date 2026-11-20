@@ -190,11 +190,11 @@ export default function HqVatReport() {
 
   const chip = (on) => ({
     padding: '5px 11px', borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: 'pointer',
-    border: `1px solid ${on ? ACCENT : '#d1d5db'}`, background: on ? ACCENT : '#fff', color: on ? '#fff' : '#374151',
+    border: `1px solid ${on ? ACCENT : '#cbd5e1'}`, background: on ? ACCENT : '#fff', color: on ? '#fff' : '#334155',
   });
   const exBtn = (color, disabled) => ({
     display: 'inline-flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 6,
-    border: `1.5px solid ${color}`, background: disabled ? '#f3f4f6' : '#fff', color: disabled ? '#6b7280' : color,
+    border: `1.5px solid ${color}`, background: disabled ? '#f1f5f9' : '#fff', color: disabled ? '#64748b' : color,
     cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 12, fontWeight: 700, whiteSpace: 'nowrap',
   });
   const noLines = !totalLines;
@@ -207,7 +207,7 @@ export default function HqVatReport() {
         </div>
         <div className="desk-only" style={{ flex: 1, minWidth: 220 }}>
           <div style={{ fontSize: 20, fontWeight: 700 }}>HQ VAT Transaction Report</div>
-          <div style={{ fontSize: 13, color: '#6b7280' }}>Line-by-line list of VAT-exclusive value, VAT and total for non-reversed sales, across every depot — for ZRA Ref 9 / attachment 5.</div>
+          <div style={{ fontSize: 13, color: '#64748b' }}>Line-by-line list of VAT-exclusive value, VAT and total for non-reversed sales, across every depot — for ZRA Ref 9 / attachment 5.</div>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <button type="button" onClick={() => exportAll('xlsx')} disabled={!applied || noLines || !!exporting}
@@ -225,19 +225,19 @@ export default function HqVatReport() {
         </div>
       </div>
 
-      <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, padding: 16, marginBottom: 16, display: 'grid', gap: 12 }}>
+      <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: 16, marginBottom: 16, display: 'grid', gap: 12 }}>
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
           <div>
-            <label style={{ display: 'block', fontSize: 12, color: '#374151', marginBottom: 4 }}>From</label>
-            <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: 6 }} />
+            <label style={{ display: 'block', fontSize: 12, color: '#334155', marginBottom: 4 }}>From</label>
+            <input type="date" value={from} onChange={e => setFrom(e.target.value)} style={{ padding: 8, border: '1px solid #cbd5e1', borderRadius: 6 }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 12, color: '#374151', marginBottom: 4 }}>To</label>
-            <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: 6 }} />
+            <label style={{ display: 'block', fontSize: 12, color: '#334155', marginBottom: 4 }}>To</label>
+            <input type="date" value={to} onChange={e => setTo(e.target.value)} style={{ padding: 8, border: '1px solid #cbd5e1', borderRadius: 6 }} />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: 12, color: '#374151', marginBottom: 4 }}>Depot</label>
-            <select value={depot} onChange={e => pickDepot(e.target.value)} style={{ padding: 8, border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', minWidth: 170 }}>
+            <label style={{ display: 'block', fontSize: 12, color: '#334155', marginBottom: 4 }}>Depot</label>
+            <select value={depot} onChange={e => pickDepot(e.target.value)} style={{ padding: 8, border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', minWidth: 170 }}>
               <option value="">All depots ({depots.length})</option>
               {depots.map(d => <option key={d.slug} value={d.slug}>{d.name}</option>)}
             </select>
@@ -247,7 +247,7 @@ export default function HqVatReport() {
           }}>{loading ? 'Loading…' : 'Show'}</button>
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: 12, color: '#374151', marginBottom: 6 }}>Tax Cat</label>
+          <label style={{ display: 'block', fontSize: 12, color: '#334155', marginBottom: 6 }}>Tax Cat</label>
           <div className="cat-filter-row" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <button type="button" onClick={() => toggleCat(null)} style={chip(cats.length === 0)}>All</button>
             {CATS.map(([k, label]) => (
@@ -258,9 +258,9 @@ export default function HqVatReport() {
           </div>
         </div>
         {showing && (
-          <div style={{ fontSize: 12, color: '#374151', borderTop: '1px dashed #e5e7eb', paddingTop: 10 }}>
-            Showing: <b style={{ color: '#111827' }}>{showing}</b>
-            <span style={{ color: '#6b7280' }}> — the first row of every export</span>
+          <div style={{ fontSize: 12, color: '#334155', borderTop: '1px dashed #e2e8f0', paddingTop: 10 }}>
+            Showing: <b style={{ color: '#0f172a' }}>{showing}</b>
+            <span style={{ color: '#64748b' }}> — the first row of every export</span>
           </div>
         )}
       </div>
@@ -269,13 +269,13 @@ export default function HqVatReport() {
         <div style={{ background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 6, marginBottom: 12 }}>{error}</div>
       )}
 
-      <div style={{ background: 'white', border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb', fontWeight: 600, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+      <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontWeight: 600, display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
           <span>
             {loading && !data ? 'Loading…' : `${fmtInt(depotsWithSales)} depot${depotsWithSales === 1 ? '' : 's'} · ${fmtInt(totals.invoices)} invoice${totals.invoices === 1 ? '' : 's'} · ${fmtInt(totalLines)} line${totalLines === 1 ? '' : 's'}`}
           </span>
           {lines.length < totalLines && (
-            <span style={{ fontWeight: 400, color: '#6b7280' }}>showing the first {fmtInt(lines.length)} — totals include every line</span>
+            <span style={{ fontWeight: 400, color: '#64748b' }}>showing the first {fmtInt(lines.length)} — totals include every line</span>
           )}
         </div>
         <div style={{ maxHeight: '60vh', overflowY: 'auto', overflowX: 'auto' }}>
@@ -295,7 +295,7 @@ export default function HqVatReport() {
             </thead>
             <tbody>
               {lines.length === 0 && !loading && (
-                <tr><td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No transactions in range.</td></tr>
+                <tr><td colSpan={9} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No transactions in range.</td></tr>
               )}
               {groups.map((g, gi) => {
                 const s = summaryBySlug[g.key] || {};
@@ -308,9 +308,9 @@ export default function HqVatReport() {
                   <React.Fragment key={`${g.key}-${gi}`}>
                     {startsHere && (
                       <tr>
-                        <td colSpan={9} style={{ padding: '8px 12px', background: '#f1f4f9', color: '#13306b', fontWeight: 700, borderBottom: '1px solid #e2e6ee' }}>
+                        <td colSpan={9} style={{ padding: '8px 12px', background: '#f1f5f9', color: '#13306b', fontWeight: 700, borderBottom: '1px solid #e2e8f0' }}>
                           {g.name}
-                          <span style={{ fontWeight: 500, color: '#6b7280', marginLeft: 8 }}>
+                          <span style={{ fontWeight: 500, color: '#64748b', marginLeft: 8 }}>
                             {fmtInt(s.invoices)} invoice{s.invoices === 1 ? '' : 's'} · {fmtInt(s.lines)} line{s.lines === 1 ? '' : 's'}
                           </span>
                         </td>
@@ -319,14 +319,14 @@ export default function HqVatReport() {
                     {g.lines.map((r, i) => {
                       const cont = i > 0 && g.lines[i - 1].invoice_number === r.invoice_number;
                       return (
-                        <tr key={`${g.key}-${gi}-${i}`} style={{ borderBottom: cont ? '1px dotted #f3f4f6' : '1px solid #e5e7eb', background: cont ? '#fbfbfd' : 'white' }}>
+                        <tr key={`${g.key}-${gi}-${i}`} style={{ borderBottom: cont ? '1px dotted #f1f5f9' : '1px solid #e2e8f0', background: cont ? '#f8fafc' : 'white' }}>
                           <td style={{ padding: '10px 12px', color: '#13306b', fontWeight: 600, whiteSpace: 'nowrap' }}>{cont ? '' : r.depot_name}</td>
-                          <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: cont ? '#d1d5db' : '#111827' }}>{cont ? '↳' : fmtInvoiceNo(r.invoice_number)}</td>
-                          <td style={{ padding: '10px 12px', color: cont ? '#d1d5db' : '#374151' }}>{cont ? '' : fmtDate(r.date)}</td>
-                          <td style={{ padding: '10px 12px', color: cont ? '#d1d5db' : '#374151' }}>{cont ? '' : r.customer_name}</td>
+                          <td style={{ padding: '10px 12px', fontFamily: 'var(--k-font-mono)', color: cont ? '#cbd5e1' : '#0f172a' }}>{cont ? '↳' : fmtInvoiceNo(r.invoice_number)}</td>
+                          <td style={{ padding: '10px 12px', color: cont ? '#cbd5e1' : '#334155' }}>{cont ? '' : fmtDate(r.date)}</td>
+                          <td style={{ padding: '10px 12px', color: cont ? '#cbd5e1' : '#334155' }}>{cont ? '' : r.customer_name}</td>
                           <td style={{ padding: '10px 12px', maxWidth: 320 }}>{r.description}</td>
                           <td style={{ padding: '10px 12px', textAlign: 'center' }} title={(CATS.find(c => c[0] === r.vat_category) || [])[1] || ''}>
-                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 4, background: '#f3f4f6', color: '#374151', fontWeight: 700, fontSize: 12 }}>{r.vat_category || '—'}</span>
+                            <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 4, background: '#f1f5f9', color: '#334155', fontWeight: 700, fontSize: 12 }}>{r.vat_category || '—'}</span>
                           </td>
                           <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtMoney(r.vat_excl)}</td>
                           <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtMoney(r.vat_amount)}</td>
@@ -335,7 +335,7 @@ export default function HqVatReport() {
                       );
                     })}
                     {complete && (gi === groups.length - 1 || groups[gi + 1].key !== g.key) && (
-                      <tr style={{ background: '#f9fafb', fontWeight: 700, borderBottom: '2px solid #e5e7eb' }}>
+                      <tr style={{ background: '#f8fafc', fontWeight: 700, borderBottom: '2px solid #e2e8f0' }}>
                         <td colSpan={6} style={{ padding: '10px 12px', textAlign: 'right' }}>{g.name} subtotal</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtMoney(s.excl)}</td>
                         <td style={{ padding: '10px 12px', textAlign: 'right' }}>{fmtMoney(s.vat)}</td>
@@ -346,20 +346,20 @@ export default function HqVatReport() {
                 );
               })}
               {lines.length > 0 && (
-                <tr style={{ background: '#f9fafb', fontWeight: 800, position: 'sticky', bottom: 0 }}>
-                  <td colSpan={6} style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb', borderTop: '2px solid #d1d5db' }}>TOTALS</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb', borderTop: '2px solid #d1d5db' }}>{fmtMoney(totals.excl)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb', borderTop: '2px solid #d1d5db' }}>{fmtMoney(totals.vat)}</td>
-                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f9fafb', borderTop: '2px solid #d1d5db' }}>{fmtMoney(totals.total)}</td>
+                <tr style={{ background: '#f8fafc', fontWeight: 800, position: 'sticky', bottom: 0 }}>
+                  <td colSpan={6} style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc', borderTop: '2px solid #cbd5e1' }}>TOTALS</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc', borderTop: '2px solid #cbd5e1' }}>{fmtMoney(totals.excl)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc', borderTop: '2px solid #cbd5e1' }}>{fmtMoney(totals.vat)}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'right', background: '#f8fafc', borderTop: '2px solid #cbd5e1' }}>{fmtMoney(totals.total)}</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
         {lines.length < totalLines && (
-          <div style={{ padding: 12, textAlign: 'center', borderTop: '1px solid #e5e7eb' }}>
+          <div style={{ padding: 12, textAlign: 'center', borderTop: '1px solid #e2e8f0' }}>
             <button type="button" onClick={loadMore} disabled={loadingMore}
-              style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e6ee', background: '#fff', color: '#13306b', fontWeight: 700, cursor: loadingMore ? 'wait' : 'pointer' }}>
+              style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#13306b', fontWeight: 700, cursor: loadingMore ? 'wait' : 'pointer' }}>
               {loadingMore ? 'Loading…' : `Show next ${fmtInt(Math.min(PAGE, totalLines - lines.length))} · ${fmtInt(totalLines - lines.length)} more`}
             </button>
           </div>

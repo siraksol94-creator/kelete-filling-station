@@ -469,7 +469,7 @@ export default function Cashier() {
       )}
 
       {/* v1.8.86 — Mode tabs (Pending / History). History is read-only. */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 12, borderBottom: '1px solid #e5e7eb' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, borderBottom: '1px solid #e2e8f0' }}>
         {[
           { key: 'pending', label: 'Pending Payments', count: inbox.length, color: '#0ea5e9' },
           { key: 'history', label: 'Payment History',  count: null,         color: '#7c3aed' },
@@ -491,7 +491,7 @@ export default function Cashier() {
               }}>
               {t.label}
               {t.count !== null && (
-                <span style={{ fontSize: 11, background: active ? t.color : '#e5e7eb', color: active ? '#fff' : '#64748b', padding: '1px 8px', borderRadius: 999, fontWeight: 700 }}>
+                <span style={{ fontSize: 11, background: active ? t.color : '#e2e8f0', color: active ? '#fff' : '#64748b', padding: '1px 8px', borderRadius: 999, fontWeight: 700 }}>
                   {t.count}
                 </span>
               )}
@@ -502,7 +502,7 @@ export default function Cashier() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 16, height: 'calc(100vh - 240px)' }}>
         {/* ── LEFT: Inbox queue OR History list ──────────────────────── */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14, overflowY: 'auto' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14, overflowY: 'auto' }}>
           {mode === 'pending' ? (
             <>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -522,7 +522,7 @@ export default function Cashier() {
                       onClick={() => openOrder(o.id)}
                       style={{
                         padding: '10px 12px',
-                        border: `1.5px solid ${selected?.id === o.id ? '#2563eb' : '#e5e7eb'}`,
+                        border: `1.5px solid ${selected?.id === o.id ? '#2563eb' : '#e2e8f0'}`,
                         background: selected?.id === o.id ? '#eff6ff' : '#fff',
                         borderRadius: 8, cursor: 'pointer',
                       }}>
@@ -564,7 +564,7 @@ export default function Cashier() {
                       onClick={() => openOrder(o.id)}
                       style={{
                         padding: '10px 12px',
-                        border: `1.5px solid ${selected?.id === o.id ? '#7c3aed' : '#e5e7eb'}`,
+                        border: `1.5px solid ${selected?.id === o.id ? '#7c3aed' : '#e2e8f0'}`,
                         background: selected?.id === o.id ? '#faf5ff' : '#fff',
                         borderRadius: 8, cursor: 'pointer',
                       }}>
@@ -591,7 +591,7 @@ export default function Cashier() {
         </div>
 
         {/* ── RIGHT: Order detail + payment ──────────────────────────── */}
-        <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 16, overflowY: 'auto' }}>
           {!selected ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#64748b', flexDirection: 'column' }}>
               <FiShoppingCart size={48} style={{ marginBottom: 12, opacity: 0.4 }} />
@@ -629,7 +629,7 @@ export default function Cashier() {
                       : `Will create credit of ${fmtUSD(calc.unpaidBalance)} on this customer's account.`}
                   </div>
                 )}
-                <div style={{ marginTop: 14, border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden' }}>
+                <div style={{ marginTop: 14, border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden' }}>
                   <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                     <thead style={{ background: '#f8fafc' }}>
                       <tr>
@@ -682,7 +682,7 @@ export default function Cashier() {
                   {parseFloat(selected.discount || 0) > 0 && (
                     <div style={totalsRow}><span>Discount</span><span>−{fmtUSD(selected.discount)}</span></div>
                   )}
-                  <div style={{ ...totalsRow, fontWeight: 700, color: '#0f172a', borderTop: '1px solid #e5e7eb', marginTop: 6, paddingTop: 6 }}>
+                  <div style={{ ...totalsRow, fontWeight: 700, color: '#0f172a', borderTop: '1px solid #e2e8f0', marginTop: 6, paddingTop: 6 }}>
                     <span>Total Due</span><span>{fmtUSD(selected.total_amount)}</span>
                   </div>
                 </div>
@@ -815,7 +815,7 @@ export default function Cashier() {
                           {hasFra && (
                             <div style={{ fontSize: 12, color: '#047857', fontWeight: 600, marginTop: 4 }}>
                               ≈ FRA {fmtFRA(fraEquiv)} ({fraLabel})
-                              {hasK && <> · ≈ K {fmtK(kEquiv)} ({kLabel})</>}
+                              {hasK && <> · ≈ K{fmtK(kEquiv)} ({kLabel})</>}
                             </div>
                           )}
                         </div>
@@ -827,7 +827,7 @@ export default function Cashier() {
                         {hasFra && (
                           <div style={{ fontSize: 12, color: '#b91c1c', fontWeight: 600, marginTop: 4 }}>
                             ≈ FRA {fmtFRA(calc.unpaidBalanceFRA)} (sell {SELL_RATE.toLocaleString()})
-                            {hasK && <> · ≈ K {fmtK(calc.unpaidBalanceK)} (sell {SELL_RATE_K.toLocaleString()})</>}
+                            {hasK && <> · ≈ K{fmtK(calc.unpaidBalanceK)} (sell {SELL_RATE_K.toLocaleString()})</>}
                           </div>
                         )}
                       </div>
@@ -881,7 +881,7 @@ export default function Cashier() {
                         const kAmt = calc.overK > 0.5
                           ? calc.overK
                           : (BUY_RATE_K > 0 ? calc.netRemaining * BUY_RATE_K : 0);
-                        headlineText = `K ${fmtK(kAmt)} (≈ ${fmtUSD(calc.netRemaining)})`;
+                        headlineText = `K${fmtK(kAmt)} (≈ ${fmtUSD(calc.netRemaining)})`;
                       } else {
                         const usdAmt = calc.overUSD > 0.001 ? calc.overUSD : calc.netRemaining;
                         headlineText = fmtUSD(usdAmt);
@@ -931,7 +931,7 @@ export default function Cashier() {
                           {!exact && (
                             <div style={{ fontSize: 16, fontWeight: 800, color: amtClr }}>
                               {fmtUSD(absAmt)}{' '}
-                              {hasFra && <span style={{ fontSize: 11, fontWeight: 600 }}>(FRA {fmtFRA(absAmtFra)}{hasK && <> · K {fmtK(absAmtK)}</>})</span>}
+                              {hasFra && <span style={{ fontSize: 11, fontWeight: 600 }}>(FRA {fmtFRA(absAmtFra)}{hasK && <> · K{fmtK(absAmtK)}</>})</span>}
                             </div>
                           )}
                         </div>
@@ -952,9 +952,9 @@ export default function Cashier() {
                 {/* v1.8.97 — in Edit mode, add Reason field + Save/Cancel. */}
                 {editing && (
                   <div style={{ marginTop: 14 }}>
-                    <label style={{ ...lblStyle, color: '#374151' }}>
+                    <label style={{ ...lblStyle, color: '#334155' }}>
                       Reason <span style={{ color: '#dc2626' }}>*</span>{' '}
-                      <span style={{ fontWeight: 400, color: '#6b7280' }}>(min 3 chars)</span>
+                      <span style={{ fontWeight: 400, color: '#64748b' }}>(min 3 chars)</span>
                     </label>
                     <input type="text" value={editReason}
                       placeholder="e.g. typo, wrong currency, wrong rate"
@@ -966,7 +966,7 @@ export default function Cashier() {
                 {editing ? (
                   <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                     <button onClick={cancelEdit} disabled={editSaving}
-                      style={{ flex: 1, padding: '12px', background: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                      style={{ flex: 1, padding: '12px', background: '#fff', border: '1px solid #e2e8f0', color: '#334155', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                       Cancel
                     </button>
                     <button onClick={saveEdit}
@@ -1002,7 +1002,7 @@ export default function Cashier() {
                 <h3 style={{ margin: '0 0 10px 0', fontSize: 16, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                     Payment
-                    <span style={{ fontSize: 10, background: editing ? '#fef3c7' : '#e5e7eb', color: editing ? '#92400e' : '#64748b', padding: '2px 8px', borderRadius: 4, fontWeight: 700, letterSpacing: 0.5 }}>
+                    <span style={{ fontSize: 10, background: editing ? '#fef3c7' : '#e2e8f0', color: editing ? '#92400e' : '#64748b', padding: '2px 8px', borderRadius: 4, fontWeight: 700, letterSpacing: 0.5 }}>
                       {editing ? 'EDITING' : 'READ-ONLY'}
                     </span>
                   </span>
@@ -1170,20 +1170,20 @@ export default function Cashier() {
                     }
                   }
                   return (
-                    <div style={{ background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, marginBottom: 10 }}>
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 10 }}>
                       <div style={{ fontSize: 11, color: '#475569', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Reconciliation {editing ? '(live preview)' : ''}</div>
                       <div style={{ fontSize: 12, color: '#475569', display: 'grid', rowGap: 4 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Total paid (USD-equiv)</span><strong>{fmtUSD(totalPaidUSDeq)}</strong></div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Change owed</span><strong>{fmtUSD(changeOwed)}</strong></div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}><span>Change returned (USD-eq)</span><strong>{fmtUSD(totalGivenUSDeq)}</strong></div>
                         {keptAmt > 0 && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e5e7eb', paddingTop: 4, marginTop: 2 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e2e8f0', paddingTop: 4, marginTop: 2 }}>
                             <span style={{ fontWeight: 700, color: '#15803d' }}>± Kept in drawer</span>
                             <strong style={{ color: '#15803d' }}>+{keptDisplay}</strong>
                           </div>
                         )}
                         {keptAmt < 0.005 && shortageUSD > 0.005 && (
-                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e5e7eb', paddingTop: 4, marginTop: 2 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed #e2e8f0', paddingTop: 4, marginTop: 2 }}>
                             <span style={{ fontWeight: 700, color: '#dc2626' }}>± Absorbed (shortage)</span>
                             <strong style={{ color: '#dc2626' }}>−{absorbedDisplay}</strong>
                           </div>
@@ -1196,14 +1196,14 @@ export default function Cashier() {
                 {/* Editing: Reason field + Save / Cancel — replaces the Paid badge */}
                 {editing ? (
                   <div style={{ marginTop: 18 }}>
-                    <label style={{ ...lblStyle, color: '#374151' }}>Reason <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: 400, color: '#6b7280' }}>(min 3 chars)</span></label>
+                    <label style={{ ...lblStyle, color: '#334155' }}>Reason <span style={{ color: '#dc2626' }}>*</span> <span style={{ fontWeight: 400, color: '#64748b' }}>(min 3 chars)</span></label>
                     <input type="text" value={editReason}
                       placeholder="e.g. typo, wrong currency, wrong rate"
                       onChange={e => setEditReason(e.target.value)}
                       style={inputStyle} maxLength={200} />
                     <div style={{ display: 'flex', gap: 10, marginTop: 12 }}>
                       <button onClick={cancelEdit} disabled={editSaving}
-                        style={{ flex: 1, padding: '12px', background: '#fff', border: '1px solid #e5e7eb', color: '#374151', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
+                        style={{ flex: 1, padding: '12px', background: '#fff', border: '1px solid #e2e8f0', color: '#334155', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>
                         Cancel
                       </button>
                       {/* v1.10.94 — was missing isOverChange guard, so the
@@ -1261,7 +1261,7 @@ export default function Cashier() {
               <div style={{ fontSize: 11, opacity: 0.85, marginTop: 2 }}>Payment edited successfully — but the day's CR holds the OLD amounts.</div>
             </div>
             <div style={{ padding: '20px 22px' }}>
-              <p style={{ margin: '0 0 12px 0', fontSize: 13.5, color: '#374151', lineHeight: 1.55 }}>
+              <p style={{ margin: '0 0 12px 0', fontSize: 13.5, color: '#334155', lineHeight: 1.55 }}>
                 A Cash Receipt was already saved for <strong>{crWarning.cr_date}</strong>
                 {crWarning.cr_cashier_name ? <> (cashier <strong>{crWarning.cr_cashier_name}</strong>)</> : null}.
                 It still shows the old totals.
@@ -1276,7 +1276,7 @@ export default function Cashier() {
                 </ol>
               </div>
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={() => setCRWarning(null)}
                 style={{ padding: '9px 22px', borderRadius: 8, border: 'none', background: '#b45309', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
                 OK, got it
@@ -1363,7 +1363,7 @@ export default function Cashier() {
                       const kAmt = confirm.overK > 0.5
                         ? confirm.overK
                         : (BUY_RATE_K > 0 ? confirm.netRemaining * BUY_RATE_K : 0);
-                      amountText = `K ${fmtK(kAmt)}`;
+                      amountText = `K${fmtK(kAmt)}`;
                     } else amountText = fmtUSD(confirm.netRemaining);
                   } else if (overpaid) {
                     // v1.8.81 — cashier over-changed (shop loss). Show the overshoot in
@@ -1394,7 +1394,7 @@ export default function Cashier() {
                     if (fraOverAsUSD >= kOverAsUSD && fraOverAsUSD >= usdOver && fraOver > 0.5) {
                       amountText = `FRA ${fmtFRA(fraOver)} (≈ ${fmtUSD(usdOverAbs)})`;
                     } else if (kOverAsUSD >= usdOver && kOver > 0.5) {
-                      amountText = `K ${fmtK(kOver)} (≈ ${fmtUSD(usdOverAbs)})`;
+                      amountText = `K${fmtK(kOver)} (≈ ${fmtUSD(usdOverAbs)})`;
                     } else {
                       amountText = fmtUSD(usdOverAbs);
                     }
@@ -1556,7 +1556,7 @@ function renderCashierReceipt({ biz, order, calc, cashierName, when, sellRate: _
   .divider { text-align: center; font-size: 10px; overflow: hidden; white-space: nowrap; margin: 3px 0; }
   .grand { font-size: 16px; font-weight: 800; }
   .amt { font-size: 13px; font-weight: 700; }
-  .sub { color: #444; font-weight: 500; font-size: 10px; }
+  .sub { color: #334155; font-weight: 500; font-size: 10px; }
 </style>
 </head>
 <body>
@@ -1637,7 +1637,7 @@ const thStyle = { padding: '8px 10px', fontSize: 11, color: '#64748b', fontWeigh
 const tdStyle = { padding: '8px 10px', color: '#0f172a' };
 const totalsRow = { display: 'flex', justifyContent: 'space-between', padding: '4px 0', color: '#475569' };
 const lblStyle = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 };
-const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
+const inputStyle = { width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 14, boxSizing: 'border-box' };
 const confirmRow = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', color: '#0f172a', fontSize: 13 };
 const hrStyle = { border: 'none', borderTop: '1px solid #e2e8f0', margin: '10px 0' };
 // v1.8.86 — read-only payment cells in the History tab.

@@ -38,10 +38,10 @@ const InvoiceNo = ({ order, prefix = 'INV', size = 13, children }) => {
   if (zra) {
     return (
       <div style={{ lineHeight: 1.25 }}>
-        <div style={{ fontFamily: 'monospace', fontSize: size, fontWeight: 700, color: '#0e7490' }}>
+        <div style={{ fontFamily: 'var(--k-font-mono)', fontSize: size, fontWeight: 700, color: '#0e7490' }}>
           {zra}
         </div>
-        <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>
+        <div style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>
           {own}{children}
         </div>
       </div>

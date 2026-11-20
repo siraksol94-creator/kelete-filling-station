@@ -14,6 +14,7 @@ import TerminalPayWindow, { TerminalQtyWindow } from '../components/TerminalPay'
 import { matchTokens } from '../utils/tokenSearch';
 import { businessToday } from '../utils/businessDate';
 import { quickCash } from '../ux/posModel';
+import { useDialog } from '../ux/ForecourtKit';
 
 // 2026-08-30 — thousand separators on printed receipt figures. 306,000.00
 // reads at a glance; 306000.00 has to be counted. Fixed en-US grouping so a
@@ -59,6 +60,7 @@ const isNonDefaultUnit = (it) =>
 const POS = () => {
   const { user } = useAuth();
   const { symbol: curSym, money, isLiquorStyle, methodShown } = useCurrency();
+  const [dialog, ui] = useDialog();   // in-app boxes instead of browser pop-ups
   const isMobile = useIsMobile();
   // Whether the cart bottom-sheet is expanded on mobile. Desktop ignores this.
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
@@ -1537,7 +1539,7 @@ const POS = () => {
       } catch (err) { /* keep current */ }
     } catch (err) {
       const msg = err.response?.data?.error || err.message || 'Unknown error';
-      alert(`Checkout failed: ${msg}`);
+      ui.alert(`Checkout failed: ${msg}`);
     } finally {
       // finally, not the success path: a stuck overlay at a busy till is
       // worse than the problem it solves, so it lifts on every outcome —
@@ -2785,6 +2787,7 @@ const POS = () => {
 
   return (
     <>
+      {dialog}
       {/* 2026-08-27 — fiscalisation overlay.
           Sits above EVERYTHING (sidebar included, hence the fixed inset
           and the very high z-index) so no product, menu item or scan can
@@ -2809,16 +2812,16 @@ const POS = () => {
           }}>
             <div style={{
               width: 44, height: 44, margin: '0 auto 18px',
-              border: '4px solid #e5e7eb', borderTopColor: '#16a34a',
+              border: '4px solid #e2e8f0', borderTopColor: '#16a34a',
               borderRadius: '50%', animation: 'posFiscalSpin 0.9s linear infinite',
             }} />
-            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.2, color: '#111827', textTransform: 'uppercase' }}>
+            <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: 1.2, color: '#0f172a', textTransform: 'uppercase' }}>
               Fiscalising with ZRA
             </div>
             <div style={{ fontSize: 30, fontWeight: 800, color: '#15803d', margin: '10px 0 4px', fontVariantNumeric: 'tabular-nums' }}>
               {fiscalElapsed.toFixed(1)}s
             </div>
-            <div style={{ fontSize: 12, color: '#6b7280', lineHeight: 1.6 }}>
+            <div style={{ fontSize: 12, color: '#64748b', lineHeight: 1.6 }}>
               Sale is saved. Waiting for the fiscal receipt number.
             </div>
             {fiscalElapsed >= 5 && (
@@ -2874,9 +2877,9 @@ const POS = () => {
                   display: 'flex', alignItems: 'center', gap: 6,
                   padding: '7px 14px', borderRadius: 8, cursor: 'pointer',
                   fontWeight: 600, fontSize: 13,
-                  background: drawerMsg?.type === 'success' ? '#dcfce7' : drawerMsg?.type === 'error' ? '#fee2e2' : '#f3f4f6',
-                  border: `2px solid ${drawerMsg?.type === 'success' ? '#16a34a' : drawerMsg?.type === 'error' ? '#dc2626' : '#d1d5db'}`,
-                  color: drawerMsg?.type === 'success' ? '#15803d' : drawerMsg?.type === 'error' ? '#dc2626' : '#374151',
+                  background: drawerMsg?.type === 'success' ? '#dcfce7' : drawerMsg?.type === 'error' ? '#fee2e2' : '#f1f5f9',
+                  border: `2px solid ${drawerMsg?.type === 'success' ? '#16a34a' : drawerMsg?.type === 'error' ? '#dc2626' : '#cbd5e1'}`,
+                  color: drawerMsg?.type === 'success' ? '#15803d' : drawerMsg?.type === 'error' ? '#dc2626' : '#334155',
                   transition: 'all 0.2s'
                 }}
               >
@@ -2892,11 +2895,11 @@ const POS = () => {
               so it shares the same border/background. Hidden when the
               search is empty. */}
           <div className="search-input-container" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <FiSearch style={{ color: '#6b7280' }} />
+            <FiSearch style={{ color: '#64748b' }} />
             <input ref={searchInputRef} type="text" placeholder="Search products by name..." value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1 }} />
             {search && (
               <button onClick={() => setSearch('')} title="Clear search"
-                style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                style={{ padding: '4px 12px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 12, fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                 <FiX size={12} /> Clear
               </button>
             )}
@@ -2920,7 +2923,7 @@ const POS = () => {
           {/* Quick Items */}
           {quickItems.length > 0 && (
             <div style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⭐ Quick Items</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: '#64748b', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>⭐ Quick Items</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {quickItems.map(qi => {
                   const product = products.find(p => p.sync_id === qi.product_sync_id);
@@ -2979,7 +2982,7 @@ const POS = () => {
                     style={{
                       position: 'absolute', top: 4, right: 4,
                       background: 'none', border: 'none', cursor: 'pointer',
-                      color: isQuick ? '#f59e0b' : '#d1d5db', padding: 2, fontSize: 14,
+                      color: isQuick ? '#f59e0b' : '#cbd5e1', padding: 2, fontSize: 14,
                     }}
                   >
                     <FiStar size={13} fill={isQuick ? '#f59e0b' : 'none'} />
@@ -3014,9 +3017,9 @@ const POS = () => {
                               style={{
                                 padding: '6px 12px', borderRadius: 14, fontSize: 12.5, fontWeight: 700, cursor: 'pointer',
                                 minHeight: 30,
-                                background: '#f3f4f6',
-                                border: '1px solid #d1d5db',
-                                color: '#374151',
+                                background: '#f1f5f9',
+                                border: '1px solid #cbd5e1',
+                                color: '#334155',
                               }}
                             >
                               + {u.name}
@@ -3059,7 +3062,7 @@ const POS = () => {
 
           <div className="cart-customer">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
-              <span style={{ color: '#6b7280' }}>👤</span>
+              <span style={{ color: '#64748b' }}>👤</span>
               <input
                 type="text"
                 placeholder="Customer name (optional)"
@@ -3079,7 +3082,7 @@ const POS = () => {
                   onClick={() => { setCustomerName(''); setCustOpen(false); }}
                   title="Clear customer"
                   style={{ position: 'absolute', right: 4, top: '50%', transform: 'translateY(-50%)',
-                           background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280',
+                           background: 'none', border: 'none', cursor: 'pointer', color: '#64748b',
                            display: 'flex', padding: 2 }}>
                   <FiX size={15} />
                 </button>
@@ -3101,7 +3104,7 @@ const POS = () => {
                 return (
                   <div style={{
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 60,
-                    marginTop: 4, background: '#fff', border: '1px solid #e5e7eb',
+                    marginTop: 4, background: '#fff', border: '1px solid #e2e8f0',
                     borderRadius: 10, boxShadow: '0 12px 28px rgba(0,0,0,0.14)', overflow: 'hidden',
                   }}>
                     {hits.map(c => {
@@ -3175,7 +3178,7 @@ const POS = () => {
                   <span>
                     {overLimit ? '⚠ Over credit limit' : '✓ Credit OK'}
                     {selectedCustomer?.tpin
-                      ? <span style={{ fontFamily: 'monospace', fontWeight: 700, marginLeft: 8 }}>· TPIN {selectedCustomer.tpin}</span>
+                      ? <span style={{ fontFamily: 'var(--k-font-mono)', fontWeight: 700, marginLeft: 8 }}>· TPIN {selectedCustomer.tpin}</span>
                       : <span style={{ marginLeft: 8, opacity: 0.8 }}>· no TPIN on file</span>}
                   </span>
                   <span>
@@ -3208,13 +3211,13 @@ const POS = () => {
               still redeem a voucher. */}
           <div className="cart-customer" style={{ marginTop: -8, position: 'relative' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ color: '#6b7280' }}>🎫</span>
+              <span style={{ color: '#64748b' }}>🎫</span>
               {voucherInfo ? (
                 // Attached voucher — show as a chip with an × to detach.
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8,
                                padding: '4px 8px', borderRadius: 6, background: '#e0f2fe',
                                border: '1px solid #bae6fd', color: '#0c4a6e', fontSize: 13, fontWeight: 700 }}>
-                  <span style={{ fontFamily: 'monospace' }}>{voucherInfo.voucher.voucher_number}</span>
+                  <span style={{ fontFamily: 'var(--k-font-mono)' }}>{voucherInfo.voucher.voucher_number}</span>
                   {voucherInfo.voucher.issued_to_name && (
                     <span style={{ fontWeight: 500, opacity: 0.85 }}>· {voucherInfo.voucher.issued_to_name}</span>
                   )}
@@ -3235,27 +3238,27 @@ const POS = () => {
                   style={{ flex: 1 }}
                 />
               )}
-              {voucherLoading && <span style={{ fontSize: 11, color: '#6b7280' }}>searching…</span>}
+              {voucherLoading && <span style={{ fontSize: 11, color: '#64748b' }}>searching…</span>}
             </div>
             {/* Search dropdown — max 10 matches. Only shown while no
                 voucher is attached and there's at least one hit. */}
             {!voucherInfo && voucherPickerOpen && voucherMatches.length > 0 && (
               <div style={{
                 position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30,
-                marginTop: 4, background: '#fff', border: '1px solid #d1d5db',
+                marginTop: 4, background: '#fff', border: '1px solid #cbd5e1',
                 borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                 maxHeight: 280, overflowY: 'auto',
               }}>
                 {voucherMatches.map(v => (
                   <div key={v.id}
                        onClick={() => attachVoucher(v)}
-                       style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', gap: 8, alignItems: 'center' }}
+                       style={{ padding: '8px 10px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', display: 'flex', gap: 8, alignItems: 'center' }}
                        onMouseEnter={e => e.currentTarget.style.background = '#f0f9ff'}
                        onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: 'monospace', fontSize: 12, fontWeight: 700, color: '#0e7490' }}>{v.voucher_number}</div>
-                      <div style={{ fontSize: 11, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {v.issued_to_name || <span style={{ color: '#6b7280' }}>—</span>}
+                      <div style={{ fontFamily: 'var(--k-font-mono)', fontSize: 12, fontWeight: 700, color: '#0e7490' }}>{v.voucher_number}</div>
+                      <div style={{ fontSize: 11, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {v.issued_to_name || <span style={{ color: '#64748b' }}>—</span>}
                         {v.issued_to_phone ? ` · ${v.issued_to_phone}` : ''}
                       </div>
                     </div>
@@ -3373,8 +3376,8 @@ const POS = () => {
                           style={{
                             display: 'inline-flex', alignItems: 'center', gap: 5,
                             padding: '3px 9px', borderRadius: 14,
-                            background: '#f9fafb', border: '1px dashed #d1d5db',
-                            color: '#6b7280', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                            background: '#f8fafc', border: '1px dashed #cbd5e1',
+                            color: '#64748b', fontSize: 11, fontWeight: 600, cursor: 'pointer',
                           }}
                         >
                           <FiTag size={11} /> Change price
@@ -3385,9 +3388,9 @@ const POS = () => {
                   <div className="cart-item-qty">
                     <span style={{
                       minWidth: 64, textAlign: 'center', display: 'inline-block',
-                      border: '1px solid #e5e7eb', borderRadius: 6,
+                      border: '1px solid #e2e8f0', borderRadius: 6,
                       padding: '3px 8px', fontSize: 13, fontWeight: 600,
-                      background: '#f9fafb', userSelect: 'none', cursor: 'default'
+                      background: '#f8fafc', userSelect: 'none', cursor: 'default'
                     }}>
                       {item.quantity}
                     </span>
@@ -3514,7 +3517,7 @@ const POS = () => {
             onClick={e => e.stopPropagation()}
           >
             {/* Title */}
-            <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', marginBottom: 10, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 10, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Amount Received
             </div>
 
@@ -3524,7 +3527,7 @@ const POS = () => {
               padding: '14px 18px', marginBottom: 16, textAlign: 'right',
               fontSize: 32, fontWeight: 800, color: '#1d4ed8', letterSpacing: 1,
               minHeight: 62, display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-              fontFamily: 'monospace',
+              fontFamily: 'var(--k-font-mono)',
             }}>
               {curSym}{numpadValue || '0'}
             </div>
@@ -3557,13 +3560,13 @@ const POS = () => {
                 }}
                   style={{
                     padding: '18px 0', borderRadius: 12, fontSize: 22, fontWeight: 700,
-                    border: key === '⌫' ? '1.5px solid #fecaca' : '1.5px solid #e5e7eb',
-                    background: key === '⌫' ? '#fee2e2' : '#f9fafb',
-                    color: key === '⌫' ? '#dc2626' : '#111827',
+                    border: key === '⌫' ? '1.5px solid #fecaca' : '1.5px solid #e2e8f0',
+                    background: key === '⌫' ? '#fee2e2' : '#f8fafc',
+                    color: key === '⌫' ? '#dc2626' : '#0f172a',
                     cursor: 'pointer', transition: 'background 0.1s',
                   }}
-                  onMouseDown={e => e.currentTarget.style.background = key === '⌫' ? '#fecaca' : '#e5e7eb'}
-                  onMouseUp={e => e.currentTarget.style.background = key === '⌫' ? '#fee2e2' : '#f9fafb'}
+                  onMouseDown={e => e.currentTarget.style.background = key === '⌫' ? '#fecaca' : '#e2e8f0'}
+                  onMouseUp={e => e.currentTarget.style.background = key === '⌫' ? '#fee2e2' : '#f8fafc'}
                 >
                   {key}
                 </button>
@@ -3574,8 +3577,8 @@ const POS = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10, marginTop: 12 }}>
               <button onClick={() => setNumpadValue('')}
                 style={{
-                  padding: '14px 0', borderRadius: 12, border: '1.5px solid #e5e7eb',
-                  background: '#f3f4f6', color: '#374151', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+                  padding: '14px 0', borderRadius: 12, border: '1.5px solid #e2e8f0',
+                  background: '#f1f5f9', color: '#334155', fontSize: 14, fontWeight: 700, cursor: 'pointer'
                 }}>
                 Clear
               </button>
@@ -3688,19 +3691,19 @@ const POS = () => {
                 <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 13 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#991b1b', textTransform: 'uppercase', marginBottom: 8 }}>This Sale</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                    <span style={{ color: '#374151' }}>Subtotal</span>
+                    <span style={{ color: '#334155' }}>Subtotal</span>
                     <span>{money(subtotal)}</span>
                   </div>
                   {/* Cart-level discount — flat K off the whole sale. */}
                   <div style={{ display: 'none' }}>
-                    <span style={{ color: '#374151' }}>Change price (+/−)</span>
+                    <span style={{ color: '#334155' }}>Change price (+/−)</span>
                     {isAdmin ? (
                       <input
                         type="number" inputMode="decimal" step="0.01" value={discount || ''}
                         onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
                         placeholder="0.00"
                         title="Positive = discount (off total). Negative = markup (added to total)."
-                        style={{ width: 100, padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, fontWeight: 600, color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#111827', textAlign: 'right' }}
+                        style={{ width: 100, padding: '4px 8px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontWeight: 600, color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#0f172a', textAlign: 'right' }}
                       />
                     ) : (
                       <button
@@ -3709,9 +3712,9 @@ const POS = () => {
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
                           padding: '4px 10px', borderRadius: 14,
-                          background: parseFloat(discount || 0) > 0 ? '#fef2f2' : parseFloat(discount || 0) < 0 ? '#eff6ff' : '#f9fafb',
-                          border: `1px ${parseFloat(discount || 0) > 0 ? 'solid #fecaca' : parseFloat(discount || 0) < 0 ? 'solid #bfdbfe' : 'dashed #d1d5db'}`,
-                          color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#6b7280',
+                          background: parseFloat(discount || 0) > 0 ? '#fef2f2' : parseFloat(discount || 0) < 0 ? '#eff6ff' : '#f8fafc',
+                          border: `1px ${parseFloat(discount || 0) > 0 ? 'solid #fecaca' : parseFloat(discount || 0) < 0 ? 'solid #bfdbfe' : 'dashed #cbd5e1'}`,
+                          color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#64748b',
                           fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         }}
                       >
@@ -3732,7 +3735,7 @@ const POS = () => {
                         hide the MoMo + Bank columns and the matching "Pay
                         full in MoMo / Bank" buttons. The Cash column expands
                         to the full row width. */}
-                    <label style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
+                    <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>
                       {hasMoMoBank ? 'Paying Now (split across methods — any can be 0)' : 'Paying Now'}
                     </label>
                     {/* 2026-09-11 — MoMo / Bank also follow System Settings →
@@ -3750,20 +3753,20 @@ const POS = () => {
                             value={payModal[f.key]}
                             onChange={e => setPayModal({ ...payModal, [f.key]: e.target.value })}
                             placeholder="0.00"
-                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(payModal[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(payModal[f.key] || 0) > 0 ? f.color : '#374151', boxSizing: 'border-box' }} />
+                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(payModal[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(payModal[f.key] || 0) > 0 ? f.color : '#334155', boxSizing: 'border-box' }} />
                         </div>
                       ))}
                     </div>
                     <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                       <button onClick={() => setPayModal({ ...payModal, cash: total.toFixed(2), momo: '0', bank: '0' })}
-                        style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Cash</button>
+                        style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Cash</button>
                       {hasMoMoBank && methodShown('momo') && (
                         <button onClick={() => setPayModal({ ...payModal, cash: '0', momo: total.toFixed(2), bank: '0' })}
-                          style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in MoMo</button>
+                          style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in MoMo</button>
                       )}
                       {hasMoMoBank && methodShown('bank') && (
                         <button onClick={() => setPayModal({ ...payModal, cash: '0', momo: '0', bank: total.toFixed(2) })}
-                          style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Bank</button>
+                          style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Bank</button>
                       )}
                     </div>
                     {/* UX-12 — "customer gave": one tap fills Cash with a
@@ -3793,7 +3796,7 @@ const POS = () => {
                               value={payModal.cashFRA}
                               onChange={e => setPayModal({ ...payModal, cashFRA: e.target.value })}
                               placeholder="0"
-                              style={{ width: '100%', padding: '8px 10px', border: `2px solid ${cashFRANow > 0 ? '#a16207' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: cashFRANow > 0 ? '#a16207' : '#374151', boxSizing: 'border-box' }} />
+                              style={{ width: '100%', padding: '8px 10px', border: `2px solid ${cashFRANow > 0 ? '#a16207' : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: cashFRANow > 0 ? '#a16207' : '#334155', boxSizing: 'border-box' }} />
                           </div>
                           <div style={{ minWidth: 130, textAlign: 'right', fontSize: 12, color: '#92400e' }}>
                             <div>≈ {money(cashFRAasUSD)}</div>
@@ -3804,8 +3807,8 @@ const POS = () => {
                     )}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 13 }}>
-                      <span style={{ color: '#6b7280' }}>Paying Now Total</span>
-                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#991b1b' : '#6b7280' }}>{money(payNow)}</span>
+                      <span style={{ color: '#64748b' }}>Paying Now Total</span>
+                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#991b1b' : '#64748b' }}>{money(payNow)}</span>
                     </div>
                   </div>
                 </div>
@@ -3816,7 +3819,7 @@ const POS = () => {
                     v1.13.102 — Also capture Buyer Name + Buyer Address for
                     B2B walk-ins without a customer profile. Satisfies ZRA
                     Part B Q4(vi) 'customer's name and address'. */}
-                <div style={{ marginBottom: 16, padding: 12, background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
+                <div style={{ marginBottom: 16, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
                   {/* 2026-09-04 — when a customer is already chosen at the top
                       of POS, show them here rather than asking for a TPIN
                       again. Two search boxes for the same person is what made
@@ -3826,22 +3829,22 @@ const POS = () => {
                   {selectedCustomer ? (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
                       <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase' }}>Buyer</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase' }}>Buyer</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginTop: 2 }}>{selectedCustomer.name}</div>
-                        <div style={{ fontSize: 12, color: '#6b7280' }}>
+                        <div style={{ fontSize: 12, color: '#64748b' }}>
                           {selectedCustomer.tpin
                             ? <>TPIN {selectedCustomer.tpin}</>
                             : <span style={{ color: '#b45309' }}>No TPIN on file — the receipt will use ZRA's walk-in default</span>}
                         </div>
                       </div>
-                      <span style={{ fontSize: 11, color: '#6b7280', textAlign: 'right', maxWidth: 160 }}>
+                      <span style={{ fontSize: 11, color: '#64748b', textAlign: 'right', maxWidth: 160 }}>
                         Change the buyer at the top of the order
                       </span>
                     </div>
                   ) : (
                   <>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
-                    Buyer TPIN <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280' }}>(optional — leave blank for walk-in)</span>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+                    Buyer TPIN <span style={{ fontWeight: 400, textTransform: 'none', color: '#64748b' }}>(optional — leave blank for walk-in)</span>
                   </label>
                   <div style={{ display: 'flex', gap: 6, alignItems: 'stretch' }}>
                     <input
@@ -3857,7 +3860,7 @@ const POS = () => {
                       }}
                       onBlur={e => lookupTpin(e.target.value)}
                       placeholder="e.g. 1001710705"
-                      style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${payModal.buyerTpin ? '#b91c1c' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, letterSpacing: 1, color: '#111827', boxSizing: 'border-box' }}
+                      style={{ flex: 1, padding: '8px 10px', border: `1.5px solid ${payModal.buyerTpin ? '#b91c1c' : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, letterSpacing: 1, color: '#0f172a', boxSizing: 'border-box' }}
                     />
                     <button
                       type="button"
@@ -3868,8 +3871,8 @@ const POS = () => {
                         padding: '0 12px',
                         border: '1.5px solid #b91c1c',
                         borderRadius: 6,
-                        background: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#b91c1c' : '#e5e7eb',
-                        color: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#fff' : '#9ca3af',
+                        background: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#b91c1c' : '#e2e8f0',
+                        color: /^\d{10}$/.test(payModal.buyerTpin || '') ? '#fff' : '#94a3b8',
                         fontSize: 12,
                         fontWeight: 700,
                         cursor: /^\d{10}$/.test(payModal.buyerTpin || '') ? 'pointer' : 'not-allowed',
@@ -3882,7 +3885,7 @@ const POS = () => {
                   {/* Verification status line. Rendered under the input so
                       the cashier sees the ZRA-registered name before saving. */}
                   {tpinLookup.status === 'loading' && (
-                    <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>Checking with ZRA…</div>
+                    <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>Checking with ZRA…</div>
                   )}
                   {tpinLookup.status === 'verified' && (
                     <div style={{ marginTop: 6, fontSize: 11, color: '#166534', fontWeight: 600 }}>
@@ -3937,8 +3940,8 @@ const POS = () => {
                       receipt renders no name/address line when blank. */}
                   {payModal.buyerTpin && payModal.buyerTpin.length > 0 && (
                     <>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
-                        Buyer Name <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280' }}>(for B2B sale)</span>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
+                        Buyer Name <span style={{ fontWeight: 400, textTransform: 'none', color: '#64748b' }}>(for B2B sale)</span>
                       </label>
                       <input
                         type="text"
@@ -3946,9 +3949,9 @@ const POS = () => {
                         value={payModal.buyerName || ''}
                         onChange={e => setPayModal({ ...payModal, buyerName: e.target.value.toUpperCase() })}
                         placeholder="e.g. Zambian Breweries Plc"
-                        style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 14, color: '#111827', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 14, color: '#0f172a', boxSizing: 'border-box' }}
                       />
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
                         Buyer Address
                       </label>
                       <input
@@ -3957,7 +3960,7 @@ const POS = () => {
                         value={payModal.buyerAddress || ''}
                         onChange={e => setPayModal({ ...payModal, buyerAddress: e.target.value })}
                         placeholder="e.g. Plot 123, Great East Rd, Lusaka"
-                        style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 14, color: '#111827', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 14, color: '#0f172a', boxSizing: 'border-box' }}
                       />
                     </>
                   )}
@@ -3989,7 +3992,7 @@ const POS = () => {
                   </label>
                   {payModal.lpoEnabled && (
                     <>
-                      <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
+                      <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
                         LPO Number <span style={{ color: '#b91c1c' }}>*</span>
                       </label>
                       <input
@@ -3999,7 +4002,7 @@ const POS = () => {
                         value={payModal.lpoNumber || ''}
                         onChange={e => setPayModal({ ...payModal, lpoNumber: e.target.value.trim() })}
                         placeholder="e.g. 109506957"
-                        style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${payModal.lpoNumber ? '#ca8a04' : '#fca5a5'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: '#111827', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${payModal.lpoNumber ? '#ca8a04' : '#fca5a5'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: '#0f172a', boxSizing: 'border-box' }}
                       />
                     </>
                   )}
@@ -4040,7 +4043,7 @@ const POS = () => {
                             value={payModal.changeUSDgiven}
                             onChange={e => setPayModal({ ...payModal, changeUSDgiven: e.target.value })}
                             placeholder="0.00"
-                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${changeUSDgiven > 0 ? '#16a34a' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: changeUSDgiven > 0 ? '#15803d' : '#374151', boxSizing: 'border-box' }} />
+                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${changeUSDgiven > 0 ? '#16a34a' : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: changeUSDgiven > 0 ? '#15803d' : '#334155', boxSizing: 'border-box' }} />
                         </div>
                         <div>
                           <div style={{ fontSize: 11, color: '#a16207', fontWeight: 700, marginBottom: 3 }}>Change FRA</div>
@@ -4049,12 +4052,12 @@ const POS = () => {
                             value={payModal.changeFRAgiven}
                             onChange={e => setPayModal({ ...payModal, changeFRAgiven: e.target.value })}
                             placeholder="0"
-                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${changeFRAgiven > 0 ? '#a16207' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: changeFRAgiven > 0 ? '#a16207' : '#374151', boxSizing: 'border-box' }} />
+                            style={{ width: '100%', padding: '8px 10px', border: `2px solid ${changeFRAgiven > 0 ? '#a16207' : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: changeFRAgiven > 0 ? '#a16207' : '#334155', boxSizing: 'border-box' }} />
                           <div style={{ fontSize: 10, color: '#a16207', marginTop: 3, textAlign: 'right' }}>≈ {money(changeFRAasUSD)} at buy {BUY_RATE.toLocaleString()}</div>
                         </div>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 12 }}>
-                        <span style={{ color: '#6b7280' }}>Total given</span>
+                        <span style={{ color: '#64748b' }}>Total given</span>
                         <span style={{ fontWeight: 700, color: '#15803d' }}>{money(totalChangeGiven)}</span>
                       </div>
                       {netRemaining > 0.001 && (
@@ -4101,9 +4104,9 @@ const POS = () => {
                 </div>
               </div>
 
-              <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button onClick={() => { setPayModal(null); customerChannel.current?.postMessage({ type: 'cart_update', items: cart, total }); }}
-                  style={{ padding: '10px 18px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+                  style={{ padding: '10px 18px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
                   Cancel
                 </button>
                 <button
@@ -4160,7 +4163,7 @@ const POS = () => {
                       && !(payModal.lpoEnabled && !(payModal.lpoNumber && payModal.lpoNumber.trim()));
                     return {
                       padding: '10px 22px',
-                      background: ok ? 'linear-gradient(135deg,#16a34a,#15803d)' : '#9ca3af',
+                      background: ok ? 'linear-gradient(135deg,#16a34a,#15803d)' : '#94a3b8',
                       color: '#fff', border: 'none', borderRadius: 8,
                       cursor: ok ? 'pointer' : 'not-allowed',
                       fontWeight: 800,
@@ -4185,46 +4188,46 @@ const POS = () => {
           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
             <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 16px 48px rgba(0,0,0,0.25)', maxWidth: 460, width: '100%', padding: 20 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#111827' }}>Register New Customer</h3>
+                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#0f172a' }}>Register New Customer</h3>
                 <button type="button" onClick={() => setNewCustModal(null)} disabled={newCustModal.saving}
-                  style={{ background: 'none', border: 'none', fontSize: 22, color: '#6b7280', cursor: newCustModal.saving ? 'not-allowed' : 'pointer', padding: 0, lineHeight: 1 }}>×</button>
+                  style={{ background: 'none', border: 'none', fontSize: 22, color: '#64748b', cursor: newCustModal.saving ? 'not-allowed' : 'pointer', padding: 0, lineHeight: 1 }}>×</button>
               </div>
-              <p style={{ margin: '0 0 14px', fontSize: 11, color: '#6b7280' }}>
+              <p style={{ margin: '0 0 14px', fontSize: 11, color: '#64748b' }}>
                 This TPIN isn't in your customer registry. Save the customer here and continue the sale — Kelete will push it to ZRA automatically.
               </p>
               <div style={{ display: 'grid', gap: 10 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>TPIN</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>TPIN</label>
                   <input type="text" value={newCustModal.tpin} disabled
-                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, background: '#f3f4f6', fontSize: 13, fontWeight: 700, letterSpacing: 1, color: '#111827', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #cbd5e1', borderRadius: 6, background: '#f1f5f9', fontSize: 13, fontWeight: 700, letterSpacing: 1, color: '#0f172a', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Customer Name <span style={{ color: '#dc2626' }}>*</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Customer Name <span style={{ color: '#dc2626' }}>*</span></label>
                   <input type="text" value={newCustModal.name} autoFocus
                     onChange={e => setNewCustModal(m => ({ ...m, name: e.target.value.toUpperCase() }))}
                     placeholder="e.g. Zambian Breweries Plc"
-                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #2563eb', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #2563eb', borderRadius: 6, fontSize: 13, color: '#0f172a', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Phone <span style={{ color: '#6b7280', fontWeight: 500 }}>(10 digits, optional)</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Phone <span style={{ color: '#64748b', fontWeight: 500 }}>(10 digits, optional)</span></label>
                   <input type="text" value={newCustModal.phone}
                     onChange={e => setNewCustModal(m => ({ ...m, phone: e.target.value.replace(/\D/g, '').slice(0, 10) }))}
                     placeholder="e.g. 0977123456"
-                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 13, color: '#0f172a', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Address <span style={{ color: '#6b7280', fontWeight: 500 }}>(optional)</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Address <span style={{ color: '#64748b', fontWeight: 500 }}>(optional)</span></label>
                   <input type="text" value={newCustModal.address}
                     onChange={e => setNewCustModal(m => ({ ...m, address: e.target.value }))}
                     placeholder="e.g. Plot 123, Great East Rd, Lusaka"
-                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 13, color: '#0f172a', boxSizing: 'border-box' }} />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Email <span style={{ color: '#6b7280', fontWeight: 500 }}>(optional)</span></label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Email <span style={{ color: '#64748b', fontWeight: 500 }}>(optional)</span></label>
                   <input type="email" value={newCustModal.email}
                     onChange={e => setNewCustModal(m => ({ ...m, email: e.target.value }))}
                     placeholder="e.g. accounts@customer.com"
-                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '8px 10px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 13, color: '#0f172a', boxSizing: 'border-box' }} />
                 </div>
               </div>
               {newCustModal.error && (
@@ -4234,7 +4237,7 @@ const POS = () => {
               )}
               <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                 <button type="button" onClick={() => setNewCustModal(null)} disabled={newCustModal.saving}
-                  style={{ padding: '8px 14px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: newCustModal.saving ? 'not-allowed' : 'pointer' }}>
+                  style={{ padding: '8px 14px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', color: '#334155', fontSize: 13, fontWeight: 600, cursor: newCustModal.saving ? 'not-allowed' : 'pointer' }}>
                   Cancel
                 </button>
                 <button type="button"
@@ -4285,7 +4288,7 @@ const POS = () => {
                     padding: '8px 16px',
                     border: 'none',
                     borderRadius: 6,
-                    background: (newCustModal.saving || !newCustModal.name.trim()) ? '#9ca3af' : 'linear-gradient(135deg,#16a34a,#15803d)',
+                    background: (newCustModal.saving || !newCustModal.name.trim()) ? '#94a3b8' : 'linear-gradient(135deg,#16a34a,#15803d)',
                     color: '#fff',
                     fontSize: 13,
                     fontWeight: 800,
@@ -4337,12 +4340,12 @@ const POS = () => {
                     saved customer record. Empty string → fiscal receipt uses
                     ZRA's walk-in default '1000000000'. Overrides the customer's
                     saved TPIN for THIS sale only (customer record untouched). */}
-                <div style={{ marginBottom: 16, padding: 12, background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' }}>
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
+                <div style={{ marginBottom: 16, padding: 12, background: '#f8fafc', borderRadius: 10, border: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', display: 'block', marginBottom: 6 }}>
                     Buyer TPIN
                     {creditModal.buyerTpin
                       ? <span style={{ fontWeight: 400, textTransform: 'none', color: '#15803d', marginLeft: 6 }}>· from customer record</span>
-                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280', marginLeft: 6 }}>· blank → walk-in default 1000000000</span>}
+                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#64748b', marginLeft: 6 }}>· blank → walk-in default 1000000000</span>}
                   </label>
                   <input
                     type="text"
@@ -4351,18 +4354,18 @@ const POS = () => {
                     value={creditModal.buyerTpin || ''}
                     onChange={e => setCreditModal({ ...creditModal, buyerTpin: e.target.value.replace(/\D/g, '').slice(0, 10) })}
                     placeholder="e.g. 1001710705"
-                    style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${creditModal.buyerTpin ? '#16a34a' : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, letterSpacing: 1, color: '#111827', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${creditModal.buyerTpin ? '#16a34a' : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, letterSpacing: 1, color: '#0f172a', boxSizing: 'border-box' }}
                   />
                   {/* v1.13.136 — Buyer Address, seeded from selectedCustomer.address
                       when the Credit Sale modal opens. Editable so the cashier
                       can override for this sale (does not touch the customer
                       record). Sent alongside customer_tpin so the fiscal
                       receipt shows the address the buyer expects. */}
-                  <label style={{ fontSize: 11, fontWeight: 700, color: '#374151', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: '#334155', textTransform: 'uppercase', display: 'block', marginTop: 10, marginBottom: 6 }}>
                     Buyer Address
                     {creditModal.buyerAddress
                       ? <span style={{ fontWeight: 400, textTransform: 'none', color: '#15803d', marginLeft: 6 }}>· from customer record</span>
-                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#6b7280', marginLeft: 6 }}>· optional</span>}
+                      : <span style={{ fontWeight: 400, textTransform: 'none', color: '#64748b', marginLeft: 6 }}>· optional</span>}
                   </label>
                   <input
                     type="text"
@@ -4370,7 +4373,7 @@ const POS = () => {
                     value={creditModal.buyerAddress || ''}
                     onChange={e => setCreditModal({ ...creditModal, buyerAddress: e.target.value })}
                     placeholder="e.g. Plot 123, Kabwe Road, Lusaka"
-                    style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${creditModal.buyerAddress ? '#16a34a' : '#d1d5db'}`, borderRadius: 6, fontSize: 13, color: '#111827', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '8px 10px', border: `1.5px solid ${creditModal.buyerAddress ? '#16a34a' : '#cbd5e1'}`, borderRadius: 6, fontSize: 13, color: '#0f172a', boxSizing: 'border-box' }}
                   />
                 </div>
 
@@ -4378,18 +4381,18 @@ const POS = () => {
                 <div style={{ background: '#eff6ff', borderRadius: 10, padding: 14, marginBottom: 16, fontSize: 13 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: '#1d4ed8', textTransform: 'uppercase', marginBottom: 8 }}>This Sale</div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                    <span style={{ color: '#374151' }}>Subtotal</span>
+                    <span style={{ color: '#334155' }}>Subtotal</span>
                     <span>{money(subtotal)}</span>
                   </div>
                   <div style={{ display: 'none' }}>
-                    <span style={{ color: '#374151' }}>Change price (+/−)</span>
+                    <span style={{ color: '#334155' }}>Change price (+/−)</span>
                     {isAdmin ? (
                       <input
                         type="number" inputMode="decimal" step="0.01" value={discount || ''}
                         onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
                         placeholder="0.00"
                         title="Positive = discount (off total). Negative = markup (added to total)."
-                        style={{ width: 100, padding: '4px 8px', border: '1.5px solid #d1d5db', borderRadius: 6, fontSize: 13, fontWeight: 600, color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#111827', textAlign: 'right' }}
+                        style={{ width: 100, padding: '4px 8px', border: '1.5px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontWeight: 600, color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#0f172a', textAlign: 'right' }}
                       />
                     ) : (
                       <button
@@ -4398,9 +4401,9 @@ const POS = () => {
                         style={{
                           display: 'inline-flex', alignItems: 'center', gap: 5,
                           padding: '4px 10px', borderRadius: 14,
-                          background: parseFloat(discount || 0) > 0 ? '#fef2f2' : parseFloat(discount || 0) < 0 ? '#eff6ff' : '#f9fafb',
-                          border: `1px ${parseFloat(discount || 0) > 0 ? 'solid #fecaca' : parseFloat(discount || 0) < 0 ? 'solid #bfdbfe' : 'dashed #d1d5db'}`,
-                          color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#6b7280',
+                          background: parseFloat(discount || 0) > 0 ? '#fef2f2' : parseFloat(discount || 0) < 0 ? '#eff6ff' : '#f8fafc',
+                          border: `1px ${parseFloat(discount || 0) > 0 ? 'solid #fecaca' : parseFloat(discount || 0) < 0 ? 'solid #bfdbfe' : 'dashed #cbd5e1'}`,
+                          color: parseFloat(discount || 0) > 0 ? '#dc2626' : parseFloat(discount || 0) < 0 ? '#2563eb' : '#64748b',
                           fontSize: 12, fontWeight: 700, cursor: 'pointer',
                         }}
                       >
@@ -4420,7 +4423,7 @@ const POS = () => {
                     {/* v1.9.30 — Liquor branches: Cash / MoMo / Bank inputs
                         mirroring the walk-in Pay modal. Kelete branches keep
                         the USD / FRA / K currency-axis inputs. */}
-                    <label style={{ fontSize: 12, color: '#6b7280', fontWeight: 600 }}>
+                    <label style={{ fontSize: 12, color: '#64748b', fontWeight: 600 }}>
                       Paying Now (split across {hasMoMoBank ? 'methods' : 'currencies'} — any can be 0)
                     </label>
                     {(() => {
@@ -4444,7 +4447,7 @@ const POS = () => {
                                 value={creditModal[f.key]}
                                 onChange={e => setCreditModal({ ...creditModal, [f.key]: e.target.value })}
                                 placeholder={f.placeholder}
-                                style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(creditModal[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(creditModal[f.key] || 0) > 0 ? f.color : '#374151', boxSizing: 'border-box' }} />
+                                style={{ width: '100%', padding: '8px 10px', border: `2px solid ${parseFloat(creditModal[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, color: parseFloat(creditModal[f.key] || 0) > 0 ? f.color : '#334155', boxSizing: 'border-box' }} />
                             </div>
                           ))}
                         </div>
@@ -4454,38 +4457,38 @@ const POS = () => {
                       {hasMoMoBank ? (
                         <>
                           <button onClick={() => setCreditModal({ ...creditModal, cash: '0', momo: '0', bank: '0' })}
-                            style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay {curSym}0 (full credit)</button>
+                            style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay {curSym}0 (full credit)</button>
                           <button onClick={() => setCreditModal({ ...creditModal, cash: total.toFixed(2), momo: '0', bank: '0' })}
-                            style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Cash</button>
+                            style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Cash</button>
                           {methodShown('momo') && (
                             <button onClick={() => setCreditModal({ ...creditModal, cash: '0', momo: total.toFixed(2), bank: '0' })}
-                              style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in MoMo</button>
+                              style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in MoMo</button>
                           )}
                           {methodShown('bank') && (
                             <button onClick={() => setCreditModal({ ...creditModal, cash: '0', momo: '0', bank: total.toFixed(2) })}
-                              style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Bank</button>
+                              style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in Bank</button>
                           )}
                         </>
                       ) : (
                         <>
                           <button onClick={() => setCreditModal({ usd: '0', fra: '0', k: '0' })}
-                            style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay $0 (full credit)</button>
+                            style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay $0 (full credit)</button>
                           <button onClick={() => setCreditModal({ usd: total.toFixed(2), fra: '0', k: '0' })}
-                            style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in USD</button>
+                            style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in USD</button>
                           {isDual && SELL_RATE > 0 && (
                             <button onClick={() => setCreditModal({ usd: '0', fra: (total * SELL_RATE).toFixed(0), k: '0' })}
-                              style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in FRA</button>
+                              style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in FRA</button>
                           )}
                           {hasK && (
                             <button onClick={() => setCreditModal({ usd: '0', fra: '0', k: (total * SELL_RATE_K).toFixed(0) })}
-                              style={{ padding: '4px 12px', border: '1px solid #d1d5db', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in K</button>
+                              style={{ padding: '4px 12px', border: '1px solid #cbd5e1', borderRadius: 6, background: '#fff', fontSize: 12, cursor: 'pointer' }}>Pay full in K</button>
                           )}
                         </>
                       )}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8, padding: '6px 10px', background: '#fff', borderRadius: 6, fontSize: 13 }}>
-                      <span style={{ color: '#6b7280' }}>Paying Now Total</span>
-                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#6b7280' }}>{money(payNow)}</span>
+                      <span style={{ color: '#64748b' }}>Paying Now Total</span>
+                      <span style={{ fontWeight: 800, color: payNow > 0 ? '#1d4ed8' : '#64748b' }}>{money(payNow)}</span>
                     </div>
                   </div>
                 </div>
@@ -4508,8 +4511,8 @@ const POS = () => {
                     title={overLimit ? 'Auto-expanded because this sale would exceed the credit limit' : ''}
                     style={{
                       width: '100%', padding: '8px 12px',
-                      background: summaryOpen ? '#f3f4f6' : '#fff',
-                      color: '#374151', border: '1px dashed #d1d5db', borderRadius: 8,
+                      background: summaryOpen ? '#f1f5f9' : '#fff',
+                      color: '#334155', border: '1px dashed #cbd5e1', borderRadius: 8,
                       cursor: overLimit ? 'default' : 'pointer',
                       fontSize: 12, fontWeight: 700,
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -4524,17 +4527,17 @@ const POS = () => {
                   </button>
 
                   {summaryOpen && (
-                    <div style={{ background: '#f9fafb', borderRadius: 10, padding: 14, marginTop: 8, fontSize: 13 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', marginBottom: 8 }}>Account Summary</div>
+                    <div style={{ background: '#f8fafc', borderRadius: 10, padding: 14, marginTop: 8, fontSize: 13 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: 8 }}>Account Summary</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                        <span style={{ color: '#6b7280' }}>Credit Limit</span>
+                        <span style={{ color: '#64748b' }}>Credit Limit</span>
                         <span style={{ fontWeight: 600 }}>{creditLimit > 0 ? money(creditLimit) : 'No limit set'}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
-                        <span style={{ color: '#6b7280' }}>Current Outstanding</span>
+                        <span style={{ color: '#64748b' }}>Current Outstanding</span>
                         <span style={{ fontWeight: 600, color: currentOutstanding > 0 ? '#dc2626' : '#15803d' }}>{money(currentOutstanding)}</span>
                       </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px dashed #e5e7eb', marginTop: 4, paddingTop: 8 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderTop: '1px dashed #e2e8f0', marginTop: 4, paddingTop: 8 }}>
                         <span style={{ fontWeight: 700, color: '#78350f' }}>Total Outstanding After</span>
                         <span style={{ fontWeight: 800, fontSize: 16, color: '#dc2626' }}>{money(projectedOutstanding)}</span>
                       </div>
@@ -4549,9 +4552,9 @@ const POS = () => {
               </div>
 
               {/* Pinned footer */}
-              <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, background: '#fff', borderRadius: '0 0 14px 14px' }}>
+              <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0, background: '#fff', borderRadius: '0 0 14px 14px' }}>
                 <button onClick={() => { setCreditModal(null); customerChannel.current?.postMessage({ type: 'cart_update', items: cart, total }); }}
-                  style={{ padding: '10px 18px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+                  style={{ padding: '10px 18px', background: '#fff', color: '#334155', border: '1px solid #cbd5e1', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
                   Cancel
                 </button>
                 <button
@@ -4572,7 +4575,7 @@ const POS = () => {
                     handleCheckout(breakdown);
                   }}
                   disabled={onHold || overLimit}
-                  style={{ padding: '10px 22px', background: (onHold || overLimit) ? '#9ca3af' : 'linear-gradient(135deg,#d97706,#b45309)', color: '#fff', border: 'none', borderRadius: 8, cursor: (onHold || overLimit) ? 'not-allowed' : 'pointer', fontWeight: 800 }}>
+                  style={{ padding: '10px 22px', background: (onHold || overLimit) ? '#94a3b8' : 'linear-gradient(135deg,#d97706,#b45309)', color: '#fff', border: 'none', borderRadius: 8, cursor: (onHold || overLimit) ? 'not-allowed' : 'pointer', fontWeight: 800 }}>
                   Confirm Credit Sale →
                 </button>
               </div>
@@ -4614,23 +4617,23 @@ const POS = () => {
                 off below the edge, with nothing left to scroll them into view. */}
             <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
             {/* ── HEADER ── */}
-            <div style={{ padding: `${receiptPad}px ${receiptPad}px 0`, fontFamily: 'monospace' }}>
+            <div style={{ padding: `${receiptPad}px ${receiptPad}px 0`, fontFamily: 'var(--k-font-mono)' }}>
               <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, fontFamily: 'sans-serif' }}>{businessName}</h2>
+                <h2 style={{ margin: 0, fontSize: 17, fontWeight: 700, fontFamily: 'inherit' }}>{businessName}</h2>
                 {businessAddress && (
-                  <p style={{ margin: '3px 0 0', fontSize: 11, color: '#4b5563', whiteSpace: 'pre-line' }}>{businessAddress}</p>
+                  <p style={{ margin: '3px 0 0', fontSize: 11, color: '#475569', whiteSpace: 'pre-line' }}>{businessAddress}</p>
                 )}
                 {businessPhone && (
-                  <p style={{ margin: '2px 0 0', fontSize: 11, color: '#4b5563' }}>Tel: {businessPhone}</p>
+                  <p style={{ margin: '2px 0 0', fontSize: 11, color: '#475569' }}>Tel: {businessPhone}</p>
                 )}
-                <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 700, color: '#111827', letterSpacing: 1 }}>
+                <p style={{ margin: '6px 0 0', fontSize: 11, fontWeight: 700, color: '#0f172a', letterSpacing: 1 }}>
                   {receiptData.paymentMethod === 'Credit' ? 'CREDIT SALE — Charged to Account'
                     : receiptData.paymentMethod === 'Partial-Credit' ? 'PARTIAL CREDIT SALE'
                     : 'SALES RECEIPT'}
                 </p>
               </div>
 
-              <div style={{ borderTop: '1px dashed #d1d5db', margin: '10px 0' }} />
+              <div style={{ borderTop: '1px dashed #cbd5e1', margin: '10px 0' }} />
 
               <div style={{ fontSize: 12, marginBottom: 10 }}>
                 {[
@@ -4640,16 +4643,16 @@ const POS = () => {
                   ['Served by', `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Staff'],
                 ].map(([label, value]) => (
                   <div key={label} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                    <span style={{ color: '#6b7280' }}>{label}</span>
+                    <span style={{ color: '#64748b' }}>{label}</span>
                     <strong>{value}</strong>
                   </div>
                 ))}
               </div>
 
-              <div style={{ borderTop: '1px dashed #d1d5db', margin: '10px 0' }} />
+              <div style={{ borderTop: '1px dashed #cbd5e1', margin: '10px 0' }} />
 
               {/* Column headings — Qty first per operator request */}
-              <div style={{ display: 'flex', fontSize: 10, color: '#6b7280', marginBottom: 6, fontWeight: 600 }}>
+              <div style={{ display: 'flex', fontSize: 10, color: '#64748b', marginBottom: 6, fontWeight: 600 }}>
                 <span style={{ flex: 1 }}>QTY</span>
                 <span style={{ flex: 3 }}>ITEM</span>
                 <span style={{ textAlign: 'right', flex: 1 }}>PRICE</span>
@@ -4658,7 +4661,7 @@ const POS = () => {
             </div>
 
             {/* ── SCROLLABLE ITEMS ── */}
-            <div style={{ padding: `0 ${receiptPad}px`, fontFamily: 'monospace' }}>
+            <div style={{ padding: `0 ${receiptPad}px`, fontFamily: 'var(--k-font-mono)' }}>
               {receiptData.items.map((item, idx) => {
                 const isAltUnit = isNonDefaultUnit(item);
                 const lineDisc = parseFloat(item.discount || 0);
@@ -4685,8 +4688,8 @@ const POS = () => {
             </div>
 
             {/* ── FIXED FOOTER ── */}
-            <div style={{ padding: `0 ${receiptPad}px 8px`, fontFamily: 'monospace' }}>
-              <div style={{ borderTop: '1px dashed #d1d5db', margin: '10px 0' }} />
+            <div style={{ padding: `0 ${receiptPad}px 8px`, fontFamily: 'var(--k-font-mono)' }}>
+              <div style={{ borderTop: '1px dashed #cbd5e1', margin: '10px 0' }} />
 
               <div style={{ fontSize: 12 }}>
                 {(() => {
@@ -4704,7 +4707,7 @@ const POS = () => {
                   return (
                     <>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                        <span style={{ color: '#6b7280' }}>Subtotal</span>
+                        <span style={{ color: '#64748b' }}>Subtotal</span>
                         <span>{money(grossSubtotal)}</span>
                       </div>
                       {totalDisc > 0 && (
@@ -4716,7 +4719,7 @@ const POS = () => {
                     </>
                   );
                 })()}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, paddingTop: 5, borderTop: '1px solid #e5e7eb', fontWeight: 800, fontSize: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, paddingTop: 5, borderTop: '1px solid #e2e8f0', fontWeight: 800, fontSize: 18 }}>
                   <span>TOTAL</span>
                   <span>{money(receiptData.total)}</span>
                 </div>
@@ -4728,7 +4731,7 @@ const POS = () => {
                   if (!hasSplit) {
                     return (
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontWeight: 600, fontSize: 14 }}>
-                        <span style={{ color: '#6b7280' }}>Amount Received</span>
+                        <span style={{ color: '#64748b' }}>Amount Received</span>
                         <span>{money(receiptData.amountReceived)}</span>
                       </div>
                     );
@@ -4737,24 +4740,24 @@ const POS = () => {
                     <>
                       {c > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2, fontSize: 13 }}>
-                          <span style={{ color: '#6b7280' }}>Cash</span>
+                          <span style={{ color: '#64748b' }}>Cash</span>
                           <span>{money(c)}</span>
                         </div>
                       )}
                       {m > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2, fontSize: 13 }}>
-                          <span style={{ color: '#6b7280' }}>Mobile Money</span>
+                          <span style={{ color: '#64748b' }}>Mobile Money</span>
                           <span>{money(m)}</span>
                         </div>
                       )}
                       {b > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2, fontSize: 13 }}>
-                          <span style={{ color: '#6b7280' }}>Bank</span>
+                          <span style={{ color: '#64748b' }}>Bank</span>
                           <span>{money(b)}</span>
                         </div>
                       )}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontWeight: 700, fontSize: 14, borderTop: '1px dotted #d1d5db', paddingTop: 3 }}>
-                        <span style={{ color: '#374151' }}>Total Received</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3, fontWeight: 700, fontSize: 14, borderTop: '1px dotted #cbd5e1', paddingTop: 3 }}>
+                        <span style={{ color: '#334155' }}>Total Received</span>
                         <span>{money(receiptData.amountReceived)}</span>
                       </div>
                     </>
@@ -4773,7 +4776,7 @@ const POS = () => {
                 )}
               </div>
 
-              <div style={{ borderTop: '1px dashed #d1d5db', margin: '14px 0 10px' }} />
+              <div style={{ borderTop: '1px dashed #cbd5e1', margin: '14px 0 10px' }} />
 
               {/* ZRA fiscal block on-screen (mirrors what prints on thermal).
                   Only shows when saveSales signed the invoice. */}
@@ -4781,12 +4784,12 @@ const POS = () => {
                 <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: 8, padding: 12, marginBottom: 12 }}>
                   <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 800, letterSpacing: 1, color: '#166534', marginBottom: 4 }}>TAX INVOICE</div>
                   <div style={{ textAlign: 'center', fontSize: 10, color: '#166534', marginBottom: 8 }}>Signed by ZRA Smart Invoice (VSDC)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 4, fontSize: 11, fontFamily: 'monospace' }}>
-                    <span style={{ color: '#6b7280' }}>SDC ID</span><span>{receiptData.zra_sdc_id || '—'}</span>
-                    <span style={{ color: '#6b7280' }}>Invoice No</span><span>{receiptData.zra_rcpt_no || '—'}</span>
-                    <span style={{ color: '#6b7280' }}>VSDC Date</span><span>{receiptData.zra_vsdc_rcpt_pbct_date || '—'}</span>
-                    <span style={{ color: '#6b7280' }}>Internal Data</span><span style={{ wordBreak: 'break-all', fontSize: 10 }}>{receiptData.zra_intrl_data || '—'}</span>
-                    <span style={{ color: '#6b7280' }}>Rcpt Signature</span><span style={{ wordBreak: 'break-all', fontSize: 10 }}>{receiptData.zra_rcpt_sign || '—'}</span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', gap: 4, fontSize: 11, fontFamily: 'var(--k-font-mono)' }}>
+                    <span style={{ color: '#64748b' }}>SDC ID</span><span>{receiptData.zra_sdc_id || '—'}</span>
+                    <span style={{ color: '#64748b' }}>Invoice No</span><span>{receiptData.zra_rcpt_no || '—'}</span>
+                    <span style={{ color: '#64748b' }}>VSDC Date</span><span>{receiptData.zra_vsdc_rcpt_pbct_date || '—'}</span>
+                    <span style={{ color: '#64748b' }}>Internal Data</span><span style={{ wordBreak: 'break-all', fontSize: 10 }}>{receiptData.zra_intrl_data || '—'}</span>
+                    <span style={{ color: '#64748b' }}>Rcpt Signature</span><span style={{ wordBreak: 'break-all', fontSize: 10 }}>{receiptData.zra_rcpt_sign || '—'}</span>
                   </div>
                 </div>
               )}
@@ -4807,7 +4810,7 @@ const POS = () => {
                 </div>
               )}
 
-              <div style={{ textAlign: 'center', fontSize: 11, color: '#6b7280', marginBottom: 16 }}>
+              <div style={{ textAlign: 'center', fontSize: 11, color: '#64748b', marginBottom: 16 }}>
                 <p style={{ margin: 0 }}>Thank you for your purchase!</p>
                 <p style={{ margin: '2px 0 0' }}>Please come again.</p>
                 {(receiptData.items || []).some(isNonDefaultUnit) && (
@@ -4818,9 +4821,9 @@ const POS = () => {
             </div>
             </div>
             {/* Pinned below the scroll area: always on screen, whatever its height. */}
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', padding: `12px ${receiptPad}px`, borderTop: '1px solid #e5e7eb', background: '#fff', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', padding: `12px ${receiptPad}px`, borderTop: '1px solid #e2e8f0', background: '#fff', flexShrink: 0 }}>
                 <button onClick={() => setShowReceipt(false)}
-                  style={{ padding: '10px 20px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
+                  style={{ padding: '10px 20px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>
                   Close
                 </button>
                 <button onClick={() => { printThermalReceipt(receiptData, businessName, businessPhone, `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Staff', businessAddress); setShowChangeBanner(true); }}
@@ -4844,17 +4847,17 @@ const POS = () => {
                 padding: receiptPad < 20 ? '24px 18px' : '36px 40px',
                 textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', minWidth: receiptPad < 20 ? 0 : 280,
               }}>
-                <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4, letterSpacing: 1, textTransform: 'uppercase' }}>Transaction Complete</div>
+                <div style={{ fontSize: 13, color: '#64748b', marginBottom: 4, letterSpacing: 1, textTransform: 'uppercase' }}>Transaction Complete</div>
                 {receiptData.amountReceived >= receiptData.total ? (
                   <>
-                    <div style={{ fontSize: 14, color: '#374151', marginBottom: 6 }}>Change to give customer</div>
+                    <div style={{ fontSize: 14, color: '#334155', marginBottom: 6 }}>Change to give customer</div>
                     <div style={{ fontSize: 52, fontWeight: 900, color: '#15803d', lineHeight: 1, marginBottom: 24 }}>
                       {money(receiptData.change)}
                     </div>
                   </>
                 ) : (
                   <>
-                    <div style={{ fontSize: 14, color: '#374151', marginBottom: 6 }}>Balance still owed</div>
+                    <div style={{ fontSize: 14, color: '#334155', marginBottom: 6 }}>Balance still owed</div>
                     <div style={{ fontSize: 52, fontWeight: 900, color: '#dc2626', lineHeight: 1, marginBottom: 24 }}>
                       {money(receiptData.total - receiptData.amountReceived)}
                     </div>
@@ -4868,8 +4871,8 @@ const POS = () => {
                     <button
                       onClick={() => printThermalReceipt(receiptData, businessName, businessPhone, `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Staff', businessAddress)}
                       style={{
-                        padding: '12px 22px', background: '#fff', color: '#1f2937',
-                        border: '1.5px solid #d1d5db', borderRadius: 10, fontSize: 15, fontWeight: 700,
+                        padding: '12px 22px', background: '#fff', color: '#1e293b',
+                        border: '1.5px solid #cbd5e1', borderRadius: 10, fontSize: 15, fontWeight: 700,
                         cursor: 'pointer',
                       }}
                     >
@@ -4900,19 +4903,19 @@ const POS = () => {
         <div
           style={{
             position: 'fixed', top: contextMenu.y, left: contextMenu.x,
-            background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8,
+            background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8,
             boxShadow: '0 8px 24px rgba(0,0,0,0.15)', zIndex: 9999,
             minWidth: 180, overflow: 'hidden',
           }}
           onClick={e => e.stopPropagation()}
         >
-          <div style={{ padding: '6px 0', borderBottom: '1px solid #f3f4f6' }}>
-            <div style={{ padding: '4px 14px', fontSize: 11, color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div style={{ padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+            <div style={{ padding: '4px 14px', fontSize: 11, color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
               {contextMenu.item.product_name}
             </div>
           </div>
           <button
-            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: '#374151', fontWeight: 500 }}
+            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', border: 'none', background: 'none', cursor: 'pointer', fontSize: 13, color: '#334155', fontWeight: 500 }}
             onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
             onMouseLeave={e => e.currentTarget.style.background = 'none'}
             onClick={() => { setQtyEdit({ item: contextMenu.item, value: '' }); setContextMenu(null); }}
@@ -4972,9 +4975,9 @@ const POS = () => {
           onClick={() => setQtyOnAdd(null)}>
           <div onClick={e => e.stopPropagation()}
             style={{ width: 320, maxWidth: '90vw', background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 20px 50px rgba(0,0,0,0.25)' }}>
-            <h4 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#111827' }}>{qtyOnAdd.product.name}</h4>
-            <p style={{ margin: '0 0 14px', fontSize: 12, color: '#6b7280' }}>{curSym}{unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {qtyOnAdd.unit}</p>
-            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Quantity ({qtyOnAdd.unit})</label>
+            <h4 style={{ margin: '0 0 4px', fontSize: 15, fontWeight: 700, color: '#0f172a' }}>{qtyOnAdd.product.name}</h4>
+            <p style={{ margin: '0 0 14px', fontSize: 12, color: '#64748b' }}>{curSym}{unitPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / {qtyOnAdd.unit}</p>
+            <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Quantity ({qtyOnAdd.unit})</label>
             <input
               type="number" inputMode="decimal" min="0" step="any" autoFocus
               value={qtyOnAdd.value}
@@ -4983,12 +4986,12 @@ const POS = () => {
               onFocus={e => e.target.select()}
               style={{ width: '100%', padding: '12px 14px', borderRadius: 10, border: invalid ? '2px solid #fca5a5' : '2px solid #16a34a', fontSize: 22, fontWeight: 700, textAlign: 'center', outline: 'none', boxSizing: 'border-box' }}
             />
-            <div style={{ marginTop: 10, fontSize: 12, color: '#6b7280', textAlign: 'center' }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: '#64748b', textAlign: 'center' }}>
               Total: <strong style={{ color: '#0f172a' }}>{curSym}{(typed * unitPrice).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
               <button onClick={() => setQtyOnAdd(null)}
-                style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1.5px solid #e5e7eb', background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: '1.5px solid #e2e8f0', background: '#fff', color: '#334155', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
               <button onClick={submit} disabled={invalid}
                 style={{ flex: 1, padding: '10px 16px', borderRadius: 10, border: 'none', background: invalid ? '#cbd5e1' : '#16a34a', color: '#fff', fontSize: 13, fontWeight: 700, cursor: invalid ? 'not-allowed' : 'pointer' }}>Add to Cart</button>
             </div>
@@ -5021,14 +5024,14 @@ const POS = () => {
           onClick={() => setQtyEdit(null)}>
           <div style={{ background: '#fff', borderRadius: 12, padding: 24, width: 280, boxShadow: '0 20px 60px rgba(0,0,0,0.25)' }}
             onClick={e => e.stopPropagation()}>
-            <h4 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: '#111827' }}>{qtyEdit.item.product_name}</h4>
-            <p style={{ margin: '0 0 6px', fontSize: 12, color: '#6b7280' }}>{curSym}{qtyEdit.item.unit_price} / {qtyEdit.item.unit}</p>
+            <h4 style={{ margin: '0 0 4px', fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{qtyEdit.item.product_name}</h4>
+            <p style={{ margin: '0 0 6px', fontSize: 12, color: '#64748b' }}>{curSym}{qtyEdit.item.unit_price} / {qtyEdit.item.unit}</p>
             {blockOversell && maxQtyDisplay !== null && (
-              <p style={{ margin: '0 0 12px', fontSize: 12, color: '#6b7280' }}>
-                Max: <strong style={{ color: '#374151' }}>{maxQtyDisplay} {qtyEdit.item.unit}</strong>
+              <p style={{ margin: '0 0 12px', fontSize: 12, color: '#64748b' }}>
+                Max: <strong style={{ color: '#334155' }}>{maxQtyDisplay} {qtyEdit.item.unit}</strong>
               </p>
             )}
-            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>New Quantity</label>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 6 }}>New Quantity</label>
             <input
               autoFocus
               type="number"
@@ -5055,7 +5058,7 @@ const POS = () => {
             )}
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
               <button
-                style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13 }}
+                style={{ flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 13 }}
                 onClick={() => setQtyEdit(null)}
               >Cancel</button>
               <button
@@ -5180,23 +5183,23 @@ const POS = () => {
               {!discountModal.pendingSyncId && discountModal.verdict !== 'rejected' && (
                 <>
                   <div style={{ padding: 22 }}>
-                    <div style={{ marginBottom: 14, padding: '10px 14px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 10 }}>
+                    <div style={{ marginBottom: 14, padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10 }}>
                       {isCart ? (
                         <>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>Cart Subtotal</div>
-                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{money(subtotal)} &nbsp;·&nbsp; {cart.length} item{cart.length !== 1 ? 's' : ''}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Cart Subtotal</div>
+                          <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{money(subtotal)} &nbsp;·&nbsp; {cart.length} item{cart.length !== 1 ? 's' : ''}</div>
                         </>
                       ) : (
                         <>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: '#111827' }}>{item.product_name}</div>
-                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>{item.product_name}</div>
+                          <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
                             {curSym}{item.unit_price} / {item.unit} &nbsp;·&nbsp; Qty: {item.quantity}
                           </div>
                         </>
                       )}
                     </div>
 
-                    <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>
+                    <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', textTransform: 'uppercase', letterSpacing: 0.4, display: 'block', marginBottom: 6 }}>
                       {isCart
                         ? `Change off total (${curSym}) — + discount / − markup`
                         : `New price per ${item.unit} (${curSym})`}
@@ -5217,13 +5220,13 @@ const POS = () => {
                         : 'Type the new final price. Zero blocked. Above original = green (markup), below = red (discount).'}
                       style={{
                         width: '100%', padding: '12px 14px',
-                        border: `2px solid ${(overSubtotal || lineZero) ? '#dc2626' : '#d1d5db'}`,
+                        border: `2px solid ${(overSubtotal || lineZero) ? '#dc2626' : '#cbd5e1'}`,
                         borderRadius: 10, fontSize: 18, fontWeight: 700, textAlign: 'right',
                         boxSizing: 'border-box', outline: 'none',
                         color: isCart
-                          ? (draftNum > 0 ? '#dc2626' : draftNum < 0 ? '#2563eb' : '#111827')
+                          ? (draftNum > 0 ? '#dc2626' : draftNum < 0 ? '#2563eb' : '#0f172a')
                           : (lineZero ? '#dc2626'
-                              : lineUnchanged ? '#111827'
+                              : lineUnchanged ? '#0f172a'
                               : lineDelta > 0 ? '#dc2626'  // new < original (discount)
                               : '#16a34a'),               // new > original (markup)
                       }}
@@ -5235,7 +5238,7 @@ const POS = () => {
                       </div>
                     )}
                     {!isCart && !lineZero && (
-                      <div style={{ marginTop: 6, fontSize: 11, color: '#6b7280' }}>
+                      <div style={{ marginTop: 6, fontSize: 11, color: '#64748b' }}>
                         Original: {curSym}{origUnitPrice.toFixed(2)} / {item.unit}
                       </div>
                     )}
@@ -5261,15 +5264,15 @@ const POS = () => {
                     {/* Line: Reason field — v1.9.4 OPTIONAL (was required). */}
                     {!isCart && !isAdmin && !lineZero && !lineUnchanged && (
                       <div style={{ marginTop: 12 }}>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>
-                          Reason <span style={{ fontWeight: 400, color: '#6b7280' }}>(optional)</span>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                          Reason <span style={{ fontWeight: 400, color: '#64748b' }}>(optional)</span>
                         </label>
                         <input
                           type="text" maxLength={200}
                           value={discountModal.reason || ''}
                           onChange={e => setDiscountModal({ ...discountModal, reason: e.target.value })}
                           placeholder="e.g. VIP customer, damaged label, bulk discount"
-                          style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', outline: 'none' }}
+                          style={{ width: '100%', padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: 8, fontSize: 13, boxSizing: 'border-box', outline: 'none' }}
                         />
                       </div>
                     )}
@@ -5287,19 +5290,19 @@ const POS = () => {
                     )}
                   </div>
 
-                  <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                     <button
                       onClick={() => {
                         if (isCart) setDiscount(0);
                         else setLineDiscount(discountModal.cartIdx, 0);
                         setDiscountModal(null);
                       }}
-                      style={{ padding: '10px 16px', background: '#fff', color: '#6b7280', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+                      style={{ padding: '10px 16px', background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
                     >Clear</button>
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button
                         onClick={() => setDiscountModal(null)}
-                        style={{ padding: '10px 18px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+                        style={{ padding: '10px 18px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
                       >Cancel</button>
                       {(() => {
                         // v1.8.98 — disable logic: line target blocks zero, unchanged,
@@ -5313,7 +5316,7 @@ const POS = () => {
                           <button
                             onClick={requestApply}
                             disabled={disabled}
-                            style={{ padding: '10px 22px', background: disabled ? '#9ca3af' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}
+                            style={{ padding: '10px 22px', background: disabled ? '#94a3b8' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 13, fontWeight: 700 }}
                           >{discountModal.submitting ? 'Sending…' : (isInstantApply ? 'Apply' : 'Send Request')}</button>
                         );
                       })()}
@@ -5338,11 +5341,11 @@ const POS = () => {
                     <div style={{ textAlign: 'center', padding: '18px 8px' }}>
                       <style>{`@keyframes posDiscWaitSpin { to { transform: rotate(360deg); } }`}</style>
                       <div style={{ width: 44, height: 44, margin: '0 auto 14px', border: '4px solid #fde68a', borderTopColor: '#dc2626', borderRadius: '50%', animation: 'posDiscWaitSpin 0.9s linear infinite' }} />
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#111827', marginBottom: 4 }}>Waiting for an administrator to approve…</div>
-                      <div style={{ fontSize: 12, color: '#6b7280' }}>The discount will apply automatically once approved. You can keep the cashier here open — checking out at full price will discard this request.</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 4 }}>Waiting for an administrator to approve…</div>
+                      <div style={{ fontSize: 12, color: '#64748b' }}>The discount will apply automatically once approved. You can keep the cashier here open — checking out at full price will discard this request.</div>
                     </div>
                   </div>
-                  <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                  <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
                     <button
                       onClick={cancelWaiting}
                       style={{ padding: '10px 22px', background: '#fff', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
@@ -5366,14 +5369,14 @@ const POS = () => {
                       )}
                     </div>
                   </div>
-                  <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+                  <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', gap: 8 }}>
                     <button
                       onClick={tryAgain}
                       style={{ padding: '10px 18px', background: '#fff', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
                     >Try Again</button>
                     <button
                       onClick={() => setDiscountModal(null)}
-                      style={{ padding: '10px 22px', background: '#374151', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
+                      style={{ padding: '10px 22px', background: '#334155', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 13, fontWeight: 700 }}
                     >Close</button>
                   </div>
                 </>

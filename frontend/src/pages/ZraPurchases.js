@@ -33,7 +33,7 @@ const statusPill = (s) => {
     APPROVED: { bg: '#dcfce7', fg: '#166534', label: 'APPROVED' },
     REJECTED: { bg: '#fee2e2', fg: '#991b1b', label: 'REJECTED' },
   };
-  const s2 = map[s] || { bg: '#e5e7eb', fg: '#374151', label: s || '—' };
+  const s2 = map[s] || { bg: '#e2e8f0', fg: '#334155', label: s || '—' };
   return <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 12, background: s2.bg, color: s2.fg, fontSize: 11, fontWeight: 700 }}>{s2.label}</span>;
 };
 
@@ -177,7 +177,7 @@ const ZraPurchases = () => {
   const renderReceiveCell = (it) => {
     if (!it.itemCd) return null;
     const d = lineMap[it.itemCd] || {};
-    if (d.action === 'IGNORE') return <span style={{ color: '#6b7280', fontSize: 11 }}>—</span>;
+    if (d.action === 'IGNORE') return <span style={{ color: '#64748b', fontSize: 11 }}>—</span>;
     const units = unitsForLine(it);
     const qty = d.receive_qty ?? it.qty ?? '';
     const unit = d.receive_unit || units[0] || '';
@@ -189,17 +189,17 @@ const ZraPurchases = () => {
             type="number" min="0" step="any"
             value={qty}
             onChange={e => setLine(it.itemCd, { receive_qty: e.target.value })}
-            style={{ width: 70, padding: '6px 6px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12 }}
+            style={{ width: 70, padding: '6px 6px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12 }}
           />
           <select
             value={unit}
             onChange={e => setLine(it.itemCd, { receive_unit: e.target.value })}
-            style={{ flex: 1, minWidth: 80, padding: '6px 6px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 12 }}
+            style={{ flex: 1, minWidth: 80, padding: '6px 6px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 12 }}
           >
             {units.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </div>
-        <div style={{ fontSize: 10, marginTop: 2, color: changed ? '#b45309' : '#6b7280' }}>
+        <div style={{ fontSize: 10, marginTop: 2, color: changed ? '#b45309' : '#64748b' }}>
           {changed ? `supplier billed ${it.qty} ${it.qtyUnitCd || ''}` : 'same as invoice'}
         </div>
       </div>
@@ -207,7 +207,7 @@ const ZraPurchases = () => {
   };
 
   const renderMapCell = (it) => {
-    if (!it.itemCd) return <span style={{ color: '#6b7280', fontSize: 11 }}>no item code</span>;
+    if (!it.itemCd) return <span style={{ color: '#64748b', fontSize: 11 }}>no item code</span>;
     const d = lineMap[it.itemCd] || {};
     const value = d.action === 'CREATE' ? '__CREATE__'
                 : d.action === 'IGNORE' ? '__IGNORE__'
@@ -321,7 +321,7 @@ const ZraPurchases = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Supplier Purchase Queue</h1>
-          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: 13 }}>
+          <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 13 }}>
             Invoices VSDC-registered suppliers have issued to your TPIN. Approve to register on ZRA (test T06A).
           </p>
         </div>
@@ -337,7 +337,7 @@ const ZraPurchases = () => {
             onClick={() => doPull(true)}
             disabled={pulling}
             title="Reset the lastReqDt bookmark to epoch and re-fetch everything"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', border: '1px solid #d1d5db', background: '#fff', borderRadius: 8, cursor: pulling ? 'wait' : 'pointer', fontSize: 13 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '9px 14px', border: '1px solid #cbd5e1', background: '#fff', borderRadius: 8, cursor: pulling ? 'wait' : 'pointer', fontSize: 13 }}
           >
             <FiRefreshCw size={14} /> Full Refresh
           </button>
@@ -361,19 +361,19 @@ const ZraPurchases = () => {
             key={f.key}
             onClick={() => setStatus(f.key)}
             style={{
-              padding: '6px 14px', borderRadius: 6, border: '1px solid #e5e7eb', cursor: 'pointer', fontSize: 12, fontWeight: 600,
+              padding: '6px 14px', borderRadius: 6, border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: 12, fontWeight: 600,
               background: status === f.key ? '#1d4ed8' : '#fff',
-              color:      status === f.key ? '#fff'    : '#374151',
+              color:      status === f.key ? '#fff'    : '#334155',
             }}
           >{f.label}</button>
         ))}
       </div>
 
       {/* Table */}
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
         <div style={{ overflowX: 'auto' }}>
           <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead style={{ background: '#f9fafb' }}>
+            <thead style={{ background: '#f8fafc' }}>
               <tr>
                 <th style={th}>Pulled</th>
                 <th style={th}>Sales Date</th>
@@ -389,36 +389,36 @@ const ZraPurchases = () => {
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Loading…</td></tr>
+                <tr><td colSpan={10} style={{ padding: 20, textAlign: 'center', color: '#64748b' }}>Loading…</td></tr>
               )}
               {!loading && rows.length === 0 && (
-                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>
+                <tr><td colSpan={10} style={{ padding: 40, textAlign: 'center', color: '#64748b' }}>
                   Nothing here. Click <strong>Pull New</strong> to fetch from VSDC.
                 </td></tr>
               )}
               {rows.map(r => (
-                <tr key={r.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9' }}>
                   <td style={td}>{(r.pulled_at || '').slice(0, 16).replace('T', ' ')}</td>
                   <td style={td}>{r.sales_dt || '—'}</td>
                   <td style={{ ...td, fontWeight: 600 }}>{r.spplr_nm || '—'}</td>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{r.spplr_tpin || '—'}</td>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{r.spplr_bhf_id || '—'}</td>
-                  <td style={{ ...td, fontFamily: 'monospace' }}>{r.spplr_invc_no || '—'}</td>
+                  <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{r.spplr_tpin || '—'}</td>
+                  <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{r.spplr_bhf_id || '—'}</td>
+                  <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{r.spplr_invc_no || '—'}</td>
                   <td style={{ ...td, textAlign: 'right' }}>{r.tot_item_cnt ?? '—'}</td>
                   <td style={{ ...td, textAlign: 'right', fontWeight: 600 }}>{money(r.tot_amt)}</td>
                   <td style={td}>
                     {statusPill(r.status)}
                     {r.status === 'APPROVED' && r.approved_pchs_invc_no && (
-                      <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2, fontFamily: 'monospace' }}>ZRA #{r.approved_pchs_invc_no}</div>
+                      <div style={{ fontSize: 10, color: '#64748b', marginTop: 2, fontFamily: 'var(--k-font-mono)' }}>ZRA #{r.approved_pchs_invc_no}</div>
                     )}
                     {r.grn_number && (
                       <div style={{ fontSize: 10, marginTop: 2 }}>
-                        <span style={{ color: '#374151' }}>Draft </span>
-                        <span style={{ fontFamily: 'monospace', color: '#1d4ed8' }}>{r.grn_number}</span>
+                        <span style={{ color: '#334155' }}>Draft </span>
+                        <span style={{ fontFamily: 'var(--k-font-mono)', color: '#1d4ed8' }}>{r.grn_number}</span>
                       </div>
                     )}
                     {r.match_summary && (
-                      <div title={r.match_summary} style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>
+                      <div title={r.match_summary} style={{ fontSize: 10, color: '#64748b', marginTop: 2 }}>
                         {r.match_summary.split(' — ')[0]}
                       </div>
                     )}
@@ -435,7 +435,7 @@ const ZraPurchases = () => {
                         ask for. Eye icon opens that modal for both
                         viewing and approving/rejecting. */}
                     <button onClick={() => openDetail(r.id)}
-                            style={btnIcon('#374151')} title="View item list / approve / reject">
+                            style={btnIcon('#334155')} title="View item list / approve / reject">
                       <FiEye size={14} />
                     </button>
                     {r.status === 'NEW' && (
@@ -460,9 +460,9 @@ const ZraPurchases = () => {
       {detail && (
         <div style={modalBackdrop} onClick={() => setDetail(null)}>
           <div style={modalBodyWide} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: 12, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700 }}>Supplier Invoice</div>
+                <div style={{ fontSize: 12, color: '#64748b', textTransform: 'uppercase', fontWeight: 700 }}>Supplier Invoice</div>
                 <h3 style={{ margin: '3px 0 0' }}>{detail.spplr_nm || '—'} · {detail.spplr_invc_no || '—'}</h3>
                 {/* 2026-08-30 — what approval will do with the SUPPLIER.
                     The link is resolved server-side at approval; without this
@@ -487,11 +487,11 @@ const ZraPurchases = () => {
                   );
                 })()}
               </div>
-              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#6b7280' }}>×</button>
+              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 22, color: '#64748b' }}>×</button>
             </div>
             <div style={{ padding: 20, maxHeight: '70vh', overflowY: 'auto' }}>
               {detail.loading ? (
-                <div style={{ padding: 20, textAlign: 'center', color: '#6b7280' }}>Loading…</div>
+                <div style={{ padding: 20, textAlign: 'center', color: '#64748b' }}>Loading…</div>
               ) : (
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 10, marginBottom: 18, fontSize: 12 }}>
@@ -505,10 +505,10 @@ const ZraPurchases = () => {
                     <Kv label="Tax"       value={money(detail.tot_tax_amt)} />
                     <Kv label="Total"     value={money(detail.tot_amt)} bold />
                   </div>
-                  <div style={{ fontSize: 11, color: '#6b7280', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Line items</div>
-                  <div style={{ border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
+                  <div style={{ fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Line items</div>
+                  <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                      <thead style={{ background: '#f9fafb' }}>
+                      <thead style={{ background: '#f8fafc' }}>
                         <tr>
                           <th style={th}>#</th>
                           <th style={th}>Code</th>
@@ -529,9 +529,9 @@ const ZraPurchases = () => {
                       </thead>
                       <tbody>
                         {(detail.item_list || []).map((it, i) => (
-                          <tr key={i} style={{ borderTop: '1px solid #f3f4f6' }}>
+                          <tr key={i} style={{ borderTop: '1px solid #f1f5f9' }}>
                             <td style={td}>{it.itemSeq ?? i + 1}</td>
-                            <td style={{ ...td, fontFamily: 'monospace' }}>{it.itemCd || '—'}</td>
+                            <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{it.itemCd || '—'}</td>
                             <td style={td}>{it.itemNm || '—'}</td>
                             <td style={{ ...td, textAlign: 'right' }}>{it.qty ?? '—'}</td>
                             <td style={td}>{it.qtyUnitCd || '—'}</td>
@@ -545,7 +545,7 @@ const ZraPurchases = () => {
                           </tr>
                         ))}
                         {(!detail.item_list || detail.item_list.length === 0) && (
-                          <tr><td colSpan={11} style={{ padding: 16, textAlign: 'center', color: '#6b7280' }}>No line items in raw payload.</td></tr>
+                          <tr><td colSpan={11} style={{ padding: 16, textAlign: 'center', color: '#64748b' }}>No line items in raw payload.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -556,9 +556,9 @@ const ZraPurchases = () => {
                           approve creates an HQ Purchase, which needs to
                           know where these goods physically ship to. */}
                       <div style={{ marginBottom: 12 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#374151', marginBottom: 4 }}>Destination Branch *</label>
+                        <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>Destination Branch *</label>
                         <select value={destSlug} onChange={e => setDestSlug(e.target.value)}
-                          style={{ width: '100%', maxWidth: 280, padding: '8px 10px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 13 }}>
+                          style={{ width: '100%', maxWidth: 280, padding: '8px 10px', borderRadius: 6, border: '1px solid #cbd5e1', fontSize: 13 }}>
                           <option value="">— select branch —</option>
                           {branchList.map(b => <option key={b.slug} value={b.slug}>{b.name} ({b.slug})</option>)}
                         </select>
@@ -578,7 +578,7 @@ const ZraPurchases = () => {
                           disabled={busyId === detail.id || !destSlug || !allLinesDecided}
                           title={!destSlug ? 'Pick a destination branch first'
                                : !allLinesDecided ? 'Map every line first' : undefined}
-                          style={{ padding: '9px 16px', border: 'none', background: (busyId === detail.id || !destSlug || !allLinesDecided) ? '#9ca3af' : '#16a34a', color: '#fff', borderRadius: 8, cursor: (busyId === detail.id || !destSlug || !allLinesDecided) ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 13 }}
+                          style={{ padding: '9px 16px', border: 'none', background: (busyId === detail.id || !destSlug || !allLinesDecided) ? '#94a3b8' : '#16a34a', color: '#fff', borderRadius: 8, cursor: (busyId === detail.id || !destSlug || !allLinesDecided) ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 13 }}
                         >{busyId === detail.id ? 'Approving…' : 'Approve → HQ Purchase'}</button>
                       </div>
                     </div>
@@ -599,24 +599,24 @@ const ZraPurchases = () => {
       {rejectPrompt && (
         <div style={modalBackdrop} onClick={() => setRejectPrompt(null)}>
           <div style={{ ...modalBody, maxWidth: 440 }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0' }}>
               <h3 style={{ margin: 0 }}>Reject purchase</h3>
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>
                 Marks the row REJECTED locally. ZRA already holds the supplier's side — this is a bookkeeping note.
               </div>
             </div>
             <div style={{ padding: 20 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 6 }}>Reason</label>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>Reason</label>
               <textarea
                 rows={3}
                 value={rejectPrompt.reason}
                 onChange={e => setRejectPrompt({ ...rejectPrompt, reason: e.target.value })}
                 placeholder="e.g. duplicate of INV-1234; goods not received"
-                style={{ width: '100%', padding: 8, border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: 8, border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, fontFamily: 'inherit', boxSizing: 'border-box' }}
               />
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 14 }}>
                 <button onClick={() => setRejectPrompt(null)}
-                        style={{ padding: '8px 14px', border: '1px solid #e5e7eb', background: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Cancel</button>
+                        style={{ padding: '8px 14px', border: '1px solid #e2e8f0', background: '#fff', borderRadius: 6, cursor: 'pointer', fontSize: 13 }}>Cancel</button>
                 <button onClick={() => doReject(rejectPrompt.id, rejectPrompt.reason)}
                         disabled={busyId === rejectPrompt.id}
                         style={{ padding: '8px 14px', border: 'none', background: '#dc2626', color: '#fff', borderRadius: 6, cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>
@@ -631,8 +631,8 @@ const ZraPurchases = () => {
   );
 };
 
-const th = { padding: '10px 12px', textAlign: 'left', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#6b7280', fontWeight: 700 };
-const td = { padding: '10px 12px', color: '#111827' };
+const th = { padding: '10px 12px', textAlign: 'left', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#64748b', fontWeight: 700 };
+const td = { padding: '10px 12px', color: '#0f172a' };
 const btnIcon = (color) => ({ padding: '6px 8px', marginRight: 4, border: `1px solid ${color}33`, background: '#fff', color, borderRadius: 6, cursor: 'pointer' });
 const modalBackdrop = { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1500, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 };
 const modalBody = { background: '#fff', borderRadius: 12, width: '100%', maxWidth: 900, boxShadow: '0 24px 64px rgba(0,0,0,0.4)' };
@@ -643,8 +643,8 @@ const modalBodyWide = { ...modalBody, maxWidth: 1400 };
 
 const Kv = ({ label, value, mono, bold }) => (
   <div>
-    <div style={{ fontSize: 10, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: 700 }}>{label}</div>
-    <div style={{ fontSize: 13, marginTop: 2, fontFamily: mono ? 'monospace' : 'inherit', fontWeight: bold ? 700 : 400, color: '#111827' }}>{value ?? '—'}</div>
+    <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 0.4, fontWeight: 700 }}>{label}</div>
+    <div style={{ fontSize: 13, marginTop: 2, fontFamily: mono ? 'monospace' : 'inherit', fontWeight: bold ? 700 : 400, color: '#0f172a' }}>{value ?? '—'}</div>
   </div>
 );
 

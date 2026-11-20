@@ -177,7 +177,7 @@ export default function FuelCashReport() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 24px', marginTop: 10 }}>
             {progress.windows.map(w => (
               <span key={w.shiftType} className="k-muted">
-                <strong style={{ color: '#111827' }}>{w.shiftType}</strong>{' · '}
+                <strong style={{ color: '#0f172a' }}>{w.shiftType}</strong>{' · '}
                 closed {w.closed}/{w.shifts} · cash {w.cash}/{w.shifts} · approved {w.approved}/{w.shifts}
                 {w.complete && <span className="k-ok-text"> ✓</span>}
               </span>
@@ -343,7 +343,7 @@ function liveTotals(rows, inputs) {
   return { mobile, swipes, other, cash, posGross, posCredit };
 }
 
-function fmtK(n)   { return 'K ' + Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtK(n)   { return (Number(n || 0) < 0 ? '−' : '') + 'K' + Math.abs(Number(n || 0)).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function fmtL(n)   { return Number(n || 0).toLocaleString('en-ZM', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' L'; }
 
 function DaySummaryPanel({ summary, liveOverride }) {
@@ -436,10 +436,10 @@ function DaySummaryPanel({ summary, liveOverride }) {
           <div style={colTitle}>Dip vs Read (per grade)</div>
           {dips.length === 0 ? <div style={{ fontSize: 13, color: '#475569', marginBottom: 10 }}>No readings or dips.</div> : dips.map(d => {
             const hasDip = d.dip_total != null;
-            const varColor = !hasDip ? '#6b7280' : (Math.abs(d.variance) < 0.5 ? '#111' : (d.variance >= 0 ? '#15803d' : '#b91c1c'));
+            const varColor = !hasDip ? '#64748b' : (Math.abs(d.variance) < 0.5 ? '#0f172a' : (d.variance >= 0 ? '#15803d' : '#b91c1c'));
             return (
-              <div key={d.grade_id} style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e5e7eb' }}>
-                <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color ? shade(d.grade_color, 0.42) : '#111', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
+              <div key={d.grade_id} style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px dashed #e2e8f0' }}>
+                <div style={{ fontWeight: 700, fontSize: 13, color: d.grade_color ? shade(d.grade_color, 0.42) : '#0f172a', marginBottom: 4 }}>{(d.grade_name || '').toUpperCase()}</div>
                 <div style={line}><span style={{ color: '#475569' }}>Read (meter)</span><span>{fmtL(d.read_total)}</span></div>
                 <div style={line}><span style={{ color: '#475569' }}>Dip (physical)</span><span>{hasDip ? fmtL(d.dip_total) : <span style={{ color: '#475569', fontSize: 11 }}>needs 2+ dips</span>}</span></div>
                 <div style={line}><span style={{ color: '#475569' }}>Variance (R-D)</span><span style={{ color: varColor, fontWeight: 700 }}>{hasDip ? ((d.variance >= 0 ? '+' : '') + fmtL(d.variance)) : '—'}</span></div>
@@ -472,12 +472,12 @@ function DaySummaryPanel({ summary, liveOverride }) {
               const codes = g.members.map(m => m.code || m.tank_code).join(' + ');
               const first = g.members[0];
               rows.push(
-                <div key={`g-${g.group_code}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
+                <div key={`g-${g.group_code}`} style={{ ...line, borderBottom: '1px solid #f1f5f9', padding: '6px 0' }}>
                   <span>
                     <strong>{codes}</strong>
                     <span style={{ color: '#475569', fontSize: 11, marginLeft: 4 }}>{first.grade_name || ''} · Group {g.group_code}</span>
                   </span>
-                  <span style={{ color: total == null ? '#6b7280' : '#111', fontWeight: total == null ? 400 : 600 }}>
+                  <span style={{ color: total == null ? '#64748b' : '#0f172a', fontWeight: total == null ? 400 : 600 }}>
                     {total != null ? fmtL(total) : <span style={{ fontSize: 11 }}>not dipped</span>}
                   </span>
                 </div>
@@ -485,12 +485,12 @@ function DaySummaryPanel({ summary, liveOverride }) {
             }
             for (const t of singles) {
               rows.push(
-                <div key={`t-${t.tank_id}`} style={{ ...line, borderBottom: '1px solid #f3f4f6', padding: '6px 0' }}>
+                <div key={`t-${t.tank_id}`} style={{ ...line, borderBottom: '1px solid #f1f5f9', padding: '6px 0' }}>
                   <span>
                     <strong>{t.tank_code}</strong>
                     <span style={{ color: '#475569', fontSize: 11, marginLeft: 4 }}>{t.grade_name || ''}</span>
                   </span>
-                  <span style={{ color: t.closing_dip == null ? '#6b7280' : '#111', fontWeight: t.closing_dip == null ? 400 : 600 }}>
+                  <span style={{ color: t.closing_dip == null ? '#64748b' : '#0f172a', fontWeight: t.closing_dip == null ? 400 : 600 }}>
                     {t.closing_dip != null ? fmtL(t.closing_dip) : <span style={{ fontSize: 11 }}>not dipped</span>}
                   </span>
                 </div>
@@ -533,14 +533,14 @@ function DaySummaryPanel({ summary, liveOverride }) {
           {/* Variance called out so it's never missed below the fold */}
           <div style={{
             marginTop: 10, padding: '10px 12px', borderRadius: 8,
-            background: Math.abs(variance) < 0.01 ? '#f3f4f6' : (variance < 0 ? '#fef2f2' : '#f0fdf4'),
-            border: '1px solid ' + (Math.abs(variance) < 0.01 ? '#e5e7eb' : (variance < 0 ? '#fecaca' : '#bbf7d0')),
+            background: Math.abs(variance) < 0.01 ? '#f1f5f9' : (variance < 0 ? '#fef2f2' : '#f0fdf4'),
+            border: '1px solid ' + (Math.abs(variance) < 0.01 ? '#e2e8f0' : (variance < 0 ? '#fecaca' : '#bbf7d0')),
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
           }}>
             <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: '0.5px' }}>VARIANCE</span>
             <span style={{
               fontSize: 18, fontWeight: 800,
-              color: Math.abs(variance) < 0.01 ? '#111' : (variance < 0 ? '#b91c1c' : '#15803d'),
+              color: Math.abs(variance) < 0.01 ? '#0f172a' : (variance < 0 ? '#b91c1c' : '#15803d'),
             }}>{variance > 0.004 ? '+' : ''}{fmtK(variance)}</span>
           </div>
         </div>

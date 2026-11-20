@@ -214,7 +214,7 @@ export default function FxRates() {
           the cards show "—" so the manager isn't misled into thinking a
           fallback number is "the" rate. POS/Cashier still fall back
           internally (separate concern) until an actual row is added. */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 18, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, marginBottom: 18, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <div>
           <div style={{ color: '#64748b', fontSize: 11, fontWeight: 600, letterSpacing: 0.4, textTransform: 'uppercase' }}>
             Current Sell Rate
@@ -279,7 +279,7 @@ export default function FxRates() {
       </div>
 
       {/* v1.8.2 — rate chart with 1d / 7d / 1m period tabs. */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 18 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, marginBottom: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
           <h3 style={{ margin: 0, fontSize: 14, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
             <FiTrendingUp /> Rate history — {chartPeriod === '1d' ? 'today' : chartPeriod === '1m' ? 'last 30 days' : 'last 7 days'}
@@ -340,7 +340,7 @@ export default function FxRates() {
       </div>
 
       {/* Add new rate */}
-      <form onSubmit={save} style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, padding: 16, marginBottom: 18 }}>
+      <form onSubmit={save} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, marginBottom: 18 }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
           <FiDollarSign /> Add new rate
         </h3>
@@ -408,7 +408,7 @@ export default function FxRates() {
       </form>
 
       {/* History table */}
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, overflow: 'hidden' }}>
         <div style={{ padding: '12px 16px', borderBottom: '1px solid #f1f5f9', fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
           History
         </div>
@@ -436,7 +436,7 @@ export default function FxRates() {
               {rows.map(r => (
                 <tr key={r.id} style={{ borderTop: '1px solid #f1f5f9', fontSize: 13 }}>
                   <td style={tdStyle}>{r.effective_date}</td>
-                  <td style={{ ...tdStyle, color: '#475569', fontFamily: 'monospace' }}>
+                  <td style={{ ...tdStyle, color: '#475569', fontFamily: 'var(--k-font-mono)' }}>
                     {(() => {
                       // v1.8.82 — effective_at is now stored as UTC; convert to
                       // local for display so the cashier sees the time they typed.

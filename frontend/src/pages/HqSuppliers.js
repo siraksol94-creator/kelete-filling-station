@@ -92,7 +92,7 @@ export default function HqSuppliers() {
           This removes the supplier permanently. It is refused if any GRN, payment,
           credit note or purchase exists against them.
         </p>
-        <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 5 }}>
+        <label style={{ fontSize: 12, fontWeight: 700, color: '#334155', display: 'block', marginBottom: 5 }}>
           Administrator password
         </label>
         <input
@@ -102,7 +102,7 @@ export default function HqSuppliers() {
           disabled={deleting.busy}
           onChange={e => setDeleting(d => ({ ...d, password: e.target.value, error: '' }))}
           onKeyDown={e => { if (e.key === 'Enter') confirmDelete(); }}
-          style={{ width: '100%', padding: '9px 11px', border: '1.5px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '9px 11px', border: '1.5px solid #cbd5e1', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
         />
         {deleting.error && (
           <div style={{ marginTop: 10, padding: '9px 11px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, color: '#991b1b', fontSize: 12.5 }}>
@@ -111,11 +111,11 @@ export default function HqSuppliers() {
         )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
           <button onClick={() => setDeleting(null)} disabled={deleting.busy}
-            style={{ padding: '9px 16px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+            style={{ padding: '9px 16px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
             Cancel
           </button>
           <button onClick={confirmDelete} disabled={deleting.busy || !deleting.password}
-            style={{ padding: '9px 16px', background: (deleting.busy || !deleting.password) ? '#9ca3af' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: (deleting.busy || !deleting.password) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
+            style={{ padding: '9px 16px', background: (deleting.busy || !deleting.password) ? '#94a3b8' : '#dc2626', color: '#fff', border: 'none', borderRadius: 8, cursor: (deleting.busy || !deleting.password) ? 'not-allowed' : 'pointer', fontWeight: 700 }}>
             {deleting.busy ? 'Deleting…' : 'Delete supplier'}
           </button>
         </div>
@@ -159,7 +159,7 @@ export default function HqSuppliers() {
         <RollupCard icon={<FiDollarSign />} label="AP Outstanding"   value={fmtMoney(totals.balance)} color={totals.balance > 0.01 ? '#b91c1c' : '#0f172a'} highlight />
       </div>
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
@@ -186,7 +186,7 @@ export default function HqSuppliers() {
                           supplier and how a pulled purchase finds them, so it
                           belongs on the row rather than only inside the form. */}
                       {s.tpin && (
-                        <div style={{ fontSize: 11, color: '#475569', fontFamily: 'monospace' }}>
+                        <div style={{ fontSize: 11, color: '#475569', fontFamily: 'var(--k-font-mono)' }}>
                           TPIN {s.tpin}
                         </div>
                       )}
@@ -255,7 +255,7 @@ export default function HqSuppliers() {
 
 function RollupCard({ icon, label, value, color, highlight }) {
   return (
-    <div style={{ background: '#fff', border: `1px solid ${highlight ? color : '#e5e7eb'}`, borderRadius: 10, padding: 14 }}>
+    <div style={{ background: '#fff', border: `1px solid ${highlight ? color : '#e2e8f0'}`, borderRadius: 10, padding: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, color, fontSize: 12, fontWeight: 600 }}>
         {icon} <span>{label}</span>
       </div>
@@ -316,7 +316,7 @@ function SupplierForm({ existing, onClose, onSaved, onError }) {
                    value={form.tpin}
                    onChange={e => update('tpin', e.target.value.replace(/[^0-9]/g, ''))}
                    placeholder="10 digits"
-                   style={{ ...inp, fontFamily: 'monospace' }} />
+                   style={{ ...inp, fontFamily: 'var(--k-font-mono)' }} />
             {form.tpin && form.tpin.length !== 10 && (
               <div style={{ fontSize: 11, color: '#b45309', marginTop: 3 }}>
                 A ZRA TPIN is 10 digits — this has {form.tpin.length}.
@@ -369,7 +369,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
   return (
     <div style={overlay}>
       <div style={{ background: '#fff', borderRadius: 12, width: 'min(920px, 96vw)', maxHeight: '92vh', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <h3 style={{ margin: 0 }}>{s.name}</h3>
             <div style={{ fontSize: 12, color: '#64748b' }}>
@@ -406,7 +406,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
               <tbody>
                 {data.purchases.map(p => (
                   <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ ...td, fontFamily: 'monospace' }}>{p.purchase_number}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{p.purchase_number}</td>
                     <td style={td}>{p.date}</td>
                     <td style={td}>{p.invoice_number || '—'}</td>
                     <td style={td}>{p.status}</td>
@@ -428,7 +428,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
               <tbody>
                 {data.payments.map(p => (
                   <tr key={p.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ ...td, fontFamily: 'monospace' }}>{p.payment_number}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{p.payment_number}</td>
                     <td style={td}>{p.payment_date}</td>
                     <td style={td}>{p.payment_method}</td>
                     <td style={td}>{p.reference || '—'}</td>
@@ -468,7 +468,7 @@ function SupplierDetail({ data, onClose, onRefresh, flash }) {
               <tbody>
                 {data.credits.map(cn => (
                   <tr key={cn.id} style={{ borderTop: '1px solid #f1f5f9' }}>
-                    <td style={{ ...td, fontFamily: 'monospace' }}>{cn.credit_note_number}</td>
+                    <td style={{ ...td, fontFamily: 'var(--k-font-mono)' }}>{cn.credit_note_number}</td>
                     <td style={td}>{cn.date}</td>
                     <td style={td}>{cn.reason}</td>
                     <td style={td}>{cn.reference || '—'}</td>
@@ -585,7 +585,7 @@ function Stat({ label, value, sub, highlight }) {
 }
 
 const overlay = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200, padding: 16 };
-const inp = { width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, background: '#fff', boxSizing: 'border-box' };
 const th  = { padding: '8px 10px', fontSize: 10, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.5 };
 const td  = { padding: '6px 10px', color: '#0f172a' };
 const btnIcon = (color) => ({

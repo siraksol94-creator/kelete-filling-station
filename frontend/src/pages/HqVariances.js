@@ -108,7 +108,7 @@ export default function HqVariances() {
         </div>
       )}
 
-      <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 14 }}>
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 14 }}>
         {loading && rows.length === 0 ? (
           <p style={{ color: '#64748b' }}>Loading…</p>
         ) : rows.length === 0 ? (
@@ -143,14 +143,14 @@ export default function HqVariances() {
                                     : v.reason === 'Lost'    ? '#7c3aed'
                                     : v.reason === 'Short'   ? '#b45309' : '#16a34a';
                   return (
-                    <tr key={v.source + '-' + v.id + '-' + idx} style={{ borderTop: '1px solid #f1f5f9', background: v.resolved_at ? '#f9fafb' : '#fff' }}>
+                    <tr key={v.source + '-' + v.id + '-' + idx} style={{ borderTop: '1px solid #f1f5f9', background: v.resolved_at ? '#f8fafc' : '#fff' }}>
                       <td style={td}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 999, fontSize: 10, fontWeight: 700, background: isTransfer ? '#dbeafe' : '#ede9fe', color: isTransfer ? '#1e40af' : '#6d28d9' }}>
                           {isTransfer ? <FiTruck size={11} /> : <FiShoppingCart size={11} />}
                           {isTransfer ? 'Transfer' : 'HQ Purchase'}
                         </span>
                       </td>
-                      <td style={{ ...td, fontFamily: 'monospace', fontSize: 11 }}>{v.transfer_number || '—'}</td>
+                      <td style={{ ...td, fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>{v.transfer_number || '—'}</td>
                       <td style={td}>
                         <strong>{v.from_slug}</strong> → <strong>{v.to_slug}</strong>
                       </td>
@@ -218,12 +218,12 @@ export default function HqVariances() {
             <div style={{ marginBottom: 12 }}>
               <label style={lbl}>Resolution</label>
               <div style={{ display: 'flex', gap: 10 }}>
-                <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.resolution === 'WRITE_OFF' ? '#dc2626' : '#e5e7eb'}`, borderRadius: 6, cursor: 'pointer', background: resolving.resolution === 'WRITE_OFF' ? '#fef2f2' : '#fff' }}>
+                <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.resolution === 'WRITE_OFF' ? '#dc2626' : '#e2e8f0'}`, borderRadius: 6, cursor: 'pointer', background: resolving.resolution === 'WRITE_OFF' ? '#fef2f2' : '#fff' }}>
                   <input type="radio" checked={resolving.resolution === 'WRITE_OFF'} onChange={() => setResolving(r => ({ ...r, resolution: 'WRITE_OFF' }))} />
                   &nbsp;<strong>Write off</strong>
                   <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Accept the loss — branch absorbs it.</div>
                 </label>
-                <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.resolution === 'RECOVERED' ? '#16a34a' : '#e5e7eb'}`, borderRadius: 6, cursor: 'pointer', background: resolving.resolution === 'RECOVERED' ? '#f0fdf4' : '#fff' }}>
+                <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.resolution === 'RECOVERED' ? '#16a34a' : '#e2e8f0'}`, borderRadius: 6, cursor: 'pointer', background: resolving.resolution === 'RECOVERED' ? '#f0fdf4' : '#fff' }}>
                   <input type="radio" checked={resolving.resolution === 'RECOVERED'} onChange={() => setResolving(r => ({ ...r, resolution: 'RECOVERED' }))} />
                   &nbsp;<strong>Recovered</strong>
                   <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Stock was found / returned later.</div>
@@ -238,12 +238,12 @@ export default function HqVariances() {
               <div style={{ marginBottom: 12 }}>
                 <label style={lbl}>Who absorbs the loss?</label>
                 <div style={{ display: 'flex', gap: 10 }}>
-                  <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.absorbed_by === 'source' ? '#0369a1' : '#e5e7eb'}`, borderRadius: 6, cursor: 'pointer', background: resolving.absorbed_by === 'source' ? '#eff6ff' : '#fff' }}>
+                  <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.absorbed_by === 'source' ? '#0369a1' : '#e2e8f0'}`, borderRadius: 6, cursor: 'pointer', background: resolving.absorbed_by === 'source' ? '#eff6ff' : '#fff' }}>
                     <input type="radio" checked={resolving.absorbed_by === 'source'} onChange={() => setResolving(r => ({ ...r, absorbed_by: 'source' }))} />
                     &nbsp;<strong>Sender</strong>
                     <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{resolving.variance.from_slug} — hit their profit.</div>
                   </label>
-                  <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.absorbed_by === 'destination' ? '#0369a1' : '#e5e7eb'}`, borderRadius: 6, cursor: 'pointer', background: resolving.absorbed_by === 'destination' ? '#eff6ff' : '#fff' }}>
+                  <label style={{ flex: 1, padding: 10, border: `2px solid ${resolving.absorbed_by === 'destination' ? '#0369a1' : '#e2e8f0'}`, borderRadius: 6, cursor: 'pointer', background: resolving.absorbed_by === 'destination' ? '#eff6ff' : '#fff' }}>
                     <input type="radio" checked={resolving.absorbed_by === 'destination'} onChange={() => setResolving(r => ({ ...r, absorbed_by: 'destination' }))} />
                     &nbsp;<strong>Receiver</strong>
                     <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{resolving.variance.to_slug} — hit their profit.</div>
@@ -262,7 +262,7 @@ export default function HqVariances() {
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
               <button onClick={() => setResolving(null)}
-                style={{ padding: '8px 18px', background: '#fff', color: '#374151', border: '1px solid #e5e7eb', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
+                style={{ padding: '8px 18px', background: '#fff', color: '#334155', border: '1px solid #e2e8f0', borderRadius: 6, cursor: 'pointer', fontWeight: 600 }}>
                 Cancel
               </button>
               <button onClick={handleResolve}
@@ -279,7 +279,7 @@ export default function HqVariances() {
 
 function Stat({ label, value, color }) {
   return (
-    <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: 10, padding: 12 }}>
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 10, padding: 12 }}>
       <div style={{ fontSize: 11, color: '#64748b', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.4 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color, marginTop: 2 }}>{value}</div>
     </div>
@@ -291,7 +291,7 @@ function FilterSelect({ label, value, options, onChange }) {
     <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#64748b', fontWeight: 600 }}>
       {label}:
       <select value={value} onChange={e => onChange(e.target.value)}
-        style={{ padding: '5px 8px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 12, background: '#fff' }}>
+        style={{ padding: '5px 8px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 12, background: '#fff' }}>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
     </label>
@@ -301,4 +301,4 @@ function FilterSelect({ label, value, options, onChange }) {
 const th = { padding: '8px 10px', fontSize: 10, color: '#64748b', fontWeight: 700, textAlign: 'left', textTransform: 'uppercase', letterSpacing: 0.4 };
 const td = { padding: '8px 10px', color: '#0f172a' };
 const lbl = { display: 'block', fontSize: 11, color: '#64748b', fontWeight: 600, marginBottom: 4 };
-const inp = { width: '100%', padding: '8px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' };
+const inp = { width: '100%', padding: '8px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13, boxSizing: 'border-box' };

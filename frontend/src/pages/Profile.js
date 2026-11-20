@@ -80,7 +80,7 @@ const Profile = () => {
       style={{
         padding: '10px 22px', fontSize: 14, fontWeight: 600, cursor: 'pointer',
         background: tab === id ? '#fff' : 'transparent',
-        color: tab === id ? '#15803d' : '#6b7280',
+        color: tab === id ? '#15803d' : '#64748b',
         border: 'none', borderBottom: `3px solid ${tab === id ? '#16a34a' : 'transparent'}`,
         display: 'inline-flex', alignItems: 'center', gap: 8,
       }}>
@@ -108,15 +108,15 @@ const Profile = () => {
             <div className="profile-contact-item"><FiPhone  size={14} /> {form.phone   || '—'}</div>
             <div className="profile-contact-item"><FiMapPin size={14} /> {form.address || '—'}</div>
           </div>
-          <div style={{ marginTop: 18, padding: '10px 12px', background: '#f9fafb', borderRadius: 8, fontSize: 12, color: '#6b7280' }}>
-            <div style={{ fontWeight: 600, color: '#374151', marginBottom: 4 }}>{form.businessName || '—'}</div>
+          <div style={{ marginTop: 18, padding: '10px 12px', background: '#f8fafc', borderRadius: 8, fontSize: 12, color: '#64748b' }}>
+            <div style={{ fontWeight: 600, color: '#334155', marginBottom: 4 }}>{form.businessName || '—'}</div>
             <div>{form.businessPhone || '—'}</div>
             <div>{form.businessEmail || '—'}</div>
           </div>
         </div>
 
         <div className="profile-form-card">
-          <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 18, display: 'flex', gap: 4 }}>
+          <div style={{ borderBottom: '1px solid #e2e8f0', marginBottom: 18, display: 'flex', gap: 4 }}>
             <TabBtn id="company"  label="Company"    icon={<FiBriefcase size={15} />} />
             <TabBtn id="account"  label="My Account" icon={<FiUser size={15} />} />
           </div>
@@ -125,7 +125,7 @@ const Profile = () => {
             <form onSubmit={saveCompany}>
               <div className="form-section">
                 <h3 className="form-section-title"><FiBriefcase /> Business Information</h3>
-                <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+                <p style={{ fontSize: 13, color: '#64748b', marginBottom: 14 }}>
                   This is the company identity that appears on receipts and reports.
                 </p>
                 <div className="form-grid">
@@ -146,7 +146,7 @@ const Profile = () => {
                     <input type="email" name="businessEmail" value={form.businessEmail} onChange={handleChange} />
                   </div>
                   <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                    <label>Physical Address <small style={{ color: '#6b7280', fontWeight: 400 }}>(this branch)</small></label>
+                    <label>Physical Address <small style={{ color: '#64748b', fontWeight: 400 }}>(this branch)</small></label>
                     <input type="text" name="businessAddress" value={form.businessAddress} onChange={handleChange} placeholder="e.g. Ben Bella Road, Lusaka" />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ const Profile = () => {
             <form onSubmit={saveAccount}>
               <div className="form-section">
                 <h3 className="form-section-title"><FiUser /> Personal Information</h3>
-                <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 14 }}>
+                <p style={{ fontSize: 13, color: '#64748b', marginBottom: 14 }}>
                   Your own account details. Signed in as <strong>{user?.email || form.email || '—'}</strong>.
                 </p>
                 <div className="form-grid">
@@ -189,8 +189,8 @@ const Profile = () => {
                   </div>
                   <div className="form-group">
                     <label>Role</label>
-                    <input type="text" value={form.role} disabled style={{ background: '#f9fafb', color: '#6b7280' }} />
-                    <small style={{ color: '#6b7280', fontSize: 11 }}>Role is managed by an Administrator from the Users page.</small>
+                    <input type="text" value={form.role} disabled style={{ background: '#f8fafc', color: '#64748b' }} />
+                    <small style={{ color: '#64748b', fontSize: 11 }}>Role is managed by an Administrator from the Users page.</small>
                   </div>
                 </div>
               </div>

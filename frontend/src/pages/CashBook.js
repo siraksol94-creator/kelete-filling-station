@@ -208,7 +208,7 @@ const CashBook = () => {
     const fmt0 = (v) => parseFloat(v || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
     const fmtUSD = (v) => `$${fmt2(v)}`;
     const fmtFRA = (v) => `F ${fmt0(v)}`;
-    const fmtK   = (v) => `K ${fmt0(v)}`;
+    const fmtK   = (v) => `${(Number(v) || 0) < 0 ? '−' : ''}K${fmt0(Math.abs(Number(v) || 0))}`;
 
     const printedAt = new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     const dateLabel = from && to && from !== to ? `${formatDate(from)} — ${formatDate(to)}` : from ? formatDate(from) : 'All Dates';
@@ -261,8 +261,8 @@ const CashBook = () => {
         { label: 'Total Receipts (CR)', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0', data: perCcy.receipts },
         { label: 'Total Payments (PV)', bg: '#fef2f2', color: '#dc2626', border: '#fecaca', data: perCcy.payments },
         { label: 'Total AP (COGS)',     bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff', data: perCcy.ap },
-        { label: 'Profit',              bg: '#f8fafc', color: '#111827', border: '#e2e8f0', data: profitByCcy, signColor: true },
-        { label: 'Current Balance',     bg: '#f8fafc', color: '#111827', border: '#e2e8f0', data: currentByCcy },
+        { label: 'Profit',              bg: '#f8fafc', color: '#0f172a', border: '#e2e8f0', data: profitByCcy, signColor: true },
+        { label: 'Current Balance',     bg: '#f8fafc', color: '#0f172a', border: '#e2e8f0', data: currentByCcy },
       ];
       const chips = cards.map(c => {
         const lines = ccyList.map(ccy => {
@@ -282,20 +282,20 @@ const CashBook = () => {
       const totIn   = { usd: 0, fra: 0, k: 0 };
       const totOut  = { usd: 0, fra: 0, k: 0 };
       const obRows = ccyList.map(ccy => `<tr style="background:#eff6ff">
-        <td style="padding:6px 10px;color:#6b7280;border-top:1px solid #e5e7eb">—</td>
-        <td style="padding:6px 10px;font-weight:700;border-top:1px solid #e5e7eb">Opening Balance</td>
-        <td style="padding:6px 10px;color:#9ca3af;font-size:10px;border-top:1px solid #e5e7eb"></td>
-        <td style="padding:6px 10px;font-weight:700;color:#1d4ed8;border-top:1px solid #e5e7eb">OB</td>
-        <td style="padding:6px 10px;text-align:center;color:#374151;font-weight:600;border-top:1px solid #e5e7eb">${ccy.label}</td>
-        <td style="padding:6px 10px;text-align:right;color:#1d4ed8;font-weight:700;border-top:1px solid #e5e7eb">${ccy.fmt(openingByCcy[ccy.key])}</td>
-        <td style="padding:6px 10px;border-top:1px solid #e5e7eb"></td>
-        <td style="padding:6px 10px;text-align:right;font-weight:700;border-top:1px solid #e5e7eb">${ccy.fmt(openingByCcy[ccy.key])}</td>
+        <td style="padding:6px 10px;color:#64748b;border-top:1px solid #e2e8f0">—</td>
+        <td style="padding:6px 10px;font-weight:700;border-top:1px solid #e2e8f0">Opening Balance</td>
+        <td style="padding:6px 10px;color:#94a3b8;font-size:10px;border-top:1px solid #e2e8f0"></td>
+        <td style="padding:6px 10px;font-weight:700;color:#1d4ed8;border-top:1px solid #e2e8f0">OB</td>
+        <td style="padding:6px 10px;text-align:center;color:#334155;font-weight:600;border-top:1px solid #e2e8f0">${ccy.label}</td>
+        <td style="padding:6px 10px;text-align:right;color:#1d4ed8;font-weight:700;border-top:1px solid #e2e8f0">${ccy.fmt(openingByCcy[ccy.key])}</td>
+        <td style="padding:6px 10px;border-top:1px solid #e2e8f0"></td>
+        <td style="padding:6px 10px;text-align:right;font-weight:700;border-top:1px solid #e2e8f0">${ccy.fmt(openingByCcy[ccy.key])}</td>
       </tr>`).join('');
 
       const rows = entries.map((e, idx) => {
         const isAP = e.type === 'AP', isPV = e.type === 'PV';
         const tc = isAP ? '#7c3aed' : isPV ? '#dc2626' : '#16a34a';
-        const bg = idx % 2 === 1 ? '#fafafa' : '#fff';
+        const bg = idx % 2 === 1 ? '#f8fafc' : '#fff';
         const subs = [];
         for (const ccy of ccyList) {
           const inv  = parseFloat(e[`${ccy.key}_in`]  || 0) || 0;
@@ -305,11 +305,11 @@ const CashBook = () => {
           totIn[ccy.key]  += inv;
           totOut[ccy.key] += outv;
           subs.push(`<tr style="background:${bg}">
-            <td style="padding:6px 10px;color:#374151;border-top:1px solid #f1f5f9">${formatDate(e.date)}</td>
+            <td style="padding:6px 10px;color:#334155;border-top:1px solid #f1f5f9">${formatDate(e.date)}</td>
             <td style="padding:6px 10px;border-top:1px solid #f1f5f9">${e.description || ''}</td>
-            <td style="padding:6px 10px;color:#9ca3af;font-size:10px;border-top:1px solid #f1f5f9">${e.reference || ''}</td>
+            <td style="padding:6px 10px;color:#94a3b8;font-size:10px;border-top:1px solid #f1f5f9">${e.reference || ''}</td>
             <td style="padding:6px 10px;font-weight:700;color:${tc};border-top:1px solid #f1f5f9">${e.type}</td>
-            <td style="padding:6px 10px;text-align:center;color:#374151;font-weight:600;border-top:1px solid #f1f5f9">${ccy.label}</td>
+            <td style="padding:6px 10px;text-align:center;color:#334155;font-weight:600;border-top:1px solid #f1f5f9">${ccy.label}</td>
             <td style="padding:6px 10px;text-align:right;color:#16a34a;font-weight:500;border-top:1px solid #f1f5f9">${inv > 0 ? ccy.fmt(inv) : ''}</td>
             <td style="padding:6px 10px;text-align:right;color:#dc2626;font-weight:500;border-top:1px solid #f1f5f9">${outv > 0 ? ccy.fmt(outv) : ''}</td>
             <td style="padding:6px 10px;text-align:right;font-weight:600;border-top:1px solid #f1f5f9">${ccy.fmt(balance[ccy.key])}</td>
@@ -328,7 +328,7 @@ const CashBook = () => {
 
       html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
         @page{size:A4 portrait;margin:0}*{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}
+        body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#0f172a}
       </style></head><body><div style="width:794px;margin:0 auto">
         <div style="background:linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 100%);padding:28px 44px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start">
           <div>
@@ -383,12 +383,12 @@ const CashBook = () => {
         chip('Total Payments (PV)',curSym+fmt(stats.totalPV),       '#fef2f2','#dc2626','#fecaca'),
         chip('Total AP (COGS)',    curSym+fmt(stats.totalAP),       '#faf5ff','#7c3aed','#e9d5ff'),
         chip('Profit',             curSym+fmt(profit),              profit>=0?'#f0fdf4':'#fef2f2', profit>=0?'#16a34a':'#dc2626', profit>=0?'#bbf7d0':'#fecaca'),
-        chip('Current Balance',    curSym+fmt(stats.currentBalance),'#f8fafc','#374151','#e2e8f0'),
+        chip('Current Balance',    curSym+fmt(stats.currentBalance),'#f8fafc','#334155','#e2e8f0'),
       ].join('');
       const obRow = `<tr style="border-bottom:1px solid #f1f5f9;background:#eff6ff">
-        <td style="padding:8px 12px;color:#6b7280">—</td>
+        <td style="padding:8px 12px;color:#64748b">—</td>
         <td style="padding:8px 12px;font-weight:700">Opening Balance</td>
-        <td style="padding:8px 12px;color:#9ca3af;font-size:10px">OB</td>
+        <td style="padding:8px 12px;color:#94a3b8;font-size:10px">OB</td>
         <td style="padding:8px 12px;font-weight:700;color:#1d4ed8">OB</td>
         <td style="padding:8px 12px;text-align:right;font-weight:700;color:#1d4ed8">${curSym}${fmt(openingBal)}</td>
         <td style="padding:8px 12px"></td>
@@ -397,10 +397,10 @@ const CashBook = () => {
       const rows = entries.map((e, idx) => {
         const isAP = e.type==='AP', isPV = e.type==='PV';
         const tc = isAP?'#7c3aed':isPV?'#dc2626':'#16a34a';
-        return `<tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#fafafa':'#fff'}">
-          <td style="padding:8px 12px;color:#374151">${formatDate(e.date)}</td>
+        return `<tr style="border-bottom:1px solid #f1f5f9;background:${idx%2===1?'#f8fafc':'#fff'}">
+          <td style="padding:8px 12px;color:#334155">${formatDate(e.date)}</td>
           <td style="padding:8px 12px">${e.description||''}</td>
-          <td style="padding:8px 12px;color:#9ca3af;font-size:10px">${e.reference||''}</td>
+          <td style="padding:8px 12px;color:#94a3b8;font-size:10px">${e.reference||''}</td>
           <td style="padding:8px 12px;font-weight:700;color:${tc}">${e.type}</td>
           <td style="padding:8px 12px;text-align:right;color:#16a34a;font-weight:500">${parseFloat(e.receipt_amount)>0?curSym+fmt(e.receipt_amount):''}</td>
           <td style="padding:8px 12px;text-align:right;color:#dc2626;font-weight:500">${parseFloat(e.payment_amount)>0?curSym+fmt(e.payment_amount):''}</td>
@@ -409,7 +409,7 @@ const CashBook = () => {
       }).join('');
       html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
         @page{size:A4 portrait;margin:0}*{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#1a1a2e}
+        body{font-family:"Segoe UI",Arial,sans-serif;font-size:12px;color:#0f172a}
       </style></head><body><div style="width:794px;margin:0 auto">
         <div style="background:linear-gradient(135deg,#1e3a5f 0%,#1d4ed8 100%);padding:28px 44px 22px;color:#fff;display:flex;justify-content:space-between;align-items:flex-start">
           <div>
@@ -472,7 +472,7 @@ const CashBook = () => {
       return `<tr>
         <td>${formatDate(e.date)}</td>
         <td>${e.description || ''}</td>
-        <td style="font-size:10px;color:#6b7280">${e.reference || ''}</td>
+        <td style="font-size:10px;color:#64748b">${e.reference || ''}</td>
         <td style="text-align:center;font-weight:700;color:${typeColor}">${e.type}</td>
         <td style="text-align:right;color:#16a34a;font-weight:500">${parseFloat(e.receipt_amount) > 0 ? curSym + fmt(e.receipt_amount) : ''}</td>
         <td style="text-align:right;color:#dc2626;font-weight:500">${parseFloat(e.payment_amount) > 0 ? curSym + fmt(e.payment_amount) : ''}</td>
@@ -481,23 +481,23 @@ const CashBook = () => {
     }).join('');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
       @page{size:A4 portrait;margin:15mm}*{box-sizing:border-box;margin:0;padding:0}
-      body{font-family:Arial,sans-serif;font-size:11px;color:#1f2937}
+      body{font-family:Arial,sans-serif;font-size:11px;color:#1e293b}
       .hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:12px;border-bottom:3px solid #1e3a5f;margin-bottom:16px}
       .hdr-left .biz{font-size:20px;font-weight:900;color:#1e3a5f;letter-spacing:0.3px}
-      .hdr-left .sub{font-size:10px;color:#6b7280;margin-top:4px}
+      .hdr-left .sub{font-size:10px;color:#64748b;margin-top:4px}
       .hdr-right{text-align:right}
-      .hdr-right .title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#6b7280;margin-bottom:4px}
+      .hdr-right .title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#64748b;margin-bottom:4px}
       .hdr-right .dates{font-size:13px;font-weight:700;color:#1e3a5f}
-      .hdr-right .printed{font-size:9px;color:#9ca3af;margin-top:3px}
+      .hdr-right .printed{font-size:9px;color:#94a3b8;margin-top:3px}
       .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
-      .stat{border:1.5px solid #d1d5db;border-radius:6px;padding:8px 12px}
-      .stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:3px}
+      .stat{border:1.5px solid #cbd5e1;border-radius:6px;padding:8px 12px}
+      .stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:3px}
       .stat-val{font-size:13px;font-weight:800}
       table{width:100%;border-collapse:collapse;font-size:10.5px}
-      th{border:1px solid #d1d5db;padding:7px 9px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.5px}
-      td{border:1px solid #e5e7eb;padding:6px 9px}
+      th{border:1px solid #cbd5e1;padding:7px 9px;text-align:left;font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:0.5px}
+      td{border:1px solid #e2e8f0;padding:6px 9px}
       .tot-row td{font-weight:700;border-top:2px solid #1e3a5f}
-      .ft{margin-top:16px;display:flex;justify-content:space-between;font-size:9px;color:#9ca3af}
+      .ft{margin-top:16px;display:flex;justify-content:space-between;font-size:9px;color:#94a3b8}
     </style></head><body>
       <div class="hdr">
         <div class="hdr-left">
@@ -602,19 +602,19 @@ const CashBook = () => {
       {!isLiquorStyle && (<>
       {/* Date Filter */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{t('from')}:</label>
+        <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>{t('from')}:</label>
         <input type="date" value={from} onChange={e => setFrom(e.target.value)}
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
-        <label style={{ fontSize: 13, color: '#6b7280', fontWeight: 600 }}>{t('to')}:</label>
+          style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }} />
+        <label style={{ fontSize: 13, color: '#64748b', fontWeight: 600 }}>{t('to')}:</label>
         <input type="date" value={to} onChange={e => setTo(e.target.value)}
-          style={{ padding: '6px 10px', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13 }} />
+          style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: 6, fontSize: 13 }} />
         <button onClick={handleFilter}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 14px', borderRadius: 6, border: 'none', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
           <FiFilter size={13} /> {t('filter')}
         </button>
         {(from || to) && (
           <button onClick={handleClearFilter}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, border: '1px solid #d1d5db', backgroundColor: '#fff', color: '#6b7280', cursor: 'pointer', fontSize: 13 }}>
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', borderRadius: 6, border: '1px solid #cbd5e1', backgroundColor: '#fff', color: '#64748b', cursor: 'pointer', fontSize: 13 }}>
             <FiX size={13} /> {t('clear')}
           </button>
         )}
@@ -912,9 +912,9 @@ const CashBook = () => {
         <Portal>
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ background: '#fff', borderRadius: 14, width: '100%', maxWidth: 460, boxShadow: '0 24px 64px rgba(0,0,0,0.35)' }}>
-            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e5e7eb' }}>
+            <div style={{ padding: '18px 22px', borderBottom: '1px solid #e2e8f0' }}>
               <h3 style={{ margin: 0 }}>Opening Balances</h3>
-              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>Starting balance per currency (USD / FRA / K) — used as the base for the Cash Book.</div>
+              <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>Starting balance per currency (USD / FRA / K) — used as the base for the Cash Book.</div>
             </div>
             <div style={{ padding: 22, display: 'grid', gap: 12 }}>
               {/* v1.9.27 — Liquor branches edit Cash / MoMo / Bank
@@ -934,12 +934,12 @@ const CashBook = () => {
                     value={obInput[f.key]}
                     onChange={e => setObInput(prev => ({ ...prev, [f.key]: e.target.value }))}
                     placeholder="0.00"
-                    style={{ width: '100%', padding: '9px 12px', border: `2px solid ${parseFloat(obInput[f.key] || 0) > 0 ? f.color : '#d1d5db'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, boxSizing: 'border-box' }} />
+                    style={{ width: '100%', padding: '9px 12px', border: `2px solid ${parseFloat(obInput[f.key] || 0) > 0 ? f.color : '#cbd5e1'}`, borderRadius: 6, fontSize: 14, fontWeight: 600, boxSizing: 'border-box' }} />
                 </div>
               ))}
             </div>
-            <div style={{ padding: '14px 22px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-              <button onClick={() => setEditingOB(false)} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
+            <div style={{ padding: '14px 22px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setEditingOB(false)} style={{ padding: '8px 16px', background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, cursor: 'pointer' }}>Cancel</button>
               <button onClick={handleSaveOB} disabled={savingOB}
                 style={{ padding: '8px 18px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700 }}>
                 {savingOB ? 'Saving…' : 'Save'}
@@ -1026,7 +1026,7 @@ const CashBook = () => {
                 <tr style={{ background: '#f0f9ff' }}>
                   <td style={{ fontWeight: 500 }}>—</td>
                   <td style={{ fontWeight: 600 }}>{t('openingBalance')}</td>
-                  <td style={{ color: '#6b7280', fontSize: 12 }}>OB</td>
+                  <td style={{ color: '#64748b', fontSize: 12 }}>OB</td>
                   <td></td>
                   {isLiquorStyle ? (
                     <>
@@ -1067,7 +1067,7 @@ const CashBook = () => {
                 <tr key={e.id} style={typeof rowBg === 'string' ? { background: rowBg } : rowBg}>
                   <td>{formatDate(e.date)}</td>
                   <td style={{ fontWeight: 500 }}>{e.description}</td>
-                  <td style={{ color: '#6b7280', fontSize: 12 }}>{e.reference}</td>
+                  <td style={{ color: '#64748b', fontSize: 12 }}>{e.reference}</td>
                   <td>
                     <span style={{
                       display: 'inline-block', padding: '2px 7px', borderRadius: 10, fontSize: 11, fontWeight: 700,
@@ -1166,7 +1166,7 @@ const CashBook = () => {
               );
             })}
             {entries.length === 0 && (
-              <tr><td colSpan="8" style={{ textAlign: 'center', color: '#6b7280', padding: 24 }}>No transactions yet. Create Cash Receipts, Payment Vouchers, or AP Payments.</td></tr>
+              <tr><td colSpan="8" style={{ textAlign: 'center', color: '#64748b', padding: 24 }}>No transactions yet. Create Cash Receipts, Payment Vouchers, or AP Payments.</td></tr>
             )}
             {/* v1.8.61 — per-currency totals row. Sum in / out separately
                 across all entries, then display net per currency. */}
@@ -1201,7 +1201,7 @@ const CashBook = () => {
                               : activeCcy === 'k'   ? `${Math.round(closeBal).toLocaleString()} K`
                               : `${curSym}${(closeBal||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
               return (
-                <tr style={{ background: '#f9fafb', fontWeight: 700, borderTop: '2px solid #e5e7eb' }}>
+                <tr style={{ background: '#f8fafc', fontWeight: 700, borderTop: '2px solid #e2e8f0' }}>
                   <td colSpan="4" style={{ textAlign: 'right' }}>TOTALS:</td>
                   {isLiquorStyle ? (() => {
                     // v1.9.27 — Liquor totals: sum receipts and payments.
@@ -1274,7 +1274,7 @@ const CashBook = () => {
               </div>
             </div>
 
-            <div id="cb-list-document" style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#1a1a2e', flexShrink: 0 }}>
+            <div id="cb-list-document" style={{ width: 794, background: '#fff', margin: '0 auto', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', fontFamily: '"Segoe UI", Arial, sans-serif', fontSize: 12, color: '#0f172a', flexShrink: 0 }}>
               {/* Header */}
               <div style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%)', padding: '28px 44px 22px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
@@ -1299,7 +1299,7 @@ const CashBook = () => {
                     { label: 'Total Payments (PV)',value: curSym + fmt(stats.totalPV),       bg: '#fef2f2', color: '#dc2626', border: '#fecaca' },
                     { label: 'Total AP (COGS)',    value: curSym + fmt(stats.totalAP),       bg: '#faf5ff', color: '#7c3aed', border: '#e9d5ff' },
                     { label: 'Profit',             value: curSym + fmt(profit),              bg: profit >= 0 ? '#f0fdf4' : '#fef2f2', color: profit >= 0 ? '#15803d' : '#dc2626', border: profit >= 0 ? '#bbf7d0' : '#fecaca' },
-                    { label: 'Current Balance',    value: curSym + fmt(stats.currentBalance),bg: '#f8fafc', color: '#374151', border: '#e2e8f0' },
+                    { label: 'Current Balance',    value: curSym + fmt(stats.currentBalance),bg: '#f8fafc', color: '#334155', border: '#e2e8f0' },
                   ].map(chip => (
                     <div key={chip.label} style={{ padding: '12px 16px', borderRadius: 10, background: chip.bg, border: `1.5px solid ${chip.border}`, textAlign: 'center' }}>
                       <div style={{ fontSize: 9.5, letterSpacing: 0.8, textTransform: 'uppercase', color: '#64748b', fontWeight: 600, marginBottom: 6 }}>{chip.label}</div>
@@ -1320,9 +1320,9 @@ const CashBook = () => {
                     </thead>
                     <tbody>
                       <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#eff6ff' }}>
-                        <td style={{ padding: '8px 12px', color: '#6b7280' }}>—</td>
+                        <td style={{ padding: '8px 12px', color: '#64748b' }}>—</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700 }}>Opening Balance</td>
-                        <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10 }}>OB</td>
+                        <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10 }}>OB</td>
                         <td style={{ padding: '8px 12px', fontWeight: 700, color: '#1d4ed8' }}>OB</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 700, color: '#1d4ed8' }}>{curSym}{fmt(openingBal)}</td>
                         <td style={{ padding: '8px 12px' }} />
@@ -1332,10 +1332,10 @@ const CashBook = () => {
                         const isAP = e.type === 'AP'; const isPV = e.type === 'PV';
                         const typeColor = isAP ? '#7c3aed' : isPV ? '#dc2626' : '#16a34a';
                         return (
-                          <tr key={e.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#fafafa' : '#fff' }}>
-                            <td style={{ padding: '8px 12px', color: '#374151' }}>{formatDate(e.date)}</td>
+                          <tr key={e.id || idx} style={{ borderBottom: '1px solid #f1f5f9', background: idx % 2 === 1 ? '#f8fafc' : '#fff' }}>
+                            <td style={{ padding: '8px 12px', color: '#334155' }}>{formatDate(e.date)}</td>
                             <td style={{ padding: '8px 12px' }}>{e.description || ''}</td>
-                            <td style={{ padding: '8px 12px', color: '#6b7280', fontSize: 10 }}>{e.reference || ''}</td>
+                            <td style={{ padding: '8px 12px', color: '#64748b', fontSize: 10 }}>{e.reference || ''}</td>
                             <td style={{ padding: '8px 12px', fontWeight: 700, color: typeColor }}>{e.type}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'right', color: '#15803d', fontWeight: 500 }}>{parseFloat(e.receipt_amount) > 0 ? curSym + fmt(e.receipt_amount) : ''}</td>
                             <td style={{ padding: '8px 12px', textAlign: 'right', color: '#dc2626', fontWeight: 500 }}>{parseFloat(e.payment_amount) > 0 ? curSym + fmt(e.payment_amount) : ''}</td>
@@ -1376,7 +1376,7 @@ const CashBook = () => {
               <button className="modal-close" onClick={() => setShowTransfer(false)}><FiX /></button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: 13, color: '#6b7280', marginTop: 0, marginBottom: 14 }}>
+              <p style={{ fontSize: 13, color: '#64748b', marginTop: 0, marginBottom: 14 }}>
                 Move money between cash buckets. Your total cash on hand stays the same — only the breakdown shifts.
               </p>
 
@@ -1398,7 +1398,7 @@ const CashBook = () => {
                         {(methodShown('bank') || transferForm.from_method === 'Bank') && <option value="Bank">Bank</option>}
                         {(methodShown('momo') || transferForm.from_method === 'Mobile Money') && <option value="Mobile Money">Mobile Money</option>}
                       </select>
-                      <small style={{ color: '#6b7280', fontSize: 11, display: 'block', marginTop: 4 }}>
+                      <small style={{ color: '#64748b', fontSize: 11, display: 'block', marginTop: 4 }}>
                         Current: <strong>{curSym}{fmt(fromCur)}</strong>
                       </small>
                       {showAfter && (
@@ -1414,7 +1414,7 @@ const CashBook = () => {
                         {(methodShown('bank') || transferForm.to_method === 'Bank') && <option value="Bank">Bank</option>}
                         {(methodShown('momo') || transferForm.to_method === 'Mobile Money') && <option value="Mobile Money">Mobile Money</option>}
                       </select>
-                      <small style={{ color: '#6b7280', fontSize: 11, display: 'block', marginTop: 4 }}>
+                      <small style={{ color: '#64748b', fontSize: 11, display: 'block', marginTop: 4 }}>
                         Current: <strong>{curSym}{fmt(toCur)}</strong>
                       </small>
                       {showAfter && (
@@ -1458,9 +1458,9 @@ const CashBook = () => {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                <button onClick={() => setShowTransfer(false)} style={{ padding: '10px 24px', border: '1px solid #e5e7eb', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
+                <button onClick={() => setShowTransfer(false)} style={{ padding: '10px 24px', border: '1px solid #e2e8f0', borderRadius: 8, background: '#fff', cursor: 'pointer', fontSize: 14 }}>Cancel</button>
                 <button onClick={handleSaveTransfer} disabled={savingTransfer}
-                  style={{ padding: '10px 28px', background: savingTransfer ? '#9ca3af' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: savingTransfer ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
+                  style={{ padding: '10px 28px', background: savingTransfer ? '#94a3b8' : '#2563eb', color: '#fff', border: 'none', borderRadius: 8, cursor: savingTransfer ? 'not-allowed' : 'pointer', fontSize: 14, fontWeight: 600 }}>
                   <FiSave style={{ marginRight: 4, verticalAlign: 'middle' }} />
                   {savingTransfer ? 'Saving...' : 'Save Transfer'}
                 </button>

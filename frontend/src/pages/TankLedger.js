@@ -21,7 +21,7 @@ const TYPE_COLORS = {
   sale:           { bg: '#fef2f2', fg: '#991b1b', label: 'SALE' },
   adjustment:     { bg: '#fffbeb', fg: '#92400e', label: 'ADJUSTMENT' },
   dip_adjustment: { bg: '#fffbeb', fg: '#b45309', label: 'DIP ADJ' },
-  reversal:       { bg: '#f3f4f6', fg: '#6b7280', label: 'REVERSAL' },
+  reversal:       { bg: '#f1f5f9', fg: '#64748b', label: 'REVERSAL' },
 };
 
 export default function TankLedger({ embedded = false } = {}) {
@@ -189,15 +189,15 @@ export default function TankLedger({ embedded = false } = {}) {
                     movement is dated before 'From'. Without this a tank
                     with historical stock looked empty. */}
                 {Number(data.opening_before) !== 0 && (
-                  <tr style={{ borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
-                    <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontStyle: 'italic' }}>&lt; {fmtDate(from)}</td>
+                  <tr style={{ borderBottom: '1px solid #f1f5f9', background: '#f8fafc' }}>
+                    <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#64748b', fontStyle: 'italic' }}>&lt; {fmtDate(from)}</td>
                     {data.tank?.group_code && <td style={S.td}>—</td>}
                     <td style={S.td}>
                       <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 10, background: '#eef2ff', color: '#4338ca', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>OPENING BEFORE</span>
                     </td>
-                    <td style={{ ...S.tdR, whiteSpace: 'nowrap', color: '#6b7280' }}>—</td>
+                    <td style={{ ...S.tdR, whiteSpace: 'nowrap', color: '#64748b' }}>—</td>
                     <td style={{ ...S.tdR, whiteSpace: 'nowrap', fontWeight: 700 }}>{fmtL(data.opening_before)}</td>
-                    <td style={{ ...S.td, color: '#6b7280', fontStyle: 'italic' }}>Carried over from before this date range</td>
+                    <td style={{ ...S.td, color: '#64748b', fontStyle: 'italic' }}>Carried over from before this date range</td>
                     <td style={S.td}>—</td>
                   </tr>
                 )}
@@ -205,9 +205,9 @@ export default function TankLedger({ embedded = false } = {}) {
                   const t = TYPE_COLORS[r.type] || TYPE_COLORS.adjustment;
                   const positive = Number(r.litres) >= 0;
                   return (
-                    <tr key={r.id ?? `agg-${idx}`} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <tr key={r.id ?? `agg-${idx}`} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ ...S.td, whiteSpace: 'nowrap' }}>{fmtDate(r.movement_date)}</td>
-                      {data.tank?.group_code && <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontSize: 12 }}>{r.tank_code || '—'}</td>}
+                      {data.tank?.group_code && <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#64748b', fontSize: 12 }}>{r.tank_code || '—'}</td>}
                       <td style={S.td}>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: '3px 7px', borderRadius: 10, background: t.bg, color: t.fg, letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{t.label}</span>
                       </td>
@@ -216,12 +216,12 @@ export default function TankLedger({ embedded = false } = {}) {
                       </td>
                       <td style={{ ...S.tdR, whiteSpace: 'nowrap', fontWeight: 700 }}>{fmtL(r.balance_after)}</td>
                       <td style={S.td}>{r.notes || '—'}</td>
-                      <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#6b7280', fontSize: 12 }}>{r.created_by_name || '—'}</td>
+                      <td style={{ ...S.td, whiteSpace: 'nowrap', color: '#64748b', fontSize: 12 }}>{r.created_by_name || '—'}</td>
                     </tr>
                   );
                 })}
                 {displayRows.length === 0 && Number(data.opening_before) === 0 && (
-                  <tr><td colSpan={data.tank?.group_code ? 7 : 6} style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>No movements in this date range.</td></tr>
+                  <tr><td colSpan={data.tank?.group_code ? 7 : 6} style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>No movements in this date range.</td></tr>
                 )}
               </tbody>
             </table>
@@ -229,7 +229,7 @@ export default function TankLedger({ embedded = false } = {}) {
         </>
       )}
 
-      {!data && !loading && <div style={{ padding: 24, textAlign: 'center', color: '#6b7280' }}>Pick a tank to view its ledger.</div>}
+      {!data && !loading && <div style={{ padding: 24, textAlign: 'center', color: '#64748b' }}>Pick a tank to view its ledger.</div>}
     </>
   );
   return embedded ? body : <div style={S.page} className="k-page">{body}</div>;
