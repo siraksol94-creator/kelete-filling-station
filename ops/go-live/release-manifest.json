@@ -340,6 +340,13 @@
    "migrations": [
     13
    ]
+  },
+  {
+   "n": 46,
+   "subject": "HQ Consolidated Profit: Shop | Fuel | Station for every branch and the group, fuel margin per litre by grade across branches (for review)",
+   "covers": "HQ Consolidated Profit",
+   "what": "GET /api/hq/consolidated-profit adds each branch's fuel (services/fuelProfit with a day-by-day split; null where a branch has no forecourt) alongside the unchanged stored shop figures. Screen rebuilt: Group net profit (branches − HQ overhead once), group sales split shop/fuel, gross profit %, fuel margin per litre; by-branch table Shop sales | Fuel sales | Gross | Expenses | Net | Fuel/L with day drill-down; credit-ticket fuel counted once; shop-only branches marked; fuel by grade across branches. Money shown in full (was rounded to whole kwacha). No new endpoints, permissions, data or migrations.",
+   "migrations": []
   }
  ],
  "migrations": [

@@ -52,7 +52,9 @@ function freezeShiftCost(db, shiftId) {
   `).run(shiftId).changes;
 }
 
-function fuelProfit(db, { from, to } = {}) {
+// opts.daily: also return the same figures per trading day (HQ Consolidated
+// Profit's drill-down).
+function fuelProfit(db, { from, to, daily = false } = {}) {
   const frozen = hasCol(db, 'shift_nozzle_readings', 'cost_per_litre');
   const range = [];
   let where = "s.status = 'Closed'";
@@ -61,6 +63,7 @@ function fuelProfit(db, { from, to } = {}) {
 
   const rows = db.prepare(`
     SELECT g.id AS grade_id, g.code, g.name, g.color, g.cost_price AS cost_today,
+           ${SHIFT_DAY} AS day,
            r.litres_sold AS litres, r.expected_cash AS revenue, r.price_per_litre AS price,
            ${frozen ? 'r.cost_per_litre' : 'NULL'} AS cost_frozen
       FROM shift_nozzle_readings r
@@ -72,6 +75,12 @@ function fuelProfit(db, { from, to } = {}) {
   `).all(...range);
 
   const byGrade = new Map();
+  const byDay = new Map();
+  const dayOf = (d) => {
+    let v = byDay.get(d);
+    if (!v) { v = { date: d, litres: 0, revenue: 0, cost: 0, cash_variance: 0, credit_in_shop: 0 }; byDay.set(d, v); }
+    return v;
+  };
   for (const x of rows) {
     let g = byGrade.get(x.grade_id);
     if (!g) {
@@ -86,6 +95,10 @@ function fuelProfit(db, { from, to } = {}) {
     g.revenue += Number(x.revenue) || 0;
     g.cost += litres * cpl;
     if (estimated) g.estimated_litres += litres;
+    if (daily) {
+      const dd = dayOf(x.day);
+      dd.litres += litres; dd.revenue += Number(x.revenue) || 0; dd.cost += litres * cpl;
+    }
   }
 
   const grades = [...byGrade.values()].map((g) => {
@@ -105,6 +118,12 @@ function fuelProfit(db, { from, to } = {}) {
     SELECT COUNT(*) AS shifts, COALESCE(SUM(s.variance), 0) AS variance
       FROM attendant_shifts s WHERE ${where}
   `).get(...range);
+  if (daily) {
+    for (const c of db.prepare(`
+      SELECT ${SHIFT_DAY} AS day, COALESCE(SUM(s.variance), 0) AS variance
+        FROM attendant_shifts s WHERE ${where} GROUP BY ${SHIFT_DAY}
+    `).all(...range)) dayOf(c.day).cash_variance += Number(c.variance) || 0;
+  }
 
   // Credit fuel tickets inside the shop's stored revenue (profitHelper's
   // revenue rule: COALESCE(business_date, DATE(created_at)), not Reversed).
@@ -118,8 +137,8 @@ function fuelProfit(db, { from, to } = {}) {
   // and the ticket existed when it was last calculated. (A ticket does not
   // recalculate the day itself; a later shop sale or the startup backfill
   // does.) So the shop column can never go below what is really in it.
-  const credit = hasLink ? db.prepare(`
-    SELECT COALESCE(SUM(o.total_amount), 0) AS amount
+  const creditRows = hasLink ? db.prepare(`
+    SELECT ${ordDay} AS day, COALESCE(SUM(o.total_amount), 0) AS amount
       FROM orders o
       JOIN daily_profit_summary d
         ON d.date = ${ordDay} AND d.tenant_id = o.tenant_id
@@ -127,7 +146,10 @@ function fuelProfit(db, { from, to } = {}) {
        AND o.created_at <= d.updated_at
        AND o.id IN (SELECT linked_order_id FROM shift_credit_sales
                      WHERE payment_method = 'Credit' AND linked_order_id IS NOT NULL)
-  `).get(...oRange) : { amount: 0 };
+     GROUP BY ${ordDay}
+  `).all(...oRange) : [];
+  const credit = { amount: creditRows.reduce((a, c) => a + (Number(c.amount) || 0), 0) };
+  if (daily) for (const c of creditRows) dayOf(c.day).credit_in_shop += Number(c.amount) || 0;
 
   const litres = grades.reduce((a, g) => a + g.litres, 0);
   const revenue = r2(grades.reduce((a, g) => a + g.revenue, 0));
@@ -150,6 +172,16 @@ function fuelProfit(db, { from, to } = {}) {
     },
     credit_in_shop: r2(credit.amount),
     cost_frozen_available: frozen,
+    ...(daily ? {
+      daily: [...byDay.values()].sort((a, b) => (a.date < b.date ? -1 : 1)).map((d) => ({
+        date: d.date,
+        litres: Math.round(d.litres * 1000) / 1000,
+        revenue: r2(d.revenue), cost: r2(d.cost), margin: r2(d.revenue - d.cost),
+        cash_variance: r2(d.cash_variance),
+        gross_profit: r2(d.revenue - d.cost + d.cash_variance),
+        credit_in_shop: r2(d.credit_in_shop),
+      })),
+    } : {}),
   };
 }
 
