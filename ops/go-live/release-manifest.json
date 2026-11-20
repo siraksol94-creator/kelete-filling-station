@@ -410,6 +410,13 @@
    "covers": "UX-17",
    "what": "Frontend only. Every grey (Tailwind gray and one-off greys like #333, #ddd, #f5f5f5) mapped to the same step of the slate family the sidebar and new screens use; theme tokens in index.css (fonts, background, text) and kelete-ux.css; on-screen monospace uses one stack (Cascadia/Consolas instead of Courier); Inter 800 loaded. Money: shared formatters print K12,345.00 and −K12.00 (was \"K 12,345.00\" and \"K -12.00\"); Sales Inventory negatives show −K; GRN, SIV and Receivables prints show the till currency, not $. Browser alert/confirm replaced with in-app boxes on Sales Report, Cash Receipt, Sales Bin Card, POS checkout error, HQ Deposits, HQ GRN Archive and Payment Voucher. Sales Inventory header buttons in the shared hero colours.",
    "migrations": []
+  },
+  {
+   "n": 56,
+   "subject": "Fix: Sales Report shows the over-collected split by currency again (tri-currency branches only) — dropped in UX-14 (for review)",
+   "covers": "Fix",
+   "what": "Final check before go-live (lint against the pre-session code: 0 new warnings after this). UX-14 kept the over-collected total on tri-currency branches but lost its USD / FRA / K split, leaving three unused totals. The split is shown again. Kelete (K-only) never shows over-collected, so nothing changes there.",
+   "migrations": []
   }
  ],
  "migrations": [

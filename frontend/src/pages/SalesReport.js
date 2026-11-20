@@ -2055,7 +2055,10 @@ const SalesReport = () => {
               <em><b>{activeOrders.length}</b> {activeOrders.length === 1 ? 'sale' : 'sales'}{reversed > 0 ? <> · <b>{reversed}</b> reversed</> : null}{activeOrders.length > 0 ? <> · average <b>{m(totalRevenue / activeOrders.length)}</b></> : null}</em>
               {/* Over-collected applies only to tri-currency branches (see v1.10.81). */}
               {!isLiquorStyle && totalOverpaidAsUSD > 0.005 && (
-                <em>+ over-collected ≈ <b>{m(totalOverpaidAsUSD)}</b></em>
+                <em>+ over-collected ≈ <b>{m(totalOverpaidAsUSD)}</b>{' '}
+                  ({[totalOverpaidUSD > 0 && `USD ${totalOverpaidUSD.toFixed(2)}`,
+                    totalOverpaidFRA > 0 && `FRA ${totalOverpaidFRA.toFixed(0)}`,
+                    totalOverpaidK > 0 && `K${totalOverpaidK.toFixed(0)}`].filter(Boolean).join(' · ')})</em>
               )}
             </div>
             <div className="k-pr-kpi k-sr-paid">
