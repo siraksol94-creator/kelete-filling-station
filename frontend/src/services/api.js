@@ -225,7 +225,8 @@ export const importCategories = (file) => {
 };
 
 // Orders
-export const getOrders = () => api.get('/orders');
+// params (optional): { from, to } (YYYY-MM-DD) or { q } — see GET /api/orders. None = every order.
+export const getOrders = (params) => api.get('/orders', params ? { params } : undefined);
 export const createOrder = (data) => api.post('/orders', data);
 export const getOrder = (id) => api.get(`/orders/${id}`);
 export const reverseOrder = (id, opts = {}) => {

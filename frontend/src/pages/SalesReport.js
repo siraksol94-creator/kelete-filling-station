@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { getPossibleDuplicates, dismissPossibleDuplicate, getOrders, getOrder, reverseOrder, reverseOrderItem, getSettings, getOrderProductSummary, getProductBreakdown, printReport, printReceipt, getSalesCashiers, getCategories, getMainCategories, createDebitNote, getOrderDebitNotes, retryOrderZra, markCnPrinted } from '../services/api';
 import ExportButtons from '../components/ExportButtons';
 import CategoryFilter from '../components/CategoryFilter';
@@ -114,16 +114,27 @@ const SalesReport = () => {
   const [allMains, setAllMains] = useState([]);
   const [selMainIds, setSelMainIds] = useState(null);
   const [selCatIds, setSelCatIds] = useState(null);
+  // 2026-11-20 — the server sends only the sales for the dates on screen
+  // (a day wider each side; the exact days are still picked below by the
+  // browser's local date, as before), or the invoice-search matches across
+  // all dates. It used to send every order ever made on every load.
+  // A newer request always wins, so quick clicks never show stale sales.
+  const ordersReq = useRef(0);
   const fetchOrders = useCallback(async () => {
+    const mine = ++ordersReq.current;
+    const q = invoiceSearch.trim();
+    const params = q ? { q } : (dateFrom || dateTo) ? { ...(dateFrom ? { from: dateFrom } : {}), ...(dateTo ? { to: dateTo } : {}) } : undefined;
     try {
-      const res = await getOrders();
-      setOrders(res.data || []);
+      const res = await getOrders(params);
+      if (mine === ordersReq.current) setOrders(res.data || []);
     } catch (err) {
-      setOrders([]);
+      if (mine === ordersReq.current) setOrders([]);
     } finally {
-      setLoading(false);
+      if (mine === ordersReq.current) setLoading(false);
     }
-  }, []);
+  }, [dateFrom, dateTo, invoiceSearch]);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   // Format a Date as `YYYY-MM-DD HH:MM:SS` in UTC (matches SQLite's datetime('now') format).
   // ISO format (with `T`) lexicographically compares > space-separator, so we MUST use space.
@@ -164,7 +175,6 @@ const SalesReport = () => {
   };
 
   useEffect(() => {
-    fetchOrders();
     getSettings().then(r => {
       const biz = r.data?.business || r.data || {};
       if (biz.business_name) setBusinessName(biz.business_name);
@@ -176,7 +186,7 @@ const SalesReport = () => {
     }).catch(() => {});
     getCategories().then(r => setAllCats(r.data || [])).catch(() => {});
     getMainCategories().then(r => setAllMains(r.data || [])).catch(() => {});
-  }, [fetchOrders]);
+  }, []);
 
   useEffect(() => {
     setUserFilter('all');

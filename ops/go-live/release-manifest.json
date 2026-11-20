@@ -361,6 +361,13 @@
    "covers": "UX",
    "what": "Sales Report: kit header with the same exports and prints; quick periods with dates and cashier; invoice search on its own row; headline sales card (sales, reversed, average sale), How they paid (cash/MoMo/bank/on account bar), credit sales, discounts; new Through the day hourly chart with the busiest hour; transactions table Invoice | Date | Customer | Paid by | Total (discount under it) | Received (change under it) | Status, with quiet View/Reverse buttons; credit-note rows to match. Fixes the inherited Reset-to-today button, which called an undefined setDeviceFilter and threw before clearing the search. Reversals, credit notes, ZRA, duplicates, By item / By payment tabs, exports and prints unchanged. No backend, data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 49,
+   "subject": "Sales Report loads only the dates on screen (and searches on the server) instead of every order ever made (for review)",
+   "covers": "Performance",
+   "what": "GET /api/orders accepts optional from/to (a day wider each side; the screen still picks exact local days) and q (invoice search across all dates: our number, ZRA INV<sdc>/<rcpt>, CRN<sdc>/<rcpt>, raw receipt numbers; % and _ literal; max 500). Cost and partial-refund sums computed only for the selected orders. No parameters = every order, unchanged. Sales Report sends the dates on screen or the search, newest request wins. Measured on 20,000 sales: one day 132 KB / 27 ms instead of 37 MB / 940 ms. No data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [
