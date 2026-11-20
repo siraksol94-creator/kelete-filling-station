@@ -266,6 +266,7 @@ automatically at start-up, once, each in its own transaction.
 | 50 | Fix | MoMo and Bank drawer expenses counted once (Cash Report, voucher totals) | — |
 | 51 | UX-15 | Cash Report: blind count, in-app confirm, kit header, readable colours | — |
 | 52 | Fix | Cash receipt totals: each receipt once per method (fuel day receipt no longer counted again as Bank) | — |
+| 53 | UX-16 | Sales Inventory, Stock Card, Bin Card, VAT Report in the same look; K not $ | — |
 
 Before tagging, on the test machine:
 

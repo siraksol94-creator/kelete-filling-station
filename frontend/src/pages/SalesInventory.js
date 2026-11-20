@@ -242,13 +242,13 @@ const SalesInventory = () => {
     },
     {
       label: 'Total Cost', value: fmt(summaryTotals.totalCost), prefix: curSym,
-      icon: <FiDollarSign size={18} />, color: '#d97706', bg: '#fffbeb', border: '#fde68a'
+      icon: <FiDollarSign size={18} />, color: '#b45309', bg: '#fffbeb', border: '#fde68a'
     },
     {
       label: 'Gross Profit',
       value: fmt(dailyGrossProfit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: dailyGrossProfit >= 0 ? '#15803d' : '#dc2626',
+      color: dailyGrossProfit >= 0 ? '#15803d' : '#b91c1c',
       bg: dailyGrossProfit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: dailyGrossProfit >= 0 ? '#bbf7d0' : '#fecaca'
     },
@@ -256,7 +256,7 @@ const SalesInventory = () => {
       label: 'Net Profit',
       value: fmt(dailyNetProfit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: dailyNetProfit >= 0 ? '#15803d' : '#dc2626',
+      color: dailyNetProfit >= 0 ? '#15803d' : '#b91c1c',
       bg: dailyNetProfit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: dailyNetProfit >= 0 ? '#bbf7d0' : '#fecaca'
     },
@@ -268,7 +268,7 @@ const SalesInventory = () => {
       label: 'Difference',
       value: fmt(summaryTotals.totalDiff), prefix: curSym,
       icon: <FiAlertTriangle size={18} />,
-      color: summaryTotals.totalDiff < 0 ? '#dc2626' : '#15803d',
+      color: summaryTotals.totalDiff < 0 ? '#b91c1c' : '#15803d',
       bg: summaryTotals.totalDiff < 0 ? '#fef2f2' : '#f0fdf4',
       border: summaryTotals.totalDiff < 0 ? '#fecaca' : '#bbf7d0'
     },
@@ -280,7 +280,7 @@ const SalesInventory = () => {
     {
       label: 'Monthly Gross Profit', value: fmt(monthlySummary.gross_profit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: monthlySummary.gross_profit >= 0 ? '#15803d' : '#dc2626',
+      color: monthlySummary.gross_profit >= 0 ? '#15803d' : '#b91c1c',
       bg: monthlySummary.gross_profit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: monthlySummary.gross_profit >= 0 ? '#bbf7d0' : '#fecaca',
       monthly: true
@@ -288,7 +288,7 @@ const SalesInventory = () => {
     {
       label: 'Monthly Net Profit', value: fmt(monthlySummary.net_profit), prefix: curSym,
       icon: <FiTrendingUp size={18} />,
-      color: monthlySummary.net_profit >= 0 ? '#15803d' : '#dc2626',
+      color: monthlySummary.net_profit >= 0 ? '#15803d' : '#b91c1c',
       bg: monthlySummary.net_profit >= 0 ? '#f0fdf4' : '#fef2f2',
       border: monthlySummary.net_profit >= 0 ? '#bbf7d0' : '#fecaca',
       monthly: true
@@ -296,7 +296,7 @@ const SalesInventory = () => {
     {
       label: 'Monthly Difference', value: fmt(monthlySummary.total_difference), prefix: curSym,
       icon: <FiAlertTriangle size={18} />,
-      color: monthlySummary.total_difference < 0 ? '#dc2626' : '#15803d',
+      color: monthlySummary.total_difference < 0 ? '#b91c1c' : '#15803d',
       bg: monthlySummary.total_difference < 0 ? '#fef2f2' : '#f0fdf4',
       border: monthlySummary.total_difference < 0 ? '#fecaca' : '#bbf7d0',
       monthly: true
@@ -392,7 +392,7 @@ const SalesInventory = () => {
   };
 
   return (
-    <div className="page-content">
+    <div className="page-content k-lg">
       <div className="page-header">
         <div>
           <h1>Sales Inventory</h1>
@@ -454,7 +454,7 @@ const SalesInventory = () => {
             </div>
             <div style={{ minWidth: 0 }}>
               <div style={{
-                fontSize: 10, color: '#6b7280', fontWeight: 600,
+                fontSize: 10, color: '#475569', fontWeight: 600,
                 letterSpacing: 0.4, textTransform: 'uppercase', marginBottom: 2,
                 whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
               }}>
@@ -472,7 +472,7 @@ const SalesInventory = () => {
               {daily.map(renderCard)}
             </div>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
                 {filterDate.slice(0, 7)} MTD
               </div>
               {monthly.map(c => renderCard(c))}
@@ -485,11 +485,11 @@ const SalesInventory = () => {
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="search-input-container" style={{ flex: 1, minWidth: 200, marginBottom: 0 }}>
-            <FiSearch style={{ color: '#6b7280' }} />
+            <FiSearch style={{ color: '#475569' }} />
             <input type="text" placeholder="Search products..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <FiCalendar size={16} style={{ color: '#6b7280' }} />
+            <FiCalendar size={16} style={{ color: '#475569' }} />
             <input
               type="date" value={filterDate} max={maxDate}
               onChange={e => setFilterDate(e.target.value)}
@@ -524,7 +524,7 @@ const SalesInventory = () => {
           const main = allMains.find(m => String(m.id) === String(p.main_category_id));
           const key = main ? main.id : '__unassigned__';
           const name = main ? main.name : 'Uncategorized';
-          const color = main ? main.color : '#6b7280';
+          const color = main ? main.color : '#475569';
           if (!subMap.has(key)) subMap.set(key, { name, color, count: 0, value: 0 });
           const e = subMap.get(key);
           e.count += 1;
@@ -537,8 +537,8 @@ const SalesInventory = () => {
             {subs.map(s => (
               <div key={s.name} style={{
                 padding: '6px 12px', borderRadius: 8,
-                background: (s.color || '#6b7280') + '15',
-                border: `1px solid ${(s.color || '#6b7280')}40`, fontSize: 12,
+                background: (s.color || '#475569') + '15',
+                border: `1px solid ${(s.color || '#475569')}40`, fontSize: 12,
               }}>
                 <span style={{ color: s.color, fontWeight: 700 }}>{s.name}:</span>
                 <span style={{ marginLeft: 6, color: '#374151', fontWeight: 600 }}>
@@ -554,12 +554,12 @@ const SalesInventory = () => {
       <div className="card">
         <div className="card-header">
           <h3>Sales Stock Levels</h3>
-          <span style={{ fontSize: 13, color: '#6b7280' }}>{filtered.length} products</span>
+          <span style={{ fontSize: 13, color: '#475569' }}>{filtered.length} products</span>
         </div>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Loading...</div>
+          <div style={{ textAlign: 'center', padding: 40, color: '#475569' }}>Loading...</div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>No products found.</div>
+          <div style={{ textAlign: 'center', padding: 40, color: '#475569' }}>No products found.</div>
         ) : (
           <div className="table-container" style={{ overflowX: 'auto' }}>
             <table className="data-table" style={{ fontSize: 12, minWidth: 1400 }}>
@@ -600,7 +600,7 @@ const SalesInventory = () => {
                           style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}
                           title="Click to see SIV breakdown"
                         >
-                          <FiChevronDown size={13} style={{ color: '#6b7280', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+                          <FiChevronDown size={13} style={{ color: '#475569', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)' }} />
                           <strong style={{ color: '#111827' }}>{product.name}</strong>
                         </div>
                       </td>
@@ -610,10 +610,10 @@ const SalesInventory = () => {
                           for over-issued stock instead of falling back to
                           base 'Bottle' which made the table inconsistent. */}
                       <td style={{ textAlign: 'right' }}>{formatStockForProduct(r.openingBalance, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
-                      <td style={{ textAlign: 'right', color: r.input > 0 ? '#2563eb' : '#6b7280' }}>{formatStockForProduct(r.input, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
+                      <td style={{ textAlign: 'right', color: r.input > 0 ? '#2563eb' : '#475569' }}>{formatStockForProduct(r.input, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatStockForProduct(r.totalStock, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
-                      <td style={{ textAlign: 'right', color: r.totalSales > 0 ? '#dc2626' : '#6b7280' }}>{formatStockForProduct(r.totalSales, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
-                      <td style={{ textAlign: 'right', color: r.salesReturns > 0 ? '#d97706' : '#6b7280' }}>{r.salesReturns > 0 ? formatStockForProduct(r.salesReturns, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true }) : '—'}</td>
+                      <td style={{ textAlign: 'right', color: r.totalSales > 0 ? '#b91c1c' : '#475569' }}>{formatStockForProduct(r.totalSales, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
+                      <td style={{ textAlign: 'right', color: r.salesReturns > 0 ? '#b45309' : '#475569' }}>{r.salesReturns > 0 ? formatStockForProduct(r.salesReturns, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true }) : '—'}</td>
                       <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatStockForProduct(r.salesBalance, product, { showBaseInParens: false, decimals: 2, allowNegative: true, preferDefaultUnit: true })}</td>
 
                       {/* v1.8.30 — Actual Balance / Difference / Reason
@@ -622,11 +622,11 @@ const SalesInventory = () => {
                       <td style={{ textAlign: 'right' }}>{curSym}{r.sellingPrice.toFixed(2)}</td>
                       <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.totalCostPrice)}</td>
                       <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.totalSellingPrice)}</td>
-                      <td style={{ textAlign: 'right', color: r.totalDifference < 0 ? '#dc2626' : '#15803d' }}>
-                        ${fmt(r.totalDifference)}
+                      <td style={{ textAlign: 'right', color: r.totalDifference < 0 ? '#b91c1c' : '#15803d' }}>
+                        {curSym}{fmt(r.totalDifference)}
                       </td>
-                      <td style={{ textAlign: 'right', fontWeight: 600, color: r.profit >= 0 ? '#15803d' : '#dc2626' }}>
-                        ${fmt(r.profit)}
+                      <td style={{ textAlign: 'right', fontWeight: 600, color: r.profit >= 0 ? '#15803d' : '#b91c1c' }}>
+                        {curSym}{fmt(r.profit)}
                       </td>
                       <td style={{ textAlign: 'right' }}>{curSym}{fmt(r.stockingPrice)}</td>
                     </tr>
@@ -634,13 +634,13 @@ const SalesInventory = () => {
                       <tr style={{ background: '#f0f9ff' }}>
                         <td colSpan={13} style={{ padding: '6px 24px 10px 32px' }}>
                           {!sivBreakdowns[product.id] ? (
-                            <span style={{ fontSize: 12, color: '#6b7280' }}>Loading...</span>
+                            <span style={{ fontSize: 12, color: '#475569' }}>Loading...</span>
                           ) : sivBreakdowns[product.id].length === 0 ? (
-                            <span style={{ fontSize: 12, color: '#6b7280' }}>No SIV inputs found for this date.</span>
+                            <span style={{ fontSize: 12, color: '#475569' }}>No SIV inputs found for this date.</span>
                           ) : (
                             <table style={{ fontSize: 12, borderCollapse: 'collapse', width: 'auto' }}>
                               <thead>
-                                <tr style={{ color: '#6b7280' }}>
+                                <tr style={{ color: '#475569' }}>
                                   <th style={{ padding: '3px 14px 3px 0', fontWeight: 600, textAlign: 'left' }}>SIV No</th>
                                   <th style={{ padding: '3px 14px 3px 0', fontWeight: 600, textAlign: 'left' }}>Department</th>
                                   <th style={{ padding: '3px 14px 3px 0', fontWeight: 600, textAlign: 'left' }}>Time</th>
@@ -652,7 +652,7 @@ const SalesInventory = () => {
                                   <tr key={i}>
                                     <td style={{ padding: '2px 14px 2px 0', color: '#2563eb', fontWeight: 600 }}>{row.siv_number}</td>
                                     <td style={{ padding: '2px 14px 2px 0', color: '#374151' }}>{row.department}</td>
-                                    <td style={{ padding: '2px 14px 2px 0', color: '#6b7280' }}>{new Date(row.created_at + 'Z').toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
+                                    <td style={{ padding: '2px 14px 2px 0', color: '#475569' }}>{new Date(row.created_at + 'Z').toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
                                     <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: 600, color: '#15803d' }}>{parseFloat(row.quantity).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                                   </tr>
                                 ))}
@@ -671,13 +671,13 @@ const SalesInventory = () => {
                   <td>TOTALS</td>
                   <td colSpan={3}></td>
                   <td style={{ textAlign: 'right' }}>{summaryTotals.totalSales.toLocaleString()}</td>
-                  <td style={{ textAlign: 'right', color: '#d97706' }}>{summaryTotals.totalReturns > 0 ? summaryTotals.totalReturns.toLocaleString() : '—'}</td>
+                  <td style={{ textAlign: 'right', color: '#b45309' }}>{summaryTotals.totalReturns > 0 ? summaryTotals.totalReturns.toLocaleString() : '—'}</td>
                   <td colSpan={4}></td>
                   <td></td>
                   <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalCost)}</td>
                   <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalRevenue)}</td>
-                  <td style={{ textAlign: 'right', color: summaryTotals.totalDiff < 0 ? '#dc2626' : '#15803d' }}>{curSym}{fmt(summaryTotals.totalDiff)}</td>
-                  <td style={{ textAlign: 'right', color: summaryTotals.totalProfit >= 0 ? '#15803d' : '#dc2626' }}>{curSym}{fmt(summaryTotals.totalProfit)}</td>
+                  <td style={{ textAlign: 'right', color: summaryTotals.totalDiff < 0 ? '#b91c1c' : '#15803d' }}>{curSym}{fmt(summaryTotals.totalDiff)}</td>
+                  <td style={{ textAlign: 'right', color: summaryTotals.totalProfit >= 0 ? '#15803d' : '#b91c1c' }}>{curSym}{fmt(summaryTotals.totalProfit)}</td>
                   <td style={{ textAlign: 'right' }}>{curSym}{fmt(summaryTotals.totalStocking)}</td>
                 </tr>
               </tfoot>
@@ -700,7 +700,7 @@ const SalesInventory = () => {
             <h4 style={{ margin: '0 0 5px', fontSize: 16, fontWeight: 700, color: '#111827' }}>
               Enter Custom Reason
             </h4>
-            <p style={{ margin: '0 0 16px', fontSize: 12, color: '#6b7280' }}>
+            <p style={{ margin: '0 0 16px', fontSize: 12, color: '#475569' }}>
               Describe why this difference occurred
             </p>
             <textarea

@@ -418,7 +418,7 @@ const SalesBinCard = () => {
     // to be a plain div, so nothing here scrolled on its own: the whole window
     // did, and the Locked (sticky) top block scrolled away with it — the
     // Locked / Unlocked button appeared to do nothing, on phones especially.
-    <div className="page-content" style={{ background: '#f8fafc' }}>
+    <div className="page-content k-lg" style={{ background: '#f8fafc' }}>
 
       {/* Sticky top block — Header + Filter + Summary. Lock toggle keeps it
           pinned at the top of the viewport so long scrolling tables stay
