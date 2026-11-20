@@ -389,6 +389,13 @@
    "covers": "Fix",
    "what": "On a Kwacha book, cash receipts are read from their Cash/MoMo/Bank method columns whenever they have any, else from the usd/fra/k slots. The old slots-first reading counted the fuel day receipt's whole total again as Bank (its total lives in k_amount) and its bank swipes as MoMo, and swapped MoMo/Bank for customer-payment receipts: K1,830 of receipts read K2,780. Applied to GET /api/cash-receipts/stats and the Cash Receipt screen's rows, totals and edit form (ux/receiptModel.js). Multi-currency books unchanged. No data, permission or migration changes.",
    "migrations": []
+  },
+  {
+   "n": 53,
+   "subject": "UX-16: Sales Inventory, Sales Stock Card, Sales Bin Card and VAT Report in the same look; K instead of $ in Sales Inventory (for review)",
+   "covers": "UX",
+   "what": "Light reskin of the remaining Sales screens via one class (k-lg): dark kit page header, white stat cards with tinted icons, slate table headers, tabular figures; VAT report header band. Sales Inventory: Total Diff and Profit columns showed '$' (now K); inherited low-contrast text colours darkened. Markup and logic otherwise unchanged. No backend, data, permission or migration changes.",
+   "migrations": []
   }
  ],
  "migrations": [

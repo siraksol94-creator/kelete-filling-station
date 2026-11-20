@@ -172,7 +172,7 @@ const Inventory = ({ viewLocation = 'store' }) => {
   };
 
   return (
-    <div className="page-content">
+    <div className="page-content k-lg">
       <div className="page-header">
         <div>
           <h1>{isSalesView ? titleText : t('inventoryTitle')}</h1>
