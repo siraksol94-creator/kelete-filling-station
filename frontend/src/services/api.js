@@ -606,6 +606,8 @@ export const getSalesInventory = (params) => api.get('/inventory/sales', { param
 export const getSalesMonthlySummary = (month) => api.get('/inventory/sales/monthly-summary', { params: { month } });
 export const getSalesProfitSummary = (date) => api.get('/inventory/sales/profit-summary', { params: { date } });
 export const getSalesRangeSummary = (from, to) => api.get('/inventory/sales/range-summary', { params: { from, to } });
+// Profit Report — forecourt side (litres, sales, cost, margin per litre by grade).
+export const getFuelProfit = (from, to) => api.get('/fuel-profit', { params: { from, to } });
 export const getSalesDailySummary = (date) => api.get('/inventory/sales/daily-summary', { params: { date } });
 export const getSIVBreakdown = (date, product_id) => api.get('/inventory/sales/siv-breakdown', { params: { date, product_id } });
 export const saveSalesActualBalance = (data) => api.post('/inventory/sales/actual', data);

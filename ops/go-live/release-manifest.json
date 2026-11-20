@@ -331,6 +331,15 @@
    "covers": "UX",
    "what": "Dashboard Shortcuts tray gains a Point of Sale tile (till red) for anyone with POS access, at branches and at head office/localhost where the side menu hides the till. Empty Vouchers tile unchanged (branch hosts only). No new endpoints, permissions or data changes",
    "migrations": []
+  },
+  {
+   "n": 45,
+   "subject": "Profit Report: Shop | Fuel | Station — fuel margin per litre by grade, credit-ticket fuel counted once, cost frozen at shift close (for review)",
+   "covers": "Profit Report",
+   "what": "Profit Report shows Shop | Fuel | Station total. Fuel from closed shifts (metered litres × frozen price, every tender), cost per litre frozen on the readings at shift close (migration 13; earlier shifts use today's average cost and are marked estimated), shifts' cash short/over. Credit-ticket fuel already inside the stored shop revenue is moved to Fuel (only what the stored day really contains). Expenses taken once at station level. Fuel by grade with margin per litre; month to date station figures; A4 print updated. New GET /api/fuel-profit (Profit Report permissions). Stored shop figures unchanged.",
+   "migrations": [
+    13
+   ]
   }
  ],
  "migrations": [
@@ -381,6 +390,10 @@
   {
    "version": 12,
    "name": "station_weather_location"
+  },
+  {
+   "version": 13,
+   "name": "fuel_cost_at_close"
   }
  ],
  "tag_patterns_that_trigger_old_workflows": [
