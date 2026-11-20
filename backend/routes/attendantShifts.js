@@ -12,6 +12,7 @@ const SHIFT_DATE_S = businessTime.shiftDateSql('s');  // FROM attendant_shifts s
 // (services/fuelAccounting.js), recalculated whenever a shift of that day is
 // closed, finalised, reopened or deleted. Runs inside the same transaction.
 const fuelAccounting = require('../services/fuelAccounting');
+const { freezeShiftCost } = require('../services/fuelProfit');
 function refreshFuelReceipt(req, shift) {
   const day = shift && (shift.shift_date || String(shift.opened_at || '').slice(0, 10));
   if (!day) return;
@@ -573,6 +574,7 @@ router.post('/:id/finalize', auth, (req, res) => {
            Number(payment_cash), Number(payment_mobile), Number(payment_swipes),
            Number(onecard), payment_other == null ? null : Number(payment_other), Number(credit),
            notes || null, req.params.id);
+    freezeShiftCost(db, req.params.id);   // Profit Report: cost per litre as at close
     refreshFuelReceipt(req, shift);   // F5
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });
@@ -851,6 +853,7 @@ router.post('/:id/close', auth, (req, res) => {
            Number(payment_mobile) || 0, Number(payment_other) || 0, Number(creditTotal),
            notes || null, req.params.id);
 
+    freezeShiftCost(db, req.params.id);   // Profit Report: cost per litre as at close
     refreshFuelReceipt(req, shift);   // F5
     return db.prepare('SELECT * FROM attendant_shifts WHERE id = ?').get(req.params.id);
   });

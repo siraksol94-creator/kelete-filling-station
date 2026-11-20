@@ -38,7 +38,7 @@
   "EmptyVouchers": "GRN",
   "StockReconciliation": "Stock"
  },
- "endpoint_count": 448,
+ "endpoint_count": 449,
  "endpoints": [
   {
    "method": "GET",
@@ -2214,6 +2214,17 @@
    "admin": true,
    "screens": [
     "fuel/grades"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/fuel-profit",
+   "perms": [
+    "Accounting",
+    "ProfitReport:View"
+   ],
+   "screens": [
+    "accounting/profit-report"
    ]
   },
   {

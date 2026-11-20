@@ -250,4 +250,18 @@ module.exports = [
       if (!cols.includes('weather_lon')) db.exec('ALTER TABLE business_settings ADD COLUMN weather_lon REAL');
     },
   },
+  {
+    version: 13,
+    name: 'fuel_cost_at_close',
+    // Profit Report (fuel) — each shift's nozzle readings keep the grade's
+    // average cost per litre as it was when the shift closed, so a later
+    // delivery that re-averages the cost can never change a past margin.
+    // Additive; existing rows stay NULL (the report marks them "estimated"
+    // and uses today's average cost). Travels with fuel sync like any column.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(shift_nozzle_readings)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('cost_per_litre')) db.exec('ALTER TABLE shift_nozzle_readings ADD COLUMN cost_per_litre REAL');
+    },
+  },
 ];
