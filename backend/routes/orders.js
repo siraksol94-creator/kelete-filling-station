@@ -27,9 +27,51 @@ router.get('/users', auth, readOnlyGuard, (req, res) => {
   }
 });
 
-// Get all orders
+// Get orders.
+// 2026-11-20 — optional ?from=&to= (YYYY-MM-DD) and ?q= so the Sales Report
+// no longer downloads every order the branch has ever made:
+//   • from / to: the sales whose created_at falls in [from − 1 day, to + 2
+//     days) UTC. A day wider each side on purpose — the screen still picks the
+//     exact days by the browser's local date (as before), so the server must
+//     send every sale that could be local-dated inside the range, whatever the
+//     till's time zone.
+//   • q: the invoice search, across ALL dates (as the screen's box promises),
+//     matching the same text the screen matches — our order number, ZRA's
+//     INV<sdc>/<rcpt> and CRN<sdc>/<rcpt>, and the raw receipt numbers. At
+//     most 500 newest matches.
+//   • none of them: every order, exactly as before (unchanged for any other
+//     caller).
+// The per-order cost and partial-refund sums are worked out only for the
+// selected orders instead of for the whole history on every load.
+const ORDER_SEARCH_TEXT = `lower(
+  COALESCE(o.order_number, '') || ' ' ||
+  CASE WHEN o.zra_rcpt_no IS NOT NULL AND o.zra_rcpt_no != ''
+       THEN 'inv' || CASE WHEN upper(substr(COALESCE(o.zra_sdc_id, ''), 1, 3)) = 'SDC' THEN substr(o.zra_sdc_id, 4) ELSE COALESCE(o.zra_sdc_id, '') END || '/' || o.zra_rcpt_no
+       ELSE '' END || ' ' ||
+  CASE WHEN o.zra_cn_rcpt_no IS NOT NULL AND o.zra_cn_rcpt_no != ''
+       THEN 'crn' || (SELECT CASE WHEN upper(substr(x, 1, 3)) = 'SDC' THEN substr(x, 4) ELSE x END
+                        FROM (SELECT COALESCE(NULLIF(o.zra_cn_sdc_id, ''), o.zra_sdc_id, '') AS x)) || '/' || o.zra_cn_rcpt_no
+       ELSE '' END || ' ' ||
+  COALESCE(o.zra_rcpt_no, '') || ' ' || COALESCE(o.zra_cn_rcpt_no, '') || ' ' || COALESCE(o.zra_cis_invc_no, '')
+)`;
+const isYmd = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ''));
+
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
+    const q = String(req.query.q || '').trim().toLowerCase();
+    const from = isYmd(req.query.from) ? req.query.from : null;
+    const to = isYmd(req.query.to) ? req.query.to : null;
+    let where = 'o.deleted_at IS NULL AND o.tenant_id = ?';
+    const params = [req.user.tenantId];
+    let limit = '';
+    if (q) {
+      where += ` AND ${ORDER_SEARCH_TEXT} LIKE ? ESCAPE '\\'`;
+      params.push(`%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`);
+      limit = 'LIMIT 500';
+    } else {
+      if (from) { where += " AND o.created_at >= date(?, '-1 day')"; params.push(from); }
+      if (to) { where += " AND o.created_at < date(?, '+2 day')"; params.push(to); }
+    }
     // v1.13.50 — attach per-order COGS derived from stock_movements.cost_at_sale
     // (stamped by trg_stamp_cost_at_sale on every sale/sale_reverse). NET math
     // (sum of -qty * cost) so partially-reversed orders show the correct
@@ -42,11 +84,17 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     // reversed); for Partial orders it's the refunded slice; for Active
     // orders it's 0.
     const rows = db.prepare(`
-      SELECT o.*,
+      WITH sel AS (
+        SELECT o.* FROM orders o
+         WHERE ${where}
+         ORDER BY o.created_at DESC
+         ${limit}
+      )
+      SELECT sel.*,
              COALESCE(cogs_agg.cogs, 0) AS cogs,
              COALESCE(pr_agg.partial_refund_amount, 0) AS partial_refund_amount,
              pr_agg.partial_refund_at AS partial_refund_at
-      FROM orders o
+      FROM sel
       LEFT JOIN (
         SELECT sm.reference_sync_id AS order_sync_id,
                SUM(-sm.quantity * COALESCE(sm.cost_at_sale, 0)) AS cogs
@@ -54,9 +102,9 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
         WHERE sm.reference_type = 'order'
           AND sm.movement_type IN ('sale', 'sale_reverse')
           AND sm.deleted_at IS NULL
-          AND sm.reference_sync_id IS NOT NULL
+          AND sm.reference_sync_id IN (SELECT sync_id FROM sel)
         GROUP BY sm.reference_sync_id
-      ) cogs_agg ON cogs_agg.order_sync_id = o.sync_id
+      ) cogs_agg ON cogs_agg.order_sync_id = sel.sync_id
       LEFT JOIN (
         SELECT oi.order_sync_id,
                SUM(COALESCE(oi.reversed_quantity, 0) * (oi.unit_price - COALESCE(oi.discount, 0))) AS partial_refund_amount,
@@ -64,11 +112,11 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
         FROM order_items oi
         WHERE oi.deleted_at IS NULL
           AND COALESCE(oi.reversed_quantity, 0) > 0
+          AND oi.order_sync_id IN (SELECT sync_id FROM sel)
         GROUP BY oi.order_sync_id
-      ) pr_agg ON pr_agg.order_sync_id = o.sync_id
-      WHERE o.deleted_at IS NULL AND o.tenant_id = ?
-      ORDER BY o.created_at DESC
-    `).all(req.user.tenantId);
+      ) pr_agg ON pr_agg.order_sync_id = sel.sync_id
+      ORDER BY sel.created_at DESC
+    `).all(...params);
     res.json(rows);
   } catch (error) {
     res.status(500).json({ error: error.message });

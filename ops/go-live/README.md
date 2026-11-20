@@ -262,6 +262,7 @@ automatically at start-up, once, each in its own transaction.
 | 46 | HQ Profit | HQ Consolidated Profit Shop \| Fuel \| Station per branch and group; fuel margin per litre across branches; money in full | — |
 | 47 | UX-13 | Cash Book: balances by account, money in/out by day, transfers once, plain names, working export | — |
 | 48 | UX-14 | Sales Report: headline, how they paid, sales through the day, clearer rows, quiet Reverse; Reset-to-today error fixed | — |
+| 49 | Perf | Sales Report loads only the dates on screen; invoice search runs on the server | — |
 
 Before tagging, on the test machine:
 
