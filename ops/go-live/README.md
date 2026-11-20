@@ -257,6 +257,7 @@ automatically at start-up, once, each in its own transaction.
 | 41 | Fix | Account Receivables in the menu at head office; `{{count}}` in translated texts filled in | — |
 | 42 | Fix | Reason and date boxes on HQ Deposits, GRN Archive and Payment Voucher work on the tills (no `window.prompt`) | — |
 | 43 | UX-12 | Pay box on the shop till in the till's red; "Customer gave" quick cash; large change due; Empty Vouchers shortcut on the Dashboard | — |
+| 44 | UX-12b | Point of Sale shortcut on the Dashboard (also at head office) | — |
 
 Before tagging, on the test machine:
 

@@ -1,16 +1,34 @@
 // UX-12 — Dashboard shortcuts tray. One-tap links to screens that sit deep
 // in the side menu. Each tile is shown only to someone who can open that
-// screen, and only where the side menu shows it (Empty Vouchers is a branch
-// screen, never at head office).
+// screen (see trayTiles for where each one appears).
 import React, { useEffect, useState } from 'react';
-import { FiPackage, FiChevronRight } from 'react-icons/fi';
+import { FiPackage, FiShoppingCart, FiChevronRight } from 'react-icons/fi';
 import { listEmptyVouchers, isHqHost } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { voucherSummary } from './dashTrayModel';
+import { trayTiles, voucherSummary } from './dashTrayModel';
+
+function Tile({ tone, icon, title, sub, badge, badgeZero, onClick }) {
+  return (
+    <button type="button" className={`k-tray-tile is-${tone}`} onClick={onClick}>
+      <span className="k-tray-icon" aria-hidden="true">{icon}</span>
+      <span className="k-tray-text">
+        <strong>{title}</strong>
+        <span>{sub}</span>
+      </span>
+      {badge && <span className={`k-tray-badge${badgeZero ? ' is-zero' : ''}`}>{badge}</span>}
+      <FiChevronRight className="k-tray-go" aria-hidden="true" />
+    </button>
+  );
+}
 
 export default function DashTray({ onNavigate = () => {} }) {
   const { hasPageAccess } = useAuth();
-  const showVouchers = !isHqHost() && hasPageAccess('EmptyVouchers');
+  const tiles = trayTiles({
+    hq: isHqHost(),
+    canPos: hasPageAccess('POS'),
+    canVouchers: hasPageAccess('EmptyVouchers'),
+  });
+  const showVouchers = tiles.includes('vouchers');
   const [open, setOpen] = useState(null); // null = not loaded / not allowed
 
   useEffect(() => {
@@ -22,25 +40,32 @@ export default function DashTray({ onNavigate = () => {} }) {
     return () => { alive = false; };
   }, [showVouchers]);
 
-  if (!showVouchers) return null;
+  if (!tiles.length) return null;
 
   return (
     <nav className="k-tray" aria-label="Shortcuts">
       <h3 className="k-section-title">Shortcuts</h3>
       <div className="k-tray-row">
-        <button type="button" className="k-tray-tile" onClick={() => onNavigate('/store/empty-vouchers')}>
-          <span className="k-tray-icon" aria-hidden="true"><FiPackage /></span>
-          <span className="k-tray-text">
-            <strong>Empty Vouchers</strong>
-            <span>Bottles &amp; crates returned · deposit slips</span>
-          </span>
-          {open && (
-            <span className={`k-tray-badge${open.slips ? '' : ' is-zero'}`}>
-              {open.slips ? `${open.slips} open ${open.slips === 1 ? 'slip' : 'slips'}` : 'No open slips'}
-            </span>
-          )}
-          <FiChevronRight className="k-tray-go" aria-hidden="true" />
-        </button>
+        {tiles.includes('pos') && (
+          <Tile
+            tone="pos"
+            icon={<FiShoppingCart />}
+            title="Point of Sale"
+            sub="Open the shop till and ring up a sale"
+            onClick={() => onNavigate('/pos')}
+          />
+        )}
+        {showVouchers && (
+          <Tile
+            tone="vouchers"
+            icon={<FiPackage />}
+            title="Empty Vouchers"
+            sub="Bottles & crates returned · deposit slips"
+            badge={open ? (open.slips ? `${open.slips} open ${open.slips === 1 ? 'slip' : 'slips'}` : 'No open slips') : null}
+            badgeZero={open && !open.slips}
+            onClick={() => onNavigate('/store/empty-vouchers')}
+          />
+        )}
       </div>
     </nav>
   );

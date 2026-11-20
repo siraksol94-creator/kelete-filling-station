@@ -324,6 +324,13 @@
    "covers": "UX",
    "what": "Shop till keeps its original red look. Pay box: red header matching Current Order with To pay; 'This sale' panel in the same red family (was blue); 'Customer gave' Exact/round-note buttons that fill Cash; large Change due / Balance due; TPIN Verify and Register buttons red. No sale rules changed. Dashboard: Shortcuts tray with an Empty Vouchers tile and its open-slip count (branch users who can open Empty Vouchers only)",
    "migrations": []
+  },
+  {
+   "n": 44,
+   "subject": "UX-12b: Point of Sale shortcut on the Dashboard (also at head office) (for review)",
+   "covers": "UX",
+   "what": "Dashboard Shortcuts tray gains a Point of Sale tile (till red) for anyone with POS access, at branches and at head office/localhost where the side menu hides the till. Empty Vouchers tile unchanged (branch hosts only). No new endpoints, permissions or data changes",
+   "migrations": []
   }
  ],
  "migrations": [

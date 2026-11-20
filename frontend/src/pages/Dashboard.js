@@ -82,7 +82,7 @@ const Dashboard = () => {
       {/* UX-3 — station cockpit (fuel branches only; shop-only branches skip it) */}
       {data.station && <StationCockpit data={data} today={today} onNavigate={navigate} />}
 
-      {/* UX-12 — shortcuts tray (Empty Vouchers; shown only to users who can open it). */}
+      {/* UX-12 — shortcuts tray (Point of Sale, Empty Vouchers; each only for users who can open it). */}
       <DashTray onNavigate={navigate} />
 
       {/* UX-4 — Shop & stock (fuel kept out; see ux/ShopStock.js). The older
