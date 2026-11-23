@@ -21,18 +21,18 @@ body {
 }
 
 :root {
-  /* Kelete theme — Red Sea (coral red + sea teal).
-     Coral red primary + sea teal accent + neutral grey surfaces.
+  /* Kelete theme — Forecourt gold (amber + deep bronze), matched to the
+     cover page's 3D fuel drop. Teal retained for links/focus.
      Status colors (green / red / yellow) stay as-is. */
-  --primary: #B91C1C;        /* coral red */
-  --primary-dark: #7F1D1D;   /* crimson */
-  --primary-light: #FEE2E2;  /* blush */
-  --accent: #0E7490;         /* sea teal */
+  --primary: #D97706;        /* amber-600 */
+  --primary-dark: #92400E;   /* amber-900 */
+  --primary-light: #FEF3C7;  /* amber-100 */
+  --accent: #0E7490;         /* sea teal — kept for links / focus */
   --accent-dark: #164E63;    /* deep sea */
   --accent-light: #CFFAFE;   /* foam */
-  --sidebar-bg: #7F1D1D;
-  --sidebar-hover: #991B1B;
-  --sidebar-active: rgba(14,116,144,0.30);
+  --sidebar-bg: #78350F;     /* deep amber-brown (amber-900/950) */
+  --sidebar-hover: #B45309;  /* amber-700 */
+  --sidebar-active: rgba(252,211,77,0.30);  /* amber-300 glow */
   --white: #ffffff;
   /* One neutral family for the whole app: slate (the sidebar's navy is
      slate 800–950). The names stay "gray" so existing rules keep working. */
@@ -81,7 +81,7 @@ body {
 /* Sidebar — slate navy gradient. Industrial / dispatch feel. */
 .sidebar {
   width: 220px;
-  background: linear-gradient(180deg, #1E293B 0%, #0F172A 50%, #020617 100%);
+  background: linear-gradient(180deg, #92400E 0%, #78350F 50%, #451A03 100%);
   color: white;
   display: flex;
   flex-direction: column;

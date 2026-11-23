@@ -8,7 +8,7 @@
   /* Neutrals: slate only (see index.css). Ink 17:1, muted 7.6:1, subtle 4.8:1 on white. */
   --k-ink: #0f172a; --k-ink-muted: #475569; --k-ink-subtle: #64748b;
   --k-line: #e2e8f0; --k-line-strong: #cbd5e1; --k-surface: #ffffff; --k-surface-2: #f8fafc; --k-surface-3: #f1f5f9;
-  --k-brand: #b91c1c; --k-brand-dark: #991b1b; --k-brand-deep: #7f1d1d;   /* Kelete red (= --primary) */
+  --k-brand: #d97706; --k-brand-dark: #b45309; --k-brand-deep: #78350f;   /* Kelete gold (= --primary) */
   --k-teal: #0e7490;                                   /* = --accent */
   --k-accent: #1d4ed8;                                 /* links, focus — 6.7:1 on white */
   --k-radius-sm: 6px; --k-radius: 10px; --k-radius-lg: 14px; --k-radius-pill: 999px;
@@ -244,8 +244,8 @@
 .k-login-pw button { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 36px; padding: 0 12px; border: 0; border-radius: 8px; background: #e2e8f0; color: #0f172a; font-weight: 700; font-size: 13px; cursor: pointer; }
 .k-login-pw button:hover { background: #cbd5e1; }
 .k-login-caps { display: inline-block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #92400e; background: #fef3c7; border-radius: 6px; padding: 2px 8px; }
-.k-login-submit { width: 100%; min-height: 50px; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 12px; background: #b91c1c; color: #fff; font-size: 16px; font-weight: 800; letter-spacing: .01em; cursor: pointer; box-shadow: 0 12px 26px rgba(185, 28, 28, .32); transition: transform .12s, background .12s; }
-.k-login-submit:hover:not(:disabled) { background: #991b1b; transform: translateY(-1px); }
+.k-login-submit { width: 100%; min-height: 50px; margin-top: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: 0; border-radius: 12px; background: #d97706; color: #fff; font-size: 16px; font-weight: 800; letter-spacing: .01em; cursor: pointer; box-shadow: 0 12px 26px rgba(217, 119, 6, .32); transition: transform .12s, background .12s; }
+.k-login-submit:hover:not(:disabled) { background: #b45309; transform: translateY(-1px); }
 .k-login-submit:disabled { cursor: progress; opacity: .92; }
 .k-login-car { --k-car: #fff; animation: k-bob .6s ease-in-out infinite; }
 .k-login-foot { font-size: 13px; color: #475569; margin: 18px 0 0; text-align: center; }
@@ -269,8 +269,8 @@
 /* ════════════════════════ UX-3 ════════════════════════ */
 /* Shared buttons (new screens) */
 .k-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 16px; border-radius: 10px; border: 1px solid transparent; font: 700 14px/1 var(--k-font); cursor: pointer; }
-.k-btn-primary { background: #0f172a; color: #fff; }   /* UX-7: slate, to match the menu and fuel screens */
-.k-btn-primary:hover:not(:disabled) { background: #1e293b; }
+.k-btn-primary { background: #d97706; color: #fff; }   /* Forecourt gold, matching the sidebar + cover */
+.k-btn-primary:hover:not(:disabled) { background: #b45309; }
 .k-btn-danger { background: #b91c1c; color: #fff; }
 .k-btn-danger:hover:not(:disabled) { background: #991b1b; }
 .k-btn-quiet { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
@@ -445,7 +445,7 @@
 .k-top-name { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 700; color: #0f172a; }
 .k-top-name span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .k-top-bar { height: 8px; border-radius: 999px; background: #f1f5f9; overflow: hidden; margin: 4px 0 2px; }
-.k-top-bar div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #ef4444, #b91c1c); animation: k-grow .9s ease-out both; transform-origin: left; }
+.k-top-bar div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #fbbf24, #b45309); animation: k-grow .9s ease-out both; transform-origin: left; }
 @keyframes k-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .k-shelf { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
 .k-shelf-top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 700; color: #0f172a; }
