@@ -84,6 +84,9 @@ const SystemSettings = () => {
     // openings before HQ Procurement is in routine use. Off by default;
     // OK to leave on temporarily at launch then switch off later.
     legacyProcurementEnabled: false,
+    // Business Type gates whole sidebar groups. 'fuel' = filling station
+    // (Fuel Station on, Sales + Store off). 'grocery' = shop (opposite).
+    businessType: 'fuel',
   });
   const [saving, setSaving] = useState(false);
   // 2026-09-11 — redesign. savedForm is the depot's settings as last loaded
@@ -206,6 +209,7 @@ const SystemSettings = () => {
         depositTo: String(b.deposit_to_slug || '').toLowerCase(),
         // 2026-09-18 — most this depot may pay out in expenses in one day.
         dailyExpenseLimit: b.daily_expense_limit == null ? 5000 : (parseFloat(b.daily_expense_limit) || 0),
+        businessType: String(b.business_type || 'fuel').toLowerCase() === 'grocery' ? 'grocery' : 'fuel',
       };
       setForm(loaded);
       setSavedForm(loaded);
@@ -278,6 +282,7 @@ const SystemSettings = () => {
           auto_deposit_enabled: form.autoDeposit ? 1 : 0,
           ...(onHqHost ? {} : { deposit_to_slug: form.depositTo || '' }),
           ...(onHqHost ? {} : { daily_expense_limit: form.dailyExpenseLimit === '' ? 0 : form.dailyExpenseLimit }),
+          business_type: form.businessType,
         } : {}),
       });
       refreshCurrency();
@@ -359,7 +364,7 @@ const SystemSettings = () => {
   // Currency Mode, Payment Methods and the Currencies editor were one-option
   // choices for Kelete (handleSave forces Kwacha), so they are one fixed line.
   const DEPOT_KEYS = ['workflowMode', 'blockOversell', 'shownMethods', 'autoDeposit', 'depositTo', 'dailyExpenseLimit', 'defaultCrateDeposit',
-    'legacyProcurementEnabled', 'receiptPrinterType', 'receiptPrinterName', 'receiptPrinterIp', 'receiptPrinterPort'];
+    'legacyProcurementEnabled', 'receiptPrinterType', 'receiptPrinterName', 'receiptPrinterIp', 'receiptPrinterPort', 'businessType'];
   const changed = savedForm ? DEPOT_KEYS.filter(k => String(form[k] ?? '') !== String(savedForm[k] ?? '')) : [];
   const set = (k) => (v) => setForm(f => ({ ...f, [k]: v }));
   const shown = String(form.shownMethods || 'cash,momo,bank').split(',');
@@ -409,6 +414,22 @@ const SystemSettings = () => {
           <section id="ss-selling">
             <div className="ss-group-head"><span className="ss-scope depot">This depot</span><h2>Selling</h2></div>
             <div className="ss-card">
+              {isAdmin && (
+                <Row admin stack title="Business type" help="What this depot sells. Fuel station shows the Fuel Station menu and hides Sales + Store. Grocery shows Sales + Store and hides Fuel Station. Accounting, Suppliers & Customers and Settings stay on both.">
+                  <div className="ss-tiles" role="radiogroup">
+                    {[
+                      { val: 'fuel',    label: 'Fuel station', sub: 'Pumps, tanks, attendant shifts, credit & 1Card sales.' },
+                      { val: 'grocery', label: 'Grocery',      sub: 'POS, items, stock, GRN, SIV — no fuel menus.' },
+                    ].map(o => (
+                      <label key={o.val} className={`ss-tile${form.businessType === o.val ? ' on' : ''}`}>
+                        <input type="radio" name="business-type" checked={form.businessType === o.val} onChange={() => set('businessType')(o.val)} />
+                        <b>{o.label}</b>
+                        <small>{o.sub}</small>
+                      </label>
+                    ))}
+                  </div>
+                </Row>
+              )}
               <Row stack title="How the till works" help="Who writes the sale, who takes the money, and who hands over the goods.">
                 <div className="ss-tiles" role="radiogroup">
                   {[

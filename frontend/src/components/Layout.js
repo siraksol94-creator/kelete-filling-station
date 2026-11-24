@@ -41,7 +41,13 @@ const Layout = () => {
       'Suppliers', 'Customers', 'Sales', 'Reports');
   const { language, changeLanguage, t } = useLanguage();
   // 3-station gate — only kassumbalesa1 sees the Cashier sidebar entry.
-  const { workflowMode, legacyProcurementEnabled, currencyMode } = useCurrency();
+  const { workflowMode, legacyProcurementEnabled, currencyMode, businessType } = useCurrency();
+  // Business Type gates whole sidebar groups so one Kelete install can serve
+  // a filling station AND a grocery depot. 'fuel' → Fuel Station group on,
+  // Sales + Store hidden. 'grocery' → the opposite. Accounting, Suppliers &
+  // Customers, Settings stay in both. Set in Settings → System Settings.
+  const isFuelMode = businessType !== 'grocery';
+  const isGroceryMode = businessType === 'grocery';
   // v1.7.0: triple-currency mode 'USD+FRA+K' also counts as "dual/multi
   // currency" for sidebar gating — same Currency Rates page handles both.
   const isDualCurrency = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
@@ -760,8 +766,9 @@ const Layout = () => {
 
           {/* Kelete Fuel Station. Access (business decision 2026-11-18): deliveries for
               Managers / Supervisors / Administrators; pumps and fuel grades (prices) for
-              Administrators; Tanks shows tank set-up to Administrators, dips/ledger to all. */}
-          {collapsed ? (
+              Administrators; Tanks shows tank set-up to Administrators, dips/ledger to all.
+              Hidden entirely when Business type = grocery (Settings → System Settings). */}
+          {isFuelMode && (collapsed ? (
             <div className={`nav-item ${isGroupActive(['/fuel']) ? 'active' : ''}`} onClick={() => openFromRail('fuel')} title="Fuel Station" data-k-label="Fuel Station">
               <FiDownloadCloud className="nav-icon" />
             </div>
@@ -809,14 +816,14 @@ const Layout = () => {
                 </div>
               )}
             </>
-          )}
+          ))}
 
           {/* Sales Group.
               v1.9.25 — Group now renders on HQ too so HQ Sales Report can
               live inside it instead of as a flat top-level entry. The
               existing branch-only children stay gated with !hq; the HQ
               Sales Report child is gated with hq. */}
-          {((hq && hasPageAccess('HQSalesReport')) || (!hq && hasPageAccess('POS', 'Cashier', 'Dispatch', 'SalesReport', 'SalesInventory', 'CashReport', 'SalesBinCard', 'VATReport', 'SalesStockCard'))) && (collapsed ? (
+          {isGroceryMode && ((hq && hasPageAccess('HQSalesReport')) || (!hq && hasPageAccess('POS', 'Cashier', 'Dispatch', 'SalesReport', 'SalesInventory', 'CashReport', 'SalesBinCard', 'VATReport', 'SalesStockCard'))) && (collapsed ? (
             <div className={`nav-item ${isGroupActive(['/pos', '/hq/sales-report', '/hq/route-sales', '/hq/vat-report']) ? 'active' : ''}`} onClick={() => openFromRail('pos')} title={t('sales')} data-k-label={t('sales')}>
               <FiShoppingCart className="nav-icon" />
             </div>
@@ -906,12 +913,12 @@ const Layout = () => {
           ))}
 
           {/* Stock Group */}
-          {collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
+          {isGroceryMode && collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
             <div className={`nav-item ${isGroupActive(['/stock', '/hq/inventory-report', '/hq/purchases', '/hq/confirm-grn', '/hq/grn-archive', '/hq/variances', '/hq/confirm-damages']) ? 'active' : ''}`} onClick={() => openFromRail('stock')} title={t('store')} data-k-label={t('store')}>
               <FiPackage className="nav-icon" />
             </div>
           )}
-          {!collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
+          {isGroceryMode && !collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/stock']) ? 'active' : ''}`} onClick={() => toggleGroup('stock')}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

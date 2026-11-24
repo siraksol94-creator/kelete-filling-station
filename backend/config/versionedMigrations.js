@@ -264,4 +264,20 @@ module.exports = [
       if (!cols.includes('cost_per_litre')) db.exec('ALTER TABLE shift_nozzle_readings ADD COLUMN cost_per_litre REAL');
     },
   },
+  {
+    version: 14,
+    name: 'business_type',
+    // Per-tenant mode so one Kelete install can serve filling stations AND
+    // grocery depots from the same codebase. 'fuel' keeps the Fuel Station
+    // sidebar group and hides Sales + Store. 'grocery' does the opposite.
+    // Default 'fuel' so every existing live tenant keeps its current UI;
+    // grocery tenants (lumumbashop, greateastshop) get flipped manually.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(business_settings)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('business_type')) {
+        db.exec("ALTER TABLE business_settings ADD COLUMN business_type TEXT NOT NULL DEFAULT 'fuel'");
+      }
+    },
+  },
 ];
