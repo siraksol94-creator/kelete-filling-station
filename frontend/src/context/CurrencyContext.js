@@ -49,6 +49,10 @@ const CurrencyContext = createContext({
   // 2026-09-11 — System Settings → Auto deposit (Cash Report → HQ deposits).
   autoDeposit: false,
   legacyProcurementEnabled: false,
+  // 'fuel' (filling station) or 'grocery'. Defaults to 'fuel' so an install
+  // whose settings have not loaded yet shows the Fuel Station sidebar (the
+  // shipped behaviour), not a flash of empty-looking grocery nav.
+  businessType: 'fuel',
   refresh: () => {},
 });
 
@@ -69,6 +73,7 @@ export const CurrencyProvider = ({ children }) => {
   const [shownMethods, setShownMethods] = useState(ALL_METHODS);
   const [autoDeposit, setAutoDeposit] = useState(false);
   const [legacyProcurementEnabled, setLegacyProcurementEnabled] = useState(false);
+  const [businessType, setBusinessType] = useState('fuel');
 
   const refresh = useCallback(async () => {
     // Skip the API call when the user isn't logged in — otherwise the 401 response
@@ -88,6 +93,8 @@ export const CurrencyProvider = ({ children }) => {
       setLegacyProcurementEnabled(!!parseInt(biz.legacy_procurement_enabled || 0, 10));
       setShownMethods(parseShownMethods(biz.shown_payment_methods));
       setAutoDeposit(!!parseInt(biz.auto_deposit_enabled || 0, 10));
+      const bt = String(biz.business_type || 'fuel').toLowerCase();
+      setBusinessType(bt === 'grocery' ? 'grocery' : 'fuel');
     } catch { /* keep defaults */ }
   }, []);
 
@@ -111,6 +118,7 @@ export const CurrencyProvider = ({ children }) => {
       autoDeposit,
       methodShown: (m) => { const k = methodKeyOf(m); return !k || shownMethods.includes(k); },
       legacyProcurementEnabled,
+      businessType,
       refresh,
     }}>
       {children}

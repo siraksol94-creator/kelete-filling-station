@@ -91,7 +91,10 @@ router.put('/business', auth, (req, res) => {
             // 2026-09-15 — System Settings → Deposit to ('' = HQ).
             deposit_to_slug,
             // 2026-09-18 — System Settings → Maximum expenses per day.
-            daily_expense_limit } = req.body;
+            daily_expense_limit,
+            // Business Type — 'fuel' (filling station) or 'grocery'. Gates the
+            // Fuel Station vs Sales+Store sidebar groups. Administrators only.
+            business_type } = req.body;
     // Only update currencies if the caller explicitly sent them; otherwise leave whatever's stored.
     const currenciesJson = currencies !== undefined ? JSON.stringify(normaliseCurrencies(currencies)) : null;
     const existing = db.prepare('SELECT * FROM business_settings LIMIT 1').get();
@@ -186,6 +189,12 @@ router.put('/business', auth, (req, res) => {
       if (daily_expense_limit !== undefined && req.user?.role === 'Administrator') {
         const lim = Math.max(0, parseFloat(daily_expense_limit) || 0);
         sets.push('daily_expense_limit=?'); vals.push(lim);
+      }
+      // business_type gates whole sidebar groups. Administrators only so a
+      // Cashier cannot flip a fuel station into grocery mode by mistake.
+      if (business_type !== undefined && req.user?.role === 'Administrator') {
+        const bt = String(business_type || 'fuel').toLowerCase();
+        sets.push('business_type=?'); vals.push(bt === 'grocery' ? 'grocery' : 'fuel');
       }
       // legacy_procurement_enabled re-exposes the legacy GRN + Suppliers
       // sidebar entries on a branch (hidden by v1.3.2 lockdown). Useful
