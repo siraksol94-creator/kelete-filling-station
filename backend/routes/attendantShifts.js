@@ -449,6 +449,7 @@ router.post('/:id/credit-sales', auth, (req, res) => {
     assertNotApproved(shift, 'changed');   // F4
     const { payment_method = 'Credit',
             customer_id = null, customer_name, card_number = '',
+            supplier_id = null,
             vehicle_registration = '', fuel_grade_id = null,
             litres, price_per_litre, amount = null,
             receipt_number = '', notes = '', date = null } = req.body;
@@ -474,11 +475,27 @@ router.post('/:id/credit-sales', auth, (req, res) => {
         : 'A Credit ticket must be linked to a customer account. Pick the customer from the list (or add them under Customers first).'), { status: 400 });
     }
 
+    // A 1Card ticket reduces what we owe the fuel-card supplier (Engen,
+    // Puma, …): the supplier has effectively paid by taking fuel. The
+    // ticket screen shows a supplier picker, and the server insists on it.
+    let supplier = null;
+    if (method === '1Card') {
+      if (!supplier_id) {
+        throw Object.assign(new Error('A 1Card ticket must be linked to a supplier. Pick the fuel-card supplier from the list.'), { status: 400 });
+      }
+      supplier = db.prepare('SELECT id, sync_id, name FROM suppliers WHERE id = ? AND deleted_at IS NULL').get(supplier_id);
+      if (!supplier) {
+        throw Object.assign(new Error('That supplier account no longer exists. Pick another supplier.'), { status: 400 });
+      }
+    }
+
     let linkedOrderId = null;
     let linkedOrderSyncId = null;
     // 'Credit' routes through the standard AR plumbing by writing an order
-    // + line item. '1Card' is tracked only in shift_credit_sales (Engen
-    // reconciliation is monthly, not a Kelete customer receivable).
+    // + line item. '1Card' auto-posts an AP payment against the picked
+    // supplier (further down), so the supplier balance drops by the ticket
+    // amount — allowed even with zero outstanding (becomes a prepayment /
+    // credit balance, same as HQ AP Pay).
     if (method === 'Credit' && customer) {
       const syncCfg = syncConfig.getConfig();
       const tenantId = req.user.tenantId;
@@ -520,17 +537,54 @@ router.post('/:id/credit-sales', auth, (req, res) => {
       }
     }
 
+    // 1Card — post the AP payment first, then save its ids onto the ticket
+    // row so the ticket owns its link. Reversal (ticket delete) can then
+    // soft-delete the exact payment row that was created for this ticket.
+    let linkedApPaymentId = null;
+    let linkedApPaymentSyncId = null;
+    if (method === '1Card' && supplier) {
+      const syncCfg = syncConfig.getConfig();
+      const tenantId = req.user.tenantId;
+      const paymentNum = syncConfig.generateNumber('APR', 'ap_payments');
+      const paymentSync = randomUUID();
+      const gradeName = fuel_grade_id
+        ? (db.prepare('SELECT name FROM fuel_grades WHERE id = ?').get(fuel_grade_id)?.name || 'Fuel')
+        : 'Fuel';
+      const cardLabel = card_number ? ` · ${String(card_number).trim()}` : '';
+      const desc = `1Card Sale — ${customer_name.trim()}${cardLabel} — ${qty.toFixed(2)}L ${gradeName}`;
+      const apInfo = db.prepare(`
+        INSERT INTO ap_payments (payment_number, supplier_id, supplier_sync_id, supplier_name,
+                                  amount, cash_amount, bank_amount, momo_amount,
+                                  usd_amount, fra_amount, k_amount,
+                                  description, date, paid_from, created_by,
+                                  sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at)
+        VALUES (?,?,?,?,?,0,0,0,0,0,0,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))
+      `).run(paymentNum, supplier.id, supplier.sync_id, supplier.name,
+             amt,
+             desc, date || businessTime.businessDate(),
+             '1Card', req.user.id,
+             paymentSync, tenantId, syncCfg.branchId || null, syncCfg.deviceId || null);
+      linkedApPaymentId = apInfo.lastInsertRowid;
+      linkedApPaymentSyncId = paymentSync;
+    }
+
     const info = db.prepare(`
       INSERT INTO shift_credit_sales (
         shift_id, payment_method, customer_id, customer_sync_id, customer_name,
         card_number, vehicle_registration, fuel_grade_id,
         litres, price_per_litre, amount, receipt_number, notes,
-        linked_order_id, linked_order_sync_id, date
-      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        linked_order_id, linked_order_sync_id,
+        supplier_id, supplier_sync_id,
+        linked_ap_payment_id, linked_ap_payment_sync_id,
+        date
+      ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `).run(req.params.id, method, customer?.id || null, customer?.sync_id || null, customer_name.trim(),
            card_number, vehicle_registration, fuel_grade_id,
            qty, ppl, amt, receipt_number, notes,
-           linkedOrderId, linkedOrderSyncId, date || businessTime.businessDate());
+           linkedOrderId, linkedOrderSyncId,
+           supplier?.id || null, supplier?.sync_id || null,
+           linkedApPaymentId, linkedApPaymentSyncId,
+           date || businessTime.businessDate());
 
     return db.prepare('SELECT * FROM shift_credit_sales WHERE id = ?').get(info.lastInsertRowid);
   });
@@ -703,6 +757,13 @@ router.delete('/credit-sales/:cid', auth, (req, res) => {
     if (cs.linked_order_id) {
       db.prepare("UPDATE orders SET deleted_at = datetime('now'), updated_at = datetime('now'), synced = 0 WHERE id = ?")
         .run(cs.linked_order_id);
+    }
+    // 1Card — reverse the auto-posted AP payment so the supplier balance
+    // returns to what it was before the ticket. Soft delete only (same
+    // reason as orders above — sync peers would re-create a hard delete).
+    if (cs.linked_ap_payment_id) {
+      db.prepare("UPDATE ap_payments SET deleted_at = datetime('now'), updated_at = datetime('now'), synced = 0 WHERE id = ?")
+        .run(cs.linked_ap_payment_id);
     }
     db.prepare('DELETE FROM shift_credit_sales WHERE id = ?').run(req.params.cid);
     return { message: 'Deleted' };

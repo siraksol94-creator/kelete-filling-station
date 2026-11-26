@@ -280,4 +280,22 @@ module.exports = [
       }
     },
   },
+  {
+    version: 15,
+    name: 'onecard_ap_link',
+    // 1Card tickets reduce AP to a fuel-card supplier (Engen, Puma, …) the
+    // moment fuel is drawn — the supplier has effectively "paid" by taking
+    // product. Each ticket auto-posts an ap_payments row; these columns
+    // hold the link so a ticket deletion can reverse its own payment.
+    // Additive; existing rows stay NULL (legacy 1Card tickets predate AP
+    // linkage, and the Fuel Cash Report already treats them as settled).
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(shift_credit_sales)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('supplier_id')) db.exec('ALTER TABLE shift_credit_sales ADD COLUMN supplier_id INTEGER');
+      if (!cols.includes('supplier_sync_id')) db.exec('ALTER TABLE shift_credit_sales ADD COLUMN supplier_sync_id TEXT');
+      if (!cols.includes('linked_ap_payment_id')) db.exec('ALTER TABLE shift_credit_sales ADD COLUMN linked_ap_payment_id INTEGER');
+      if (!cols.includes('linked_ap_payment_sync_id')) db.exec('ALTER TABLE shift_credit_sales ADD COLUMN linked_ap_payment_sync_id TEXT');
+    },
+  },
 ];
