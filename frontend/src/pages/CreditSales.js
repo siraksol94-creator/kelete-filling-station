@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter, FiPrinter, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
 import { getAllTickets, addShiftCreditSale, deleteShiftCreditSale, getShifts, getNozzles } from '../services/fuelApi';
-import { getCustomers, getSettings } from '../services/api';
+import { getCustomers, getSettings, getSuppliers } from '../services/api';
 import { S } from './fuelStyles';
 import { printTicket, printTicketList } from './ticketPrint';
 import keleteLogo from '../assets/kelete-logo.png';
@@ -21,13 +21,14 @@ export function TicketsPage({ method }) {
   const isCard = method === '1Card';
   const [rows, setRows] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
   const [nozzles, setNozzles] = useState([]);
   const [openShifts, setOpenShifts] = useState([]);
   const [seller, setSeller] = useState({});
   const logoUrl = useMemo(() => new URL(keleteLogo, window.location.origin).href, []);
   const [filter, setFilter] = useState({ from: today(), to: today(), customer_id: '', attendant_user_id: '' });
   const [showForm, setShowForm] = useState(false);
-  const emptyForm = { shift_id: '', customer_id: '', customer_name: '', card_number: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' };
+  const emptyForm = { shift_id: '', customer_id: '', customer_name: '', card_number: '', supplier_id: '', vehicle_registration: '', fuel_grade_id: '', litres: '', price_per_litre: '', receipt_number: '' };
   const [form, setForm] = useState(emptyForm);
   const [err, setErr] = useState('');
   const [saving, setSaving] = useState(false);
@@ -37,15 +38,19 @@ export function TicketsPage({ method }) {
 
   const load = async () => {
     try {
-      const [tks, cs, sh, nz, st] = await Promise.all([
+      const [tks, cs, sh, nz, st, sp] = await Promise.all([
         getAllTickets({ method, ...stripEmpty(filter) }),
         getCustomers(),
         getShifts({ status: 'Open' }),
         getNozzles(),
         getSettings().catch(() => ({ data: {} })),
+        // 1Card picks from suppliers (Engen, Puma, …); harmless on the
+        // Credit Sales page too.
+        isCard ? getSuppliers().catch(() => ({ data: [] })) : Promise.resolve({ data: [] }),
       ]);
       setRows(tks.data || []); setCustomers(cs.data || []); setOpenShifts(sh.data || []); setNozzles(nz.data || []);
       setSeller(st.data?.business || {});
+      setSuppliers(sp.data || []);
     } catch (e) {}
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter.from, filter.to, filter.customer_id, filter.attendant_user_id]);
@@ -59,10 +64,12 @@ export function TicketsPage({ method }) {
     e.preventDefault(); setErr(''); setSaving(true);
     try {
       if (!form.shift_id) throw new Error('Pick an open shift / attendant');
+      if (isCard && !form.supplier_id) throw new Error('Pick the fuel-card supplier (Engen, Puma, …)');
       const res = await addShiftCreditSale(form.shift_id, {
         payment_method: method,
         customer_name: form.customer_name.trim(),
         customer_id: !isCard ? (form.customer_id || null) : null,
+        supplier_id: isCard ? (form.supplier_id || null) : null,
         card_number: isCard ? form.card_number : '',
         vehicle_registration: form.vehicle_registration,
         fuel_grade_id: form.fuel_grade_id || null,
@@ -93,8 +100,8 @@ export function TicketsPage({ method }) {
 
   return (
     <div style={S.page} className="k-page">
-      <PageHero icon={<FiCreditCard />} title={isCard ? '1Card Sales (Engen)' : 'Credit Sales (Receivables)'} date={today()}
-        subtitle={isCard ? 'Fuel paid with an Engen 1Card — a ticket per fill' : 'Fuel taken on account — every ticket adds to what the customer owes'}
+      <PageHero icon={<FiCreditCard />} title={isCard ? '1Card Sales (Supplier Offset)' : 'Credit Sales (Receivables)'} date={today()}
+        subtitle={isCard ? 'Fuel drawn against a supplier’s 1Card — each ticket pays down that supplier’s AP' : 'Fuel taken on account — every ticket adds to what the customer owes'}
         actions={<>
           <button type="button" onClick={() => printTicketList(rows, method, filter, seller, logoUrl)} className="k-fc-btn-ghost" disabled={rows.length === 0} title="Print the full list below"><FiPrinter /> Print List</button>
           <button type="button" onClick={() => { setForm(emptyForm); setErr(''); setShowForm(true); }} className="k-fc-btn-hero"><FiPlus /> New {isCard ? '1Card' : 'Credit'} Ticket</button>
@@ -202,6 +209,13 @@ export function TicketsPage({ method }) {
                 </label>
                 {isCard ? (
                   <>
+                    <label style={{ ...S.lbl, gridColumn: '1 / -1' }}>Supplier *
+                      <select value={form.supplier_id} onChange={e => setForm({ ...form, supplier_id: e.target.value })} required style={S.input}>
+                        <option value="">-- pick the fuel-card supplier --</option>
+                        {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        {suppliers.length === 0 && <option disabled>No suppliers — add one under Suppliers &amp; Customers first</option>}
+                      </select>
+                    </label>
                     <label style={S.lbl}>Card Holder *
                       <input value={form.customer_name} onChange={e => setForm({ ...form, customer_name: e.target.value })} required style={S.input} placeholder="Name on 1Card" />
                     </label>

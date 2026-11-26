@@ -47,7 +47,7 @@ const FUEL_TABLES = [
   { table: 'attendant_shifts', fks: [['attendant_user_id', 'users'], ['opened_by', 'users'], ['closed_by', 'users']] },
   { table: 'shift_nozzle_readings', fks: [['shift_id', 'attendant_shifts'], ['nozzle_id', 'nozzles']] },
   { table: 'shift_dips', fks: [['shift_id', 'attendant_shifts'], ['tank_id', 'tanks']] },
-  { table: 'shift_credit_sales', fks: [['shift_id', 'attendant_shifts'], ['fleet_customer_id', 'fleet_customers'], ['fuel_grade_id', 'fuel_grades'], ['customer_id', 'customers'], ['linked_order_id', 'orders']] },
+  { table: 'shift_credit_sales', fks: [['shift_id', 'attendant_shifts'], ['fleet_customer_id', 'fleet_customers'], ['fuel_grade_id', 'fuel_grades'], ['customer_id', 'customers'], ['linked_order_id', 'orders'], ['supplier_id', 'suppliers'], ['linked_ap_payment_id', 'ap_payments']] },
   { table: 'fuel_deliveries', fks: [['supplier_id', 'suppliers'], ['tank_id', 'tanks'], ['fuel_grade_id', 'fuel_grades'], ['received_by', 'users']] },
   { table: 'fuel_sales', fks: [['shift_id', 'attendant_shifts'], ['nozzle_id', 'nozzles'], ['fuel_grade_id', 'fuel_grades'], ['fleet_customer_id', 'fleet_customers'], ['fleet_vehicle_id', 'fleet_vehicles'], ['cashier_id', 'users']] },
   { table: 'tank_dips', fks: [['tank_id', 'tanks'], ['shift_id', 'attendant_shifts'], ['taken_by_user_id', 'users'], ['posted_adjustment_id', 'tank_movements', 'late']] },
