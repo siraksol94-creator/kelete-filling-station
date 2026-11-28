@@ -271,6 +271,10 @@ automatically at start-up, once, each in its own transaction.
 | 55 | UX-17 | One theme: slate greys, one mono font, K12.00 / −K12.00 on every screen, $ → K on GRN/SIV/Receivables prints, in-app boxes on Sales Report, Cash Receipt, POS and HQ screens | — |
 | 56 | Fix | Sales Report: over-collected split by currency (USD · FRA · K) back on tri-currency branches; nothing changes on Kelete's K-only book | — |
 | 57 | Docs | `HANDOVER.md`: overview for the person deploying and continuing the work | — |
+| 58 | Theme | Brand colours from red to forecourt gold (frontend only). | — |
+| 59 | Business type | business_settings.business_type; sidebar groups by type. | 14 |
+| 60 | 1Card | A 1Card ticket names the fuel-card supplier and posts an ap_payments offset. | 15 |
+| 61 | Repair | Tests, permission list and release list brought up to date after the owner's commits | — |
 
 Before tagging, on the test machine:
 

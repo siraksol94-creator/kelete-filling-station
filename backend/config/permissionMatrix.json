@@ -5543,7 +5543,9 @@
     "(menu bar / layout)",
     "/",
     "accounting/credit-notes",
+    "fuel/credit-sales",
     "fuel/deliveries",
+    "fuel/onecard-sales",
     "stock/empty-returns",
     "stock/grn",
     "suppliers-customers/suppliers"

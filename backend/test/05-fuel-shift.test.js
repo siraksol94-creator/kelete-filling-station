@@ -100,11 +100,23 @@ test('F2: a Credit ticket without a customer account is refused', async () => {
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM shift_credit_sales').get().n, before);
 });
 
-test('a 1Card ticket is recorded on the shift only (no receivable order)', async () => {
+// 2026-11-26 (1Card → supplier offset): a 1Card ticket names the fuel-card
+// supplier and offsets what we owe them; still no receivable order.
+test('a 1Card ticket needs its fuel-card supplier', async () => {
   const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/credit-sales`, { token: T(),
     body: { payment_method: '1Card', customer_name: 'Engen card', card_number: '7001', fuel_grade_id: fuel.diesel.id, litres: 20, price_per_litre: 24 } });
-  assert.equal(r.status, 201);
+  assert.equal(r.status, 400);
+});
+
+test('a 1Card ticket is recorded on the shift (no receivable order) and offsets the supplier', async () => {
+  const sup = (await app.request('POST', '/api/suppliers', { token: T(), body: { name: 'Engen Zambia', type: 'Fuel', phone: '', email: '', address: '', contact_person: '' } })).body;
+  const r = await app.request('POST', `/api/attendant-shifts/${shift.id}/credit-sales`, { token: T(),
+    body: { payment_method: '1Card', supplier_id: sup.id, customer_name: 'Engen card', card_number: '7001', fuel_grade_id: fuel.diesel.id, litres: 20, price_per_litre: 24 } });
+  assert.equal(r.status, 201, r.text);
   assert.equal(r.body.linked_order_id, null);
+  const pay = db.prepare('SELECT * FROM ap_payments WHERE id = ?').get(r.body.linked_ap_payment_id);
+  assert.equal(pay.paid_from, '1Card');
+  assert.equal(pay.amount, 480);
 });
 
 test('current behaviour (business decision pending): a price change re-prices the open shift', async () => {

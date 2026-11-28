@@ -424,6 +424,38 @@
    "covers": "Docs",
    "what": "HANDOVER.md at the top of the repository: where things stand, what was done (by area, with change numbers), the migrations, the short deployment path, the decisions G0–G5, what was not done, known issues, the phone-scanner notes, and the rules this work followed. No code changes.",
    "migrations": []
+  },
+  {
+   "n": 58,
+   "subject": "theme: flip brand tokens from Red Sea red to forecourt gold",
+   "covers": "Theme",
+   "what": "Brand colours from red to forecourt gold (frontend only). (committed directly by the repository owner, 23–26 Nov)",
+   "migrations": []
+  },
+  {
+   "n": 59,
+   "subject": "feat: per-tenant Business Type (fuel station vs grocery) gates sidebar",
+   "covers": "Business type",
+   "what": "business_settings.business_type; sidebar groups by type. (committed directly by the repository owner, 23–26 Nov)",
+   "migrations": [
+    14
+   ]
+  },
+  {
+   "n": 60,
+   "subject": "feat: 1Card tickets auto-post AP payment to fuel-card supplier",
+   "covers": "1Card",
+   "what": "A 1Card ticket names the fuel-card supplier and posts an ap_payments offset. (committed directly by the repository owner, 23–26 Nov)",
+   "migrations": [
+    15
+   ]
+  },
+  {
+   "n": 61,
+   "subject": "Repair: tests, permission list and release list after the Business Type and 1Card commits (for review)",
+   "covers": "Repair",
+   "what": "The 1Card test now names its fuel-card supplier (required since 26 Nov) and checks the offset is posted; permission matrix rebuilt (the 1Card screen reads suppliers); release manifest lists migrations 14 and 15 and the three owner commits. Tests only, no app code.",
+   "migrations": []
   }
  ],
  "migrations": [
@@ -478,6 +510,14 @@
   {
    "version": 13,
    "name": "fuel_cost_at_close"
+  },
+  {
+   "version": 14,
+   "name": "business_type"
+  },
+  {
+   "version": 15,
+   "name": "onecard_ap_link"
   }
  ],
  "tag_patterns_that_trigger_old_workflows": [
