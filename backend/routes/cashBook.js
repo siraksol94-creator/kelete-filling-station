@@ -148,9 +148,11 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
   // via the ap_payments columns added in the same version. Route each
   // currency to its own bucket; rows that pre-date v1.10.78 (only
   // amount populated, usd/fra/k = 0) fall back to k_out (legacy K-only
+  // 2026-11-28 — a 1Card ticket posts an ap_payments row (paid_from '1Card') that offsets what we owe the
+  // fuel-card supplier. No money moves, so it is never cash, bank or mobile money in the Cash Book.
   // behaviour matching v1.10.77).
-  payments.usd += num(db.prepare(`SELECT COALESCE(SUM(usd_amount), 0) AS t FROM ap_payments WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
-  payments.fra += num(db.prepare(`SELECT COALESCE(SUM(fra_amount), 0) AS t FROM ap_payments WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
+  payments.usd += num(db.prepare(`SELECT COALESCE(SUM(usd_amount), 0) AS t FROM ap_payments WHERE deleted_at IS NULL AND COALESCE(paid_from, '') != '1Card' AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
+  payments.fra += num(db.prepare(`SELECT COALESCE(SUM(fra_amount), 0) AS t FROM ap_payments WHERE deleted_at IS NULL AND COALESCE(paid_from, '') != '1Card' AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t);
   payments.k   += num(db.prepare(`
     SELECT COALESCE(SUM(
       CASE WHEN (COALESCE(usd_amount,0) + COALESCE(fra_amount,0) + COALESCE(k_amount,0)) > 0
@@ -158,7 +160,7 @@ function ccyReceiptsPayments(tenantId, slug, dateClause, dateParams) {
         ELSE amount END
     ), 0) AS t
       FROM ap_payments
-     WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}
+     WHERE deleted_at IS NULL AND COALESCE(paid_from, '') != '1Card' AND tenant_id = ?${dateClause}
   `).get(tenantId, ...dateParams).t);
   // v1.10.42 — book-scope currency exchanges. Same shape as the ledger
   // UNION addition: from_currency → payments, to_currency → receipts.
@@ -252,7 +254,7 @@ function sumMethod(tenantId, methodCol, dateClause, dateParams, hqSlug) {
   const exprCcy = cxMap[methodCol] || methodCol;
   const cr = db.prepare(`SELECT COALESCE(SUM(${exprCcy}), 0) AS t FROM cash_receipts    WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t;
   const pv = db.prepare(`SELECT COALESCE(SUM(${exprCcy}), 0) AS t FROM payment_vouchers WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t;
-  const ap = db.prepare(`SELECT COALESCE(SUM(${exprCcy}), 0) AS t FROM ap_payments      WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t;
+  const ap = db.prepare(`SELECT COALESCE(SUM(${exprCcy}), 0) AS t FROM ap_payments      WHERE deleted_at IS NULL AND COALESCE(paid_from, '') != '1Card' AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t;
   const capIn  = db.prepare(`SELECT COALESCE(SUM(${methodCol}), 0) AS t FROM capital_account  WHERE deleted_at IS NULL AND tenant_id = ? AND type='Injection'${dateClause}`).get(tenantId, ...dateParams).t;
   const capOut = db.prepare(`SELECT COALESCE(SUM(${methodCol}), 0) AS t FROM capital_account  WHERE deleted_at IS NULL AND tenant_id = ? AND type='Drawing'${dateClause}`).get(tenantId, ...dateParams).t;
   const div    = db.prepare(`SELECT COALESCE(SUM(${methodCol}), 0) AS t FROM dividend_account WHERE deleted_at IS NULL AND tenant_id = ?${dateClause}`).get(tenantId, ...dateParams).t;
@@ -394,7 +396,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
           THEN COALESCE(k_amount, 0)
           ELSE amount END AS k_out
       FROM ap_payments
-      WHERE deleted_at IS NULL AND tenant_id = ?${dateFilter}
+      WHERE deleted_at IS NULL AND COALESCE(paid_from, '') != '1Card' AND tenant_id = ?${dateFilter}
         AND COALESCE(paid_from, '') != 'Empty Return'
         AND COALESCE(description, '') NOT LIKE 'Empty container deposit credit%'
       UNION ALL
@@ -742,7 +744,7 @@ function computeCashBookStats({ tenantId, slug: slugIn = '', from, to, isHq = fa
           COALESCE(SUM(CASE WHEN (COALESCE(usd_amount,0)+COALESCE(fra_amount,0)+COALESCE(k_amount,0)) = 0
                              THEN amount ELSE 0 END), 0) AS legacy_amount
         FROM ap_payments
-        WHERE deleted_at IS NULL AND tenant_id = ?${df}
+        WHERE deleted_at IS NULL AND COALESCE(paid_from, '') != '1Card' AND tenant_id = ?${df}
       `).get(tenantId, ...dp);
       // Route legacy rows to K (matches v1.10.77 default: HQ + Liquor are K-primary).
       return {

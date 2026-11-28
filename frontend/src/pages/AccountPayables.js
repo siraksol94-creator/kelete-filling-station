@@ -150,7 +150,8 @@ const AccountPayables = () => {
     const supplierName = breakdown.supplier?.supplier_name || breakdown.supplier?.name || '';
     const printedBy = [authUser?.first_name, authUser?.last_name].filter(Boolean).join(' ') || '—';
 
-    const totalPurchases = breakdown.grns?.reduce((s, g) => s + parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0), 0) || 0;
+    const totalPurchases = (breakdown.grns?.reduce((s, g) => s + parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0), 0) || 0)
+      + (breakdown.deliveries?.reduce((s, d) => s + parseFloat(d.total_cost || 0), 0) || 0);
     const totalPaid = breakdown.payments?.reduce((s, p) => s + parseFloat(p.amount), 0) || 0;
     const totalCredits = breakdown.credits?.reduce((s, c) => s + parseFloat(c.amount), 0) || 0;
     // Display convention: positive = we paid more than we owed (advance to supplier),
@@ -171,6 +172,15 @@ const AccountPayables = () => {
         <td style="padding:8px 12px">${g.grn_number}</td>
         <td style="padding:8px 12px">${formatDate(g.date)}</td>
         <td style="padding:8px 12px;text-align:right;font-weight:600">K${fmt(parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0))}</td>
+      </tr>`).join('');
+
+    // 2026-11-28 — fuel deliveries are purchases from this supplier too.
+    const fuelRows = (breakdown.deliveries || []).map((d, i) => `
+      <tr style="border-bottom:1px solid #e2e8f0;background:${i % 2 === 1 ? '#f8fafc' : '#fff'}">
+        <td style="padding:8px 12px">${d.delivery_number}</td>
+        <td style="padding:8px 12px">${formatDate(d.date)}</td>
+        <td style="padding:8px 12px">${fmt(d.litres_delivered)} L ${d.grade_name || ''}${d.invoice_number ? ' · inv ' + d.invoice_number : ''}</td>
+        <td style="padding:8px 12px;text-align:right;font-weight:600">K${fmt(d.total_cost)}</td>
       </tr>`).join('');
 
     const pmtRows = (breakdown.payments || []).map((p, i) => `
@@ -201,15 +211,23 @@ const AccountPayables = () => {
         </div>
       </div>
 
+      ${breakdown.deliveries?.length > 0 ? `
+      <h3 style="font-size:11px;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1.5px solid #000;padding-bottom:4px">Fuel deliveries</h3>
+      <div style="border:1.5px solid #000;margin-bottom:20px">
+        <table style="font-size:11.5px">
+          <thead><tr><th>Delivery #</th><th>Date</th><th>Fuel</th><th style="text-align:right">Amount</th></tr></thead>
+          <tbody>${fuelRows}</tbody>
+        </table>
+      </div>` : ''}
       <h3 style="font-size:11px;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1.5px solid #000;padding-bottom:4px">Purchases (GRN)</h3>
-      ${breakdown.grns?.length === 0 ? '<p style="font-size:12px;margin-bottom:16px">No purchases yet.</p>' : `
+      ${breakdown.grns?.length === 0 ? '<p style="font-size:12px;margin-bottom:16px">No GRNs.</p>' : `
       <div style="border:1.5px solid #000;margin-bottom:20px">
         <table style="font-size:11.5px">
           <thead><tr><th>GRN #</th><th>Date</th><th style="text-align:right">Amount</th></tr></thead>
           <tbody>${grnRows}</tbody>
           <tfoot><tr>
-            <td colspan="2" style="text-align:right">Total Purchases:</td>
-            <td style="text-align:right">K${fmt(totalPurchases)}</td>
+            <td colspan="2" style="text-align:right">Total GRNs:</td>
+            <td style="text-align:right">K${fmt((breakdown.grns || []).reduce((t, g) => t + parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0), 0))}</td>
           </tr></tfoot>
         </table>
       </div>`}
@@ -259,10 +277,10 @@ const AccountPayables = () => {
 
       <div style="border:2px solid #000;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
         <div>
-          <span style="font-weight:700;font-size:14px">${balance > 0.01 ? 'Over Paid:' : balance < -0.01 ? 'Outstanding:' : 'Outstanding Balance:'}</span>
+          <span style="font-weight:700;font-size:14px">${balance > 0.01 ? 'In credit (we paid ahead):' : balance < -0.01 ? 'We owe:' : 'Balance:'}</span>
           ${totalCredits > 0.01 ? `<div style="font-size:9.5px;margin-top:3px;color:#334155">Purchases ${curSym}${fmt(totalPurchases)} − Paid ${curSym}${fmt(totalPaid)} − Credits ${curSym}${fmt(totalCredits)}</div>` : ''}
         </div>
-        <span style="font-weight:800;font-size:18px;color:${balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#000'}">${balance < 0 ? '−' : ''}${curSym}${fmt(Math.abs(balance))}</span>
+        <span style="font-weight:800;font-size:18px;color:${balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#000'}">${curSym}${fmt(Math.abs(balance))}</span>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;margin-top:32px;margin-bottom:16px">
@@ -399,15 +417,20 @@ const AccountPayables = () => {
           // the label and the one figure that matters, rather than four full
           // gradient blocks competing for attention.
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 14 }}>
-            <RollupCard icon={<FiDollarSign />}   label={t('totalPurchases')} color="#0ea5e9"
-              value={hasPermission('AccountPayables:View') ? `${curSym}${stats.totalPurchases.toLocaleString()}` : 'N/A'} />
+            {/* 2026-11-28 — purchases include fuel deliveries; 1Card tickets are offsets, not money paid out. */}
+            <RollupCard icon={<FiDollarSign />}   label={parseFloat(stats.fuelPurchases || 0) > 0 ? 'Bought (GRN + fuel)' : t('totalPurchases')} color="#0ea5e9"
+              value={hasPermission('AccountPayables:View') ? `${curSym}${parseFloat(stats.totalPurchases || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'} />
             <RollupCard icon={<FiTrendingDown />} label={t('totalPaid')}      color="#047857"
-              value={hasPermission('AccountPayables:View') ? `${curSym}${stats.totalPaid.toLocaleString()}` : 'N/A'} />
-            <RollupCard icon={<FiAlertCircle />}  label={t('outstanding')}    color={outstandingOnly > 0.01 ? '#b91c1c' : '#0f172a'} highlight
-              value={hasPermission('AccountPayables:View') ? `${outstandingOnly > 0.01 ? '−' : ''}${curSym}${outstandingOnly.toLocaleString()}` : 'N/A'} />
+              value={hasPermission('AccountPayables:View') ? `${curSym}${parseFloat(stats.totalPaid || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'} />
+            {parseFloat(stats.offset1Card || 0) > 0.01 && (
+              <RollupCard icon={<FiTrendingDown />} label="of which 1Card offsets" color="#0e7490"
+                value={hasPermission('AccountPayables:View') ? `${curSym}${parseFloat(stats.offset1Card).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'} />
+            )}
+            <RollupCard icon={<FiAlertCircle />}  label="We owe"    color={outstandingOnly > 0.01 ? '#b91c1c' : '#0f172a'} highlight
+              value={hasPermission('AccountPayables:View') ? `${curSym}${outstandingOnly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'} />
             {overPaidOnly > 0.01 && (
-              <RollupCard icon={<FiTrendingDown />} label={t('overPaid')} color="#047857"
-                value={hasPermission('AccountPayables:View') ? `${curSym}${overPaidOnly.toLocaleString()}` : 'N/A'} />
+              <RollupCard icon={<FiTrendingDown />} label="In credit (paid ahead)" color="#047857"
+                value={hasPermission('AccountPayables:View') ? `${curSym}${overPaidOnly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'} />
             )}
             {parseFloat(stats.totalCredits || 0) > 0.01 && (
               <RollupCard icon={<FiTrendingDown />} label="Credit Notes" color="#0ea5e9"
@@ -499,8 +522,8 @@ const AccountPayables = () => {
         <table className="data-table">
           <thead>
             <tr>
-              <th>{t('supplier')}</th><th>{t('phone')}</th><th>GRNs</th><th>{t('totalPurchases')}</th>
-              <th>{t('totalPaid')}</th><th>Credits</th><th>{t('balance')}</th><th>{t('lastGRN')}</th><th>{t('status')}</th><th>{t('action')}</th>
+              <th>{t('supplier')}</th><th>{t('phone')}</th><th>GRNs · fuel</th><th>Bought</th>
+              <th>Paid / offset</th><th>Credits</th><th>{t('balance')}</th><th>Last purchase</th><th>{t('status')}</th><th>{t('action')}</th>
             </tr>
           </thead>
           <tbody>
@@ -514,7 +537,7 @@ const AccountPayables = () => {
                   </button>
                 </td>
                 <td style={{ color: '#64748b' }}>{p.phone || '—'}</td>
-                <td style={{ textAlign: 'center' }}>{p.grn_count}</td>
+                <td style={{ textAlign: 'center' }}>{p.grn_count}{parseInt(p.fuel_count || 0, 10) > 0 ? ` · ${p.fuel_count}` : ''}</td>
                 {(() => {
                   // v1.10.79 — display each supplier's totals in THEIR
                   // currency (returned per-row by the backend). Falls
@@ -533,13 +556,14 @@ const AccountPayables = () => {
                       <td style={{ color: parseFloat(p.total_credits || 0) > 0 ? '#0369a1' : '#64748b' }}>
                         {parseFloat(p.total_credits || 0) > 0 ? fmtCcy(parseFloat(p.total_credits)) : '—'}
                       </td>
-                      <td style={{ color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#dc2626' : '#334155', fontWeight: 600 }}>
-                        {bal < 0 ? '−' : ''}{fmtCcy(bal)}
+                      <td style={{ color: bal > 0.01 ? '#15803d' : bal < -0.01 ? '#b91c1c' : '#334155', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                        {fmtCcy(bal)}
+                        {Math.abs(bal) > 0.01 && <span style={{ display: 'block', fontSize: 11, fontWeight: 600 }}>{bal < 0 ? 'we owe' : 'in credit'}</span>}
                       </td>
                     </>
                   );
                 })()}
-                <td>{formatDate(p.last_grn_date)}</td>
+                <td>{formatDate(p.last_purchase_date || p.last_grn_date)}</td>
                 <td><span className={`badge ${getStatusBadge(p.status)}`}>{p.status}</span></td>
                 <td>
                   <button
@@ -645,10 +669,37 @@ const AccountPayables = () => {
                 <div style={{ textAlign: 'center', color: '#64748b', padding: 32 }}>Loading...</div>
               ) : (
                 <>
+                  {/* 2026-11-28 — fuel deliveries are purchases from this supplier too */}
+                  {breakdown.deliveries?.length > 0 && (
+                    <>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: '#334155', marginBottom: 10 }}>Fuel deliveries</h3>
+                      <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                            <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Delivery #</th>
+                            <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Date</th>
+                            <th style={{ textAlign: 'left', padding: '7px 10px', fontWeight: 600 }}>Fuel</th>
+                            <th style={{ textAlign: 'right', padding: '7px 10px', fontWeight: 600 }}>Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {breakdown.deliveries.map(d => (
+                            <tr key={d.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '7px 10px', color: '#64748b' }}>{d.delivery_number}</td>
+                              <td style={{ padding: '7px 10px' }}>{formatDate(d.date)}</td>
+                              <td style={{ padding: '7px 10px' }}>{Number(d.litres_delivered || 0).toLocaleString()} L {d.grade_name || ''}{d.invoice_number ? ` · inv ${d.invoice_number}` : ''}</td>
+                              <td style={{ padding: '7px 10px', textAlign: 'right', fontWeight: 600 }}>K{parseFloat(d.total_cost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </>
+                  )}
+
                   {/* GRNs */}
                   <h3 style={{ fontSize: 14, fontWeight: 700, color: '#334155', marginBottom: 10 }}>Purchases (GRN)</h3>
                   {breakdown.grns?.length === 0 ? (
-                    <p style={{ fontSize: 13, color: '#64748b', marginBottom: 18 }}>No purchases yet.</p>
+                    <p style={{ fontSize: 13, color: '#64748b', marginBottom: 18 }}>No GRNs.</p>
                   ) : (
                     <table className="phone-cards" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginBottom: 20 }}>
                       <thead>
@@ -667,7 +718,7 @@ const AccountPayables = () => {
                           </tr>
                         ))}
                         <tr style={{ background: '#f0fdf4', fontWeight: 700 }}>
-                          <td colSpan="2" style={{ padding: '7px 10px', textAlign: 'right' }}>Total Purchases:</td>
+                          <td colSpan="2" style={{ padding: '7px 10px', textAlign: 'right' }}>Total GRNs:</td>
                           <td style={{ padding: '7px 10px', textAlign: 'right', color: '#dc2626' }}>K{breakdown.grns.reduce((s, g) => s + parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                         </tr>
                       </tbody>
@@ -722,6 +773,8 @@ const AccountPayables = () => {
                             <td style={{ padding: '7px 10px', color: '#64748b' }}>{p.description || '—'}</td>
                             <td style={{ padding: '7px 10px', textAlign: 'right', color: '#15803d', fontWeight: 600 }}>K{parseFloat(p.amount).toLocaleString()}</td>
                             <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>
+                              {/* 2026-11-28 — a 1Card offset is undone by deleting its ticket, not here */}
+                              {p.paid_from === '1Card' ? <span style={{ fontSize: 11, fontWeight: 700, color: '#0e7490' }}>1Card</span> : <>
                               {hasPermission('AccountPayables:Edit') && (
                               <button onClick={() => { setEditingPayment({ id: p.id, amount: p.amount, date: p.date, description: p.description || '', paid_from: p.paid_from || '' }); setEditError(''); }}
                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b', marginRight: 6 }}>
@@ -734,6 +787,7 @@ const AccountPayables = () => {
                                 <FiTrash2 size={13} />
                               </button>
                               )}
+                              </>}
                             </td>
                           </tr>
                           )
@@ -799,7 +853,8 @@ const AccountPayables = () => {
                     // Gross: total_amount is final_payable, cn_amount is what was
                     // taken off it. Adding it back lets the credit notes below be
                     // deducted once, in view, instead of silently inside each GRN.
-                    const totalPurchases = breakdown.grns?.reduce((s, g) => s + parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0), 0) || 0;
+                    const totalPurchases = (breakdown.grns?.reduce((s, g) => s + parseFloat(g.total_amount) + parseFloat(g.cn_amount || 0), 0) || 0)
+      + (breakdown.deliveries?.reduce((s, d) => s + parseFloat(d.total_cost || 0), 0) || 0);
                     const totalPaid = breakdown.payments?.reduce((s, p) => s + parseFloat(p.amount), 0) || 0;
                     const totalCredits = breakdown.credits?.reduce((s, c) => s + parseFloat(c.amount), 0) || 0;
                     // Convention: balance > 0 = supplier paid in advance (we owe negative);
@@ -809,7 +864,7 @@ const AccountPayables = () => {
                       <div style={{ background: balance > 0.01 ? '#f0fdf4' : balance < -0.01 ? '#fef2f2' : '#f8fafc', border: `1px solid ${balance > 0.01 ? '#bbf7d0' : balance < -0.01 ? '#fecaca' : '#e2e8f0'}`, borderRadius: 8, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <span style={{ fontWeight: 700, fontSize: 14 }}>
-                            {balance > 0.01 ? 'Over Paid:' : balance < -0.01 ? 'Outstanding:' : 'Outstanding Balance:'}
+                            {balance > 0.01 ? 'In credit (we paid ahead):' : balance < -0.01 ? 'We owe:' : 'Balance:'}
                           </span>
                           {totalCredits > 0.01 && (
                             <div style={{ fontSize: 11, color: '#0369a1', marginTop: 3 }}>
@@ -817,7 +872,7 @@ const AccountPayables = () => {
                             </div>
                           )}
                         </div>
-                        <span style={{ fontWeight: 700, fontSize: 16, color: balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#334155' }}>{balance < 0 ? '−' : ''}{curSym}{Math.abs(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span style={{ fontWeight: 700, fontSize: 16, color: balance > 0.01 ? '#15803d' : balance < -0.01 ? '#dc2626' : '#334155' }}>{curSym}{Math.abs(balance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                       </div>
                     );
                   })()}

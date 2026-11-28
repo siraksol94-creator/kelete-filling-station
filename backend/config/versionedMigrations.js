@@ -298,4 +298,17 @@ module.exports = [
       if (!cols.includes('linked_ap_payment_sync_id')) db.exec('ALTER TABLE shift_credit_sales ADD COLUMN linked_ap_payment_sync_id TEXT');
     },
   },
+  {
+    version: 16,
+    name: 'grn_cost_currency',
+    // Account Payables reads grn.cost_currency (v1.10.79), but the schema never
+    // created it: only the one-off backfill script did, on the databases it was
+    // run on. On a new till the AP page failed with "no such column". Additive;
+    // NULL counts as Kwacha everywhere it is read.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(grn)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('cost_currency')) db.exec('ALTER TABLE grn ADD COLUMN cost_currency TEXT');
+    },
+  },
 ];

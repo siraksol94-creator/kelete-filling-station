@@ -4,25 +4,28 @@ const { auth, readOnlyGuard } = require('../middleware/auth');
 const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 
+const { ledgerRows, ledgerTotals } = require('../services/supplierLedger');
+
+// 2026-11-28 — balances come from the same ledger as Account Payables
+// (services/supplierLedger.js): GRNs + fuel deliveries - payments (incl. 1Card
+// offsets) - credit notes. `outstanding` > 0: we owe them; < 0: in credit.
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
-    const rows = db.prepare(`
-      SELECT s.*,
-        COALESCE(g.total_purchases, 0) AS total_purchases,
-        COALESCE(a.total_paid, 0) AS total_paid,
-        COALESCE(g.total_purchases, 0) - COALESCE(a.total_paid, 0) AS outstanding
-      FROM suppliers s
-      LEFT JOIN (
-        SELECT supplier_sync_id, SUM(total_amount) AS total_purchases
-        FROM grn WHERE deleted_at IS NULL GROUP BY supplier_sync_id
-      ) g ON s.sync_id = g.supplier_sync_id
-      LEFT JOIN (
-        SELECT supplier_sync_id, SUM(amount) AS total_paid
-        FROM ap_payments WHERE deleted_at IS NULL GROUP BY supplier_sync_id
-      ) a ON s.sync_id = a.supplier_sync_id
-      WHERE s.deleted_at IS NULL AND s.tenant_id = ? ORDER BY s.name
-    `).all(req.user.tenantId);
-    res.json(rows);
+    const ledger = new Map(ledgerRows(db, req.user.tenantId, { activeOnly: false }).map((r) => [r.id, r]));
+    const rows = db.prepare('SELECT * FROM suppliers WHERE deleted_at IS NULL AND tenant_id = ? ORDER BY name').all(req.user.tenantId);
+    res.json(rows.map((s) => {
+      const l = ledger.get(s.id) || {};
+      return {
+        ...s,
+        total_purchases: l.total_purchases || 0,
+        fuel_purchases: l.fuel_purchases || 0,
+        total_paid: l.total_paid || 0,
+        offset_1card: l.offset_1card || 0,
+        total_credits: l.total_credits || 0,
+        outstanding: l.balance || 0,
+        last_purchase_date: l.last_purchase_date || null,
+      };
+    }));
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -31,20 +34,9 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 router.get('/stats', auth, readOnlyGuard, (req, res) => {
   try {
     const tenantId = req.user.tenantId;
-    const total = db.prepare('SELECT COUNT(*) AS cnt FROM suppliers WHERE deleted_at IS NULL AND tenant_id = ?').get(tenantId);
+    const t = ledgerTotals(ledgerRows(db, tenantId, { activeOnly: false }));
     const active = db.prepare("SELECT COUNT(*) AS cnt FROM suppliers WHERE deleted_at IS NULL AND tenant_id = ? AND status = 'Active'").get(tenantId);
-    const outstanding = db.prepare(`
-      SELECT COALESCE(SUM(COALESCE(g.total_purchases,0) - COALESCE(a.total_paid,0)), 0) AS total
-      FROM suppliers s
-      LEFT JOIN (SELECT supplier_sync_id, SUM(total_amount) AS total_purchases FROM grn WHERE deleted_at IS NULL GROUP BY supplier_sync_id) g ON s.sync_id = g.supplier_sync_id
-      LEFT JOIN (SELECT supplier_sync_id, SUM(amount) AS total_paid FROM ap_payments WHERE deleted_at IS NULL GROUP BY supplier_sync_id) a ON s.sync_id = a.supplier_sync_id
-      WHERE s.deleted_at IS NULL AND s.tenant_id = ?
-    `).get(tenantId);
-    res.json({
-      totalSuppliers: total.cnt,
-      activeAccounts: active.cnt,
-      outstanding: parseFloat(outstanding.total)
-    });
+    res.json({ totalSuppliers: t.suppliers, activeAccounts: active.cnt, outstanding: t.outstanding, owed: t.owed, inCredit: t.inCredit });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

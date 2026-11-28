@@ -395,8 +395,18 @@ router.post('/batch', auth, (req, res) => {
   }
 });
 
+// 2026-11-28 — a 1Card offset belongs to its ticket: changing or deleting it
+// here would leave the ticket and the supplier balance disagreeing. It is
+// reversed by deleting the 1Card ticket (Fuel Station → 1Card Sales).
+function oneCardLocked(id) {
+  const row = db.prepare('SELECT paid_from FROM ap_payments WHERE id = ? AND deleted_at IS NULL').get(id);
+  return row && row.paid_from === '1Card';
+}
+const ONE_CARD_MSG = 'This is a 1Card offset. To undo it, delete the 1Card ticket on Fuel Station → 1Card Sales.';
+
 router.put('/:id', auth, (req, res) => {
   try {
+    if (oneCardLocked(req.params.id)) return res.status(409).json({ error: ONE_CARD_MSG, code: 'ONECARD_LOCKED' });
     const { cash_amount, bank_amount, momo_amount, amount, date, description, paid_from, invoice_attachment } = req.body;
     const cash = parseFloat(cash_amount || 0) || 0;
     const bank = parseFloat(bank_amount || 0) || 0;
@@ -428,6 +438,7 @@ router.put('/:id', auth, (req, res) => {
 // DELETE /api/ap-payments/:id
 router.delete('/:id', auth, (req, res) => {
   try {
+    if (oneCardLocked(req.params.id)) return res.status(409).json({ error: ONE_CARD_MSG, code: 'ONECARD_LOCKED' });
     db.prepare("UPDATE ap_payments SET deleted_at=datetime('now'), updated_at=datetime('now'), synced=0 WHERE id=?").run(req.params.id);
     res.json({ message: 'Payment deleted' });
   } catch (e) { res.status(500).json({ error: e.message }); }

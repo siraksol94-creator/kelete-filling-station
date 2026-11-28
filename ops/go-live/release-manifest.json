@@ -456,6 +456,15 @@
    "covers": "Repair",
    "what": "The 1Card test now names its fuel-card supplier (required since 26 Nov) and checks the offset is posted; permission matrix rebuilt (the 1Card screen reads suppliers); release manifest lists migrations 14 and 15 and the three owner commits. Tests only, no app code.",
    "migrations": []
+  },
+  {
+   "n": 62,
+   "subject": "Money fix: 1Card offsets stay out of the Cash Book; fuel deliveries count in Account Payables and Suppliers; AP opens on new tills (migration 16) (for review)",
+   "covers": "Money",
+   "what": "Cash Book: ap_payments with paid_from 1Card are never cash, bank or MoMo (a K2,500 ticket showed as K2,500 leaving the bank). services/supplierLedger.js: one calculation for Account Payables and Suppliers — GRNs + fuel deliveries − payments (1Card offsets shown apart) − credit notes; Suppliers now also deducts credit notes. AP breakdown and print list fuel deliveries. AP screen: \"We owe\" / \"In credit\" in words instead of minus signs; a 1Card offset cannot be edited or deleted there (delete the ticket). Migration 16 adds grn.cost_currency, which the AP query needs and the schema never created (AP failed on new tills).",
+   "migrations": [
+    16
+   ]
   }
  ],
  "migrations": [
@@ -518,6 +527,10 @@
   {
    "version": 15,
    "name": "onecard_ap_link"
+  },
+  {
+   "version": 16,
+   "name": "grn_cost_currency"
   }
  ],
  "tag_patterns_that_trigger_old_workflows": [
