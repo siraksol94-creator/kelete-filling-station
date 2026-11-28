@@ -32,3 +32,45 @@ export function shopItems(items) {
 export function uncategorised(items) {
   return (items || []).filter(i => !i.category_id);
 }
+
+// ── HQ Purchase (decision 2026-11-28) ──────────────────────────────────────
+// One purchase goes to one kind of branch. The first item that is sold only
+// at fuel stations or only at shops decides which; items sold at both fit
+// either. An item with no category can't be bought until it has one.
+export function purchaseKind(lines) {
+  for (const l of lines || []) {
+    const s = l && l.sold_at !== undefined ? soldAtOf(l.sold_at) : 'both';
+    if (l && l.has_category && s !== 'both') return s;
+  }
+  return 'both';
+}
+
+// Why this line can't be on this purchase, or null. `kind` is the purchase's
+// kind ('fuel' | 'shop' | 'both'); `destKind` the picked branch's, if any.
+export function purchaseLineProblem(line, kind, destKind) {
+  if (!line || !line.product_sync_id) return null;
+  if (!line.has_category) return `"${line.name}" has no category. Give it one in Item Details before buying it.`;
+  const s = soldAtOf(line.sold_at);
+  const where = s === 'fuel' ? 'fuel stations' : 'shops';
+  if (destKind && !soldAtFits(s, destKind)) {
+    return `"${line.name}" is sold at ${where}; the branch picked is a ${destKind === 'fuel' ? 'fuel station' : 'shop'}. Raise a separate purchase for it.`;
+  }
+  if (kind !== 'both' && !soldAtFits(s, kind)) {
+    return `"${line.name}" is sold at ${where}. This purchase is for ${kind === 'fuel' ? 'fuel stations' : 'shops'}; raise a separate purchase for it.`;
+  }
+  return null;
+}
+
+// The branches a purchase of this kind may go to. HQ itself never receives.
+export function destinationsFor(branches, kind, kindOf) {
+  return (branches || []).filter(b => {
+    const k = kindOf(b);
+    return k !== 'hq' && soldAtFits(kind, k);
+  });
+}
+
+export function soldAtBadge(p) {
+  if (!p || !p.category_id) return { label: 'No category', className: 'k-kind k-sold-none' };
+  const s = soldAtOf(p.category_sold_at);
+  return { label: s === 'both' ? 'Both' : s === 'fuel' ? 'Fuel stations' : 'Shops', className: `k-kind k-sold-${s}` };
+}

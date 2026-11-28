@@ -481,6 +481,13 @@
    "migrations": [
     17
    ]
+  },
+  {
+   "n": 65,
+   "subject": "HQ Purchase goes to one kind of branch: the first item decides fuel stations or shops, other branches are not offered, and a mixed or uncategorised item is refused with the reason (for review)",
+   "covers": "HQ Purchase",
+   "what": "ux/itemRules.js purchaseKind/purchaseLineProblem/destinationsFor: the first line whose category is sold only at fuel stations or only at shops decides the purchase; lines sold at both fit either. HQ Purchases: Destination lists only branches of that kind, with a note why; a line that does not fit (or an item with no category) shows the reason under it and blocks Save (a draft may still be parked). The product picker shows each item's Sold at badge (components/ItemPicker badgeFor). Server: POST /api/hq/purchases and draft promotion refuse a line whose item's category is sold at the other kind of branch, or has no category (WRONG_BRANCH_TYPE, 400). No migration.",
+   "migrations": []
   }
  ],
  "migrations": [

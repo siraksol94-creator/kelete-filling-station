@@ -54,6 +54,9 @@ export default function ItemPicker({
   tagFor = null,
   tagHeading = 'On this invoice',
   otherHeading = 'Other items',
+  // Optional (2026-11-28). Returns { label, className } for a small badge
+  // after the name (HQ Purchase: where the item is sold), or null.
+  badgeFor = null,
 }) {
   const [open, setOpen] = useState(false);
   const [hi, setHi]     = useState(0);
@@ -223,7 +226,10 @@ export default function ItemPicker({
                       ...(tagFor ? { borderLeft: `3px solid ${tag ? '#16a34a' : 'transparent'}` } : {}),
                       display: 'flex', justifyContent: 'space-between', gap: 10,
                     }}>
-                    <span style={{ color: tag ? '#15803d' : '#0f172a', fontWeight: tag ? 600 : 400 }}>{p.name}</span>
+                    <span style={{ color: tag ? '#15803d' : '#0f172a', fontWeight: tag ? 600 : 400 }}>
+                      {p.name}
+                      {(() => { const b = badgeFor && badgeFor(p); return b ? <span className={b.className} style={{ marginLeft: 8 }}>{b.label}</span> : null; })()}
+                    </span>
                     {tag
                       ? <span style={{ color: '#15803d', fontSize: 11, whiteSpace: 'nowrap' }}>{tag}</span>
                       : p.code && <span style={{ color: '#64748b', fontFamily: 'var(--k-font-mono)', fontSize: 11 }}>{p.code}</span>}

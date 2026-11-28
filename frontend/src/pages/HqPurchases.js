@@ -17,6 +17,8 @@ import Portal from '../utils/Portal';
 import { useSort, SortTh } from '../components/SortableTable';
 import { usePurchaseTrace, TraceSearchBox, TracePanel, TrackButton } from '../components/PurchaseTrace';
 import { businessToday } from '../utils/businessDate';
+import { purchaseKind, purchaseLineProblem, destinationsFor, soldAtBadge } from '../ux/itemRules';
+import { kindOfBranch } from '../ux/branchType';
 
 // Read-only twins of the entry form's label and input, so the View modal
 // reads as the same screen rather than a different one.
@@ -540,6 +542,19 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
       .catch(() => {});
   }, []);
 
+  // 2026-11-28 — one purchase, one kind of branch. The first item sold only
+  // at fuel stations or only at shops decides, and the destination list
+  // follows. Mixing is refused at the line, with the reason in words.
+  const lineFacts = items.map(it => {
+    const p = it.product_sync_id ? hqProducts.find(x => x.sync_id === it.product_sync_id) : null;
+    return { product_sync_id: it.product_sync_id, name: p?.name || it.product_name || '',
+             has_category: p ? !!p.category_id : true, sold_at: p?.category_sold_at };
+  });
+  const buyKind = purchaseKind(lineFacts);
+  const destKind = destBranch ? kindOfBranch(destBranch) : null;
+  const allowedDest = destinationsFor(branches, buyKind, kindOfBranch);
+  const lineProblems = lineFacts.map(l => (hqProducts.length ? purchaseLineProblem(l, buyKind, destKind) : null));
+
   function newItem() {
     // v1.13.36 — cost_locked defaults true. Cost is auto-fetched from
     // the HQ item on pick and locked so an operator can't fat-finger a
@@ -762,6 +777,8 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
     // line so the backend (which still validates per-line destination_slug)
     // accepts the payload unchanged.
     if (!destinationSlug) return onError('Pick a destination branch for this PO.');
+    const firstProblem = lineProblems.find(Boolean);
+    if (firstProblem && !asDraft) return onError(firstProblem);
     // v1.10.54 — tri-currency destinations require a cost currency + FX rate.
     // K-only destinations skip this — cost is native K.
     //
@@ -922,8 +939,15 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
               <label style={lbl}>Destination Branch <span style={{ color: '#dc2626' }}>*</span></label>
               <select value={destinationSlug} onChange={e => setDestinationSlug(e.target.value)} style={inp}>
                 <option value="">— branch —</option>
-                {branches.map(b => <option key={b.slug} value={b.slug}>{b.name}</option>)}
+                {allowedDest.map(b => <option key={b.slug} value={b.slug}>{b.name}</option>)}
+                {destBranch && !allowedDest.includes(destBranch) && <option value={destBranch.slug}>{destBranch.name} (doesn't fit)</option>}
               </select>
+              {buyKind !== 'both' && (
+                <div style={{ marginTop: 4, fontSize: 11.5, color: '#475569' }}>
+                  <span className={`k-kind k-kind-${buyKind}`}>{buyKind === 'fuel' ? 'Fuel stations' : 'Shops'} only</span>{' '}
+                  because of the first {buyKind === 'fuel' ? 'fuel-station' : 'shop'} item.
+                </div>
+              )}
             </div>
             <div><label style={lbl}>Date</label><input type="date" value={date} onChange={e => setDate(e.target.value)} style={inp} /></div>
             {/* 2026-09-04 — the supplier's invoice number, captured when the PO
@@ -1029,6 +1053,7 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                         {hqProducts.length > 0 ? (
                           <ItemPicker
                             products={hqProducts}
+                            badgeFor={soldAtBadge}
                             text={it.product_text || ''}
                             selected={!!it.product_sync_id}
                             style={cellInp}
@@ -1148,6 +1173,9 @@ function CreatePurchaseModal({ branches, draft, onClose, onCreated, onError }) {
                           <div style={{ ...cellInp, color: '#dc2626', fontSize: 11, padding: '6px 8px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 4 }}>
                             No items yet — add them under <strong>Store &rarr; Item Details</strong> first.
                           </div>
+                        )}
+                        {lineProblems[i] && (
+                          <div role="alert" style={{ marginTop: 4, fontSize: 11.5, color: '#b91c1c', fontWeight: 600, whiteSpace: 'normal' }}>{lineProblems[i]}</div>
                         )}
                       </td>
                       {/* 2026-08-30 — unit comes from the item, and is not

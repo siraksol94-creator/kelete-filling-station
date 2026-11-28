@@ -278,6 +278,7 @@ automatically at start-up, once, each in its own transaction.
 | 62 | Money | 1Card offsets out of the Cash Book; fuel deliveries in Account Payables and Suppliers; AP opens on new tills | 16 |
 | 63 | Branch types | HQ never fuel; fuel station = Fuel + Sales + Store; shop = Sales + Store; dashboards and HQ Overview by type; fuel teal, shop violet | — |
 | 64 | Categories | Every category says where it is sold; items need a category; fuel ticket products out of Item Details | 17 |
+| 65 | HQ Purchase | One kind of branch per purchase; first item decides; mixing refused with the reason | — |
 
 Before tagging, on the test machine:
 

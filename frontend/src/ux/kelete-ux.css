@@ -1622,3 +1622,4 @@
 .k-sold-shop { background: var(--k-shop-bg); color: var(--k-shop); }
 .k-sold-both { background: linear-gradient(90deg, var(--k-fuel-bg), var(--k-shop-bg)); color: #334155; }
 .k-sold-both::before { background: linear-gradient(90deg, var(--k-fuel) 50%, var(--k-shop) 50%); }
+.k-sold-none { background: #fffbeb; color: #92400e; }

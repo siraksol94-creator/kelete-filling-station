@@ -182,6 +182,39 @@ function buildLines(items, ccy, rate) {
   return { clean, totalAmount };
 }
 
+// 2026-11-28 — a purchase goes to one kind of branch. Each line's item must
+// be sold at the destination's kind (its category's "sold at"), and must have
+// a category at all. Checked only when a purchase is raised, never on a draft.
+// The HQ catalogue is HQ's own database; an item it doesn't know (a branch
+// sync_id passed straight through) is left to the existing checks.
+function branchKindOf(slug) {
+  try {
+    const bt = getTenantDb(slug).prepare('SELECT business_type FROM business_settings ORDER BY id ASC LIMIT 1').get();
+    return String(bt?.business_type || 'fuel').toLowerCase() === 'grocery' ? 'shop' : 'fuel';
+  } catch (_) { return null; }
+}
+function assertLinesFitBranches(lines) {
+  const hqDb = require('../config/database');
+  for (const l of lines) {
+    let row;
+    try {
+      row = hqDb.prepare(`SELECT p.name, p.category_id, c.sold_at, c.id AS cat_id
+                            FROM products p LEFT JOIN categories c ON c.sync_id = p.category_sync_id AND c.deleted_at IS NULL
+                           WHERE p.sync_id = ? AND p.deleted_at IS NULL`).get(l.product_sync_id);
+    } catch (_) { row = null; }
+    if (!row) continue;
+    if (!row.category_id || !row.cat_id) throw badRequest(`"${row.name}" has no category. Give it one in Item Details before buying it.`);
+    const sold = String(row.sold_at || '').toLowerCase();
+    if (sold !== 'fuel' && sold !== 'shop') continue;
+    const kind = branchKindOf(l.destination_slug);
+    if (kind && kind !== sold) {
+      const e = badRequest(`"${row.name}" is sold at ${sold === 'fuel' ? 'fuel stations' : 'shops'}; ${l.destination_name || l.destination_slug} is a ${kind === 'fuel' ? 'fuel station' : 'shop'}. Raise a separate purchase for it.`);
+      e.code = 'WRONG_BRANCH_TYPE';
+      throw e;
+    }
+  }
+}
+
 // POST /api/hq/purchases
 // Body: { supplier_name, invoice_number, date, notes,
 //         items: [{product_sync_id?, product_name, unit, dispatched_qty,
@@ -209,6 +242,7 @@ router.post('/', hqAuth, (req, res) => {
 
     const { ccy, rate } = parseCurrency(req.body || {});
     const { clean, totalAmount } = buildLines(items, ccy, rate);
+    if (!wantDraft) assertLinesFitBranches(clean);
 
     const syncId = randomUUID();
     const purchaseNumber = nextPurchaseNumber();
@@ -1171,6 +1205,7 @@ router.put('/:id', hqAuth, (req, res) => {
 
     const { ccy, rate } = parseCurrency(req.body || {});
     const { clean, totalAmount } = buildLines(items, ccy, rate);
+    if (promote) assertLinesFitBranches(clean);
     const lineStatus = promote ? 'AWAITING_GRN' : 'DRAFT';
 
     masterDb.transaction(() => {
