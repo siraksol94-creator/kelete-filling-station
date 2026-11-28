@@ -274,6 +274,8 @@ router.post('/', hqAuth, (req, res) => {
             ub_number_start, ub_number_length, ub_quantity_start,
             ub_quantity_length, ub_decimal_start } = req.body || {};
     if (!name || !name.trim()) return res.status(400).json({ error: 'name is required' });
+    // Category is required, as at the branch: it decides which branches the item is for.
+    if (!String(category_name || '').trim()) return res.status(400).json({ error: 'Pick a category for this item.', code: 'CATEGORY_REQUIRED' });
     const dup = masterDb.prepare(`SELECT id FROM hq_products WHERE LOWER(name) = LOWER(?) AND status != 'Deleted'`).get(name.trim());
     if (dup) return res.status(400).json({ error: 'A product with this name already exists in the HQ master' });
 
@@ -327,6 +329,8 @@ router.put('/:id', hqAuth, (req, res) => {
             ub_number_start, ub_number_length, ub_quantity_start,
             ub_quantity_length, ub_decimal_start } = req.body || {};
     if (!name || !name.trim()) return res.status(400).json({ error: 'name is required' });
+    // Category is required, as at the branch: it decides which branches the item is for.
+    if (!String(category_name || '').trim()) return res.status(400).json({ error: 'Pick a category for this item.', code: 'CATEGORY_REQUIRED' });
     if (name.trim().toLowerCase() !== row.name.toLowerCase()) {
       const dup = masterDb.prepare(`SELECT id FROM hq_products WHERE LOWER(name) = LOWER(?) AND id != ?`).get(name.trim(), req.params.id);
       if (dup) return res.status(400).json({ error: 'Another HQ product already uses this name' });

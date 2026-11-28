@@ -100,7 +100,7 @@ function pushCategoryToBranches(catRow, { listTenants, getTenantDb }) {
       if (existing) {
         db.prepare(`
           UPDATE categories
-             SET name = ?, color = ?,
+             SET name = ?, color = ?, sold_at = ?,
                  main_category_id = ?,
                  main_category_sync_id = ?,
                  tenant_id = COALESCE(NULLIF(tenant_id, ''), ?),
@@ -108,7 +108,7 @@ function pushCategoryToBranches(catRow, { listTenants, getTenantDb }) {
                  updated_at = datetime('now'), synced = 0
            WHERE id = ?
         `).run(
-          catRow.name, catRow.color || null,
+          catRow.name, catRow.color || null, catRow.sold_at || null,
           mainCatId, catRow.main_category_sync_id || null,
           branchTenantId,
           existing.id
@@ -117,11 +117,11 @@ function pushCategoryToBranches(catRow, { listTenants, getTenantDb }) {
       } else {
         db.prepare(`
           INSERT INTO categories
-            (name, color, main_category_id, main_category_sync_id, is_hq_owned,
+            (name, color, sold_at, main_category_id, main_category_sync_id, is_hq_owned,
              sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at)
-          VALUES (?,?,?,?,1,?,?,?,?,0,datetime('now'),datetime('now'))
+          VALUES (?,?,?,?,?,1,?,?,?,?,0,datetime('now'),datetime('now'))
         `).run(
-          catRow.name, catRow.color || null, mainCatId, catRow.main_category_sync_id || null,
+          catRow.name, catRow.color || null, catRow.sold_at || null, mainCatId, catRow.main_category_sync_id || null,
           catRow.sync_id, branchTenantId, null, null
         );
         out.pushed += 1;

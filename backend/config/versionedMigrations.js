@@ -311,4 +311,17 @@ module.exports = [
       if (!cols.includes('cost_currency')) db.exec('ALTER TABLE grn ADD COLUMN cost_currency TEXT');
     },
   },
+  {
+    version: 17,
+    name: 'category_sold_at',
+    // Where a category's items are sold: 'fuel' (fuel stations), 'shop'
+    // (shops) or 'both'. HQ Purchase uses it to offer only the branches an
+    // item belongs to. Additive; existing categories stay NULL, which is
+    // read as 'both', so nothing that works today is narrowed.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(categories)').all().map(c => c.name);
+      if (!cols.length) return;
+      if (!cols.includes('sold_at')) db.exec('ALTER TABLE categories ADD COLUMN sold_at TEXT');
+    },
+  },
 ];

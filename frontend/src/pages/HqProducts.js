@@ -293,7 +293,7 @@ function ProductForm({ existing, onClose, onSaved, onError }) {
             <Field label="Name *"><input type="text" value={form.name} onChange={e => update('name', e.target.value)} style={inp} autoFocus /></Field>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <Field label="Category"><input type="text" value={form.category_name} onChange={e => update('category_name', e.target.value)} placeholder="e.g. Beer" style={inp} /></Field>
+            <Field label="Category *"><input type="text" value={form.category_name} onChange={e => update('category_name', e.target.value)} placeholder="e.g. Beer" style={inp} /></Field>
             <Field label="Main category"><input type="text" value={form.main_category_name} onChange={e => update('main_category_name', e.target.value)} placeholder="e.g. Beverage" style={inp} /></Field>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>

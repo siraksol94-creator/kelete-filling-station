@@ -277,6 +277,7 @@ automatically at start-up, once, each in its own transaction.
 | 61 | Repair | Tests, permission list and release list brought up to date after the owner's commits | — |
 | 62 | Money | 1Card offsets out of the Cash Book; fuel deliveries in Account Payables and Suppliers; AP opens on new tills | 16 |
 | 63 | Branch types | HQ never fuel; fuel station = Fuel + Sales + Store; shop = Sales + Store; dashboards and HQ Overview by type; fuel teal, shop violet | — |
+| 64 | Categories | Every category says where it is sold; items need a category; fuel ticket products out of Item Details | 17 |
 
 Before tagging, on the test machine:
 
@@ -376,7 +377,7 @@ through.
    - `pm2 logs <name> --lines 300 | grep -E "\[migrate\]|FAILED|refuse"`: each
      database applied its migrations, and there's no `FAILED`
    - as Administrator: `GET /api/system/schema-status` for each branch shows
-     version 16
+     version 17
    - log in as Administrator, a supervisor and a cashier, and open each one's
      usual screens
    - `pm2 logs | grep "WOULD DENY"`: lines for legitimate work go on the list

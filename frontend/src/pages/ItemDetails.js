@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getProducts, createProduct, updateProduct, updateProductBarcode, deleteProduct, uploadProductImage, deleteProductImage, getSettings, getCategories, getMainCategories, getUnits, deleteAllProducts, importProducts, isHqHost, getZraItemClasses, getZraCodes, bulkPushPrices, mirrorHqToAllBranches } from '../services/api';
+import { shopItems, uncategorised, SOLD_AT_LABEL, soldAtOf } from '../ux/itemRules';
 import CategoryFilter from '../components/CategoryFilter';
 import CostPrices from './CostPrices';
 import MirrorResultModal from '../components/MirrorResultModal';
@@ -131,6 +132,8 @@ const ItemDetails = () => {
   const [dbUnits, setDbUnits] = useState([]);
   const [selMainIds, setSelMainIds] = useState(null);
   const [selCatIds, setSelCatIds] = useState(null);
+  // Show only the items still missing a category (to clean up old ones).
+  const [noCatOnly, setNoCatOnly] = useState(false);
   const [search, setSearch] = useState('');
   // 2026-09-12 — phone only: the full category filter sits behind "Filters".
   const [showPhoneFilters, setShowPhoneFilters] = useState(false);
@@ -304,16 +307,19 @@ const ItemDetails = () => {
   const fetchItems = async () => {
     try {
       const res = await getProducts();
-      setItems(res.data || []);
+      // Fuel credit-ticket products (FUEL-…) belong to Fuel Grades, not the shop.
+      setItems(shopItems(res.data));
     } catch (err) { setItems([]); }
   };
 
   const activeCatIds = selCatIds === null ? null : new Set(selCatIds.map(String));
   const filtered = items.filter(i => {
     const matchSearch = matchTokens(search, i.name, i.code, i.barcode);
-    const matchCat = activeCatIds === null
-      ? true
-      : i.category_id ? activeCatIds.has(String(i.category_id)) : false;
+    const matchCat = noCatOnly
+      ? !i.category_id
+      : activeCatIds === null
+        ? true
+        : i.category_id ? activeCatIds.has(String(i.category_id)) : false;
     return matchSearch && matchCat;
   });
 
@@ -983,6 +989,23 @@ const ItemDetails = () => {
         )}
       </div>
 
+      {(() => {
+        const n = uncategorised(items).length;
+        if (!n && !noCatOnly) return null;
+        return (
+          <div role="status" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', margin: '0 0 10px', padding: '9px 12px', borderRadius: 8, background: '#fffbeb', border: '1px solid #fcd34d', color: '#78350f', fontSize: 13 }}>
+            <span style={{ flex: 1, minWidth: 220 }}>
+              {n
+                ? <><b>{n} item{n === 1 ? ' has' : 's have'} no category.</b> They can still be sold, but can't be saved again or bought at HQ until one is picked.</>
+                : <b>Every item has a category now.</b>}
+            </span>
+            <button type="button" onClick={() => setNoCatOnly(v => !v)}
+              style={{ padding: '6px 12px', borderRadius: 8, fontSize: 12.5, fontWeight: 700, border: '1px solid #b45309', background: noCatOnly ? '#b45309' : '#fff', color: noCatOnly ? '#fff' : '#78350f', cursor: 'pointer' }}>
+              {noCatOnly ? 'Show all items' : 'Show them'}
+            </button>
+          </div>
+        );
+      })()}
       <div className="search-input-container desk-only">
         <FiSearch style={{ color: '#64748b' }} />
         <input type="text" placeholder={t('searchByItemOrCode')} value={search} onChange={e => setSearch(e.target.value)} />
@@ -1092,7 +1115,9 @@ const ItemDetails = () => {
                     <span style={{ marginLeft: 6, padding: '2px 8px', background: '#f1f5f9', color: '#64748b', borderRadius: 10, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>Inactive</span>
                   )}
                 </td>
-                <td><span className={`badge ${getCategoryClass(item.category_name)}`}>{item.category_name}</span></td>
+                <td>{item.category_name
+                  ? <span className={`badge ${getCategoryClass(item.category_name)}`}>{item.category_name}</span>
+                  : <span style={{ color: '#92400e', fontSize: 12, fontWeight: 600 }}>No category</span>}</td>
                 <td>
                   {(() => {
                     const disp = pickDisplayUnit(item);
@@ -1292,13 +1317,17 @@ const ItemDetails = () => {
                   )}
                 </div>
                 <div className="form-group">
-                  <label>Category</label>
-                  <select value={form.category_id} disabled={hqLocked} onChange={e => setForm({ ...form, category_id: e.target.value })}>
+                  <label>Category <span aria-hidden="true" style={{ color: '#b91c1c' }}>*</span></label>
+                  <select required aria-required="true" value={form.category_id} disabled={hqLocked} onChange={e => setForm({ ...form, category_id: e.target.value })}>
                     <option value="">Select Category</option>
                     {dbCategories.map(c => (
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
+                  {(() => {
+                    const c = dbCategories.find(x => String(x.id) === String(form.category_id));
+                    return c ? <small style={{ display: 'block', marginTop: 4, color: '#475569' }}>Sold at: {SOLD_AT_LABEL[soldAtOf(c.sold_at)]}</small> : null;
+                  })()}
                 </div>
               </div>
 

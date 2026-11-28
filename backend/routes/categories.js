@@ -8,6 +8,15 @@ const syncConfig = require('../config/syncConfig');
 const { randomUUID } = require('crypto');
 const multer = require('multer');
 
+// Where a category's items are sold. NULL/'' is read as 'both' everywhere.
+const SOLD_AT = new Set(['fuel', 'shop', 'both']);
+function soldAtOf(v) {
+  if (v === undefined) return undefined;
+  if (v === null || v === '') return null;
+  const s = String(v).trim().toLowerCase();
+  return SOLD_AT.has(s) ? s : false;
+}
+
 const csvUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 function parseCSV(text) {
@@ -37,14 +46,17 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
 router.post('/', auth, (req, res) => {
   try {
     const { name, color, main_category_id } = req.body;
+    if (!String(name || '').trim()) return res.status(400).json({ error: 'Give the category a name.' });
+    const soldAt = soldAtOf(req.body.sold_at);
+    if (soldAt === false) return res.status(400).json({ error: 'Sold at must be fuel stations, shops or both.' });
     const tenantId = syncConfig.getTenantId(req);
     const { branchId, deviceId } = syncConfig.getConfig();
     const mainCat = main_category_id ? db.prepare('SELECT sync_id FROM main_categories WHERE id = ?').get(main_category_id) : null;
     const mainCatSyncId = mainCat?.sync_id || null;
     const fromHq = isHqRequest(req);
     const info = db.prepare(
-      "INSERT INTO categories (name, color, main_category_id, main_category_sync_id, is_hq_owned, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))"
-    ).run(name, color, main_category_id || null, mainCatSyncId, fromHq ? 1 : 0, randomUUID(), tenantId, branchId, deviceId);
+      "INSERT INTO categories (name, color, sold_at, main_category_id, main_category_sync_id, is_hq_owned, sync_id, tenant_id, branch_id, device_id, synced, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,0,datetime('now'),datetime('now'))"
+    ).run(String(name).trim(), color, soldAt || null, main_category_id || null, mainCatSyncId, fromHq ? 1 : 0, randomUUID(), tenantId, branchId, deviceId);
     const row = db.prepare('SELECT * FROM categories WHERE id = ?').get(info.lastInsertRowid);
     if (fromHq) {
       try { pushCategoryToBranches(row, { listTenants, getTenantDb }); } catch (_) { /* best-effort */ }
@@ -58,7 +70,10 @@ router.post('/', auth, (req, res) => {
 router.put('/:id', auth, (req, res) => {
   try {
     const { name, color, main_category_id } = req.body;
-    const existing = db.prepare('SELECT id, is_hq_owned, sync_id FROM categories WHERE id = ?').get(req.params.id);
+    if (!String(name || '').trim()) return res.status(400).json({ error: 'Give the category a name.' });
+    const soldAt = soldAtOf(req.body.sold_at);
+    if (soldAt === false) return res.status(400).json({ error: 'Sold at must be fuel stations, shops or both.' });
+    const existing = db.prepare('SELECT id, is_hq_owned, sync_id, sold_at FROM categories WHERE id = ?').get(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Category not found' });
     const fromHq = isHqRequest(req);
     if (existing.is_hq_owned && !fromHq) {
@@ -66,9 +81,10 @@ router.put('/:id', auth, (req, res) => {
     }
     const mainCat = main_category_id ? db.prepare('SELECT sync_id FROM main_categories WHERE id = ?').get(main_category_id) : null;
     const mainCatSyncId = mainCat?.sync_id || null;
+    // sold_at left out of the body keeps what the category had (older screens).
     db.prepare(
-      "UPDATE categories SET name=?, color=?, main_category_id=?, main_category_sync_id=?, updated_at=datetime('now'), synced=0 WHERE id=?"
-    ).run(name, color, main_category_id || null, mainCatSyncId, req.params.id);
+      "UPDATE categories SET name=?, color=?, sold_at=?, main_category_id=?, main_category_sync_id=?, updated_at=datetime('now'), synced=0 WHERE id=?"
+    ).run(String(name).trim(), color, soldAt === undefined ? (existing.sold_at || null) : soldAt, main_category_id || null, mainCatSyncId, req.params.id);
     const row = db.prepare('SELECT * FROM categories WHERE id = ?').get(req.params.id);
     if (fromHq) {
       try { pushCategoryToBranches(row, { listTenants, getTenantDb }); } catch (_) { /* best-effort */ }

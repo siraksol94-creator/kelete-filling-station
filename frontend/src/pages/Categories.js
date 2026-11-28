@@ -8,8 +8,9 @@ import { useAuth } from '../context/AuthContext';
 import Portal from '../utils/Portal';
 import useModalScrollLock from '../utils/useModalScrollLock';
 import AdminPasswordPrompt from '../components/AdminPasswordPrompt';
+import { SOLD_AT, SOLD_AT_LABEL, soldAtOf } from '../ux/itemRules';
 
-const emptyForm = { name: '', color: '#64748b', main_category_id: '' };
+const emptyForm = { name: '', color: '#64748b', main_category_id: '', sold_at: '' };
 const emptyMainForm = { name: '', color: '#64748b' };
 const emptyUnitForm = { name: '', abbreviation: '' };
 
@@ -205,6 +206,7 @@ const Categories = () => {
       name: cat.name || '',
       color: cat.color || '#64748b',
       main_category_id: cat.main_category_id ? String(cat.main_category_id) : '',
+      sold_at: soldAtOf(cat.sold_at),
     });
     setError('');
     setShowForm(true);
@@ -213,6 +215,7 @@ const Categories = () => {
   const handleSave = async () => {
     setError('');
     if (!form.name.trim()) return setError('Category name is required.');
+    if (!form.sold_at) return setError('Pick where this category is sold: fuel stations, shops or both.');
     if (editingId) {
       if (!window.confirm('Are you sure you want to update this record?')) return;
     }
@@ -454,13 +457,14 @@ const Categories = () => {
                   <th style={{ width: 64 }}>Color</th>
                   <th>Name</th>
                   <th>Main Category</th>
+                  <th>Sold at</th>
                   <th style={{ width: 160, textAlign: 'center' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: 'center', padding: 48 }}>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: 48 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, color: '#64748b' }}>
                         <FiTag size={32} style={{ opacity: 0.4 }} />
                         <span style={{ fontSize: 14 }}>No categories yet.</span>
@@ -521,6 +525,9 @@ const Categories = () => {
                           )}
                         </td>
                         <td>
+                          <span className={`k-kind k-sold-${soldAtOf(cat.sold_at)}`}>{SOLD_AT_LABEL[soldAtOf(cat.sold_at)]}</span>
+                        </td>
+                        <td>
                           <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
                             {hasPermission('Categories:Edit') && !(isBranch && cat.is_hq_owned) && (
                               <button className="cat-edit-btn" onClick={() => openEdit(cat)} title="Edit category">
@@ -532,7 +539,7 @@ const Categories = () => {
                                 <FiTrash2 size={15} />
                               </button>
                             )}
-                            {isBranch && cat.is_hq_owned && (
+                            {isBranch && !!cat.is_hq_owned && (
                               <span style={{ fontSize: 10, color: '#92400e', background: '#fef3c7', padding: '2px 6px', borderRadius: 8, fontWeight: 700 }} title="Managed by HQ">HQ</span>
                             )}
                           </div>
@@ -640,7 +647,7 @@ const Categories = () => {
                                 <FiTrash2 size={15} />
                               </button>
                             )}
-                            {isBranch && m.is_hq_owned && (
+                            {isBranch && !!m.is_hq_owned && (
                               <span style={{ fontSize: 10, color: '#92400e', background: '#fef3c7', padding: '2px 6px', borderRadius: 8, fontWeight: 700 }} title="Managed by HQ">HQ</span>
                             )}
                           </div>
@@ -722,7 +729,7 @@ const Categories = () => {
                               <FiTrash2 size={15} />
                             </button>
                           )}
-                          {isBranch && u.is_hq_owned && (
+                          {isBranch && !!u.is_hq_owned && (
                             <span style={{ fontSize: 10, color: '#92400e', background: '#fef3c7', padding: '2px 6px', borderRadius: 8, fontWeight: 700 }} title="Managed by HQ">HQ</span>
                           )}
                         </div>
@@ -807,6 +814,25 @@ const Categories = () => {
                   </div>
                 )}
               </div>
+
+              <fieldset className="form-group" style={{ border: 'none', padding: 0, margin: '14px 0 16px' }}>
+                <legend style={{ fontWeight: 600, fontSize: 13, color: '#334155', marginBottom: 6, padding: 0 }}>
+                  Sold at <span aria-hidden="true" style={{ color: '#b91c1c' }}>*</span>
+                </legend>
+                <div role="radiogroup" aria-required="true" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {SOLD_AT.map(v => (
+                    <label key={v} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '7px 12px', whiteSpace: 'nowrap', fontWeight: 600, color: '#334155', borderRadius: 8, cursor: 'pointer', fontSize: 13,
+                      border: `1px solid ${form.sold_at === v ? '#13306b' : '#cbd5e1'}`, background: form.sold_at === v ? '#e8edf7' : '#fff' }}>
+                      <input type="radio" name="cat-sold-at" value={v} checked={form.sold_at === v}
+                        onChange={() => setForm(p => ({ ...p, sold_at: v }))} style={{ width: 'auto', margin: 0 }} />
+                      {v === 'both' ? 'Both' : SOLD_AT_LABEL[v]}
+                    </label>
+                  ))}
+                </div>
+                <div style={{ marginTop: 6, fontSize: 11.5, color: '#475569' }}>
+                  HQ Purchase offers this category's items only to these branches.
+                </div>
+              </fieldset>
 
               <div className="form-group">
                 <label style={{ fontWeight: 600, fontSize: 13, color: '#334155', marginBottom: 10, display: 'block' }}>

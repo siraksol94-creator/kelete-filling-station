@@ -472,6 +472,15 @@
    "covers": "Branch types",
    "what": "ux/branchType.js: one kind per install — hq (the HQ address, never fuel), fuel (forecourt + shop), shop (business_type grocery). Sidebar: Fuel Station only at a fuel station; Sales and Store everywhere again with their own HQ/branch rules (the Business Type commit had hidden POS, Items and Sales Report at fuel stations, and HQ Purchases at head office). Sidebar header shows the kind. Dashboard: forecourt (cockpit, tanks, weather) only at a fuel station; shortcuts Fuel + POS at a fuel station, POS at a shop. HQ Overview: fuel stations then shops, each A to Z with takings, coloured edge and badge, no \"Open\" link per branch (the side-menu branch picker stays). Shop is violet everywhere (was red, the colour of problems); fuel teal, also on the Profit Report. Settings: first save of a new install keeps Business type (it took a second save); \"Grocery\" reads \"Shop\"; hidden for head office itself. /api/hq/overview and /api/hq/branches send business_type. No migration.",
    "migrations": []
+  },
+  {
+   "n": 64,
+   "subject": "Categories say where they are sold (fuel stations, shops or both); an item needs a category; fuel ticket products leave Item Details (migration 17) (for review)",
+   "covers": "Categories and items",
+   "what": "Migration 17 adds categories.sold_at (fuel / shop / both; existing categories stay NULL, read as both). Categories screen: Sold at is required with a badge per row; HQ pushes it to branches with the rest of the category. Server: a product cannot be created or saved again without a live category (POST/PUT /api/products, HQ master products; the import already refused rows without one). /api/products sends category_sold_at. Item Details: Category marked required, \"Sold at\" under the picker, a banner counting items with no category with a filter to show them; FUEL-… credit-ticket products (no category) are no longer listed, they belong to Fuel Grades.",
+   "migrations": [
+    17
+   ]
   }
  ],
  "migrations": [
@@ -538,6 +547,10 @@
   {
    "version": 16,
    "name": "grn_cost_currency"
+  },
+  {
+   "version": 17,
+   "name": "category_sold_at"
   }
  ],
  "tag_patterns_that_trigger_old_workflows": [

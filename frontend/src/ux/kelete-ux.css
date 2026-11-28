@@ -1616,3 +1616,9 @@
 .k-branch.is-fuel { border-top: 4px solid var(--k-fuel); }
 .k-branch.is-shop { border-top: 4px solid var(--k-shop); }
 .k-branch-head .k-kind { margin-left: auto; align-self: flex-start; }
+
+/* ─── 2026-11-28 · Category "sold at" badge (pages/Categories.js) ───────── */
+.k-sold-fuel { background: var(--k-fuel-bg); color: var(--k-fuel); }
+.k-sold-shop { background: var(--k-shop-bg); color: var(--k-shop); }
+.k-sold-both { background: linear-gradient(90deg, var(--k-fuel-bg), var(--k-shop-bg)); color: #334155; }
+.k-sold-both::before { background: linear-gradient(90deg, var(--k-fuel) 50%, var(--k-shop) 50%); }

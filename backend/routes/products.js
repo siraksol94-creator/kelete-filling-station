@@ -80,10 +80,17 @@ const upload = multer({
 });
 
 // Get all products
+// The reason a product cannot be saved with this category, or null.
+function categoryProblem(categoryId) {
+  if (!categoryId) return 'Pick a category for this item.';
+  const c = db.prepare('SELECT id FROM categories WHERE id = ? AND deleted_at IS NULL').get(categoryId);
+  return c ? null : 'That category no longer exists. Pick another.';
+}
+
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
     const { category, search } = req.query;
-    let query = `SELECT p.*, c.name as category_name, c.color as category_color, c.main_category_id,
+    let query = `SELECT p.*, c.name as category_name, c.color as category_color, c.sold_at as category_sold_at, c.main_category_id,
                    COALESCE(store_agg.store_balance, 0) as store_balance,
                    CASE
                      WHEN actual_agg.actual_balance IS NOT NULL THEN
@@ -405,6 +412,11 @@ router.post('/', auth, async (req, res) => {
     // v1.13.138 — reject typos in ZRA codes before they can reach VSDC.
     const zraCheck = validateZraCodes({ zra_vat_cat_cd, zra_orgn_nat_cd, zra_qty_unit_cd, zra_pkg_unit_cd, zra_item_ty_cd });
     if (!zraCheck.ok) return res.status(400).json({ error: zraCheck.error });
+    // Category is required. The form asked for one but this route did not,
+    // so items reached the shop with none and HQ Purchase could not tell
+    // which branches they belong to.
+    const catErr = categoryProblem(category_id);
+    if (catErr) return res.status(400).json({ error: catErr, code: 'CATEGORY_REQUIRED' });
     // v1.13.174 — codes are assigned now, not typed, so this route has to be
     // the thing that stops two of them colliding. There is no UNIQUE index on
     // products.code and this route never checked; the only guard was in the
@@ -547,6 +559,10 @@ router.put('/:id', auth, async (req, res) => {
     if (!isHq || isHqRequest(req)) {
       const zraCheck = validateZraCodes({ zra_vat_cat_cd, zra_orgn_nat_cd, zra_qty_unit_cd, zra_pkg_unit_cd, zra_item_ty_cd });
       if (!zraCheck.ok) return res.status(400).json({ error: zraCheck.error });
+      // Same rule as POST. An old item with no category still sells; it just
+      // cannot be saved again until one is picked.
+      const catErr = categoryProblem(category_id);
+      if (catErr) return res.status(400).json({ error: catErr, code: 'CATEGORY_REQUIRED' });
     }
     let normalised;
     try { normalised = normaliseUnits(req.body); }
