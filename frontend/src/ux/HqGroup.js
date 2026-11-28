@@ -4,10 +4,11 @@
 // shown in full with their sign. Only figures the server sent.
 import React from 'react';
 import {
-  FiDollarSign, FiDroplet, FiBarChart2, FiLayers, FiArrowRight, FiAlertTriangle, FiInfo, FiPackage,
+  FiDollarSign, FiDroplet, FiBarChart2, FiLayers, FiAlertTriangle, FiInfo, FiPackage,
 } from 'react-icons/fi';
 import TankRow from './TankRow';
 import TrendBars from './TrendBars';
+import { kindOfBranch, KIND_LABEL } from './branchType';
 import { ProgressBar, VarianceBadge } from './components';
 import { shiftSteps } from './stationMetrics';
 import { branchBars, forecourtFlags, fuelShare, shortBranch } from './hqMetrics';
@@ -47,8 +48,8 @@ function BranchEmblem({ fuel }) {
       <ellipse cx="23" cy="37" rx="19" ry="2.6" fill="#0f172a" opacity=".12" />
       {fuel ? (
         <>
-          <rect x="4" y="6" width="38" height="6" rx="2" fill="#b91c1c" />
-          <rect x="4" y="11" width="38" height="2" fill="#7f1d1d" />
+          <rect x="4" y="6" width="38" height="6" rx="2" fill="#0e7490" />
+          <rect x="4" y="11" width="38" height="2" fill="#155e75" />
           <rect x="9" y="13" width="2.4" height="22" fill="#94a3b8" /><rect x="34.6" y="13" width="2.4" height="22" fill="#94a3b8" />
           <rect x="15" y="20" width="6" height="15" rx="1.5" fill="#0e7490" /><rect x="16.2" y="22" width="3.6" height="3" rx=".6" fill="#cffafe" />
           <rect x="25" y="20" width="6" height="15" rx="1.5" fill="#b45309" /><rect x="26.2" y="22" width="3.6" height="3" rx=".6" fill="#fef3c7" />
@@ -57,7 +58,7 @@ function BranchEmblem({ fuel }) {
       ) : (
         <>
           <rect x="7" y="12" width="32" height="23" rx="2" fill="#e2e8f0" stroke="#475569" />
-          <path d="M5 12 L9 5 H37 L41 12 Z" fill="#b91c1c" />
+          <path d="M5 12 L9 5 H37 L41 12 Z" fill="#6d28d9" />
           <rect x="11" y="18" width="10" height="9" rx="1" fill="#bae6fd" /><rect x="25" y="18" width="9" height="17" rx="1" fill="#475569" />
         </>
       )}
@@ -177,7 +178,7 @@ export function BranchCompare({ branches, rollup, today }) {
         )}
         <div className="k-trend-legend" style={{ marginTop: 10 }}>
           <span><i style={{ background: '#0e7490' }} aria-hidden="true" />Fuel</span>
-          <span><i style={{ background: '#b91c1c' }} aria-hidden="true" />Shop</span>
+          <span><i style={{ background: '#6d28d9' }} aria-hidden="true" />Shop</span>
           <span className="k-muted">Alphabetical · one scale for all</span>
         </div>
       </Card>
@@ -188,15 +189,16 @@ export function BranchCompare({ branches, rollup, today }) {
   );
 }
 
-export function BranchTile({ b, onOpen }) {
+export function BranchTile({ b }) {
   const name = shortBranch(b.name, b.slug);
   if (b.error) {
+    const k = kindOfBranch(b);
     return (
-      <section className="k-cockpit-card k-branch">
+      <section className={`k-cockpit-card k-branch is-${k}`}>
         <header className="k-branch-head">
-          <BranchEmblem fuel={false} />
+          <BranchEmblem fuel={k === 'fuel'} />
           <div className="k-branch-title"><h3>{b.name}</h3><span className="k-tag">{b.slug}</span></div>
-          <button type="button" className="k-branch-open" onClick={() => onOpen(b.slug)}>Open <FiArrowRight aria-hidden="true" /></button>
+          <span className={`k-kind k-kind-${k}`}>{KIND_LABEL[k]}</span>
         </header>
         <div className="k-hq-error"><FiAlertTriangle aria-hidden="true" /> {b.error}</div>
       </section>
@@ -206,10 +208,11 @@ export function BranchTile({ b, onOpen }) {
   const steps = st ? shiftSteps(st.shifts) : null;
   const flags = forecourtFlags(st);
   const t = b.takings || { fuel: 0, shop: b.today.revenue, total: b.today.revenue };
+  const kind = kindOfBranch(b);
   return (
-    <section className="k-cockpit-card k-branch" aria-label={`${b.name} today`}>
+    <section className={`k-cockpit-card k-branch is-${kind}`} aria-label={`${b.name} today`}>
       <header className="k-branch-head">
-        <BranchEmblem fuel={!!st} />
+        <BranchEmblem fuel={kind === 'fuel'} />
         <div className="k-branch-title">
           <h3>{b.name}</h3>
           <div className="k-branch-tags">
@@ -218,7 +221,9 @@ export function BranchTile({ b, onOpen }) {
             {b.workflow_mode === 'three_station' && <span className="k-tag k-tag-blue">3-station</span>}
           </div>
         </div>
-        <button type="button" className="k-branch-open" onClick={() => onOpen(b.slug)} aria-label={`Open ${name}`}>Open <FiArrowRight aria-hidden="true" /></button>
+        {/* 2026-11-28 — no "Open" link per branch: HQ switches branch with the
+            Active Branch picker in the side menu. The badge says what it is. */}
+        <span className={`k-kind k-kind-${kind}`}>{KIND_LABEL[kind]}</span>
       </header>
 
       <div className="k-branch-takings">

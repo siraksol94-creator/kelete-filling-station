@@ -72,15 +72,22 @@ router.get('/branches', (req, res) => {
     const rows = listTenants().filter(r => Number(r.is_active ?? 1) !== 0);
     const enriched = rows.map(r => {
       let currencyMode = 'K';
+      let businessType = 'fuel';
       try {
         const db = getTenantDb(r.slug);
         const s = db.prepare(`SELECT currency_mode FROM business_settings ORDER BY id ASC LIMIT 1`).get();
         if (s?.currency_mode) currencyMode = String(s.currency_mode).toUpperCase();
+        // 2026-11-28 — fuel station or shop, for HQ Purchase destinations
+        try {
+          const b = db.prepare(`SELECT business_type FROM business_settings ORDER BY id ASC LIMIT 1`).get();
+          if (String(b?.business_type || '').toLowerCase() === 'grocery') businessType = 'grocery';
+        } catch { /* older branch database: fuel station */ }
       } catch { /* branch DB unavailable — default K */ }
       return {
         slug: r.slug,
         name: r.business_name || r.slug,
         currency_mode: currencyMode,
+        business_type: businessType,
       };
     });
     res.json({ branches: enriched });
@@ -179,9 +186,15 @@ router.get('/overview', hqAuth, requirePagePerm('HQOverview'), (req, res) => {
            ORDER BY id ASC LIMIT 1
         `) || {};
 
+        // 2026-11-28 — fuel station or shop (migration 14); HQ groups and
+        // colours its branches by it. Read on its own so an older branch
+        // database without the column still loads (default: fuel station).
+        const bt = String(tryGet(db, 'SELECT business_type FROM business_settings ORDER BY id ASC LIMIT 1')?.business_type || 'fuel').toLowerCase();
+
         branches.push({
           slug: t.slug,
           name: settings.business_name || t.business_name || t.slug,
+          business_type: bt === 'grocery' ? 'grocery' : 'fuel',
           currency_mode: settings.currency_mode || 'K',
           workflow_mode: settings.workflow_mode || 'single_pos',
           today: { revenue: salesToday.revenue, orders: salesToday.orders },

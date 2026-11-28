@@ -276,6 +276,7 @@ automatically at start-up, once, each in its own transaction.
 | 60 | 1Card | A 1Card ticket names the fuel-card supplier and posts an ap_payments offset. | 15 |
 | 61 | Repair | Tests, permission list and release list brought up to date after the owner's commits | — |
 | 62 | Money | 1Card offsets out of the Cash Book; fuel deliveries in Account Payables and Suppliers; AP opens on new tills | 16 |
+| 63 | Branch types | HQ never fuel; fuel station = Fuel + Sales + Store; shop = Sales + Store; dashboards and HQ Overview by type; fuel teal, shop violet | — |
 
 Before tagging, on the test machine:
 

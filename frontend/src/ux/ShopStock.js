@@ -30,10 +30,10 @@ function Sparkline({ points }) {
   const line = xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' ');
   return (
     <svg className="k-spark" viewBox={`0 0 ${W} ${H}`} width="100%" height={H} preserveAspectRatio="none" aria-hidden="true">
-      <defs><linearGradient id="k-spark-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#b91c1c" stopOpacity=".35" /><stop offset="1" stopColor="#b91c1c" stopOpacity="0" /></linearGradient></defs>
+      <defs><linearGradient id="k-spark-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#6d28d9" stopOpacity=".35" /><stop offset="1" stopColor="#6d28d9" stopOpacity="0" /></linearGradient></defs>
       <path d={`${line} L${W} ${H} L0 ${H} Z`} fill="url(#k-spark-g)" />
-      <path d={line} fill="none" stroke="#b91c1c" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
-      {xy.length > 0 && <circle cx={xy[xy.length - 1][0]} cy={xy[xy.length - 1][1]} r="3.5" fill="#b91c1c" stroke="#fff" strokeWidth="1.5" />}
+      <path d={line} fill="none" stroke="#6d28d9" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+      {xy.length > 0 && <circle cx={xy[xy.length - 1][0]} cy={xy[xy.length - 1][1]} r="3.5" fill="#6d28d9" stroke="#fff" strokeWidth="1.5" />}
     </svg>
   );
 }

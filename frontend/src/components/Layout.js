@@ -18,6 +18,7 @@ import { FiGrid, FiShoppingCart, FiPackage, FiFileText, FiDollarSign, FiUsers, F
 import ChangePasswordModal from './ChangePasswordModal';
 // UX-6 — Find a screen, recently used screens, keyboard use of the menu.
 import MenuFinder, { useMenuKeyboard } from '../ux/MenuFinder';
+import { branchKind, hasForecourt, KIND_LABEL } from '../ux/branchType';
 import { groupForPath, pushRecent, loadRecent, saveRecent } from '../ux/navModel';
 
 const LANGUAGES = [
@@ -46,8 +47,6 @@ const Layout = () => {
   // a filling station AND a grocery depot. 'fuel' → Fuel Station group on,
   // Sales + Store hidden. 'grocery' → the opposite. Accounting, Suppliers &
   // Customers, Settings stay in both. Set in Settings → System Settings.
-  const isFuelMode = businessType !== 'grocery';
-  const isGroceryMode = businessType === 'grocery';
   // v1.7.0: triple-currency mode 'USD+FRA+K' also counts as "dual/multi
   // currency" for sidebar gating — same Currency Rates page handles both.
   const isDualCurrency = currencyMode === 'USD+FRA' || currencyMode === 'USD+FRA+K';
@@ -55,6 +54,11 @@ const Layout = () => {
   // keletezm.com host. On real per-branch subdomains hq=false and the
   // dropdown stays hidden (the host already pins the tenant).
   const hq = isHqHost();
+  // 2026-11-28 — one branch kind (ux/branchType.js): a fuel station has the
+  // forecourt AND its shop; a shop has no fuel menu; head office never has fuel.
+  // Sales and Store keep their own HQ / branch rules item by item, as before.
+  const kind = branchKind({ hq, businessType });
+  const isFuelMode = hasForecourt(kind);
   // v1.3.2 — branches are pure POS / receive points. Several sidebar
   // entries (procurement, supplier mgmt, supplier AP, equity / loans /
   // shareholders, etc.) are HQ-only. When `branchOnly` is true we hide
@@ -711,7 +715,8 @@ const Layout = () => {
           {!collapsed && (
             <div className="sidebar-brand">
               <h2>Kelete{hq ? ' HQ' : ''}</h2>
-              <p>{hq ? 'Head Office' : 'Management System'}</p>
+              {/* 2026-11-28 — what kind of place this is, in its colour (ux/branchType.js) */}
+              <p><span className={`k-kind k-kind-${kind}`}>{KIND_LABEL[kind]}</span></p>
             </div>
           )}
           {/* UX-6 — phones: a clear way out of the menu */}
@@ -767,7 +772,7 @@ const Layout = () => {
           {/* Kelete Fuel Station. Access (business decision 2026-11-18): deliveries for
               Managers / Supervisors / Administrators; pumps and fuel grades (prices) for
               Administrators; Tanks shows tank set-up to Administrators, dips/ledger to all.
-              Hidden entirely when Business type = grocery (Settings → System Settings). */}
+              Shown only at a fuel station: hidden at a shop and at head office (ux/branchType.js). */}
           {isFuelMode && (collapsed ? (
             <div className={`nav-item ${isGroupActive(['/fuel']) ? 'active' : ''}`} onClick={() => openFromRail('fuel')} title="Fuel Station" data-k-label="Fuel Station">
               <FiDownloadCloud className="nav-icon" />
@@ -823,7 +828,7 @@ const Layout = () => {
               live inside it instead of as a flat top-level entry. The
               existing branch-only children stay gated with !hq; the HQ
               Sales Report child is gated with hq. */}
-          {isGroceryMode && ((hq && hasPageAccess('HQSalesReport')) || (!hq && hasPageAccess('POS', 'Cashier', 'Dispatch', 'SalesReport', 'SalesInventory', 'CashReport', 'SalesBinCard', 'VATReport', 'SalesStockCard'))) && (collapsed ? (
+          {((hq && hasPageAccess('HQSalesReport')) || (!hq && hasPageAccess('POS', 'Cashier', 'Dispatch', 'SalesReport', 'SalesInventory', 'CashReport', 'SalesBinCard', 'VATReport', 'SalesStockCard'))) && (collapsed ? (
             <div className={`nav-item ${isGroupActive(['/pos', '/hq/sales-report', '/hq/route-sales', '/hq/vat-report']) ? 'active' : ''}`} onClick={() => openFromRail('pos')} title={t('sales')} data-k-label={t('sales')}>
               <FiShoppingCart className="nav-icon" />
             </div>
@@ -913,12 +918,12 @@ const Layout = () => {
           ))}
 
           {/* Stock Group */}
-          {isGroceryMode && collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
+          {collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
             <div className={`nav-item ${isGroupActive(['/stock', '/hq/inventory-report', '/hq/purchases', '/hq/confirm-grn', '/hq/grn-archive', '/hq/variances', '/hq/confirm-damages']) ? 'active' : ''}`} onClick={() => openFromRail('stock')} title={t('store')} data-k-label={t('store')}>
               <FiPackage className="nav-icon" />
             </div>
           )}
-          {isGroceryMode && !collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
+          {!collapsed && hasPageAccess('Items', 'QuickPrice', 'OpeningBalance', 'SalesReturns', 'EmptyVouchers', 'StockReconciliation', 'IncomingStock', 'BranchTransfers', 'Categories', 'HQInventoryReport', 'HQPurchases', 'HQConfirmGrn', 'HQGrnArchive', 'HQVariances', 'HQConfirmDamages') && (
             <>
               <div className={`nav-group-header ${isGroupActive(['/stock']) ? 'active' : ''}`} onClick={() => toggleGroup('stock')}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

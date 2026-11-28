@@ -6,7 +6,7 @@ import {
   getDrawerPort, updateDrawerPort,
   getAppPasscode, updateAppPasscode,
   getLanConfig, updateLanConfig, getLanStatus,
-  getHqBranches, isHqHost,
+  getHqBranches, isHqHost, getHqBranch,
 } from '../services/api';
 import { FiAlertTriangle } from 'react-icons/fi';
 import Portal from '../utils/Portal';
@@ -85,7 +85,7 @@ const SystemSettings = () => {
     // OK to leave on temporarily at launch then switch off later.
     legacyProcurementEnabled: false,
     // Business Type gates whole sidebar groups. 'fuel' = filling station
-    // (Fuel Station on, Sales + Store off). 'grocery' = shop (opposite).
+    // (forecourt + shop). 'grocery' = shop only (no fuel). See ux/branchType.js.
     businessType: 'fuel',
   });
   const [saving, setSaving] = useState(false);
@@ -414,12 +414,14 @@ const SystemSettings = () => {
           <section id="ss-selling">
             <div className="ss-group-head"><span className="ss-scope depot">This depot</span><h2>Selling</h2></div>
             <div className="ss-card">
-              {isAdmin && (
-                <Row admin stack title="Business type" help="What this depot sells. Fuel station shows the Fuel Station menu and hides Sales + Store. Grocery shows Sales + Store and hides Fuel Station. Accounting, Suppliers & Customers and Settings stay on both.">
+              {/* 2026-11-28 — head office has no business type (never fuel); at the HQ
+                  address it shows only while a branch is picked, and then sets that branch. */}
+              {isAdmin && (!onHqHost || !!getHqBranch()) && (
+                <Row admin stack title="Business type" help="What this branch is. A fuel station has the forecourt and its shop: Fuel Station, Sales and Store menus, and the forecourt on the Dashboard. A shop has Sales and Store only. Head office never shows fuel. Set it on each till too: till settings stay on the till.">
                   <div className="ss-tiles" role="radiogroup">
                     {[
-                      { val: 'fuel',    label: 'Fuel station', sub: 'Pumps, tanks, attendant shifts, credit & 1Card sales.' },
-                      { val: 'grocery', label: 'Grocery',      sub: 'POS, items, stock, GRN, SIV — no fuel menus.' },
+                      { val: 'fuel',    label: 'Fuel station', sub: 'Forecourt and shop: pumps, tanks, shifts, tickets, plus POS.' },
+                      { val: 'grocery', label: 'Shop',         sub: 'POS, items, stock, GRN, SIV. No fuel menus.' },
                     ].map(o => (
                       <label key={o.val} className={`ss-tile${form.businessType === o.val ? ' on' : ''}`}>
                         <input type="radio" name="business-type" checked={form.businessType === o.val} onChange={() => set('businessType')(o.val)} />

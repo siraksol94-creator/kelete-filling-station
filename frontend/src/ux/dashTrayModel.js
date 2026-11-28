@@ -4,8 +4,11 @@
 // - Point of Sale: anyone who may use the till. Shown at head office too
 //   (the side menu hides it there), so the till is always one tap away.
 // - Empty Vouchers: only where the side menu shows it — branch hosts.
-export function trayTiles({ hq = false, canPos = false, canVouchers = false } = {}) {
+// - Fuel (2026-11-28): fuel stations only — "a fuel station shows both POS and
+//   Fuel, a shop only POS". Fuel comes first, as everywhere else.
+export function trayTiles({ hq = false, canPos = false, canVouchers = false, kind = null, canFuel = true } = {}) {
   const tiles = [];
+  if (kind === 'fuel' && !hq && canFuel) tiles.push('fuel');
   if (canPos) tiles.push('pos');
   if (!hq && canVouchers) tiles.push('vouchers');
   return tiles;

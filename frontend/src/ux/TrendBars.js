@@ -48,7 +48,7 @@ export default function TrendBars({ rows, height = 190, today }) {
           return (
             <g key={b.date}>
               <title>{`${dayName(b.date)} ${b.date}: ${k(b.total)} — fuel ${k(b.fuel)}, shop ${k(b.shop)}`}</title>
-              <rect x={x} y={y(b.total)} width={bw} height={Math.max(0, y(b.fuel) - y(b.total))} rx="3" fill="#b91c1c" />
+              <rect x={x} y={y(b.total)} width={bw} height={Math.max(0, y(b.fuel) - y(b.total))} rx="3" fill="#6d28d9" />
               <rect x={x} y={y(b.fuel)} width={bw} height={Math.max(0, y(0) - y(b.fuel))} rx="3" fill="#0e7490" />
               <rect x={x + bw * 0.12} y={y(b.total)} width={bw * 0.18} height={Math.max(0, y(0) - y(b.total))} fill="#fff" opacity=".18" />
               <text x={x + bw / 2} y={H - 8} fontSize={narrow ? 10.5 : 11.5} textAnchor="middle" fill={isToday ? '#0f172a' : '#475569'} fontWeight={isToday ? 800 : 500}>{isToday ? 'Today' : dayName(b.date)}</text>
@@ -58,7 +58,7 @@ export default function TrendBars({ rows, height = 190, today }) {
       </svg>
       <figcaption className="k-trend-legend">
         <span><i style={{ background: '#0e7490' }} aria-hidden="true" />Fuel</span>
-        <span><i style={{ background: '#b91c1c' }} aria-hidden="true" />Shop</span>
+        <span><i style={{ background: '#6d28d9' }} aria-hidden="true" />Shop</span>
       </figcaption>
     </figure>
   );

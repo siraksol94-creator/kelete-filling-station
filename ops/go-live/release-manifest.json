@@ -465,6 +465,13 @@
    "migrations": [
     16
    ]
+  },
+  {
+   "n": 63,
+   "subject": "Branch types: head office never shows fuel; a fuel station has Fuel, Sales and Store; a shop has Sales and Store; dashboards and HQ Overview by type, fuel teal and shop violet (for review)",
+   "covers": "Branch types",
+   "what": "ux/branchType.js: one kind per install — hq (the HQ address, never fuel), fuel (forecourt + shop), shop (business_type grocery). Sidebar: Fuel Station only at a fuel station; Sales and Store everywhere again with their own HQ/branch rules (the Business Type commit had hidden POS, Items and Sales Report at fuel stations, and HQ Purchases at head office). Sidebar header shows the kind. Dashboard: forecourt (cockpit, tanks, weather) only at a fuel station; shortcuts Fuel + POS at a fuel station, POS at a shop. HQ Overview: fuel stations then shops, each A to Z with takings, coloured edge and badge, no \"Open\" link per branch (the side-menu branch picker stays). Shop is violet everywhere (was red, the colour of problems); fuel teal, also on the Profit Report. Settings: first save of a new install keeps Business type (it took a second save); \"Grocery\" reads \"Shop\"; hidden for head office itself. /api/hq/overview and /api/hq/branches send business_type. No migration.",
+   "migrations": []
   }
  ],
  "migrations": [

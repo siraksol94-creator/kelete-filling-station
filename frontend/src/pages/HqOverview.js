@@ -3,17 +3,16 @@
 // on a per-branch subdomain the sidebar hides this entry. The page reads
 // from /api/hq/overview, which loops over each tenant DB and aggregates.
 //
-// Each card jumps the user into the matching branch — clicking "Open"
-// sets the HQ branch + reloads so the rest of the app operates on that
-// branch's DB. No re-auth here (that's only enforced when the user
-// actively switches via the sidebar's Active Branch dropdown).
+// 2026-11-28 — branches are grouped (fuel stations, then shops) and carry
+// their kind's colour. There is no "Open" link per branch any more: HQ
+// switches branch with the side menu's Active Branch dropdown.
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   FiRefreshCw, FiTrendingUp, FiDollarSign, FiPackage,
-  FiAlertTriangle, FiArrowRight,
+  FiAlertTriangle,
 } from 'react-icons/fi';
-import { getHqOverview, setHqBranch } from '../services/api';
+import { getHqOverview } from '../services/api';
+import { groupBranches, kindOfBranch, KIND_LABEL } from '../ux/branchType';
 // UX-4 — group hero, branch comparison and branch tiles (fuel + shop).
 import { GroupHero, BranchCompare, BranchTile } from '../ux/HqGroup';
 import { branchBars } from '../ux/hqMetrics';
@@ -22,7 +21,6 @@ const fmtMoney = (n) => `K${parseFloat(n || 0).toLocaleString(undefined, { minim
 const fmtInt   = (n) => parseFloat(n || 0).toLocaleString();
 
 export default function HqOverview() {
-  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,12 +52,6 @@ export default function HqOverview() {
     const id = setInterval(load, 30_000);
     return () => clearInterval(id);
   }, []);
-
-  const openBranch = (slug) => {
-    setHqBranch(slug);
-    // Hard reload so every page re-fetches its data via the new X-Branch.
-    window.location.href = '/dashboard';
-  };
 
   return (
     <div className="page-content">
@@ -94,6 +86,7 @@ export default function HqOverview() {
         const today = data.today || new Date(Date.now() + 2 * 3600000).toISOString().slice(0, 10);
         // Alphabetical, so branches are compared, not ranked.
         const sortedBranches = [...(data.branches || [])].sort((a, b) => shortBranch(a.name, a.slug).localeCompare(shortBranch(b.name, b.slug)));
+        const groups = groupBranches(data.branches || [], (b) => shortBranch(b.name, b.slug));
         return (
         <>
           {rich && (
@@ -114,16 +107,18 @@ export default function HqOverview() {
           </div>}
 
           {/* 2026-09-12 — phone, as designed: one row per branch with today's
-              takings and a low-stock badge. Tapping a row opens its figures
-              and the Open button. */}
+              takings and a low-stock badge. Tapping a row opens its figures. */}
           <div className="phone-only">
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.5, textTransform: 'uppercase', color: '#475569', margin: '0 0 8px' }}>Branches · today</div>
-            {sortedBranches.map(b => {
+            {groups.map(g => (
+              <React.Fragment key={g.kind}>
+              <div className={`k-kind k-kind-${g.kind}`} style={{ margin: '6px 0 8px' }}>{g.label} · {g.branches.length}</div>
+            {g.branches.map(b => {
               const open = openSlugs.has(b.slug);
               const bar = rich && !b.error ? branchBars(data.branches).find(x => x.slug === b.slug) : null;
               const low = b.error ? 0 : (parseFloat(b.stock_low_count) || 0);
               return (
-                <div key={b.slug} style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 12px', marginBottom: 8 }}>
+                <div key={b.slug} style={{ background: '#fff', border: '1px solid #e2e8f0', borderLeft: `4px solid ${kindOfBranch(b) === 'shop' ? 'var(--k-shop)' : 'var(--k-fuel)'}`, borderRadius: 12, padding: '10px 12px', marginBottom: 8 }}>
                   <div role="button" tabIndex={0} onClick={() => toggleBranch(b.slug)}
                     onKeyDown={e => { if (e.key === 'Enter') toggleBranch(b.slug); }}
                     style={{ cursor: 'pointer' }}>
@@ -159,23 +154,30 @@ export default function HqOverview() {
                         <Metric label="Low Stock" value={fmtInt(b.stock_low_count)} warn={b.stock_low_count > 0} />
                         <Metric label="AR Open"   value={fmtMoney(b.ar_outstanding)} warn={b.ar_outstanding > 0.001} />
                       </div>
-                      <button onClick={() => openBranch(b.slug)}
-                        style={{ width: '100%', marginTop: 8, padding: '8px 10px', background: '#0e7490', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, fontSize: 12.5, fontWeight: 700 }}>
-                        Open {shortBranch(b.name, b.slug)} <FiArrowRight size={12} />
-                      </button>
                     </>
                   )}
                 </div>
               );
             })}
+              </React.Fragment>
+            ))}
           </div>
 
           {rich && (
             <>
-              <div className="k-hq-section desk-only">Branches · A to Z</div>
-              <div className="k-branch-grid desk-only">
-                {sortedBranches.map(b => <BranchTile key={b.slug} b={b} onOpen={openBranch} />)}
-              </div>
+              {/* 2026-11-28 — fuel stations first, then shops, each A to Z with its
+                  takings today; no "Open" links (branch picker in the side menu). */}
+              {groups.map((g) => (
+                <React.Fragment key={g.kind}>
+                  <div className={`k-hq-group desk-only is-${g.kind}`}>
+                    <span className={`k-kind k-kind-${g.kind}`}>{g.label} · {g.branches.length}</span>
+                    <span className="k-hq-group-sum">{fmtMoney(g.total)} today{g.kind === 'fuel' ? ` · fuel ${fmtMoney(g.fuel)} · shop ${fmtMoney(g.shop)}` : ''}</span>
+                  </div>
+                  <div className="k-branch-grid desk-only">
+                    {g.branches.map(b => <BranchTile key={b.slug} b={b} />)}
+                  </div>
+                </React.Fragment>
+              ))}
             </>
           )}
           {/* Per-branch cards (older server) */}
@@ -192,10 +194,7 @@ export default function HqOverview() {
                       {b.workflow_mode === 'three_station' && <span style={tagStyle('#dbeafe', '#1e40af')}>3-station</span>}
                     </div>
                   </div>
-                  <button onClick={() => openBranch(b.slug)}
-                    style={{ padding: '6px 10px', background: '#0e7490', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 600 }}>
-                    Open <FiArrowRight size={12} />
-                  </button>
+                  <span className={`k-kind k-kind-${kindOfBranch(b)}`}>{KIND_LABEL[kindOfBranch(b)]}</span>
                 </div>
 
                 {b.error ? (

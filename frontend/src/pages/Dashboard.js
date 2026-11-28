@@ -11,6 +11,8 @@ import TrendBars from '../ux/TrendBars';
 import ShopStock from '../ux/ShopStock';
 import DashTray from '../ux/DashTray';
 import { businessToday } from '../utils/businessDate';
+import { isHqHost } from '../services/api';
+import { branchKind, hasForecourt } from '../ux/branchType';
 
 const COLORS = ['#dc2626', '#f472b6', '#f97316', '#3b82f6', '#64748b'];
 
@@ -36,8 +38,11 @@ const emptyData = {
 };
 
 const Dashboard = () => {
-  const { symbol: curSym } = useCurrency();
+  const { symbol: curSym, businessType } = useCurrency();
   const navigate = useNavigate();
+  // 2026-11-28 — the forecourt (station cockpit, tanks, weather) only at a fuel
+  // station; a shop and head office get the shop view only (ux/branchType.js).
+  const forecourt = hasForecourt(branchKind({ hq: isHqHost(), businessType }));
   const [data, setData] = useState(emptyData);
   const [loading, setLoading] = useState(true);
 
@@ -80,7 +85,7 @@ const Dashboard = () => {
   return (
     <div className="page-content">
       {/* UX-3 — station cockpit (fuel branches only; shop-only branches skip it) */}
-      {data.station && <StationCockpit data={data} today={today} onNavigate={navigate} />}
+      {forecourt && data.station && <StationCockpit data={data} today={today} onNavigate={navigate} />}
 
       {/* UX-12 — shortcuts tray (Point of Sale, Empty Vouchers; each only for users who can open it). */}
       <DashTray onNavigate={navigate} />
@@ -89,14 +94,14 @@ const Dashboard = () => {
           layout below is kept only for a server that doesn't send `shop`. */}
       {data.shop && (
         <>
-          {!data.station && (
+          {!(forecourt && data.station) && (
             <section className="k-cockpit-card" style={{ marginBottom: 14 }}>
               <header><h3>Takings this week</h3></header>
               <TrendBars rows={data.salesTrend} today={today} />
             </section>
           )}
           <h3 className="k-section-title">Shop &amp; stock</h3>
-          <ShopStock data={data} onNavigate={navigate} showWeekTotal={data.station ? undefined : data.weeklyRevenue} />
+          <ShopStock data={data} onNavigate={navigate} showWeekTotal={forecourt && data.station ? undefined : data.weeklyRevenue} />
         </>
       )}
       {!data.shop && (<>

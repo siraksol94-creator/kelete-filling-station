@@ -2,10 +2,12 @@
 // in the side menu. Each tile is shown only to someone who can open that
 // screen (see trayTiles for where each one appears).
 import React, { useEffect, useState } from 'react';
-import { FiPackage, FiShoppingCart, FiChevronRight } from 'react-icons/fi';
+import { FiPackage, FiShoppingCart, FiChevronRight, FiDroplet } from 'react-icons/fi';
 import { listEmptyVouchers, isHqHost } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { trayTiles, voucherSummary } from './dashTrayModel';
+import { useCurrency } from '../context/CurrencyContext';
+import { branchKind } from './branchType';
 
 function Tile({ tone, icon, title, sub, badge, badgeZero, onClick }) {
   return (
@@ -23,8 +25,11 @@ function Tile({ tone, icon, title, sub, badge, badgeZero, onClick }) {
 
 export default function DashTray({ onNavigate = () => {} }) {
   const { hasPageAccess } = useAuth();
+  const { businessType } = useCurrency();
+  const hq = isHqHost();
   const tiles = trayTiles({
-    hq: isHqHost(),
+    hq,
+    kind: branchKind({ hq, businessType }),
     canPos: hasPageAccess('POS'),
     canVouchers: hasPageAccess('EmptyVouchers'),
   });
@@ -46,6 +51,15 @@ export default function DashTray({ onNavigate = () => {} }) {
     <nav className="k-tray" aria-label="Shortcuts">
       <h3 className="k-section-title">Shortcuts</h3>
       <div className="k-tray-row">
+        {tiles.includes('fuel') && (
+          <Tile
+            tone="fuel"
+            icon={<FiDroplet />}
+            title="Fuel"
+            sub="Attendant shifts, meters and tickets"
+            onClick={() => onNavigate('/fuel/shifts')}
+          />
+        )}
         {tiles.includes('pos') && (
           <Tile
             tone="pos"

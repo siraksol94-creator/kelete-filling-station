@@ -92,14 +92,38 @@ router.put('/business', auth, (req, res) => {
             deposit_to_slug,
             // 2026-09-18 — System Settings → Maximum expenses per day.
             daily_expense_limit,
-            // Business Type — 'fuel' (filling station) or 'grocery'. Gates the
-            // Fuel Station vs Sales+Store sidebar groups. Administrators only.
+            // Business Type — 'fuel' (fuel station: forecourt + shop) or
+            // 'grocery' (shop only). Administrators only. See ux/branchType.js.
             business_type } = req.body;
     // Only update currencies if the caller explicitly sent them; otherwise leave whatever's stored.
     const currenciesJson = currencies !== undefined ? JSON.stringify(normaliseCurrencies(currencies)) : null;
-    const existing = db.prepare('SELECT * FROM business_settings LIMIT 1').get();
+    let existing = db.prepare('SELECT * FROM business_settings LIMIT 1').get();
     let row;
-    if (existing) {
+    // 2026-11-28 — the first save on a new install used to INSERT only the
+    // identity, printer and currency columns, silently dropping the rest
+    // (Business type, currency mode, payment methods…): it took a second
+    // save. Now the row is created first and every field goes through the
+    // one update below.
+    if (!existing) {
+      const slm = (single_location_mode === true || single_location_mode === 1 || single_location_mode === '1') ? 1 : 0;
+      const printerType = String(receipt_printer_type || 'usb').toLowerCase() === 'lan' ? 'lan' : 'usb';
+      const printerName = receipt_printer_name || null;
+      const printerIp   = receipt_printer_ip   || null;
+      const printerPort = parseInt(receipt_printer_port) || 9100;
+      const tenantId = syncConfig.getTenantId(req);
+      const { branchId, deviceId } = syncConfig.getConfig();
+      const info = db.prepare(
+        `INSERT INTO business_settings (business_name, business_phone, business_email, business_address, tax_rate, single_location_mode, currencies_json,
+                                        receipt_printer_type, receipt_printer_name, receipt_printer_ip, receipt_printer_port,
+                                        sync_id, tenant_id, branch_id, device_id, synced)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`
+      ).run(business_name || null, business_phone || null, business_email || null, business_address || null, tax_rate || null, slm,
+            currenciesJson || JSON.stringify(normaliseCurrencies(null)),
+            printerType, printerName, printerIp, printerPort,
+            randomUUID(), tenantId, branchId, deviceId);
+      existing = db.prepare('SELECT * FROM business_settings WHERE id = ?').get(info.lastInsertRowid);
+    }
+    {
       // Fully partial update — only fields the caller actually sent get included in SET.
       // Two pages share this endpoint (Profile saves company identity; System Settings
       // saves currencies/printer/etc). Without partial semantics, each page would clobber
@@ -208,24 +232,6 @@ router.put('/business', auth, (req, res) => {
       vals.push(existing.id);
       db.prepare(`UPDATE business_settings SET ${sets.join(', ')} WHERE id=?`).run(...vals);
       row = db.prepare('SELECT * FROM business_settings WHERE id = ?').get(existing.id);
-    } else {
-      const slm = (single_location_mode === true || single_location_mode === 1 || single_location_mode === '1') ? 1 : 0;
-      const printerType = String(receipt_printer_type || 'usb').toLowerCase() === 'lan' ? 'lan' : 'usb';
-      const printerName = receipt_printer_name || null;
-      const printerIp   = receipt_printer_ip   || null;
-      const printerPort = parseInt(receipt_printer_port) || 9100;
-      const tenantId = syncConfig.getTenantId(req);
-      const { branchId, deviceId } = syncConfig.getConfig();
-      const info = db.prepare(
-        `INSERT INTO business_settings (business_name, business_phone, business_email, business_address, tax_rate, single_location_mode, currencies_json,
-                                        receipt_printer_type, receipt_printer_name, receipt_printer_ip, receipt_printer_port,
-                                        sync_id, tenant_id, branch_id, device_id, synced)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)`
-      ).run(business_name || null, business_phone || null, business_email || null, business_address || null, tax_rate || null, slm,
-            currenciesJson || JSON.stringify(normaliseCurrencies(null)),
-            printerType, printerName, printerIp, printerPort,
-            randomUUID(), tenantId, branchId, deviceId);
-      row = db.prepare('SELECT * FROM business_settings WHERE id = ?').get(info.lastInsertRowid);
     }
     res.json(row);
   } catch (error) {

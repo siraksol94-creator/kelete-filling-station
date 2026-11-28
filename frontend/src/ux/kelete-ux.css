@@ -306,12 +306,12 @@
 .k-big { font-size: 30px; font-weight: 800; color: #0f172a; letter-spacing: -.02em; }
 .k-split { display: flex; height: 12px; border-radius: 999px; overflow: hidden; margin: 12px 0 10px; background: #e2e8f0; box-shadow: inset 0 1px 2px rgba(15, 23, 42, .15); }
 .k-split-fuel { background: linear-gradient(180deg, #22b4cf, #0e7490); }
-.k-split-shop { background: linear-gradient(180deg, #ef4444, #b91c1c); }
+.k-split-shop { background: linear-gradient(180deg, #8b5cf6, #6d28d9); }  /* 2026-11-28 shop = violet; red is for problems only */
 .k-split-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
 .k-split-legend dt { font-size: 12px; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 6px; }
 .k-split-legend dd { margin: 2px 0 0; font-size: 15px; font-weight: 800; color: #0f172a; }
 .k-dot-fuel, .k-dot-shop { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-.k-dot-fuel { background: #0e7490; } .k-dot-shop { background: #b91c1c; }
+.k-dot-fuel { background: #0e7490; } .k-dot-shop { background: #6d28d9; }
 .k-gauges { display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-around; }
 .k-gauge { margin: 0; text-align: center; }
 .k-gauge figcaption { display: flex; flex-direction: column; align-items: center; gap: 1px; margin-top: -4px; }
@@ -1296,8 +1296,10 @@
 .k-tray-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15,23,42,0.1); border-color: #94a3b8; border-left-color: #0d9488; }
 .k-tray-tile:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
 .k-tray-icon { flex: none; width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; background: #ccfbf1; color: #0f766e; }
-.k-tray-tile.is-pos, .k-tray-tile.is-pos:hover { border-left-color: var(--primary); }
-.k-tray-tile.is-pos .k-tray-icon { background: var(--primary-light); color: var(--primary); }
+.k-tray-tile.is-pos, .k-tray-tile.is-pos:hover { border-left-color: #6d28d9; }
+.k-tray-tile.is-pos .k-tray-icon { background: #f5f3ff; color: #6d28d9; }
+.k-tray-tile.is-fuel, .k-tray-tile.is-fuel:hover { border-left-color: #0e7490; }
+.k-tray-tile.is-fuel .k-tray-icon { background: #ecfeff; color: #0e7490; }
 .k-tray-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .k-tray-text strong { font-size: 15px; font-weight: 800; }
 .k-tray-text span { font-size: 13px; color: #475569; }
@@ -1335,8 +1337,8 @@
 .k-pr-kpi.is-main em b { color: #fff; }
 .k-pr-split { display: flex; height: 8px; gap: 2px; margin: 4px 0 2px; border-radius: 999px; overflow: hidden; background: #f1f5f9; }
 .k-pr-split > div { height: 100%; min-width: 0; }
-.k-pr-split .is-shop, .k-pr-key.is-shop { background: #334155; }
-.k-pr-split .is-fuel, .k-pr-key.is-fuel { background: #f59e0b; }
+.k-pr-split .is-shop, .k-pr-key.is-shop { background: #6d28d9; }   /* 2026-11-28: the same fuel/shop colours everywhere */
+.k-pr-split .is-fuel, .k-pr-key.is-fuel { background: #0e7490; }
 .k-pr-key { display: inline-block; width: 8px; height: 8px; border-radius: 2px; vertical-align: 1px; }
 
 .k-pr-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); margin: 0 0 14px; overflow: hidden; }
@@ -1595,3 +1597,22 @@
 .k-lg-vat > div:first-child > div:nth-child(2) > div:last-child { color: #cbd5e1 !important; }
 .k-lg-vat > div:first-child > div:first-child { background: rgba(255, 255, 255, .1) !important; }
 .k-lg-vat > div:first-child > button { background: #fbbf24 !important; color: #1c1917 !important; font-weight: 800 !important; border-radius: 10px !important; }
+
+/* ─── 2026-11-28 · Branch kind: fuel station / shop / head office ─────────
+   One colour per kind, everywhere: fuel = teal, shop = violet, HQ = slate.
+   Red stays for problems only. (ux/branchType.js) */
+:root { --k-fuel: #0e7490; --k-fuel-bg: #ecfeff; --k-shop: #6d28d9; --k-shop-bg: #f5f3ff; }
+.k-kind { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; letter-spacing: .02em;
+  padding: 2px 9px 2px 7px; border-radius: 999px; white-space: nowrap; line-height: 1.6; }
+.k-kind::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.k-kind-fuel { background: var(--k-fuel-bg); color: var(--k-fuel); }
+.k-kind-shop { background: var(--k-shop-bg); color: var(--k-shop); }
+.k-kind-hq   { background: #e2e8f0; color: #334155; }
+.sidebar .k-kind { margin-top: 2px; }
+/* HQ Overview groups (pages/HqOverview.js) */
+.k-hq-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 22px 0 10px; }
+.k-hq-group .k-kind { font-size: 12.5px; padding: 4px 12px 4px 10px; }
+.k-hq-group-sum { font-size: 13.5px; color: #334155; font-weight: 600; font-variant-numeric: tabular-nums; }
+.k-branch.is-fuel { border-top: 4px solid var(--k-fuel); }
+.k-branch.is-shop { border-top: 4px solid var(--k-shop); }
+.k-branch-head .k-kind { margin-left: auto; align-self: flex-start; }
