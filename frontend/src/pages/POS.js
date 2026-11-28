@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getInventory, createOrder, getSettings, openCashDrawer, printReceipt, getQuickItems, addQuickItem, removeQuickItem, getCustomers, createCustomer, createDiscountRequest, getDiscountRequest, cancelDiscountRequest, getCurrentFxRate, triggerSyncNow, getEmptyVoucher, listEmptyVouchers, lookupZraCustomer } from '../services/api';
+import { isFuelSystemItem } from '../ux/itemRules';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { FiSearch, FiShoppingCart, FiX, FiDollarSign, FiUnlock, FiStar, FiFileText, FiTag } from 'react-icons/fi';
@@ -516,6 +517,7 @@ const POS = () => {
           // the item out of the catalogue until the branch sets a price.
           const sellable = res.data.filter(p =>
             p.product_type !== 'raw_material' &&
+            !isFuelSystemItem(p) &&   // FUEL-… credit-ticket products: sold on the forecourt, not here
             (p.status || 'Active') === 'Active' &&
             parseFloat(p.selling_price || 0) > 0
           );
@@ -1531,6 +1533,7 @@ const POS = () => {
           // or Inactive status.
           const sellable = updated.data.filter(p =>
             p.product_type !== 'raw_material' &&
+            !isFuelSystemItem(p) &&   // FUEL-… credit-ticket products: sold on the forecourt, not here
             (p.status || 'Active') === 'Active' &&
             parseFloat(p.selling_price || 0) > 0
           );

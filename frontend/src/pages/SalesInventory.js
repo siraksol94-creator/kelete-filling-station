@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSalesInventory, getSalesMonthlySummary, getSalesDailySummary, getSIVBreakdown, saveSalesActualBalance, getCategories, getMainCategories, getSettings } from '../services/api';
+import { shopItems } from '../ux/itemRules';
 import CategoryFilter from '../components/CategoryFilter';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
@@ -70,7 +71,8 @@ const SalesInventory = () => {
       setMonthlySummary(monthRes.data || { total_revenue: 0, gross_profit: 0, net_profit: 0, total_difference: 0, total_cash_difference: 0, total_pv: 0 });
       setProfitSummary(profitRes.data || { revenue: 0, cogs: 0, diff_value: 0, cash_difference: 0, gross_profit: 0, pv_total: 0, stock_adj: 0, net_profit: 0 });
       // v1.6.3: hide inactive items from operational pages.
-      const data = (res.data || []).filter(p => (p.status || 'Active') !== 'Inactive');
+      // 2026-11-28: and the FUEL-… credit-ticket products, which are forecourt stock.
+      const data = shopItems(res.data).filter(p => (p.status || 'Active') !== 'Inactive');
       setProducts(data);
       const savedAB = {}, savedReasons = {}, newSavedRows = {};
       data.forEach(p => {

@@ -1331,8 +1331,9 @@
 .k-pr-kpi strong.is-neg { color: #b91c1c; }
 .k-pr-kpi em { font-style: normal; font-size: 13px; color: #475569; overflow-wrap: anywhere; }
 .k-pr-kpi em b { color: #0f172a; font-variant-numeric: tabular-nums; }
-.k-pr-kpi.is-main { background: linear-gradient(135deg, #7f1d1d, #b91c1c); border-color: #7f1d1d; }
-.k-pr-kpi.is-main > span, .k-pr-kpi.is-main em { color: #fee2e2; }
+/* 2026-11-28 — navy, not red: red is kept for problems (shorts, losses). */
+.k-pr-kpi.is-main { background: linear-gradient(135deg, #0f1f45, #13306b); border-color: #0f1f45; }
+.k-pr-kpi.is-main > span, .k-pr-kpi.is-main em { color: #dbe4f5; }
 .k-pr-kpi.is-main strong { color: #fff; font-size: 30px; }
 .k-pr-kpi.is-main em b { color: #fff; }
 .k-pr-split { display: flex; height: 8px; gap: 2px; margin: 4px 0 2px; border-radius: 999px; overflow: hidden; background: #f1f5f9; }

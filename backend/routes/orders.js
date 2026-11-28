@@ -56,6 +56,13 @@ const ORDER_SEARCH_TEXT = `lower(
 )`;
 const isYmd = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ''));
 
+// 2026-11-28 — the Sales Report is the shop's report. Fuel credit tickets
+// are orders too (numbered FUEL-…) so Accounts Receivable can bill them, but
+// they belong to the Fuel Cash Report and Credit Sales, where they already
+// count. ?shop=1 leaves them out. Without it the routes answer as before.
+const NOT_FUEL_ORDER = "COALESCE(o.order_number, '') NOT LIKE 'FUEL-%'";
+const shopOnly = (req) => String(req.query.shop || '') === '1';
+
 router.get('/', auth, readOnlyGuard, (req, res) => {
   try {
     const q = String(req.query.q || '').trim().toLowerCase();
@@ -63,6 +70,7 @@ router.get('/', auth, readOnlyGuard, (req, res) => {
     const to = isYmd(req.query.to) ? req.query.to : null;
     let where = 'o.deleted_at IS NULL AND o.tenant_id = ?';
     const params = [req.user.tenantId];
+    if (shopOnly(req)) where += ` AND ${NOT_FUEL_ORDER}`;
     let limit = '';
     if (q) {
       where += ` AND ${ORDER_SEARCH_TEXT} LIKE ? ESCAPE '\\'`;
@@ -1266,6 +1274,7 @@ router.get('/product-breakdown', auth, readOnlyGuard, (req, res) => {
         AND oi.product_name = ?
     `;
     const params = [req.user.tenantId, productName];
+    if (shopOnly(req)) sql += ` AND ${NOT_FUEL_ORDER}`;
     // from / to are ISO datetimes (UTC) sent by the frontend so the comparison
     // works regardless of the user's timezone. Comparing strings is safe here
     // because SQLite stores datetimes as ISO 8601.
@@ -1312,6 +1321,7 @@ router.get('/product-summary', auth, readOnlyGuard, (req, res) => {
         AND o.tenant_id = ?
     `;
     const params = [req.user.tenantId];
+    if (shopOnly(req)) sql += ` AND ${NOT_FUEL_ORDER}`;
     // from / to are ISO datetimes (UTC) sent by the frontend so the comparison
     // works regardless of the user's timezone. Comparing strings is safe here
     // because SQLite stores datetimes as ISO 8601.

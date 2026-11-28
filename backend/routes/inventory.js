@@ -17,7 +17,7 @@ const balanceSQL = (tenantId) => ({
     p.cost_price, p.selling_price, p.min_stock, p.status, p.image_url,
     p.product_type,
     p.ub_number_start, p.ub_number_length, p.ub_quantity_start, p.ub_quantity_length, p.ub_decimal_start,
-    c.name AS category_name, c.color AS category_color,
+    c.id AS category_id, c.name AS category_name, c.color AS category_color,
     COALESCE(store_agg.store_balance, 0) AS store_balance,
     COALESCE(sales_agg.sales_balance, 0) AS sales_balance,
     COALESCE(opening_agg.opening_balance, 0) AS opening_balance,
@@ -422,6 +422,8 @@ router.get('/sales/profit-summary', auth, readOnlyGuard, (req, res) => {
       FROM orders
       WHERE COALESCE(business_date, DATE(created_at)) = ? AND deleted_at IS NULL AND tenant_id = ?
         AND (status IS NULL OR status != 'Reversed')
+        -- 2026-11-28: fuel credit tickets (FUEL-…) are fuel takings, not shop revenue
+        AND COALESCE(order_number, '') NOT LIKE 'FUEL-%'
     `).get(selectedDate, tenantId);
 
     // COGS: sale movements × snapshot cost (fallback to GRN+production avg, then p.cost_price)

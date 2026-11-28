@@ -488,6 +488,13 @@
    "covers": "HQ Purchase",
    "what": "ux/itemRules.js purchaseKind/purchaseLineProblem/destinationsFor: the first line whose category is sold only at fuel stations or only at shops decides the purchase; lines sold at both fit either. HQ Purchases: Destination lists only branches of that kind, with a note why; a line that does not fit (or an item with no category) shows the reason under it and blocks Save (a draft may still be parked). The product picker shows each item's Sold at badge (components/ItemPicker badgeFor). Server: POST /api/hq/purchases and draft promotion refuse a line whose item's category is sold at the other kind of branch, or has no category (WRONG_BRANCH_TYPE, 400). No migration.",
    "migrations": []
+  },
+  {
+   "n": 66,
+   "subject": "Sales Report is the shop's: fuel credit tickets stay in the Fuel Cash Report and Credit Sales; fuel ticket products leave POS, Sales Inventory and Bin Card (for review)",
+   "covers": "Sales Report",
+   "what": "routes/orders.js: ?shop=1 on GET /api/orders, /product-summary and /product-breakdown leaves out orders numbered FUEL-… (fuel credit tickets; they stay in Credit Sales, Accounts Receivable and the Fuel Cash Report). The Sales Report always asks for shop=1 (services/api.js); without it the routes answer as before. Shop profit summary (/api/inventory/sales/profit-summary) leaves FUEL-… orders out of revenue (the stored daily profit and the Profit Report already net them out in services/fuelProfit.js, untouched). POS, Sales Inventory and Sales Bin Card leave out FUEL-… credit-ticket products (ux/itemRules isFuelSystemItem); /api/inventory rows now carry category_id. The main KPI card (Sales Report, Profit Report) is navy, not red. No migration.",
+   "migrations": []
   }
  ],
  "migrations": [

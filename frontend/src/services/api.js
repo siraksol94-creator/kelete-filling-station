@@ -226,7 +226,7 @@ export const importCategories = (file) => {
 
 // Orders
 // params (optional): { from, to } (YYYY-MM-DD) or { q } — see GET /api/orders. None = every order.
-export const getOrders = (params) => api.get('/orders', params ? { params } : undefined);
+export const getOrders = (params) => api.get('/orders', { params: { ...(params || {}), shop: 1 } });
 export const createOrder = (data) => api.post('/orders', data);
 export const getOrder = (id) => api.get(`/orders/${id}`);
 export const reverseOrder = (id, opts = {}) => {
@@ -510,8 +510,9 @@ export const getReconciliations = (location) => api.get(`/stock-reconciliation${
 export const getReconciliation = (id) => api.get(`/stock-reconciliation/${id}`);
 export const createReconciliation = (data) => api.post('/stock-reconciliation', data);
 export const deleteReconciliation = (id) => api.delete(`/stock-reconciliation/${id}`);
-export const getOrderProductSummary = (from, to, userId) => api.get('/orders/product-summary', { params: { from, to, userId } });
-export const getProductBreakdown = (productName, from, to, userId) => api.get('/orders/product-breakdown', { params: { productName, from, to, userId } });
+// shop: 1 leaves fuel credit tickets (FUEL-…) out: the Sales Report is the shop's.
+export const getOrderProductSummary = (from, to, userId) => api.get('/orders/product-summary', { params: { from, to, userId, shop: 1 } });
+export const getProductBreakdown = (productName, from, to, userId) => api.get('/orders/product-breakdown', { params: { productName, from, to, userId, shop: 1 } });
 
 // GRN
 export const getGRNs = () => api.get('/grn');

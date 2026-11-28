@@ -279,6 +279,7 @@ automatically at start-up, once, each in its own transaction.
 | 63 | Branch types | HQ never fuel; fuel station = Fuel + Sales + Store; shop = Sales + Store; dashboards and HQ Overview by type; fuel teal, shop violet | — |
 | 64 | Categories | Every category says where it is sold; items need a category; fuel ticket products out of Item Details | 17 |
 | 65 | HQ Purchase | One kind of branch per purchase; first item decides; mixing refused with the reason | — |
+| 66 | Sales Report | Fuel credit tickets out of Sales Report and shop profit; fuel ticket products out of POS, Sales Inventory, Bin Card | — |
 
 Before tagging, on the test machine:
 
