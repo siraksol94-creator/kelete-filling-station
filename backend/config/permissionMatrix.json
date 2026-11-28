@@ -38,7 +38,7 @@
   "EmptyVouchers": "GRN",
   "StockReconciliation": "Stock"
  },
- "endpoint_count": 449,
+ "endpoint_count": 450,
  "endpoints": [
   {
    "method": "GET",
@@ -5491,6 +5491,20 @@
    ],
    "screens": [
     "stock/reconciliation"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/suppliers/:p/statement",
+   "perms": [
+    "Suppliers",
+    "Suppliers:Add",
+    "Suppliers:Delete",
+    "Suppliers:Edit",
+    "Suppliers:View"
+   ],
+   "screens": [
+    "suppliers-customers/suppliers"
    ]
   },
   {

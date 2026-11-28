@@ -707,6 +707,8 @@ export const getSupplierStats = () => api.get('/suppliers/stats');
 export const createSupplier = (data) => api.post('/suppliers', data);
 export const updateSupplier = (id, data) => api.put(`/suppliers/${id}`, data);
 export const deleteSupplier = (id) => api.delete(`/suppliers/${id}`);
+// 2026-11-28 — every purchase, payment, 1Card offset and credit note, running balance.
+export const getSupplierStatement = (id, params) => api.get(`/suppliers/${id}/statement`, { params });
 
 // Customers
 export const getCustomers = (params) => api.get('/customers', { params });

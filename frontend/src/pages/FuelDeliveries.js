@@ -7,6 +7,7 @@ import Tank3D from '../ux/Tank3D';
 import TankerArt from '../ux/TankerArt';
 import { getFuelDeliveries, createFuelDelivery, deleteFuelDelivery, getTanks } from '../services/fuelApi';
 import { getSuppliers } from '../services/api';
+import { fuelSuppliers } from '../ux/supplierRules';
 import { S } from './fuelStyles';
 import { businessToday } from '../utils/businessDate';
 
@@ -28,7 +29,7 @@ export default function FuelDeliveries() {
   const load = async () => {
     try {
       const [d, t, s] = await Promise.all([getFuelDeliveries(), getTanks(), getSuppliers()]);
-      setRows(d.data || []); setTanks(t.data || []); setSuppliers(s.data || []);
+      setRows(d.data || []); setTanks(t.data || []); setSuppliers(fuelSuppliers(s.data)); /* fuel suppliers only (2026-11-28) */
     } catch (e) {}
   };
   useEffect(() => { load(); }, []);

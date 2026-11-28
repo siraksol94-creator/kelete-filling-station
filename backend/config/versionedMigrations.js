@@ -324,4 +324,19 @@ module.exports = [
       if (!cols.includes('sold_at')) db.exec('ALTER TABLE categories ADD COLUMN sold_at TEXT');
     },
   },
+  {
+    version: 18,
+    name: 'supplier_details',
+    // Suppliers screen rebuild: what the supplier supplies ('fuel' | 'shop' |
+    // 'both'; NULL = not set yet, treated as both), bank details and payment
+    // terms. tpin already exists on most databases (added by the legacy list
+    // for ZRA purchases); added here too in case it is missing. Additive.
+    up(db) {
+      const cols = db.prepare('PRAGMA table_info(suppliers)').all().map(c => c.name);
+      if (!cols.length) return;
+      for (const [c, t] of [['supplies', 'TEXT'], ['tpin', 'TEXT'], ['bank_name', 'TEXT'], ['bank_account', 'TEXT'], ['payment_terms', 'TEXT']]) {
+        if (!cols.includes(c)) db.exec(`ALTER TABLE suppliers ADD COLUMN ${c} ${t}`);
+      }
+    },
+  },
 ];

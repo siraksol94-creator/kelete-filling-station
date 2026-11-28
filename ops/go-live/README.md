@@ -281,6 +281,7 @@ automatically at start-up, once, each in its own transaction.
 | 65 | HQ Purchase | One kind of branch per purchase; first item decides; mixing refused with the reason | — |
 | 66 | Sales Report | Fuel credit tickets out of Sales Report and shop profit; fuel ticket products out of POS, Sales Inventory, Bin Card | — |
 | 67 | HQ and settings | HQ has no till (no POS shortcut); K not $ in System Settings | — |
+| 68 | Suppliers | One list with filters; supplies, TPIN, bank, terms, active; statement; fuel-only pickers for 1Card and deliveries | 18 |
 
 Before tagging, on the test machine:
 
@@ -380,7 +381,7 @@ through.
    - `pm2 logs <name> --lines 300 | grep -E "\[migrate\]|FAILED|refuse"`: each
      database applied its migrations, and there's no `FAILED`
    - as Administrator: `GET /api/system/schema-status` for each branch shows
-     version 17
+     version 18
    - log in as Administrator, a supervisor and a cashier, and open each one's
      usual screens
    - `pm2 logs | grep "WOULD DENY"`: lines for legitimate work go on the list

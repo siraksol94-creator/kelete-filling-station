@@ -502,6 +502,15 @@
    "covers": "HQ and settings",
    "what": "ux/dashTrayModel.js: the Point of Sale shortcut is for branches only; HQ's Sales menu already held only the HQ reports (Layout), so HQ now has no way into a till. System Settings: the money fields (maximum expenses per day, crate deposit) follow the currency mode, the same rule Save applies (K on a Kwacha book; it showed $ from the default currency list until settings were saved once). No migration.",
    "migrations": []
+  },
+  {
+   "n": 68,
+   "subject": "Suppliers rebuilt: one list with filters, what each supplies, TPIN, bank, terms, active or inactive, and a statement per supplier; 1Card and fuel deliveries offer fuel suppliers only (migration 18) (for review)",
+   "covers": "Suppliers",
+   "what": "Migration 18 (additive): suppliers.supplies (fuel/shop/both; NULL read as both), bank_name, bank_account, payment_terms (and tpin if missing). /api/suppliers: name required and unique (case and spaces ignored, 409), supplies and TPIN (10 digits) checked, Active/Inactive; an edit that leaves fields out keeps them. GET /api/suppliers/:id/statement (services/supplierLedger.js supplierStatement): GRNs (gross), fuel deliveries, payments, 1Card offsets and credit notes with a running balance and an opening balance for a date range; closing = Account Payables. Delete refused when the supplier has fuel deliveries too (mark Inactive instead). Suppliers screen: totals (suppliers, we owe, in credit), filters All/Fuel/Shop/We owe money/Inactive, search, Excel/CSV/PDF, balances in words, statement with print, in-app confirmations and errors. 1Card tickets and fuel deliveries list only active fuel suppliers (ux/supplierRules.js).",
+   "migrations": [
+    18
+   ]
   }
  ],
  "migrations": [
@@ -572,6 +581,10 @@
   {
    "version": 17,
    "name": "category_sold_at"
+  },
+  {
+   "version": 18,
+   "name": "supplier_details"
   }
  ],
  "tag_patterns_that_trigger_old_workflows": [

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { FiPlus, FiTrash2, FiX, FiCreditCard, FiFilter, FiPrinter, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
 import { getAllTickets, addShiftCreditSale, deleteShiftCreditSale, getShifts, getNozzles } from '../services/fuelApi';
 import { getCustomers, getSettings, getSuppliers } from '../services/api';
+import { fuelSuppliers } from '../ux/supplierRules';
 import { S } from './fuelStyles';
 import { printTicket, printTicketList } from './ticketPrint';
 import keleteLogo from '../assets/kelete-logo.png';
@@ -50,7 +51,8 @@ export function TicketsPage({ method }) {
       ]);
       setRows(tks.data || []); setCustomers(cs.data || []); setOpenShifts(sh.data || []); setNozzles(nz.data || []);
       setSeller(st.data?.business || {});
-      setSuppliers(sp.data || []);
+      // 1Card is drawn against a fuel supplier: shop-only and inactive ones are left out.
+      setSuppliers(fuelSuppliers(sp.data));
     } catch (e) {}
   };
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [filter.from, filter.to, filter.customer_id, filter.attendant_user_id]);

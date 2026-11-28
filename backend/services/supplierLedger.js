@@ -102,4 +102,66 @@ function ledgerTotals(rows) {
   };
 }
 
-module.exports = { ledgerRows, ledgerTotals, hasTable, hasColumn };
+// 2026-11-28 — one supplier's statement: every purchase (GRN, fuel delivery)
+// and every reduction (payment, 1Card offset, credit note), oldest first,
+// with a running balance. Same rules as ledgerRows, so the closing balance
+// is the figure Account Payables and Suppliers show. GRNs are listed gross
+// (with any credit note attached to them added back) and every credit note
+// is deducted once, as the supplier's own statement does.
+// balance > 0: we owe them; < 0: they hold our money (in credit).
+function supplierStatement(db, tenantId, supplierId, { from, to } = {}) {
+  const s = db.prepare('SELECT * FROM suppliers WHERE id = ? AND tenant_id = ? AND deleted_at IS NULL').get(supplierId, tenantId);
+  if (!s) return null;
+  const confirmed = '(c.raised_by_branch IS NULL OR c.branch_confirmed_at IS NOT NULL)';
+  const e = [];
+  for (const g of db.prepare(`
+      SELECT g.grn_number, g.date, g.total_amount,
+             ${hasColumn(db, 'grn', 'supplier_invoice_number') ? 'g.supplier_invoice_number' : 'NULL'} AS invoice,
+             COALESCE((SELECT SUM(c.amount) FROM supplier_credit_notes c
+                        WHERE c.grn_sync_id = g.sync_id AND c.deleted_at IS NULL AND ${confirmed}), 0) AS cn
+        FROM grn g WHERE g.supplier_sync_id = ? AND g.deleted_at IS NULL`).all(s.sync_id)) {
+    e.push({ date: g.date, kind: 'grn', ref: g.grn_number, what: `GRN${g.invoice ? ` · inv ${g.invoice}` : ''}`, owed: (g.total_amount || 0) + (g.cn || 0), paid: 0 });
+  }
+  if (hasTable(db, 'fuel_deliveries')) {
+    let rows = [];
+    try {
+      rows = db.prepare(`
+        SELECT d.delivery_number, d.delivery_date AS date, d.litres_delivered, d.total_cost, d.invoice_number, fg.name AS grade
+          FROM fuel_deliveries d LEFT JOIN fuel_grades fg ON fg.id = d.fuel_grade_id
+         WHERE d.supplier_id = ? AND COALESCE(d.status, 'Received') NOT IN ('Cancelled', 'Void')`).all(s.id);
+    } catch (_) { rows = []; }
+    for (const d of rows) {
+      const litres = Number(d.litres_delivered || 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+      e.push({ date: d.date, kind: 'fuel', ref: d.delivery_number, what: `Fuel delivery · ${litres} L${d.grade ? ` ${d.grade}` : ''}${d.invoice_number ? ` · inv ${d.invoice_number}` : ''}`, owed: d.total_cost || 0, paid: 0 });
+    }
+  }
+  for (const a of db.prepare(`SELECT payment_number, date, amount, description, paid_from FROM ap_payments
+                               WHERE supplier_sync_id = ? AND deleted_at IS NULL`).all(s.sync_id)) {
+    const oneCard = String(a.paid_from || '') === '1Card';
+    e.push({ date: a.date, kind: oneCard ? 'offset' : 'payment', ref: a.payment_number,
+             what: oneCard ? `1Card offset${a.description ? ` · ${String(a.description).replace(/^1Card Sale\s*[—-]\s*/i, '')}` : ''}` : `Payment${a.paid_from ? ` · ${a.paid_from}` : ''}${a.description ? ` · ${a.description}` : ''}`,
+             owed: 0, paid: a.amount || 0 });
+  }
+  for (const c of db.prepare(`SELECT c.credit_note_number, c.date, c.amount, c.reason FROM supplier_credit_notes c
+                               WHERE c.supplier_sync_id = ? AND c.deleted_at IS NULL AND ${confirmed}`).all(s.sync_id)) {
+    e.push({ date: c.date, kind: 'credit', ref: c.credit_note_number, what: `Credit note${c.reason ? ` · ${c.reason}` : ''}`, owed: 0, paid: c.amount || 0 });
+  }
+  const order = { grn: 0, fuel: 0, payment: 1, offset: 1, credit: 2 };
+  e.sort((x, y) => String(x.date || '').localeCompare(String(y.date || '')) || order[x.kind] - order[y.kind] || String(x.ref || '').localeCompare(String(y.ref || '')));
+  const r2 = (n) => Math.round(n * 100) / 100;
+  let bal = 0, opening = 0;
+  const lines = [];
+  for (const x of e) {
+    bal = r2(bal + x.owed - x.paid);
+    const d = String(x.date || '').slice(0, 10);
+    if (from && d < from) { opening = bal; continue; }
+    if (to && d > to) continue;
+    lines.push({ ...x, balance: bal });
+  }
+  const closing = lines.length ? lines[lines.length - 1].balance : opening;
+  const sum = (k) => r2(lines.reduce((t, l) => t + l[k], 0));
+  return { supplier: { id: s.id, name: s.name, phone: s.phone, tpin: s.tpin || null, payment_terms: s.payment_terms || null },
+           from: from || null, to: to || null, opening, owed: sum('owed'), paid: sum('paid'), closing, lines };
+}
+
+module.exports = { ledgerRows, ledgerTotals, supplierStatement, hasTable, hasColumn };
