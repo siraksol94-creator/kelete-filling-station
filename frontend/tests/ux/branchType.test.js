@@ -18,7 +18,7 @@ test('kind: HQ wins over any stored type; grocery is a shop; default is a fuel s
 test('shortcuts: a fuel station shows Fuel and POS (fuel first), a shop only POS, HQ never Fuel', () => {
   assert.deepEqual(trayTiles({ kind: 'fuel', canPos: true, canVouchers: true }), ['fuel', 'pos', 'vouchers']);
   assert.deepEqual(trayTiles({ kind: 'shop', canPos: true, canVouchers: true }), ['pos', 'vouchers']);
-  assert.deepEqual(trayTiles({ kind: 'hq', hq: true, canPos: true, canVouchers: true }), ['pos']);
+  assert.deepEqual(trayTiles({ kind: 'hq', hq: true, canPos: true, canVouchers: true }), []);
 });
 
 test('HQ groups: fuel stations first, then shops, A to Z, totals in full', () => {

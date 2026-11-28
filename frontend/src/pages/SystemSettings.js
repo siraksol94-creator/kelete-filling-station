@@ -370,7 +370,10 @@ const SystemSettings = () => {
   const shown = String(form.shownMethods || 'cash,momo,bank').split(',');
   const methodOn = (k) => k === 'cash' || shown.includes(k);
   const toggleMethod = (k) => set('shownMethods')(['cash', 'momo', 'bank'].filter(x => x === 'cash' || (x === k ? !methodOn(k) : methodOn(x))).join(','));
-  const curSymbol = form.currencies?.find(c => c.is_primary)?.symbol || 'K';
+  // 2026-11-28 — follow the book's currency mode, the same rule Save applies
+  // to the primary currency. A Kwacha book showed "$" here, from the default
+  // currency list, until the settings had been saved once.
+  const curSymbol = form.currencyMode === 'K' ? 'K' : (form.currencies?.find(c => c.is_primary)?.symbol || '$');
   const cloudOff = syncInfo && (syncInfo.tenantId === 'local-only' || !syncInfo.isConfigured);
   const goTo = (id) => (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
   const NAV = [

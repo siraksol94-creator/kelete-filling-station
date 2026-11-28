@@ -9,7 +9,8 @@
 export function trayTiles({ hq = false, canPos = false, canVouchers = false, kind = null, canFuel = true } = {}) {
   const tiles = [];
   if (kind === 'fuel' && !hq && canFuel) tiles.push('fuel');
-  if (canPos) tiles.push('pos');
+  // HQ has no till (decision 2026-11-28): its Sales menu holds the HQ reports only.
+  if (canPos && !hq) tiles.push('pos');
   if (!hq && canVouchers) tiles.push('vouchers');
   return tiles;
 }

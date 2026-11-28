@@ -19,9 +19,9 @@ test('nothing or bad data gives zero, not an error', () => {
 });
 import { trayTiles } from '../../src/ux/dashTrayModel';
 
-test('Point of Sale shows for till users, at branches and at head office', () => {
+test('Point of Sale shows for till users at branches; head office has no till', () => {
   assert.deepEqual(trayTiles({ hq: false, canPos: true, canVouchers: true }), ['pos', 'vouchers']);
-  assert.deepEqual(trayTiles({ hq: true, canPos: true, canVouchers: true }), ['pos']);
+  assert.deepEqual(trayTiles({ hq: true, canPos: true, canVouchers: true }), []); // HQ has no till (2026-11-28)
   assert.deepEqual(trayTiles({ hq: false, canPos: false, canVouchers: true }), ['vouchers']);
   assert.deepEqual(trayTiles({ hq: true, canPos: false, canVouchers: true }), []);
   assert.deepEqual(trayTiles(), []);

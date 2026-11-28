@@ -495,6 +495,13 @@
    "covers": "Sales Report",
    "what": "routes/orders.js: ?shop=1 on GET /api/orders, /product-summary and /product-breakdown leaves out orders numbered FUEL-… (fuel credit tickets; they stay in Credit Sales, Accounts Receivable and the Fuel Cash Report). The Sales Report always asks for shop=1 (services/api.js); without it the routes answer as before. Shop profit summary (/api/inventory/sales/profit-summary) leaves FUEL-… orders out of revenue (the stored daily profit and the Profit Report already net them out in services/fuelProfit.js, untouched). POS, Sales Inventory and Sales Bin Card leave out FUEL-… credit-ticket products (ux/itemRules isFuelSystemItem); /api/inventory rows now carry category_id. The main KPI card (Sales Report, Profit Report) is navy, not red. No migration.",
    "migrations": []
+  },
+  {
+   "n": 67,
+   "subject": "Head office has no till: no Point of Sale shortcut on the HQ dashboard; System Settings shows K, not $, on a Kwacha book (for review)",
+   "covers": "HQ and settings",
+   "what": "ux/dashTrayModel.js: the Point of Sale shortcut is for branches only; HQ's Sales menu already held only the HQ reports (Layout), so HQ now has no way into a till. System Settings: the money fields (maximum expenses per day, crate deposit) follow the currency mode, the same rule Save applies (K on a Kwacha book; it showed $ from the default currency list until settings were saved once). No migration.",
+   "migrations": []
   }
  ],
  "migrations": [
